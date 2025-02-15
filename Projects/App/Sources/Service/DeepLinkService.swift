@@ -32,7 +32,9 @@ final class DeepLinkService {
     }
 
     func handle(userInfo: [AnyHashable: Any]) {
-        let typeString = userInfo["type"] as? String
+        print("🔔 FCM userInfo: \(userInfo)")
+
+        let typeString = userInfo["notificationType"] as? String
         let notificationType = typeString.flatMap { NotificationType(rawValue: $0) }
 
         if let notificationType {
@@ -57,7 +59,12 @@ final class DeepLinkService {
             return nil
         }()
 
-        guard let concertID else { return }
+        guard let concertID else {
+            print("🔔 FCM: concertID 파싱 실패")
+            return
+        }
+
+        print("🔔 FCM: concertID=\(concertID), type=\(notificationType?.rawValue ?? "nil")")
 
         let (initialTab, initialSection): (SegmentedTabBarType.DetailTab, ConcertInfoSection?) = {
             if let notificationType {
