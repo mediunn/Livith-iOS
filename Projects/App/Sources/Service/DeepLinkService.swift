@@ -32,16 +32,39 @@ final class DeepLinkService {
     }
 
     func handle(userInfo: [AnyHashable: Any]) {
-        guard let typeString = userInfo["type"] as? String,
-              let concertIDString = userInfo["concertId"] as? String,
-              let concertID = Int(concertIDString),
-              let notificationType = NotificationType(rawValue: typeString)
-        else {
-            return
+        let typeString = userInfo["type"] as? String
+        let notificationType = typeString.flatMap { NotificationType(rawValue: $0) }
+
+        if let notificationType {
+            trackPushNotificationTap(type: notificationType)
+
+            if notificationType == .interestConcert {
+                NotificationCenter.default.post(name: .openInterestConcert, object: nil)
+                return
+            }
         }
 
-        trackPushNotificationTap(type: notificationType)
-        let (initialTab, initialSection) = mapNotificationTypeToTabAndSection(notificationType)
+        let concertID: Int? = {
+            if let id = userInfo["concertId"] as? Int {
+                return id
+            } else if let idString = userInfo["concertId"] as? String {
+                return Int(idString)
+            } else if let id = userInfo["targetId"] as? Int {
+                return id
+            } else if let idString = userInfo["targetId"] as? String {
+                return Int(idString)
+            }
+            return nil
+        }()
+
+        guard let concertID else { return }
+
+        let (initialTab, initialSection): (SegmentedTabBarType.DetailTab, ConcertInfoSection?) = {
+            if let notificationType {
+                return mapNotificationTypeToTabAndSection(notificationType)
+            }
+            return (.artistDetail, nil)
+        }()
 
         var userInfoDict: [String: Any] = ["concertID": concertID, "initialTab": initialTab]
         if let section = initialSection {
@@ -127,4 +150,5 @@ private extension DeepLinkService {
 
 public extension Notification.Name {
     static let openConcertDetail = Notification.Name("openConcertDetail")
+    static let openInterestConcert = Notification.Name("openInterestConcert")
 }
