@@ -24,10 +24,9 @@ let project = Project(
             resources: ["Resources/**"],
             dependencies: [
 //                .project(target: "Auth", path: "../Auth"),
-//                .project(target: "DesignSystem", path: "../DesignSystem"),
+                .project(target: "DesignSystem", path: "../DesignSystem"),
 //                .project(target: "Dependency", path: "../Dependency"),
 //                .project(target: "Network", path: "../Network"),
-//                .project(target: "Persistence", path: "../Persistence"),
                 .project(target: "LoginFeature", path: "../LoginFeature"),
             ]
         )

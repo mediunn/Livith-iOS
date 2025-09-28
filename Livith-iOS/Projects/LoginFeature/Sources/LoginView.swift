@@ -1,4 +1,5 @@
 import SwiftUI
+import DesignSystem
 
 public struct LoginView: View {
     @State private var email: String = ""
@@ -8,9 +9,14 @@ public struct LoginView: View {
     
     public var body: some View {
         VStack(spacing: 20) {
+            Image.livithImage(.livithLogo)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 150, height: 60)
+            
             Text("Welcome to Livith")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .notosans(.title)
+                .foregroundColor(.livithColor(.black100))
             
             VStack(spacing: 16) {
                 TextField("Email", text: $email)
@@ -27,10 +33,11 @@ public struct LoginView: View {
                 handleLogin()
             }) {
                 Text("Login")
+                    .notosans(.bodyLarge)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(Color.livithColor(.yellow60))
+                    .foregroundColor(.livithColor(.white100))
                     .cornerRadius(10)
             }
             .padding(.horizontal)

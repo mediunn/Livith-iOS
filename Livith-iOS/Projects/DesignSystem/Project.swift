@@ -11,9 +11,7 @@ import ProjectDescription
 let project = Project(
     name: "DesignSystem",
     organizationName: "Youjin Lee",
-    packages: [
-        .remote(url: "https://github.com/onevcat/Kingfisher", requirement: .upToNextMajor(from: "8.2.0"))
-    ],
+    packages: [],
     targets: [
         Target.target(
             name: "DesignSystem",
@@ -25,7 +23,7 @@ let project = Project(
             sources: ["Sources/**"],
             resources: ["Resources/**"],
             dependencies: [
-                .package(product: "Kingfisher")
+                .external(name: "Kingfisher")
             ]
         )
     ]
