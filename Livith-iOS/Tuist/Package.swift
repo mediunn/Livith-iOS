@@ -15,8 +15,7 @@ import PackageDescription
 let package = Package(
     name: "Livith-iOS",
     dependencies: [
-        // Add your own dependencies here:
-        // .package(url: "https://github.com/Alamofire/Alamofire", from: "5.0.0"),
-        // You can read more about dependencies here: https://docs.tuist.io/documentation/tuist/dependencies
+        .package(url: "https://github.com/Alamofire/Alamofire", .upToNextMajor(from: "5.10.2")),
+        .package(url: "https://github.com/onevcat/Kingfisher", .upToNextMajor(from: "8.2.0"))
     ]
 )
