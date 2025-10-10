@@ -6,21 +6,18 @@
 //
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(
-    name: "Network",
-    organizationName: "Youjin Lee",
-    packages: [],
+let module = Module.network
+
+let project = Project.make(
+    module: module,
+    settings: .environment,
     targets: [
-        Target.target(
-            name: "Network",
-            destinations: [.iPhone],
+        Target.make(
+            module: module,
             product: .framework,
-            bundleId: "com.youz2me.livith.network",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["Sources/**"],
-            resources: ["Resources/**"],
+            infoPlist: .file(path: .relativeToRoot("Projects/Network/Resources/Info.plist")),
             dependencies: [
                 .external(name: "Alamofire")
             ]

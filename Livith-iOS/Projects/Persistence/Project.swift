@@ -6,22 +6,16 @@
 //
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(
-    name: "Persistence",
-    organizationName: "Youjin Lee",
-    packages: [],
+let module = Module.persistence
+
+let project = Project.make(
+    module: module,
     targets: [
-        Target.target(
-            name: "Persistence",
-            destinations: [.iPhone],
-            product: .framework,
-            bundleId: "com.youz2me.livith.persistence",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["Sources/**"],
-            resources: ["Resources/**"],
-            dependencies: []
+        Target.make(
+            module: module,
+            product: .framework
         )
     ]
 )

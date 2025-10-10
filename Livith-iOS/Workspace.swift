@@ -6,9 +6,10 @@
 //
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
 let workspace = Workspace(
-    name: "Livith-iOS",
+    name: BuildConfiguration.appName,
     projects: [
         "Projects/**"
     ]
