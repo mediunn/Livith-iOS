@@ -15,7 +15,8 @@ let project = Project.make(
     targets: [
         Target.make(
             module: module,
-            product: .framework
+            product: .framework,
+            resources: .default
         )
     ]
 )

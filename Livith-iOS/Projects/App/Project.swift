@@ -19,6 +19,7 @@ let project = Project.make(
             module: module,
             product: .app,
             name: BuildConfiguration.appName,
+            resources: .default,
             dependencies: [
 //                .auth,
                 .designSystem,

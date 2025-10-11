@@ -17,8 +17,9 @@ let project = Project.make(
         Target.make(
             module: module,
             product: .framework,
+            resources: .default,
             dependencies: [
-                .external(name: "Kingfisher")
+                .external(.kingfisher)
             ]
         )
     ]
