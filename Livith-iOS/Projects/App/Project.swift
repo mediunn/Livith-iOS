@@ -20,11 +20,11 @@ let project = Project.make(
             product: .app,
             name: BuildConfiguration.appName,
             dependencies: [
-//                Module.auth.dependency,
-                Module.designsystem.dependency,
-//                Module.dependency.dependency,
-//                Module.network.dependency,
-                Module.loginfeature.dependency,
+//                .auth,
+                .designSystem,
+//                .dependency,
+//                .network,
+                .loginFeature,
             ]
         )
     ],
