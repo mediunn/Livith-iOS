@@ -18,6 +18,7 @@ let project = Project.make(
             module: module,
             product: .framework,
             infoPlist: .file(path: .relativeToRoot("Projects/Network/Resources/Info.plist")),
+            resources: .default,
             dependencies: [
                 .external(.alamofire)
             ]

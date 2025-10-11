@@ -16,8 +16,9 @@ let project = Project.make(
         Target.make(
             module: module,
             product: .framework,
+            resources: .default,
             dependencies: [
-                Module.designsystem.dependency
+                .designSystem
             ]
         )
     ]

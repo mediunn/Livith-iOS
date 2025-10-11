@@ -14,7 +14,7 @@ extension Target {
         name: String? = nil,
         infoPlist: InfoPlist = .default,
         sources: SourceFilesList = ["Sources/**"],
-        resources: ResourceFileElements? = ["Resources/**"],
+        resources: ResourceFileElements? = nil,
         dependencies: [TargetDependency] = []
     ) -> Target {
         return Target.target(
