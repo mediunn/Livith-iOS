@@ -6,22 +6,17 @@
 //
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(
-    name: "Auth",
-    organizationName: "Youjin Lee",
-    packages: [],
+let module = Module.auth
+
+let project = Project.make(
+    module: module,
     targets: [
-        Target.target(
-            name: "Auth",
-            destinations: [.iPhone],
+        Target.make(
+            module: module,
             product: .framework,
-            bundleId: "com.youz2me.livith.auth",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["Sources/**"],
-            resources: ["Resources/**"],
-            dependencies: []
+            resources: .default
         )
     ]
 )

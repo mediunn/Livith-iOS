@@ -7,28 +7,27 @@
 
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(
-    name: "App",
-    organizationName: "Youjin Lee",
-    settings: .settings(base: ["DEVELOPMENT_TEAM": "2DF5SKQK2R"]),
+let module = Module.app
+
+let project = Project.make(
+    module: module,
+    settings: .environment,
     targets: [
-        Target.target(
-            name: "Livith-iOS",
-            destinations: [.iPhone],
+        Target.make(
+            module: module,
             product: .app,
-            bundleId: "com.youz2me.livith",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["Sources/**"],
-            resources: ["Resources/**"],
+            name: BuildConfiguration.appName,
+            resources: .default,
             dependencies: [
-//                .project(target: "Auth", path: "../Auth"),
-                .project(target: "DesignSystem", path: "../DesignSystem"),
-//                .project(target: "Dependency", path: "../Dependency"),
-//                .project(target: "Network", path: "../Network"),
-                .project(target: "LoginFeature", path: "../LoginFeature"),
+//                .auth,
+                .designSystem,
+//                .dependency,
+//                .network,
+                .loginFeature,
             ]
         )
-    ]
+    ],
+    schemes: Scheme.makeAppSchemes(name: BuildConfiguration.appName)
 )
