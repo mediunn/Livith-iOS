@@ -24,49 +24,49 @@ public extension Image {
         public var image: Image {
             switch self {
             case .backEnabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconBackEnabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconBackEnabled.image)
             case .backPressed:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconBackPressed.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconBackPressed.image)
             case .closeEnabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconCloseEnabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconCloseEnabled.image)
             case .closePressed:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconClosePressed.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconClosePressed.image)
             case .closeCommon:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconCloseCommon.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconCloseCommon.image)
             case .rightEnabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconRightEnabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconRightEnabled.image)
             case .rightPressed:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconRightPressed.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconRightPressed.image)
             case .homeEnabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconHomeEnabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconHomeEnabled.image)
             case .homePressed:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconHomePressed.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconHomePressed.image)
             case .homeDisabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconHomeDisabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconHomeDisabled.image)
             case .myEnabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconMyEnabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconMyEnabled.image)
             case .myPressed:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconMyPressed.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconMyPressed.image)
             case .myDisabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconMyDisabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconMyDisabled.image)
             case .searchEnabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconSearchEnabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconSearchEnabled.image)
             case .searchPressed:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconSearchPressed.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconSearchPressed.image)
             case .searchDisabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconSearchDisabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconSearchDisabled.image)
             case .playEnabled:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconPlayEnabled.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconPlayEnabled.image)
             case .playPressed:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconPlayPressed.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconPlayPressed.image)
             case .livithLogo:
-                Image(uiImage: DesignSystemAsset.ImageAssets.imageLivithLogo.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.imageLivithLogo.image)
             case .livithEmpty:
-                Image(uiImage: DesignSystemAsset.ImageAssets.imageLivithEmpty.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.imageLivithEmpty.image)
             case .splash:
-                Image(uiImage: DesignSystemAsset.ImageAssets.imageSplash.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.imageSplash.image)
             case .cultureCommon:
-                Image(uiImage: DesignSystemAsset.ImageAssets.iconCultureCommon.image)
+                Image(uiImage: DesignsystemAsset.ImageAssets.iconCultureCommon.image)
             }
         }
     }

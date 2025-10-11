@@ -23,13 +23,13 @@ public extension Font {
         var fontName: String {
             switch self {
             case .title:
-                return DesignSystemFontFamily.NotoSansKR.bold.name
+                return DesignsystemFontFamily.NotoSansKR.bold.name
             case .headLarge, .bodyLarge, .captionLarge:
-                return DesignSystemFontFamily.NotoSansKR.semiBold.name
+                return DesignsystemFontFamily.NotoSansKR.semiBold.name
             case .bodyMedium:
-                return DesignSystemFontFamily.NotoSansKR.medium.name
+                return DesignsystemFontFamily.NotoSansKR.medium.name
             default:
-                return DesignSystemFontFamily.NotoSansKR.regular.name
+                return DesignsystemFontFamily.NotoSansKR.regular.name
             }
         }
         

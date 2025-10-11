@@ -1,5 +1,5 @@
 import SwiftUI
-import LoginFeature
+import loginfeature
 
 @main
 struct LivithApp: App {
