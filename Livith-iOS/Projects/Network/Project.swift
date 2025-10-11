@@ -19,7 +19,7 @@ let project = Project.make(
             product: .framework,
             infoPlist: .file(path: .relativeToRoot("Projects/Network/Resources/Info.plist")),
             dependencies: [
-                .external(name: "Alamofire")
+                .external(.alamofire)
             ]
         )
     ]
