@@ -1,0 +1,88 @@
+//
+//  DependencyContainer.swift
+//  core
+//
+//  Created by 김진웅 on 10/12/25.
+//  Copyright © 2025 Livith. All rights reserved.
+//
+
+import Foundation
+
+// MARK: - Dependency Container Protocols
+public protocol DependencyRegistable {
+    func register<T>(_ dependency: T, for type: T.Type)
+    func register<T>(_ factory: @escaping () -> T, for type: T.Type)
+}
+
+public extension DependencyRegistable {}
+
+public protocol DependencyResolvable {
+    func resolve<T>(_ type: T.Type) -> T
+}
+
+public protocol AssemblerRegistable {
+    func register(assemblers: [any DependencyAssembler])
+}
+
+public typealias DependencyContainer = DependencyRegistable & DependencyResolvable & AssemblerRegistable
+
+// MARK: - Dependency Container Implementation
+final class DIContainer: DependencyContainer {
+    public static let shared = DIContainer()
+
+    private enum Entry {
+        case instance(Any)
+        case factory(() -> Any)
+    }
+    
+    private var dependencies: [ObjectIdentifier: Entry] = [:]
+
+    private let queue = DispatchQueue(label: "com.livith.DIContainer.queue", qos: .userInitiated)
+
+    private init() {}
+
+    func register<T>(_ dependency: T, for type: T.Type) {
+        queue.sync {
+            let key = ObjectIdentifier(type)
+            dependencies[key] = .instance(dependency)
+        }
+    }
+    
+    func register<T>(_ factory: @escaping () -> T, for type: T.Type) {
+        queue.sync {
+            let key = ObjectIdentifier(type)
+            let anyFactory: () -> Any = { factory() }
+            dependencies[key] = .factory(anyFactory)
+        }
+    }
+    
+    func resolve<T>(_ type: T.Type) -> T {
+        queue.sync {
+            let key = ObjectIdentifier(type)
+            guard let entry = dependencies[key] else {
+                fatalError("\(type) is not registered")
+            }
+            
+            switch entry {
+            case .instance(let service):
+                guard let typedService = service as? T else {
+                    fatalError("Registered dependency for \(type) has mismatched type")
+                }
+                return typedService
+                
+            case .factory(let factory):
+                let instance = factory()
+                guard let typedInstance = instance as? T else {
+                    fatalError("Factory for \(type) returned mismatched type")
+                }
+                return typedInstance
+            }
+        }
+    }
+    
+    func register(assemblers: [any DependencyAssembler]) {
+        queue.sync {
+            assemblers.forEach { $0.assemble(to: self) }
+        }
+    }
+}
