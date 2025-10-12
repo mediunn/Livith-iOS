@@ -41,14 +41,14 @@ final class DIContainer: DependencyContainer {
 
     private init() {}
 
-    func register<T>(_ dependency: T, for type: T.Type) {
+    public func register<T>(_ dependency: T, for type: T.Type) {
         queue.sync {
             let key = ObjectIdentifier(type)
             dependencies[key] = .instance(dependency)
         }
     }
     
-    func register<T>(_ factory: @escaping () -> T, for type: T.Type) {
+    public func register<T>(_ factory: @escaping () -> T, for type: T.Type) {
         queue.sync {
             let key = ObjectIdentifier(type)
             let anyFactory: () -> Any = { factory() }
@@ -80,7 +80,7 @@ final class DIContainer: DependencyContainer {
         }
     }
     
-    func register(assemblers: [any DependencyAssembler]) {
+    public func register(assemblers: [any DependencyAssembler]) {
         queue.sync {
             assemblers.forEach { $0.assemble(to: self) }
         }
