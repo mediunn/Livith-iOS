@@ -30,7 +30,7 @@ public final class ResponseHandler: ResponseHandlerProtocol {
             let statusCode = httpResponse.statusCode
 
             guard (200..<300).contains(statusCode) else {
-                let errorMessage = try? JSONDecoder().decode(ErrorResponse.self, from: data).message
+                let errorMessage = try? decoder.decode(ErrorResponse.self, from: data).message
                 throw NetworkError.from(statusCode: statusCode, message: errorMessage)
             }
         }

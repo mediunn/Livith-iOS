@@ -56,7 +56,7 @@ public extension NetworkError {
     }
 }
 
-public extension NetworkError: LocalizedError {
+extension NetworkError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidURL:
