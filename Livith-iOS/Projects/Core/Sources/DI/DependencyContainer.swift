@@ -14,8 +14,6 @@ public protocol DependencyRegistable {
     func register<T>(_ factory: @escaping () -> T, for type: T.Type)
 }
 
-public extension DependencyRegistable {}
-
 public protocol DependencyResolvable {
     func resolve<T>(_ type: T.Type) -> T
 }

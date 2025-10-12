@@ -10,7 +10,7 @@ import Foundation
 
 @propertyWrapper
 public struct Injected<T> {
-    private let container: DependencyContainer
+    private let container: any DependencyContainer
     private let lock = NSLock()
 
     private var _value: T?
@@ -20,7 +20,7 @@ public struct Injected<T> {
         self._value = nil
     }
     
-    public init(container: DependencyContainer) {
+    public init(container: any DependencyContainer) {
         self.container = container
         self._value = nil
     }
