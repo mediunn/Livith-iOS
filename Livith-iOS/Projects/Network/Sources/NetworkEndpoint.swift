@@ -13,11 +13,13 @@ import Alamofire
 public protocol NetworkEndpoint {
     var endPoint: String? { get }
     var method: HTTPMethod { get }
+    var headers: HTTPHeaders? { get }
     var query: [String: Any]? { get }
     var body: Encodable? { get }
 }
 
 public extension NetworkEndpoint {
+    var headers: HTTPHeaders? { .none }
     var query: [String: Any]? { .none }
     var body: Encodable? { .none }
 }

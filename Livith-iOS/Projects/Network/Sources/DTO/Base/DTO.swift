@@ -9,6 +9,6 @@
 import Foundation
 
 public enum DTO {
-    enum Request {}
-    enum Response {}
+    public enum Request {}
+    public enum Response {}
 }

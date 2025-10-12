@@ -46,17 +46,23 @@ public extension NetworkService {
                 url,
                 method: endPoint.method,
                 parameters: body,
-                encoder: JSONParameterEncoder.default
+                encoder: JSONParameterEncoder.default,
+                headers: endPoint.headers
             )
         case (_, let query?):
             dataRequest = AF.request(
                 url,
                 method: endPoint.method,
                 parameters: query,
-                encoding: URLEncoding.queryString
+                encoding: URLEncoding.queryString,
+                headers: endPoint.headers
             )
         default:
-            dataRequest = AF.request(url, method: endPoint.method)
+            dataRequest = AF.request(
+                url,
+                method: endPoint.method,
+                headers: endPoint.headers
+            )
         }
 
         return handleResponse(dataRequest)
