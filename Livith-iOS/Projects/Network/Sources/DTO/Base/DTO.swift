@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum DTO {
+public enum DTO {
     enum Request {}
     enum Response {}
 }

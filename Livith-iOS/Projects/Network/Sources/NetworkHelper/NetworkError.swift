@@ -35,7 +35,7 @@ public enum NetworkError: Error {
     case unknown(Error)
 }
 
-extension NetworkError {
+public extension NetworkError {
     static func from(statusCode: Int, message: String? = nil) -> NetworkError {
         switch statusCode {
         case 400:
@@ -56,7 +56,7 @@ extension NetworkError {
     }
 }
 
-extension NetworkError: LocalizedError {
+public extension NetworkError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidURL:
