@@ -22,10 +22,10 @@ public protocol AssemblerRegistable {
     func register(assemblers: [any DependencyAssembler])
 }
 
-public typealias DependencyContainer = DependencyRegistable & DependencyResolvable & AssemblerRegistable
+public typealias DependencyContainer = DependencyRegistable & DependencyResolvable
 
 // MARK: - Dependency Container Implementation
-public final class DIContainer: DependencyContainer {
+public final class DIContainer: DependencyContainer, AssemblerRegistable {
     public static let shared = DIContainer()
 
     private enum Entry {
@@ -54,7 +54,7 @@ public final class DIContainer: DependencyContainer {
         }
     }
     
-    func resolve<T>(_ type: T.Type) -> T {
+    public func resolve<T>(_ type: T.Type) -> T {
         queue.sync {
             let key = ObjectIdentifier(type)
             guard let entry = dependencies[key] else {
