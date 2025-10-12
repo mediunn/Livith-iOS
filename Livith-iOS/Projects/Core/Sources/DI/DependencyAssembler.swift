@@ -9,5 +9,5 @@
 import Foundation
 
 public protocol DependencyAssembler {
-    func assemble(to container: any DependencyRegistable)
+    func assemble(to container: any DependencyContainer)
 }
