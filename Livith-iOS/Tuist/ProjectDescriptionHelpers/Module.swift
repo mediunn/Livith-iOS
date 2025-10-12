@@ -10,6 +10,7 @@ import ProjectDescription
 public enum Module: String {
     case app
     case auth
+    case core
     case dependency
     case designsystem
     case loginfeature
@@ -28,6 +29,7 @@ public enum Module: String {
         switch self {
         case .app: return "App"
         case .auth: return "Auth"
+        case .core: return "Core"
         case .dependency: return "Dependency"
         case .designsystem: return "DesignSystem"
         case .loginfeature: return "LoginFeature"
