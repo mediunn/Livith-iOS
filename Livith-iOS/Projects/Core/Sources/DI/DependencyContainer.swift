@@ -25,7 +25,7 @@ public protocol AssemblerRegistable {
 public typealias DependencyContainer = DependencyRegistable & DependencyResolvable & AssemblerRegistable
 
 // MARK: - Dependency Container Implementation
-final class DIContainer: DependencyContainer {
+public final class DIContainer: DependencyContainer {
     public static let shared = DIContainer()
 
     private enum Entry {
@@ -79,8 +79,6 @@ final class DIContainer: DependencyContainer {
     }
     
     public func register(assemblers: [any DependencyAssembler]) {
-        queue.sync {
-            assemblers.forEach { $0.assemble(to: self) }
-        }
+        assemblers.forEach { $0.assemble(to: self) }
     }
 }
