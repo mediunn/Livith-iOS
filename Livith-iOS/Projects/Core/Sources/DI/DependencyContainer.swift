@@ -9,6 +9,7 @@
 import Foundation
 
 // MARK: - Dependency Container Protocols
+
 public protocol DependencyRegistable {
     func register<T>(_ dependency: T, for type: T.Type)
     func register<T>(_ factory: @escaping () -> T, for type: T.Type)
@@ -25,6 +26,7 @@ public protocol AssemblerRegistable {
 public typealias DependencyContainer = DependencyRegistable & DependencyResolvable
 
 // MARK: - Dependency Container Implementation
+
 public final class DIContainer: DependencyContainer, AssemblerRegistable {
     public static let shared = DIContainer()
 
