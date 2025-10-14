@@ -8,10 +8,8 @@
 
 import Foundation
 
-import Alamofire
-
 public protocol ResponseHandlerProtocol {
-    func handle<T: Decodable>(_ response: DataResponse<T, AFError>) throws -> T
+    func handle<T: Decodable>(data: Data, response: HTTPURLResponse) async throws(NetworkError) -> T
 }
 
 public final class ResponseHandler: ResponseHandlerProtocol {
@@ -21,27 +19,19 @@ public final class ResponseHandler: ResponseHandlerProtocol {
         self.decoder = decoder
     }
 
-    public func handle<T: Decodable>(_ response: DataResponse<T, AFError>) throws -> T {
-        guard let data = response.data else {
-            throw NetworkError.noData
+    public func handle<T: Decodable>(data: Data, response: HTTPURLResponse) async throws(NetworkError) -> T {
+        let statusCode = response.statusCode
+
+        guard (200..<300).contains(statusCode) else {
+            let errorMessage = try? decoder.decode(BaseResponse<EmptyResponse>.self, from: data).message
+            throw NetworkError.from(statusCode: statusCode, message: errorMessage)
         }
-
-        if let httpResponse = response.response {
-            let statusCode = httpResponse.statusCode
-
-            guard (200..<300).contains(statusCode) else {
-                let errorMessage = try? decoder.decode(ErrorResponse.self, from: data).message
-                throw NetworkError.from(statusCode: statusCode, message: errorMessage)
-            }
+        
+        do {
+            let decodedValue = try decoder.decode(T.self, from: data)
+            return decodedValue
+        } catch {
+            throw NetworkError.decodingFailed(error)
         }
-
-        guard let value = response.value else {
-            if let error = response.error {
-                throw NetworkError.decodingFailed(error)
-            }
-            throw NetworkError.invalidResponse
-        }
-
-        return value
     }
 }
