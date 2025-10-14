@@ -24,6 +24,8 @@ public final class ErrorMapper: ErrorMapperProtocol {
 
         if let afError = error as? AFError {
             switch afError {
+            case .sessionTaskFailed(error: let error):
+                return .noConnection(error)
             case .invalidURL:
                 return .invalidURL
             case .responseValidationFailed:
