@@ -57,26 +57,27 @@ public final class DIContainer: DependencyContainer, AssemblerRegistable {
     }
     
     public func resolve<T>(_ type: T.Type) -> T {
-        queue.sync {
+        let entry: Entry = queue.sync {
             let key = ObjectIdentifier(type)
             guard let entry = dependencies[key] else {
                 fatalError("\(type) is not registered")
             }
-            
-            switch entry {
-            case .instance(let service):
-                guard let typedService = service as? T else {
-                    fatalError("Registered dependency for \(type) has mismatched type")
-                }
-                return typedService
-                
-            case .factory(let factory):
-                let instance = factory()
-                guard let typedInstance = instance as? T else {
-                    fatalError("Factory for \(type) returned mismatched type")
-                }
-                return typedInstance
+            return entry
+        }
+
+        switch entry {
+        case .instance(let service):
+            guard let typedService = service as? T else {
+                fatalError("Registered dependency for \(type) has mismatched type")
             }
+            return typedService
+
+        case .factory(let factory):
+            let instance = factory()
+            guard let typedInstance = instance as? T else {
+                fatalError("Factory for \(type) returned mismatched type")
+            }
+            return typedInstance
         }
     }
     
