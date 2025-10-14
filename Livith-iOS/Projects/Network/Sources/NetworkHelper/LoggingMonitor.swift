@@ -9,8 +9,6 @@
 import Foundation
 
 public final class LoggingMonitor {
-    public init() {}
-
     public func willSend(_ request: URLRequest, endpoint: NetworkEndpoint) {
         print("🚀 [Request] =====================")
         print("URL: \(request.url?.absoluteString ?? "URL을 찾을 수 없습니다")")
