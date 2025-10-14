@@ -18,15 +18,18 @@ public final class NetworkService: NetworkServiceProtocol {
     private let responseHandler: ResponseHandlerProtocol
     private let errorMapper: ErrorMapperProtocol
     private let interceptor: RequestInterceptor
+    private let loggingMonitor
 
     public init(
         responseHandler: ResponseHandlerProtocol = ResponseHandler(),
         errorMapper: ErrorMapperProtocol = ErrorMapper(),
-        interceptor: RequestInterceptor
+        interceptor: RequestInterceptor,
+        loggingMonitor: NetworkMonitor? = nil
     ) {
         self.responseHandler = responseHandler
         self.errorMapper = errorMapper
         self.interceptor = interceptor
+        self.loggingMonitor = loggingMonitor
     }
 }
 
@@ -69,15 +72,10 @@ public extension NetworkService {
             )
         }
 
-        return try await handleResponse(dataRequest)
-    }
-}
+        if let request = dataRequest.request {
+            loggingMonitor?.willSend(request, endpoint: endPoint)
+        }
 
-
-// MARK: - Response Handling Extension
-
-private extension NetworkService {
-    func handleResponse<T: Decodable>(_ dataRequest: DataRequest) async throws(NetworkError) -> T {
         do {
             let data = try await dataRequest.serializingData().value
 
@@ -85,11 +83,25 @@ private extension NetworkService {
                 throw NetworkError.invalidResponse
             }
 
-            return try await responseHandler.handle(data: data, response: httpResponse)
+            return try await handleResponse(data: data, response: httpResponse, endpoint: endPoint)
         } catch let error as NetworkError {
+            loggingMonitor?.didReceive(.failure(error), endpoint: endPoint, response: dataRequest.response)
             throw error
         } catch {
-            throw errorMapper.map(error)
+            let mappedError = errorMapper.map(error)
+            loggingMonitor?.didReceive(.failure(mappedError), endpoint: endPoint, response: dataRequest.response)
+            throw mappedError
         }
+    }
+}
+
+
+// MARK: - Response Handling Extension
+
+private extension NetworkService {
+    func handleResponse<T: Decodable>(data: Data, response: HTTPURLResponse, endpoint: NetworkEndpoint) async throws(NetworkError) -> T {
+        loggingMonitor?.didReceive(.success(data), endpoint: endpoint, response: response)
+
+        return try await responseHandler.handle(data: data, response: response)
     }
 }
