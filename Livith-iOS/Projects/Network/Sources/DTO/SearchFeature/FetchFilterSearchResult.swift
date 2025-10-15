@@ -1,5 +1,5 @@
 //
-//  FetchFliterSearchResult.swift
+//  FetchFilterSearchResult.swift
 //  network
 //
 //  Created by Youjin Lee on 10/14/25.
@@ -11,7 +11,7 @@
 import Foundation
 
 public extension DTO.Response {
-    struct FetchFliterSearchResult: Decodable {
+    struct FetchFilterSearchResult: Decodable {
         public let data: [FilteredConcert]
         public let cursor: Cursor
         public let totalCount: Int
