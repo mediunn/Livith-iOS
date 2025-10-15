@@ -11,7 +11,7 @@
 import Foundation
 
 public extension DTO.Request {
-    struct UpdateToken: Decodable {
+    struct UpdateToken: Encodable {
         public let accessToken: String
     }
 }

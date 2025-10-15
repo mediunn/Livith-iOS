@@ -12,14 +12,14 @@ import Foundation
 
 public extension DTO.Response {
     struct FetchUserInfo: Decodable {
-        let accessToken: String
-        let refreshToken: String
-        let user: User
+        public let accessToken: String
+        public let refreshToken: String
+        public let user: User
     }
     
     struct User: Decodable {
-        let id: String
-        let nickname: String
-        let email: String
+        public let id: String
+        public let nickname: String
+        public let email: String
     }
 }
