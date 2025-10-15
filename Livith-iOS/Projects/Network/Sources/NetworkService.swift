@@ -15,18 +15,31 @@ public protocol NetworkServiceProtocol {
 }
 
 public final class NetworkService: NetworkServiceProtocol {
+    private let session: Session
     private let responseHandler: ResponseHandlerProtocol
     private let errorMapper: ErrorMapperProtocol
-    private let interceptor: RequestInterceptor
 
     public init(
+        session: Session,
         responseHandler: ResponseHandlerProtocol = ResponseHandler(),
-        errorMapper: ErrorMapperProtocol = ErrorMapper(),
-        interceptor: RequestInterceptor
+        errorMapper: ErrorMapperProtocol = ErrorMapper()
     ) {
+        self.session = session
         self.responseHandler = responseHandler
         self.errorMapper = errorMapper
-        self.interceptor = interceptor
+    }
+
+    public convenience init(
+        interceptor: RequestInterceptor? = nil,
+        eventMonitors: [EventMonitor] = [],
+        configuration: URLSessionConfiguration = .default
+    ) {
+        let session = Session(
+            configuration: configuration,
+            interceptor: interceptor,
+            eventMonitors: eventMonitors
+        )
+        self.init(session: session)
     }
 }
 
@@ -43,29 +56,26 @@ public extension NetworkService {
 
         switch (endPoint.body, endPoint.query) {
         case (let body?, _):
-            dataRequest = AF.request(
+            dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 parameters: body,
                 encoder: JSONParameterEncoder.default,
-                headers: endPoint.headers,
-                interceptor: interceptor
+                headers: endPoint.headers
             )
         case (_, let query?):
-            dataRequest = AF.request(
+            dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 parameters: query,
                 encoding: URLEncoding.queryString,
-                headers: endPoint.headers,
-                interceptor: interceptor
+                headers: endPoint.headers
             )
         default:
-            dataRequest = AF.request(
+            dataRequest = session.request(
                 url,
                 method: endPoint.method,
-                headers: endPoint.headers,
-                interceptor: interceptor
+                headers: endPoint.headers
             )
         }
 
