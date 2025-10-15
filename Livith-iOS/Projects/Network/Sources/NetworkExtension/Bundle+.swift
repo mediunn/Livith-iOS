@@ -20,7 +20,9 @@ public extension Bundle {
 
 private extension Bundle {
     static func object(dictionaryKey: String) -> String {
-        guard let object = main.object(forInfoDictionaryKey: dictionaryKey) as? String else {
+        let networkBundle = Bundle(identifier: "com.youz2me.livith.network") ?? Bundle.main
+        
+        guard let object = networkBundle.object(forInfoDictionaryKey: dictionaryKey) as? String else {
             fatalError("\(dictionaryKey)을 찾을 수 없습니다.")
         }
         

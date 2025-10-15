@@ -11,7 +11,7 @@ import Foundation
 import Alamofire
 
 public protocol NetworkEndpoint {
-    var endPoint: String? { get }
+    var path: String? { get }
     var method: HTTPMethod { get }
     var headers: HTTPHeaders? { get }
     var query: [String: Any]? { get }

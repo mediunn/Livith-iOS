@@ -32,6 +32,7 @@ public enum NetworkError: Error {
 
     // MARK: Unknown Error
     
+    case noConnection(Error)
     case unknown(Error)
 }
 
@@ -83,6 +84,9 @@ extension NetworkError: LocalizedError {
 
         case .decodingFailed(let error):
             return "데이터 디코딩에 실패했습니다: \(error.localizedDescription)"
+            
+        case .noConnection(let error):
+            return "네트워크 연결을 찾을 수 없습니다: \(error.localizedDescription)"
         case .unknown(let error):
             return "알 수 없는 에러입니다: \(error.localizedDescription)"
         }

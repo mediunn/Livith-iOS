@@ -6,43 +6,57 @@
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
-import Combine
 import Foundation
 
 import Alamofire
 
 public protocol NetworkServiceProtocol {
-    func request<T: Decodable>(_ endPoint: NetworkEndpoint) -> AnyPublisher<T, NetworkError>
+    func request<T: Decodable>(_ endPoint: NetworkEndpoint) async throws(NetworkError) -> T
 }
 
 public final class NetworkService: NetworkServiceProtocol {
+    private let session: Session
     private let responseHandler: ResponseHandlerProtocol
     private let errorMapper: ErrorMapperProtocol
 
     public init(
+        session: Session,
         responseHandler: ResponseHandlerProtocol = ResponseHandler(),
         errorMapper: ErrorMapperProtocol = ErrorMapper()
     ) {
+        self.session = session
         self.responseHandler = responseHandler
         self.errorMapper = errorMapper
+    }
+
+    public convenience init(
+        interceptor: RequestInterceptor? = nil,
+        eventMonitors: [EventMonitor] = [],
+        configuration: URLSessionConfiguration = .default
+    ) {
+        let session = Session(
+            configuration: configuration,
+            interceptor: interceptor,
+            eventMonitors: eventMonitors
+        )
+        self.init(session: session)
     }
 }
 
 // MARK: - Request Method
 
 public extension NetworkService {
-    func request<T: Decodable>(_ endPoint: NetworkEndpoint) -> AnyPublisher<T, NetworkError> {
-        guard let endpoint = endPoint.endPoint else {
-            return Fail(error: NetworkError.invalidURL)
-                .eraseToAnyPublisher()
+    func request<T: Decodable>(_ endPoint: NetworkEndpoint) async throws(NetworkError) -> T {
+        guard let endpoint = endPoint.path else {
+            throw NetworkError.invalidURL
         }
 
         let url = Bundle.versionedBaseURL.appendingPathComponent(endpoint)
         let dataRequest: DataRequest
-        
+
         switch (endPoint.body, endPoint.query) {
         case (let body?, _):
-            dataRequest = AF.request(
+            dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 parameters: body,
@@ -50,7 +64,7 @@ public extension NetworkService {
                 headers: endPoint.headers
             )
         case (_, let query?):
-            dataRequest = AF.request(
+            dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 parameters: query,
@@ -58,14 +72,26 @@ public extension NetworkService {
                 headers: endPoint.headers
             )
         default:
-            dataRequest = AF.request(
+            dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 headers: endPoint.headers
             )
         }
 
-        return handleResponse(dataRequest)
+        do {
+            let data = try await dataRequest.serializingData().value
+
+            guard let httpResponse = dataRequest.response else {
+                throw NetworkError.invalidResponse
+            }
+
+            return try await handleResponse(data: data, response: httpResponse)
+        } catch let error as NetworkError {
+            throw error
+        } catch {
+            throw errorMapper.map(error)
+        }
     }
 }
 
@@ -73,15 +99,7 @@ public extension NetworkService {
 // MARK: - Response Handling Extension
 
 private extension NetworkService {
-    func handleResponse<T: Decodable>(_ dataRequest: DataRequest) -> AnyPublisher<T, NetworkError> {
-        return dataRequest
-            .publishDecodable(type: T.self)
-            .tryMap { [responseHandler] response in
-                try responseHandler.handle(response)
-            }
-            .mapError { [errorMapper] error in
-                errorMapper.map(error)
-            }
-            .eraseToAnyPublisher()
+    func handleResponse<T: Decodable>(data: Data, response: HTTPURLResponse) async throws(NetworkError) -> T {
+        return try await responseHandler.handle(data: data, response: response)
     }
 }
