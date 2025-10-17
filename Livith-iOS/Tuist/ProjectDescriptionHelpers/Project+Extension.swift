@@ -8,7 +8,6 @@
 import ProjectDescription
 
 extension Project {
-    /// 프로젝트 이름을 열거형으로 받아서 생성
     public static func make(
         project: ProjectName,
         organizationName: String? = BuildConfiguration.organizationName,
