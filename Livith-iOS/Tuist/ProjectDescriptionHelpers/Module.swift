@@ -37,7 +37,7 @@ public enum TargetName {
         }
     }
     
-    public var bundleId: String {
+    public var bundleID: String {
         switch self {
         case .app:
             return BuildConfiguration.baseBundleID
