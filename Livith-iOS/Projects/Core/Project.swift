@@ -8,67 +8,33 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let project = Project(
-    name: "Core",
-    organizationName: "Livith",
+let project = Project.make(
+    project: .core,
     targets: [
-        .target(
-            name: "DIContainer",
-            destinations: [.iPhone],
-            product: .framework,
-            bundleId: "com.youz2me.livith.dicontainer",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["DIContainer/Sources/**"],
-            resources: nil,
-            dependencies: []
+        .make(
+            target: .core(.diContainer),
+            product: .framework
         ),
-        .target(
-            name: "PerformanceMonitor",
-            destinations: [.iPhone],
-            product: .framework,
-            bundleId: "com.youz2me.livith.performancemonitor",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["PerformanceMonitor/Sources/**"],
-            resources: nil,
-            dependencies: []
+        .make(
+            target: .core(.performanceMonitor),
+            product: .framework
         ),
-        .target(
-            name: "Routing",
-            destinations: [.iPhone],
+        .make(
+            target: .core(.network),
             product: .framework,
-            bundleId: "com.youz2me.livith.routing",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["Routing/Sources/**"],
-            resources: nil,
-            dependencies: []
-        ),
-        .target(
-            name: "Persistence",
-            destinations: [.iPhone],
-            product: .framework,
-            bundleId: "com.youz2me.livith.persistence",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["Persistence/Sources/**"],
-            resources: nil,
-            dependencies: []
-        ),
-        .target(
-            name: "Network",
-            destinations: [.iPhone],
-            product: .framework,
-            bundleId: "com.youz2me.livith.network",
-            deploymentTargets: .iOS("17.0"),
             infoPlist: .file(path: "Network/Resources/Info.plist"),
-            sources: ["Network/Sources/**"],
-            resources: nil,
             dependencies: [
-                .external(name: "Alamofire")
+                .external(.alamofire)
             ],
             settings: .environment
+        ),
+        .make(
+            target: .core(.persistence),
+            product: .framework
+        ),
+        .make(
+            target: .core(.routing),
+            product: .framework
         )
     ]
 )

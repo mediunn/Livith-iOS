@@ -6,22 +6,16 @@
 //
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(
-    name: "Shared",
-    organizationName: "Livith",
+let project = Project.make(
+    project: .shared,
     targets: [
-        .target(
-            name: "DesignSystem",
-            destinations: [.iPhone],
+        .make(
+            target: .shared(.designSystem),
             product: .framework,
-            bundleId: "com.youz2me.livith.designsystem",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["DesignSystem/Sources/**"],
-            resources: ["DesignSystem/Resources/**"],
             dependencies: [
-                .external(name: "Kingfisher")
+                .external(.kingfisher)
             ]
         )
     ]

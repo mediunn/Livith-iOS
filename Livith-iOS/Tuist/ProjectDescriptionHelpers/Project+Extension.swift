@@ -8,30 +8,40 @@
 import ProjectDescription
 
 extension Project {
+    /// 프로젝트 이름을 열거형으로 받아서 생성
     public static func make(
-        module: Module,
+        project: ProjectName,
+        organizationName: String? = BuildConfiguration.organizationName,
         packages: [Package] = [],
         settings: Settings? = nil,
-        targets: [Target],
-        schemes: [Scheme]? = nil
+        targets: [Target] = [],
+        schemes: [Scheme] = []
     ) -> Project {
-        if let schemes = schemes {
-            return Project(
-                name: module.name,
-                organizationName: BuildConfiguration.organizationName,
-                packages: packages,
-                settings: settings,
-                targets: targets,
-                schemes: schemes
-            )
-        } else {
-            return Project(
-                name: module.name,
-                organizationName: BuildConfiguration.organizationName,
-                packages: packages,
-                settings: settings,
-                targets: targets
-            )
-        }
+        return Project(
+            name: project.name,
+            organizationName: organizationName,
+            packages: packages,
+            settings: settings,
+            targets: targets,
+            schemes: schemes
+        )
+    }
+    
+    public static func make(
+        name: String,
+        organizationName: String? = BuildConfiguration.organizationName,
+        packages: [Package] = [],
+        settings: Settings? = nil,
+        targets: [Target] = [],
+        schemes: [Scheme] = []
+    ) -> Project {
+        return Project(
+            name: name,
+            organizationName: organizationName,
+            packages: packages,
+            settings: settings,
+            targets: targets,
+            schemes: schemes
+        )
     }
 }

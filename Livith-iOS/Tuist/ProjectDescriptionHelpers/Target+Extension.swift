@@ -9,24 +9,55 @@ import ProjectDescription
 
 extension Target {
     public static func make(
-        module: Module,
+        target: TargetName,
+        destinations: Destinations = [.iPhone],
         product: Product,
-        name: String? = nil,
-        infoPlist: InfoPlist = .default,
+        deploymentTargets: DeploymentTargets? = .iOS("17.0"),
+        infoPlist: InfoPlist? = .default,
+        entitlements: Entitlements? = nil,
+        dependencies: [TargetDependency] = [],
+        settings: Settings? = nil
+    ) -> Target {
+        return .target(
+            name: target.name,
+            destinations: destinations,
+            product: product,
+            bundleId: target.bundleId,
+            deploymentTargets: deploymentTargets,
+            infoPlist: infoPlist,
+            sources: target.sourcesPath,
+            resources: target.resourcesPath,
+            entitlements: entitlements,
+            dependencies: dependencies,
+            settings: settings
+        )
+    }
+    
+    public static func make(
+        name: String,
+        destinations: Destinations = [.iPhone],
+        product: Product,
+        bundleId: String,
+        deploymentTargets: DeploymentTargets? = .iOS("17.0"),
+        infoPlist: InfoPlist? = .default,
         sources: SourceFilesList = ["Sources/**"],
         resources: ResourceFileElements? = nil,
-        dependencies: [TargetDependency] = []
+        entitlements: Entitlements? = nil,
+        dependencies: [TargetDependency] = [],
+        settings: Settings? = nil
     ) -> Target {
-        return Target.target(
-            name: name ?? module.name,
-            destinations: [.iPhone],
+        return .target(
+            name: name,
+            destinations: destinations,
             product: product,
-            bundleId: BundleIdentifier.of(module),
-            deploymentTargets: .iOS("17.0"),
+            bundleId: bundleId,
+            deploymentTargets: deploymentTargets,
             infoPlist: infoPlist,
             sources: sources,
             resources: resources,
-            dependencies: dependencies
+            entitlements: entitlements,
+            dependencies: dependencies,
+            settings: settings
         )
     }
 }

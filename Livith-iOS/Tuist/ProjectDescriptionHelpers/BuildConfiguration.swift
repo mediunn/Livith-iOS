@@ -17,4 +17,5 @@ public enum BuildConfiguration {
 extension BuildConfiguration {
     public static let appName = "Livith-iOS"
     public static let organizationName = "Livith"
+    public static let baseBundleID = "com.youz2me.livith"
 }

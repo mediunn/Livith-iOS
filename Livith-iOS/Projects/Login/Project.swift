@@ -6,22 +6,16 @@
 //
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let project = Project(
-    name: "Login",
-    organizationName: "Livith",
+let project = Project.make(
+    project: .login,
     targets: [
-        .target(
-            name: "LoginFeature",
-            destinations: [.iPhone],
+        .make(
+            target: .login(.loginFeature),
             product: .framework,
-            bundleId: "com.youz2me.livith.loginfeature",
-            deploymentTargets: .iOS("17.0"),
-            infoPlist: .default,
-            sources: ["LoginFeature/Sources/**"],
-            resources: nil,
             dependencies: [
-                .project(target: "DesignSystem", path: .relativeToRoot("Projects/Shared"))
+                .shared(.designSystem)
             ]
         )
     ]
