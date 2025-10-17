@@ -17,25 +17,25 @@ public extension Color {
         public var color: Color {
             switch self {
             case .black100:
-                Color(DesignsystemAsset.ColorAssets.black100.color)
+                Color(DesignSystemAsset.ColorAssets.black100.color)
             case .black90:
-                Color(DesignsystemAsset.ColorAssets.black90.color)
+                Color(DesignSystemAsset.ColorAssets.black90.color)
             case .black80:
-                Color(DesignsystemAsset.ColorAssets.black80.color)
+                Color(DesignSystemAsset.ColorAssets.black80.color)
             case .black50:
-                Color(DesignsystemAsset.ColorAssets.black50.color)
+                Color(DesignSystemAsset.ColorAssets.black50.color)
             case .black30:
-                Color(DesignsystemAsset.ColorAssets.black30.color)
+                Color(DesignSystemAsset.ColorAssets.black30.color)
             case .black5:
-                Color(DesignsystemAsset.ColorAssets.black5.color)
+                Color(DesignSystemAsset.ColorAssets.black5.color)
             case .white100:
-                Color(DesignsystemAsset.ColorAssets.white100.color)
+                Color(DesignSystemAsset.ColorAssets.white100.color)
             case .yellow30:
-                Color(DesignsystemAsset.ColorAssets.yellow30.color)
+                Color(DesignSystemAsset.ColorAssets.yellow30.color)
             case .yellow60:
-                Color(DesignsystemAsset.ColorAssets.yellow60.color)
+                Color(DesignSystemAsset.ColorAssets.yellow60.color)
             case .caution100:
-                Color(DesignsystemAsset.ColorAssets.caution100.color)
+                Color(DesignSystemAsset.ColorAssets.caution100.color)
             }
         }
     }

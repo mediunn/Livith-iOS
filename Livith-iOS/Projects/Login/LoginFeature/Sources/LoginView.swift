@@ -1,5 +1,5 @@
 import SwiftUI
-import designsystem
+import DesignSystem
 
 public struct LoginView: View {
     @State private var email: String = ""

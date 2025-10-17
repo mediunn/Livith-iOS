@@ -9,23 +9,22 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let module = Module.app
-
-let project = Project.make(
-    module: module,
+let project = Project(
+    name: "App",
+    organizationName: "Livith",
     settings: .environment,
     targets: [
-        Target.make(
-            module: module,
-            product: .app,
+        .target(
             name: BuildConfiguration.appName,
-            resources: .default,
+            destinations: [.iPhone],
+            product: .app,
+            bundleId: "com.youz2me.livith",
+            deploymentTargets: .iOS("17.0"),
+            infoPlist: .default,
+            sources: ["Sources/**"],
+            resources: ["Resources/**"],
             dependencies: [
-//                .auth,
-                .designSystem,
-//                .dependency,
-//                .network,
-                .loginFeature,
+                .project(target: "LoginFeature", path: .relativeToRoot("Projects/Login"))
             ]
         )
     ],
