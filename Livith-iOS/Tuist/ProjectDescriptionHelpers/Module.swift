@@ -8,6 +8,7 @@
 import ProjectDescription
 
 // MARK: - ProjectName
+
 public enum ProjectName: String, CaseIterable {
     case app = "App"
     case core = "Core"
@@ -22,6 +23,7 @@ public enum ProjectName: String, CaseIterable {
 }
 
 // MARK: - TargetName
+
 public enum TargetName {
     case app
     case core(CoreModule)
@@ -75,6 +77,7 @@ public enum TargetName {
 }
 
 // MARK: - Core Module
+
 public enum CoreModule: String {
     case diContainer = "DIContainer"
     case performanceMonitor = "PerformanceMonitor"
@@ -84,16 +87,19 @@ public enum CoreModule: String {
 }
 
 // MARK: - Shared Module
+
 public enum SharedModule: String {
     case designSystem = "DesignSystem"
 }
 
 // MARK: - Login Module
+
 public enum LoginModule: String {
     case loginFeature = "LoginFeature"
 }
 
 // MARK: - External Dependency
+
 public enum ExternalDependency: String {
     case alamofire = "Alamofire"
     case kingfisher = "Kingfisher"
