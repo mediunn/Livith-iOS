@@ -7,27 +7,44 @@
 //
 
 import Foundation
+import Combine
 
-import livithnetwork
-import searchdomain
+import LivithNetwork
+import SearchDomain
 
 public final class SearchRepositoryImpl {
-    private let service: NetworkService<SearchEndpoint> = .init()
+    private let service: NetworkService = .init()
+    private let mapper: SearchMapper = .init()
 }
 
 extension SearchRepositoryImpl: SearchRepository {
     public func fetchFilterSearchResult(
-        genre: searchdomain.ConcertGenre?,
-        sort: searchdomain.SearchSort?,
-        status: searchdomain.ConcertStatus?,
+        genre: SearchDomain.ConcertGenre?,
+        sort: SearchDomain.SearchSort?,
+        status: SearchDomain.ConcertStatus?,
         keyword: String?,
         cursor: String?,
         size: String?
-    ) -> [searchdomain.ConcertEntity] {
-        return service.request(.fetchFilterSearchResult)
+    ) async throws -> [SearchDomain.ConcertEntity] {
+        let endpoint = SearchEndpoint.fetchFilterSearchResult(
+            genre: genre,
+            sort: sort,
+            status: status,
+            keyword: keyword,
+            cursor: cursor,
+            size: size
+        )
+
+        let response: DTO.Response.FetchFilterSearchResult = try await service.request(endpoint)
+        
+        return mapper.toDomain(from: response)
     }
     
-    public func fetchRecommendedSearchResult(keyword: String) -> [String] {
-        <#code#>
+    public func fetchRecommendedSearchResult(keyword: String) async throws -> [String] {
+        let endpoint = SearchEndpoint.fetchRecommendedSearchResult(letter: keyword)
+        
+        let response: DTO.Response.FetchRecommendKeywordList = try await service.request(endpoint)
+        
+        return response
     }
 }

@@ -10,14 +10,14 @@ import Foundation
 
 import Alamofire
 
-import livithnetwork
-import searchdomain
+import LivithNetwork
+import SearchDomain
 
 public enum SearchEndpoint {
     case fetchFilterSearchResult(
-        genre: searchdomain.ConcertGenre?,
-        sort: searchdomain.SearchSort?,
-        status: searchdomain.ConcertStatus?,
+        genre: SearchDomain.ConcertGenre?,
+        sort: SearchDomain.SearchSort?,
+        status: SearchDomain.ConcertStatus?,
         keyword: String?,
         cursor: String?,
         size: String?

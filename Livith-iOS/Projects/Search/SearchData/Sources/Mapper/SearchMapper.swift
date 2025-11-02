@@ -8,8 +8,8 @@
 
 import Foundation
 
-import livithnetwork
-import searchdomain
+import LivithNetwork
+import SearchDomain
 
 public class SearchMapper {
     func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> [ConcertEntity] {

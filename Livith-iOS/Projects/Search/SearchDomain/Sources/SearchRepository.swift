@@ -16,6 +16,6 @@ public protocol SearchRepository {
         keyword: String?,
         cursor: String?,
         size: String?
-    ) -> [ConcertEntity]
-    func fetchRecommendedSearchResult(keyword: String) -> [String]
+    ) async throws -> [ConcertEntity]
+    func fetchRecommendedSearchResult(keyword: String) async throws -> [String]
 }
