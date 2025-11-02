@@ -12,6 +12,7 @@ public enum ConcertStatus: String {
     case ongoing
     case upcoming
     case completed
+    case canceled
 }
 
 public extension ConcertStatus {
@@ -23,6 +24,8 @@ public extension ConcertStatus {
             self = .upcoming
         case "COMPLETED":
             self = .completed
+        case "CANCELED":
+            self = .canceled
         default:
             return nil
         }
@@ -36,6 +39,8 @@ public extension ConcertStatus {
             return "UPCOMING"
         case .completed:
             return "COMPLETED"
+        case .canceled:
+            return "CANCELED"
         }
     }
 }
