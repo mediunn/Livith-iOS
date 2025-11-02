@@ -9,23 +9,15 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let module = Module.app
-
 let project = Project.make(
-    module: module,
+    project: .app,
     settings: .environment,
     targets: [
-        Target.make(
-            module: module,
+        .make(
+            target: .app,
             product: .app,
-            name: BuildConfiguration.appName,
-            resources: .default,
             dependencies: [
-//                .auth,
-                .designSystem,
-//                .dependency,
-//                .network,
-                .loginFeature,
+                .login(.loginFeature)
             ]
         )
     ],

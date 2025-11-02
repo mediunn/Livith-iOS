@@ -1,23 +1,19 @@
 //
 //  Project.swift
-//  Manifests
+//  AppManifests
 //
-//  Created by YOUJIM on 4/14/25.
+//  Created by 김진웅 on 10/17/25.
 //
-
 
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let module = Module.designsystem
-
 let project = Project.make(
-    module: module,
+    project: .shared,
     targets: [
-        Target.make(
-            module: module,
+        .make(
+            target: .shared(.designSystem),
             product: .framework,
-            resources: .default,
             dependencies: [
                 .external(.kingfisher)
             ]

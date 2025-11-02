@@ -7,30 +7,22 @@
 
 import ProjectDescription
 
-// MARK: - Module Constant
+// MARK: - TargetDependency Extension
 
 extension TargetDependency {
-    public static let app: Self = Module.app.dependency
-    public static let auth: Self = Module.auth.dependency
-    public static let dependency: Self = Module.dependency.dependency
-    public static let designSystem: Self = Module.designsystem.dependency
-    public static let loginFeature: Self = Module.loginfeature.dependency
-    public static let network: Self = Module.network.dependency
-    public static let persistence: Self = Module.persistence.dependency
-}
+    public static func core(_ module: CoreModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.core.path)
+    }
 
-// MARK: - External Dependencies Constant
+    public static func shared(_ module: SharedModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.shared.path)
+    }
 
-public enum ExternalDependency {
-    case alamofire
-    case kingfisher
-}
+    public static func login(_ module: LoginModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.login.path)
+    }
 
-extension TargetDependency {
     public static func external(_ dependency: ExternalDependency) -> TargetDependency {
-        switch dependency {
-        case .alamofire: return .external(name: "Alamofire")
-        case .kingfisher: return .external(name: "Kingfisher")
-        }
+        return .external(name: dependency.rawValue)
     }
 }

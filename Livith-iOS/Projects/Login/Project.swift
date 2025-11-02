@@ -8,15 +8,15 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let module = Module.persistence
-
 let project = Project.make(
-    module: module,
+    project: .login,
     targets: [
-        Target.make(
-            module: module,
+        .make(
+            target: .login(.loginFeature),
             product: .framework,
-            resources: .default
+            dependencies: [
+                .shared(.designSystem)
+            ]
         )
     ]
 )

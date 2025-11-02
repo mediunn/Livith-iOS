@@ -8,13 +8,32 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let module = Module.core
-
 let project = Project.make(
-    module: module,
+    project: .core,
     targets: [
-        Target.make(
-            module: module,
+        .make(
+            target: .core(.diContainer),
+            product: .framework
+        ),
+        .make(
+            target: .core(.performanceMonitor),
+            product: .framework
+        ),
+        .make(
+            target: .core(.network),
+            product: .framework,
+            infoPlist: .file(path: "Network/Resources/Info.plist"),
+            dependencies: [
+                .external(.alamofire)
+            ],
+            settings: .environment
+        ),
+        .make(
+            target: .core(.persistence),
+            product: .framework
+        ),
+        .make(
+            target: .core(.routing),
             product: .framework
         )
     ]
