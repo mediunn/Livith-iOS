@@ -11,15 +11,15 @@ import ProjectDescription
 
 extension TargetDependency {
     public static func core(_ module: CoreModule) -> TargetDependency {
-        return .project(target: module.rawValue, path: ProjectName.core.path)
+        return .project(target: module.rawValue, path: ProjectID.core.path)
     }
 
     public static func shared(_ module: SharedModule) -> TargetDependency {
-        return .project(target: module.rawValue, path: ProjectName.shared.path)
+        return .project(target: module.rawValue, path: ProjectID.shared.path)
     }
 
     public static func login(_ module: LoginModule) -> TargetDependency {
-        return .project(target: module.rawValue, path: ProjectName.login.path)
+        return .project(target: module.rawValue, path: ProjectID.login.path)
     }
 
     public static func external(_ dependency: ExternalDependency) -> TargetDependency {
@@ -27,6 +27,6 @@ extension TargetDependency {
     }
 
     public static func onboarding(_ module: OnboardingModule) -> TargetDependency {
-        return .project(target: module.rawValue, path: ProjectName.onboarding.path)
+        return .project(target: module.rawValue, path: ProjectID.onboarding.path)
     }
 }

@@ -9,7 +9,7 @@ import ProjectDescription
 
 extension Target {
     public static func make(
-        target: TargetName,
+        target: TargetID,
         destinations: Destinations = [.iPhone],
         product: Product,
         deploymentTargets: DeploymentTargets? = .iOS("17.0"),
