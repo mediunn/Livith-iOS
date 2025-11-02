@@ -14,7 +14,7 @@ public enum CoreModule: String {
     case performanceMonitor = "PerformanceMonitor"
     case routing = "Routing"
     case persistence = "Persistence"
-    case network = "Network"
+    case livithNetwork = "LivithNetwork"
 }
 
 // MARK: - Shared Module
