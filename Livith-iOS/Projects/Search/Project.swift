@@ -14,7 +14,10 @@ let project = Project.make(
         .make(
             target: .search(.searchData),
             product: .framework,
-            dependencies: [.search(.searchDomain)]
+            dependencies: [
+                .search(.searchDomain),
+                .core(.livithNetwork)
+            ]
         ),
         .make(
             target: .search(.searchDomain),
@@ -23,7 +26,10 @@ let project = Project.make(
         .make(
             target: .search(.searchFeature),
             product: .framework,
-            dependencies: [.search(.searchDomain)]
+            dependencies: [
+                .search(.searchDomain),
+                .shared(.designSystem)
+            ]
         )
     ]
 )
