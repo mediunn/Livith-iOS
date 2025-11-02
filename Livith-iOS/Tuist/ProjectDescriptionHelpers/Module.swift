@@ -14,6 +14,7 @@ public enum ProjectName: String, CaseIterable {
     case core = "Core"
     case shared = "Shared"
     case login = "Login"
+    case onboarding = "Onboarding"
     
     public var name: String { rawValue }
     
@@ -29,13 +30,15 @@ public enum TargetName {
     case core(CoreModule)
     case login(LoginModule)
     case shared(SharedModule)
-    
+    case onboarding(OnboardingModule)
+
     public var name: String {
         switch self {
         case .app: return BuildConfiguration.appName
         case .core(let module): return module.rawValue
         case .shared(let module): return module.rawValue
         case .login(let module): return module.rawValue
+        case .onboarding(let module): return module.rawValue
         }
     }
     
@@ -57,6 +60,8 @@ public enum TargetName {
         case .shared(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .login(let module):
+            return ["\(module.rawValue)/Sources/**"]
+        case .onboarding(let module):
             return ["\(module.rawValue)/Sources/**"]
         }
     }
@@ -96,6 +101,12 @@ public enum SharedModule: String {
 
 public enum LoginModule: String {
     case loginFeature = "LoginFeature"
+}
+
+// MARK: - Onboarding Module
+
+public enum OnboardingModule: String {
+    case onboardingFeature = "OnboardingFeature"
 }
 
 // MARK: - External Dependency
