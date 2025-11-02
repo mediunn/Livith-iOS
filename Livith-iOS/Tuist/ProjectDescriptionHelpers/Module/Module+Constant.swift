@@ -14,7 +14,7 @@ public enum CoreModule: String {
     case performanceMonitor = "PerformanceMonitor"
     case routing = "Routing"
     case persistence = "Persistence"
-    case network = "Network"
+    case livithNetwork = "LivithNetwork"
 }
 
 // MARK: - Shared Module
@@ -28,6 +28,15 @@ public enum SharedModule: String {
 public enum LoginModule: String {
     case loginFeature = "LoginFeature"
 }
+
+// MARK: - Search Module
+
+public enum SearchModule: String {
+    case searchData = "SearchData"
+    case searchDomain = "SearchDomain"
+    case searchFeature = "SearchFeature"
+}
+
 
 // MARK: - External Dependency
 

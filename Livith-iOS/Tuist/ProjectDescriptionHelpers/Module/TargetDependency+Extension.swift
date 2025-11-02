@@ -21,6 +21,10 @@ extension TargetDependency {
     public static func login(_ module: LoginModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.login.path)
     }
+    
+    public static func search(_ module: SearchModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.search.path)
+    }
 
     public static func external(_ dependency: ExternalDependency) -> TargetDependency {
         return .external(name: dependency.rawValue)
