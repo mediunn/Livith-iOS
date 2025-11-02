@@ -4,9 +4,6 @@
 .AppleDouble
 .LSOverride
 
-# Icon must end with two
-Icon
-
 # Thumbnails
 ._*
 
@@ -74,3 +71,6 @@ Tuist/.build
 
 ### Config ###
 *.xcconfig
+
+### Copilot ###
+.github/instructions/
