@@ -29,6 +29,15 @@ public enum LoginModule: String {
     case loginFeature = "LoginFeature"
 }
 
+// MARK: - Search Module
+
+public enum SearchModule: String {
+    case searchData = "SearchData"
+    case searchDomain = "SearchDomain"
+    case searchFeature = "SearchFeature"
+}
+
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {
