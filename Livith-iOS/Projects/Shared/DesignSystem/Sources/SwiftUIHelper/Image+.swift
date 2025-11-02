@@ -12,6 +12,8 @@ public extension Image {
     enum LivithImage {
         case livithLogo, livithEmpty
         case splash
+        case icnLineBackCommon
+        case checkboxFill, checkboxLine
         
         public var image: Image {
             switch self {
@@ -21,6 +23,12 @@ public extension Image {
                 DesignSystemAsset.ImageAssets.imageLivithEmpty.swiftUIImage
             case .splash:
                 DesignSystemAsset.ImageAssets.imageSplash.swiftUIImage
+            case .icnLineBackCommon:
+                DesignSystemAsset.ImageAssets.icnLineBackCommon.swiftUIImage
+            case .checkboxFill:
+                DesignSystemAsset.ImageAssets.checkboxFill.swiftUIImage
+            case .checkboxLine:
+                DesignSystemAsset.ImageAssets.checkboxLine.swiftUIImage
             }
         }
     }
