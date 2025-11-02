@@ -33,7 +33,7 @@ public struct LoginView: View {
                 handleLogin()
             }) {
                 Text("Login")
-                    .notosans(.bodyLarge)
+                    .notosans(.title)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.livithColor(.yellow60))
