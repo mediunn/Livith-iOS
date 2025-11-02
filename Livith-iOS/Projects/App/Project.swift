@@ -16,7 +16,9 @@ let project = Project.make(
         .make(
             target: .app,
             product: .app,
+            infoPlist: .file(path: "Resources/App-Info.plist"),
             dependencies: [
+                .shared(.designSystem),
                 .login(.loginFeature),
                 .search(.searchFeature)
             ]

@@ -13,7 +13,7 @@ public extension Font {
     // MARK: - Notosans
     
     /// `Notosans`는 다양한 텍스트 스타일을 정의하는 열거형입니다.
-    enum Notosans {
+    enum Notosans: String, CaseIterable {
         case title
         case headSemibold, headMedium, headRegular
         case body1Semibold
@@ -29,7 +29,7 @@ public extension Font {
             switch self {
             case .title, .caption1Bold:
                 return DesignSystemFontFamily.NotoSansKR.bold.name
-            case .headSemibold, .body1Semibold, .body2Semibold, .body3Semibold, .caption1Semibold, .caption2Semibold:
+            case .headSemibold, .body1Semibold, .body2Semibold, .body3Semibold, .body4Semibold, .caption1Semibold, .caption2Semibold:
                 return DesignSystemFontFamily.NotoSansKR.semiBold.name
             case .headMedium, .body2Medium, .body3Medium, .body4Medium:
                 return DesignSystemFontFamily.NotoSansKR.medium.name
@@ -84,6 +84,17 @@ public extension Font {
     /// ```
     static func notosans(_ style: Notosans) -> Font {
         return .custom(style.fontName, size: style.size)
+    }
+    
+    static func registerFont() {
+        guard let bundle = Bundle(identifier: "com.youz2me.livith.designsystem") else { return }
+
+        for font in DesignSystemFontFamily.NotoSansKR.all {
+            guard let url = bundle.url(forResource: font.name, withExtension: "ttf"),
+                  CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) else {
+                return
+            }
+        }
     }
 }
 
