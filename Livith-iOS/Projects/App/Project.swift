@@ -17,7 +17,8 @@ let project = Project.make(
             target: .app,
             product: .app,
             dependencies: [
-                .login(.loginFeature)
+                .login(.loginFeature),
+                .search(.searchFeature)
             ]
         )
     ],
