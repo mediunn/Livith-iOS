@@ -9,7 +9,7 @@ import ProjectDescription
 
 extension Project {
     public static func make(
-        project: ProjectName,
+        project: ProjectID,
         organizationName: String? = BuildConfiguration.organizationName,
         packages: [Package] = [],
         settings: Settings? = nil,
