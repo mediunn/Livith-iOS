@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "icn_fill_big_plus.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
