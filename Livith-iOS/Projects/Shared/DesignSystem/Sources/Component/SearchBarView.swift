@@ -1,6 +1,6 @@
 //
 //  SearchBarView.swift
-//  Search
+//  DesignSystem
 //
 //  Created by Youjin Lee on 11/2/25.
 //  Copyright © 2025 Livith. All rights reserved.
