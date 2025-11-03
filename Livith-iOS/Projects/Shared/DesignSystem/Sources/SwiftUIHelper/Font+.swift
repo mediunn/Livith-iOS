@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 public extension Font {
     
@@ -61,11 +62,11 @@ public extension Font {
         public var lineHeight: CGFloat {
             switch self {
             case .caption1Bold, .caption1Semibold:
-                return size * 1.3
+                return 1.3
             case .caption1Regular, .caption2Semibold, .caption2Regular:
-                return size * 1.2
+                return 1.2
             default:
-                return size * 1.4
+                return 1.4
             }
         }
         
@@ -98,19 +99,41 @@ public extension Font {
     }
 }
 
-// MARK: - Text Modifier for Notosans
+// MARK: - NotosansModifier
 
 public struct NotosansModifier: ViewModifier {
     let style: Font.Notosans
+    
+    init(style: Font.Notosans) {
+        self.style = style
+    }
+    
+    private var uiFont: UIFont {
+        guard let font = UIFont(name: style.fontName, size: style.size) else {
+            fatalError("폰트를 찾을 수 없습니다.")
+        }
+        
+        return font
+    }
+    
+    private var lineSpacing: CGFloat {
+        let desiredLineHeight = style.size * style.lineHeight
+        return desiredLineHeight - uiFont.lineHeight
+    }
+    
+    private var padding: CGFloat {
+        return lineSpacing / 2.0
+    }
     
     public func body(content: Content) -> some View {
         content
             .font(.notosans(style))
             .kerning(style.kerning)
-            .lineSpacing(style.lineHeight - style.size)
-            .baselineOffset(style.baselineOffset)
+            .lineSpacing(lineSpacing)
+            .padding(.vertical, padding)
     }
 }
+
 
 public extension View {
     /// Notosans 스타일을 적용하는 View Modifier
