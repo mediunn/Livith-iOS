@@ -16,6 +16,8 @@ struct LivithApp: App {
     var body: some Scene {
         WindowGroup {
             SearchView()
+                .background(Color.livithColor(.black100))
+                .ignoresSafeArea()
         }
     }
 }
