@@ -17,6 +17,8 @@ public extension Image {
         case cautionTriangleBig, cautionTriangleSmall
         case change
         case checkRed, checkYellow
+        case checkboxFillDefault, checkboxFillEnabled
+        case checkboxLineDefault, checkboxLineEnabled
         case closeLineSmall
         case deleteFillDefault, deleteFillPressed
         case down1_5LineSmall, downLineSmall
@@ -60,6 +62,14 @@ public extension Image {
                 DesignSystemAsset.ImageAssets.icnCheckRed.swiftUIImage
             case .checkYellow:
                 DesignSystemAsset.ImageAssets.icnCheckYellow.swiftUIImage
+            case .checkboxFillDefault:
+                DesignSystemAsset.ImageAssets.icnCheckboxFillDefault.swiftUIImage
+            case .checkboxFillEnabled:
+                DesignSystemAsset.ImageAssets.icnCheckboxFillEnabled.swiftUIImage
+            case .checkboxLineDefault:
+                DesignSystemAsset.ImageAssets.icnCheckboxLineDefault.swiftUIImage
+            case .checkboxLineEnabled:
+                DesignSystemAsset.ImageAssets.icnCheckboxLineEnabled.swiftUIImage
             case .closeLineSmall:
                 DesignSystemAsset.ImageAssets.icnCloseLineSmall.swiftUIImage
             case .deleteFillDefault:
