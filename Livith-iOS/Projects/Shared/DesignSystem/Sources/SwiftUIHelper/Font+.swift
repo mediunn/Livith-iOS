@@ -15,18 +15,23 @@ public extension Font {
     /// `Notosans`는 다양한 텍스트 스타일을 정의하는 열거형입니다.
     enum Notosans {
         case title
-        case headLarge, headSmall
-        case bodyLarge, bodyMedium, bodySmall
-        case captionLarge, captionSmall, captionExtraSmall
+        case headSemibold, headMedium, headRegular
+        case body1Semibold
+        case body2Semibold, body2Medium, body2Regular
+        case body3Semibold, body3Medium, body3Regular
+        case body4Semibold, body4Medium, body4Regular
+        case caption1Bold, caption1Semibold, caption1Regular
+        case caption2Semibold, caption2Regular
+        
         
         /// 해당 스타일의 폰트 이름을 반환합니다.
         var fontName: String {
             switch self {
-            case .title:
+            case .title, .caption1Bold:
                 return DesignSystemFontFamily.NotoSansKR.bold.name
-            case .headLarge, .bodyLarge, .captionLarge:
+            case .headSemibold, .body1Semibold, .body2Semibold, .body3Semibold, .caption1Semibold, .caption2Semibold:
                 return DesignSystemFontFamily.NotoSansKR.semiBold.name
-            case .bodyMedium:
+            case .headMedium, .body2Medium, .body3Medium, .body4Medium:
                 return DesignSystemFontFamily.NotoSansKR.medium.name
             default:
                 return DesignSystemFontFamily.NotoSansKR.regular.name
@@ -37,12 +42,13 @@ public extension Font {
         public var size: CGFloat {
             switch self {
             case .title: return 26
-            case .headLarge, .headSmall: return 22
-            case .bodyLarge: return 18
-            case .bodyMedium: return 16
-            case .bodySmall: return 14
-            case .captionLarge, .captionSmall: return 12
-            case .captionExtraSmall: return 10
+            case .headSemibold, .headMedium, .headRegular: return 22
+            case .body1Semibold: return 18
+            case .body2Semibold, .body2Medium, .body2Regular: return 16
+            case .body3Semibold, .body3Medium, .body3Regular: return 15
+            case .body4Semibold, .body4Medium, .body4Regular: return 14
+            case .caption1Bold, .caption1Semibold, .caption1Regular: return 12
+            case .caption2Semibold, .caption2Regular: return 10
             }
         }
         
@@ -54,12 +60,12 @@ public extension Font {
         /// 해당 스타일의 줄 높이(Line Height)를 반환합니다.
         public var lineHeight: CGFloat {
             switch self {
-            case .title, .headLarge, .headSmall, .bodyLarge, .bodyMedium, .bodySmall:
-                return size * 1.4
-            case .captionLarge:
+            case .caption1Bold, .caption1Semibold:
                 return size * 1.3
-            case .captionSmall, .captionExtraSmall:
+            case .caption1Regular, .caption2Semibold, .caption2Regular:
                 return size * 1.2
+            default:
+                return size * 1.4
             }
         }
         

@@ -20,9 +20,9 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.network),
+            target: .core(.livithNetwork),
             product: .framework,
-            infoPlist: .file(path: "Network/Resources/Info.plist"),
+            infoPlist: .file(path: "LivithNetwork/Resources/Info.plist"),
             dependencies: [
                 .external(.alamofire)
             ],
