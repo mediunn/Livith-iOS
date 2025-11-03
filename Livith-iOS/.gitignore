@@ -67,7 +67,7 @@ Derived/
 Tuist/.build
 
 ### Claude ###
-.claude/
+../.claude/
 
 ### Config ###
 *.xcconfig
