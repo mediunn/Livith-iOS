@@ -23,7 +23,7 @@ public struct ConcertDetailCard: View {
     
     // MARK: - LifeCycle
     
-    init(
+    public init(
         posterURL: URL,
         title: String,
         date: String,
@@ -58,7 +58,7 @@ public struct ConcertDetailCard: View {
             }
             .frame(width: 108)
             
-            StatusChip(statusText: status, remainDays: remainDays)
+            ConcertStatusChip(statusText: status, remainDays: remainDays)
                 .padding(.top, 10)
                 .padding(.leading, 10)
         }

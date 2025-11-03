@@ -34,12 +34,13 @@ public struct SearchView: View {
         
         SearchBarView(input: $searchText)
             .foregroundStyle(Color.livithColor(.black100))
-        SearchConcertCard(
+        
+        ConcertDetailCard(
             posterURL: URL(string: "http://www.kopis.or.kr/upload/pfmPoster/PF_PF264490_250508_131406.jpg")!,
             title: "테디 스윔스 첫 단독 내한공연",
             date: "2025.11.01~11.02",
             artist: "유우리 (Yuuri)",
-            status: .completed
+            status: "종료"
         )
         .foregroundStyle(Color.livithColor(.black100))
     }

@@ -8,8 +8,6 @@
 
 import SwiftUI
 
-import DesignSystem
-
 public struct ConcertStatusChip: View {
     
     // MARK: - Property
@@ -19,7 +17,7 @@ public struct ConcertStatusChip: View {
     
     // MARK: - LifeCycle
     
-    init(statusText: String, remainDays: Int = 0) {
+    public init(statusText: String, remainDays: Int = 0) {
         self.statusText = statusText
         self.remainDays = remainDays
     }

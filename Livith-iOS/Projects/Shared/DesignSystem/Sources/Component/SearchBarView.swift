@@ -8,13 +8,17 @@
 
 import SwiftUI
 
-import DesignSystem
-
 public struct SearchBarView: View {
     
     // MARK: Property
     
     @Binding var input: String
+    
+    // MARK: - LifeCycle
+    
+    public init(input: Binding<String>) {
+        self._input = input
+    }
     
     // MARK: - Body
     
