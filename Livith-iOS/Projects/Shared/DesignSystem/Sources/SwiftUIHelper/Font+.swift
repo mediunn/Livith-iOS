@@ -7,13 +7,14 @@
 //
 
 import SwiftUI
+import UIKit
 
 public extension Font {
     
     // MARK: - Notosans
     
     /// `Notosans`는 다양한 텍스트 스타일을 정의하는 열거형입니다.
-    enum Notosans {
+    enum Notosans: String, CaseIterable {
         case title
         case headSemibold, headMedium, headRegular
         case body1Semibold
@@ -29,7 +30,7 @@ public extension Font {
             switch self {
             case .title, .caption1Bold:
                 return DesignSystemFontFamily.NotoSansKR.bold.name
-            case .headSemibold, .body1Semibold, .body2Semibold, .body3Semibold, .caption1Semibold, .caption2Semibold:
+            case .headSemibold, .body1Semibold, .body2Semibold, .body3Semibold, .body4Semibold, .caption1Semibold, .caption2Semibold:
                 return DesignSystemFontFamily.NotoSansKR.semiBold.name
             case .headMedium, .body2Medium, .body3Medium, .body4Medium:
                 return DesignSystemFontFamily.NotoSansKR.medium.name
@@ -61,17 +62,12 @@ public extension Font {
         public var lineHeight: CGFloat {
             switch self {
             case .caption1Bold, .caption1Semibold:
-                return size * 1.3
+                return 1.28
             case .caption1Regular, .caption2Semibold, .caption2Regular:
-                return size * 1.2
+                return 1.18
             default:
-                return size * 1.4
+                return 1.38
             }
-        }
-        
-        /// 해당 스타일의 베이스라인 오프셋(Baseline Offset)을 반환합니다.
-        public var baselineOffset: CGFloat {
-            return (lineHeight - size) / 3
         }
     }
     
@@ -85,21 +81,53 @@ public extension Font {
     static func notosans(_ style: Notosans) -> Font {
         return .custom(style.fontName, size: style.size)
     }
+    
+    static func registerFont() {
+        guard let bundle = Bundle(identifier: "com.youz2me.livith.designsystem") else { return }
+
+        for font in DesignSystemFontFamily.NotoSansKR.all {
+            guard let url = bundle.url(forResource: font.name, withExtension: "ttf"),
+                  CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) else {
+                return
+            }
+        }
+    }
 }
 
-// MARK: - Text Modifier for Notosans
+// MARK: - NotosansModifier
 
 public struct NotosansModifier: ViewModifier {
     let style: Font.Notosans
+    
+    init(style: Font.Notosans) {
+        self.style = style
+    }
+    
+    private var uiFont: UIFont {
+        guard let font = UIFont(name: style.fontName, size: style.size) else {
+            fatalError("폰트를 찾을 수 없습니다.")
+        }
+        
+        return font
+    }
+    
+    private var lineSpacing: CGFloat {
+        let desiredLineHeight = style.size * style.lineHeight
+        return desiredLineHeight - uiFont.lineHeight
+    }
+    
+    private var padding: CGFloat {
+        return lineSpacing / 2.0
+    }
     
     public func body(content: Content) -> some View {
         content
             .font(.notosans(style))
             .kerning(style.kerning)
-            .lineSpacing(style.lineHeight - style.size)
-            .baselineOffset(style.baselineOffset)
+            .lineSpacing(lineSpacing)
     }
 }
+
 
 public extension View {
     /// Notosans 스타일을 적용하는 View Modifier

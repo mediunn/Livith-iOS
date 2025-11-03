@@ -22,7 +22,7 @@ let project = Project.make(
         .make(
             target: .core(.livithNetwork),
             product: .framework,
-            infoPlist: .file(path: "LivithNetwork/Resources/Info.plist"),
+            infoPlist: .file(path: "LivithNetwork/Resources/Network-Info.plist"),
             dependencies: [
                 .external(.alamofire)
             ],
