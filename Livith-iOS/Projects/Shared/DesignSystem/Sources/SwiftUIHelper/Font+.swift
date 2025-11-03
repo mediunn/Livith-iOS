@@ -62,17 +62,12 @@ public extension Font {
         public var lineHeight: CGFloat {
             switch self {
             case .caption1Bold, .caption1Semibold:
-                return 1.3
+                return 1.28
             case .caption1Regular, .caption2Semibold, .caption2Regular:
-                return 1.2
+                return 1.18
             default:
-                return 1.4
+                return 1.38
             }
-        }
-        
-        /// 해당 스타일의 베이스라인 오프셋(Baseline Offset)을 반환합니다.
-        public var baselineOffset: CGFloat {
-            return (lineHeight - size) / 3
         }
     }
     
@@ -130,7 +125,6 @@ public struct NotosansModifier: ViewModifier {
             .font(.notosans(style))
             .kerning(style.kerning)
             .lineSpacing(lineSpacing)
-            .padding(.vertical, padding)
     }
 }
 
