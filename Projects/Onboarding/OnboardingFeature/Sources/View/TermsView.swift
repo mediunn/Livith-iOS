@@ -89,7 +89,7 @@ private extension TermsView {
             Button {
                 store.send(.toggleAllTermsAgreement)
             } label: {
-                Image.livithIcon(store.state.isAllAgreed ? .checkboxFillEnabled : .checkboxFillDefault)
+                Image.livithIcon((store.state.isTermsAgreed && store.state.isMarketingAgreed) ? .checkboxFillEnabled : .checkboxFillDefault)
             }
             
             Text(Literals.allAgreeText)
@@ -164,14 +164,14 @@ private extension TermsView {
         } label: {
             Text(Literals.nextButtonText)
                 .notosans(.body2Medium)
-                .foregroundColor(store.state.isNextButtonEnabled ? Color.livithColor(.black100) : Color.livithColor(.black50))
+                .foregroundColor(store.state.isTermsAgreed ? Color.livithColor(.black100) : Color.livithColor(.black50))
                 .padding()
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(store.state.isNextButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black80))
-                .cornerRadius(12)
+                .background(store.state.isTermsAgreed ? Color.livithColor(.yellow30) : Color.livithColor(.black80))
+                .cornerRadius(8)
         }
-        .disabled(!store.state.isNextButtonEnabled)
+        .disabled(!store.state.isTermsAgreed)
     }
 }
 
