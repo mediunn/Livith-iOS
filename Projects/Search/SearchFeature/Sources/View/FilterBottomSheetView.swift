@@ -1,5 +1,5 @@
 //
-//  FilterBottomSheet.swift
+//  FilterBottomSheetView.swift
 //  Search
 //
 //  Created by Youjin Lee on 11/5/25.
@@ -11,7 +11,7 @@ import SwiftUI
 import SearchDomain
 import DesignSystem
 
-public struct FilterBottomSheet: View {
+public struct FilterBottomSheetView: View {
     @Binding var selectedGenreList: [SearchDomain.ConcertGenre]
     @Binding var selectedStatusList: [SearchDomain.ConcertStatus]
     @Binding var showFilter: Bool
@@ -93,7 +93,7 @@ public struct FilterBottomSheet: View {
     }
 }
 
-private extension FilterBottomSheet {
+private extension FilterBottomSheetView {
     var hasSelection: Bool {
         !selectedGenreList.isEmpty || !selectedStatusList.isEmpty
     }

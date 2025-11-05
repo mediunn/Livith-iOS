@@ -109,7 +109,7 @@ private extension SearchView {
     }
     
     var filterBottomSheet: some View {
-        FilterBottomSheet(
+        FilterBottomSheetView(
             selectedGenreList: $selectedGenreList,
             selectedStatusList: $selectedStatusList,
             showFilter: $showFilter
