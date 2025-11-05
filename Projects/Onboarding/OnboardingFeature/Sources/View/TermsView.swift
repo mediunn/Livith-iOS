@@ -58,7 +58,7 @@ private extension TermsView {
                     .foregroundColor(.livithColor(.white100))
             }
             
-            Text("회원가입")
+            Text(Literals.navigationTitle)
                 .notosans(.body1Semibold)
                 .foregroundColor(.livithColor(.white100))
             
@@ -79,7 +79,7 @@ private extension TermsView {
     }
     
     var title: some View {
-        Text("서비스 이용을 위해\n약관 동의가 필요해요")
+        Text(Literals.title)
             .notosans(.body1Semibold)
             .foregroundStyle(Color.livithColor(.white100))
     }
@@ -92,7 +92,7 @@ private extension TermsView {
                 Image.livithIcon(store.state.isAllAgreed ? .checkboxFillEnabled : .checkboxFillDefault)
             }
             
-            Text("약관 모두 동의")
+            Text(Literals.allAgreeText)
                 .notosans(.body2Medium)
                 .foregroundColor(.livithColor(.white100))
             
@@ -119,11 +119,11 @@ private extension TermsView {
                 Image.livithIcon(store.state.isTermsAgreed ? .checkboxLineEnabled : .checkboxLineDefault)
             }
             
-            Text("이용약관 동의")
+            Text(Literals.termsAgreementText)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
             
-            Text("필수")
+            Text(Literals.requiredText)
                 .notosans(.caption1Regular)
                 .foregroundStyle(Color.livithColor(.black50))
             
@@ -134,7 +134,7 @@ private extension TermsView {
                 // TODO: 라우터에게 전달
                 
             } label: {
-                Text("더보기 >")
+                Text(Literals.moreButtonText)
                     .notosans(.caption2Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .padding(.trailing, 4)
@@ -150,7 +150,7 @@ private extension TermsView {
                 Image.livithIcon(store.state.isMarketingAgreed ? .checkboxLineEnabled : .checkboxLineDefault)
             }
             
-            Text("마케팅 활용 / 광고성 정보 수신 동의")
+            Text(Literals.marketingAgreementText)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
         }
@@ -162,7 +162,7 @@ private extension TermsView {
             // TODO: 라우터에게 닉네임 설정 화면으로 이동
             
         } label: {
-            Text("다음")
+            Text(Literals.nextButtonText)
                 .notosans(.body2Medium)
                 .foregroundColor(store.state.isNextButtonEnabled ? Color.livithColor(.black100) : Color.livithColor(.black50))
                 .padding()
@@ -172,6 +172,22 @@ private extension TermsView {
                 .cornerRadius(12)
         }
         .disabled(!store.state.isNextButtonEnabled)
+    }
+}
+
+// MARK: - Literals
+
+private extension TermsView {
+    enum Literals {
+        static let navigationTitle = "회원가입"
+        static let title = "서비스 이용을 위해\n약관 동의가 필요해요"
+        static let allAgreeText = "약관 모두 동의"
+        static let termsAgreementText = "이용약관 동의"
+        static let requiredText = "필수"
+        static let moreButtonText = "더보기 >"
+        static let marketingAgreementText = "마케팅 활용 / 광고성 정보 수신 동의"
+        static let nextButtonText = "다음"
+        static let termsURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0?pvs=4"
     }
 }
 
