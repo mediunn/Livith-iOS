@@ -43,4 +43,17 @@ public extension ConcertStatus {
             return "CANCELED"
         }
     }
+    
+    var statusText: String {
+        switch self {
+        case .ongoing:
+            return "진행중"
+        case .upcoming:
+            return "D-"
+        case .completed:
+            return "종료"
+        case .canceled:
+            return "공연취소"
+        }
+    }
 }
