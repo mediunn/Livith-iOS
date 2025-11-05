@@ -9,13 +9,14 @@
 import SwiftUI
 
 public struct SearchBarView: View {
-    
+
     // MARK: Property
-    
+
     @Binding var input: String
-    
+    @FocusState private var isFocused: Bool
+
     // MARK: - LifeCycle
-    
+
     public init(input: Binding<String>) {
         self._input = input
     }
@@ -23,7 +24,7 @@ public struct SearchBarView: View {
     // MARK: - Body
     
     public var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center) {
             backButton()
             searchBar()
         }
@@ -67,7 +68,7 @@ private extension SearchBarView {
     @ViewBuilder
     func searchTextField() -> some View {
         ZStack(alignment: .leading) {
-            if input.isEmpty {
+            if input.isEmpty && !isFocused {
                 Text("찾고 있는 콘서트나 가수를 검색하세요")
                     .notosans(.body3Medium)
                     .foregroundStyle(Color.livithColor(.black50))
@@ -76,18 +77,30 @@ private extension SearchBarView {
             TextField("", text: $input)
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
+                .focused($isFocused)
         }
     }
     
     @ViewBuilder
     func searchButton() -> some View {
-        Button (action: {
-            // TODO: 화면 전환 구현
-        }) {
-            Image.livithIcon(.searchLineDefault)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 38, height: 38)
+        if !input.isEmpty {
+            Button (action: {
+                input = ""
+            }) {
+                Image.livithIcon(.deleteFillDefault)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+            }
+        } else {
+            Button (action: {
+                // TODO: 화면 전환 구현
+            }) {
+                Image.livithIcon(.searchLineDefault)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 38, height: 38)
+            }
         }
     }
 }
