@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Combine
 
 import LivithNetwork
 import SearchDomain
@@ -19,12 +18,12 @@ public final class SearchRepositoryImpl {
 
 extension SearchRepositoryImpl: SearchRepository {
     public func fetchFilterSearchResult(
-        genre: SearchDomain.ConcertGenre?,
+        genre: [SearchDomain.ConcertGenre],
         sort: SearchDomain.SearchSort?,
-        status: SearchDomain.ConcertStatus?,
+        status: [SearchDomain.ConcertStatus],
         keyword: String?,
         cursor: String?,
-        size: String?
+        size: Int?
     ) async throws -> [SearchDomain.ConcertEntity] {
         let endpoint = SearchEndpoint.fetchFilterSearchResult(
             genre: genre,
@@ -42,7 +41,6 @@ extension SearchRepositoryImpl: SearchRepository {
     
     public func fetchRecommendedSearchResult(keyword: String) async throws -> [String] {
         let endpoint = SearchEndpoint.fetchRecommendedSearchResult(letter: keyword)
-        
         let response: DTO.Response.FetchRecommendKeywordList = try await service.request(endpoint)
         
         return response

@@ -15,7 +15,7 @@ struct LivithApp: App {
 
     var body: some Scene {
         WindowGroup {
-            SearchRootView()
+            SearchView(store: SearchStore())
                 .background(Color.livithColor(.black100))
         }
     }
