@@ -10,7 +10,8 @@ import SwiftUI
 import DesignSystem
 
 struct NicknameSettingView: View {
-    @ObservedObject var store: OnboardingStore
+    @StateObject private var store = NicknameSettingStore()
+    @EnvironmentObject private var router: OnboardingRouter
     @FocusState private var isNicknameFocused: Bool
     private let maxNicknameLength = 10
     
@@ -55,7 +56,7 @@ private extension NicknameSettingView {
     var navigationBar: some View {
         HStack {
             Button(action: {
-                // TODO: 라우터에게 약관 동의 화면으로 pop
+                router.pop()
             }) {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))
@@ -168,7 +169,8 @@ private extension NicknameSettingView {
     
     var signupButton: some View {
         Button {
-            // TODO: Store에게 가입 완료 전달
+            // 실패 시나리오 시뮬레이션
+            router.fullScreenCover(.signupFailed)
         } label: {
             Text(Literals.signupButtonText)
                 .notosans(.body2Medium)
@@ -250,5 +252,6 @@ private extension NicknameSettingView {
 }
 
 #Preview {
-    NicknameSettingView(store: OnboardingStore())
+    NicknameSettingView()
+        .environmentObject(OnboardingRouter())
 }

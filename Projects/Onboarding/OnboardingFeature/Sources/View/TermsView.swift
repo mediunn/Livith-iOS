@@ -10,7 +10,8 @@ import SwiftUI
 import DesignSystem
 
 struct TermsView: View {
-    @StateObject private var store = OnboardingStore()
+    @StateObject private var store = TermsStore()
+    @EnvironmentObject private var router: OnboardingRouter
     
     var body: some View {
         ZStack {
@@ -49,11 +50,11 @@ struct TermsView: View {
 private extension TermsView {
     var navigationBar: some View {
         HStack {
-            Button(action: {
+            Button {
+             
+                // TODO: 로그인 화면으로 이동
                 
-                // TODO: 라우터에게 다시 로그인 화면으로 돌아가도록 전달
-                
-            }) {
+            } label: {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))
             }
@@ -131,8 +132,6 @@ private extension TermsView {
             
             Button {
                 
-                // TODO: 라우터에게 전달
-                
             } label: {
                 Text(Literals.moreButtonText)
                     .notosans(.caption2Semibold)
@@ -158,9 +157,7 @@ private extension TermsView {
     
     var nextButton: some View {
         Button {
-            
-            // TODO: 라우터에게 닉네임 설정 화면으로 이동
-            
+            router.push(.nickname)
         } label: {
             Text(Literals.nextButtonText)
                 .notosans(.body2Medium)
@@ -193,4 +190,5 @@ private extension TermsView {
 
 #Preview {
     TermsView()
+        .environmentObject(OnboardingRouter())
 }
