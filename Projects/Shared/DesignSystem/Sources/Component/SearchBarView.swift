@@ -14,11 +14,13 @@ public struct SearchBarView: View {
 
     @Binding var input: String
     @FocusState private var isFocused: Bool
+    var onSubmit: () -> Void
 
     // MARK: - LifeCycle
 
-    public init(input: Binding<String>) {
+    public init(input: Binding<String>, onSubmit: @escaping () -> Void = {}) {
         self._input = input
+        self.onSubmit = onSubmit
     }
     
     // MARK: - Body
@@ -78,12 +80,16 @@ private extension SearchBarView {
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
                 .focused($isFocused)
+                .onSubmit {
+                    isFocused = false
+                    onSubmit()
+                }
         }
     }
     
     @ViewBuilder
     func searchButton() -> some View {
-        if !input.isEmpty {
+        if !input.isEmpty && isFocused {
             Button (action: {
                 input = ""
             }) {
