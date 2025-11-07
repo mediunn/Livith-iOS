@@ -24,15 +24,18 @@ public struct FilterButton: View {
     let style: FilterButtonStyle
     let type: FilterButtonType
     let action: () -> Void
+    let onClear: (() -> Void)?
     
     public init(
         style: FilterButtonStyle,
         type: FilterButtonType,
-        action: @escaping () -> Void
+        action: @escaping () -> Void,
+        onClear: (() -> Void)? = nil
     ) {
         self.style = style
         self.type = type
         self.action = action
+        self.onClear = onClear
     }
     
     public var body: some View {
@@ -40,11 +43,11 @@ public struct FilterButton: View {
             HStack(alignment: .center, spacing: 0) {
                 icon
                     .frame(width: 20, height: 20)
-                    
+                
                 title
                     .padding(.leading, 4)
                 
-                status
+                statusButton
                     .padding(.trailing, 8)
             }
             .padding(.leading, 6)
@@ -110,18 +113,22 @@ private extension FilterButton {
         
     }
     
-    var status: some View {
-        Group {
-            switch type {
-            case .normal:
-                Image.livithIcon(.downLineSmall)
-                    .renderingMode(.template)
-                    .tint(Color.livithColor(.black30))
-            case .selected:
+    @ViewBuilder
+    var statusButton: some View {
+        switch type {
+        case .normal:
+            Image.livithIcon(.downLineSmall)
+                .renderingMode(.template)
+                .tint(Color.livithColor(.black30))
+        case .selected:
+            Button(action: {
+                onClear?()
+            }) {
                 Image.livithIcon(.closeLineSmall)
                     .renderingMode(.template)
                     .tint(Color.livithColor(.black100))
             }
+            .buttonStyle(PlainButtonStyle())
         }
     }
 }
