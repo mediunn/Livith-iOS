@@ -51,7 +51,7 @@ public extension NetworkService {
             throw NetworkError.invalidURL
         }
 
-        let url = Bundle.versionedBaseURL.appendingPathComponent(endpoint)
+        let url = Bundle.baseURL.appendingPathComponent(endpoint)
         let dataRequest: DataRequest
 
         switch (endPoint.body, endPoint.query) {
