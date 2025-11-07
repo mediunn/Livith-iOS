@@ -31,7 +31,7 @@ public final class NetworkService: NetworkServiceProtocol {
 
     public convenience init(
         interceptor: RequestInterceptor? = nil,
-        eventMonitors: [EventMonitor] = [],
+        eventMonitors: [EventMonitor] = [LoggingMonitor.init()],
         configuration: URLSessionConfiguration = .default
     ) {
         let session = Session(
