@@ -64,11 +64,12 @@ public extension NetworkService {
                 headers: endPoint.headers
             )
         case (_, let query?):
+            let encoding = URLEncoding(arrayEncoding: .noBrackets)
             dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 parameters: query,
-                encoding: URLEncoding.queryString,
+                encoding: encoding,
                 headers: endPoint.headers
             )
         default:
