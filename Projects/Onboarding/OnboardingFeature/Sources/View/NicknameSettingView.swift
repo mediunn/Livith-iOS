@@ -96,35 +96,41 @@ private extension NicknameSettingView {
     }
     
     var nicknameTextField: some View {
-        HStack {
-            TextField(Literals.placeholder, text: nicknameBinding)
-                .foregroundColor(.livithColor(.white100))
-                .notosans(.body3Medium)
-                .autocorrectionDisabled()
-                .onChange(of: store.state.nickname) { oldValue, newValue in
-                    if newValue.count > maxNicknameLength {
-                        store.send(.updateNickname(oldValue))
+        ZStack(alignment: .leading) {
+           if store.state.nickname.isEmpty, !isNicknameFocused {
+               Text(Literals.placeholder)
+                   .notosans(.body3Medium)
+                   .foregroundColor(Color.livithColor(.black50))
+           }
+           
+            HStack {
+                TextField("", text: nicknameBinding)
+                    .foregroundColor(.livithColor(.white100))
+                    .notosans(.body3Medium)
+                    .autocorrectionDisabled()
+                    .onChange(of: store.state.nickname) { oldValue, newValue in
+                        if newValue.count > maxNicknameLength {
+                            store.send(.updateNickname(oldValue))
+                        }
                     }
-                }
-                .focused($isNicknameFocused)
-                .onSubmit {
-                    isNicknameFocused = false
-                }
-                .disabled(store.state.nicknameValidationState == .checking)
-            
-            if !store.state.nickname.isEmpty {
-                Spacer()
+                    .focused($isNicknameFocused)
+                    .onSubmit {
+                        isNicknameFocused = false
+                    }
+                    .disabled(store.state.nicknameValidationState == .checking)
                 
-                Text("\(store.state.nickname.count)/\(maxNicknameLength)")
-                    .notosans(.caption1Regular)
-                    .foregroundColor(.livithColor(.black50))
-                
-                if isNicknameFocused {
-                    Button {
-                        store.send(.updateNickname(""))
-                    } label: {
-                        Image.livithIcon(.deleteFillDefault)
-                            .frame(width: 24, height: 24)
+                if !store.state.nickname.isEmpty {
+                    Spacer()
+                    Text("\(store.state.nickname.count)/\(maxNicknameLength)")
+                        .notosans(.caption1Regular)
+                        .foregroundColor(.livithColor(.black50))
+                    if isNicknameFocused {
+                        Button {
+                            store.send(.updateNickname(""))
+                        } label: {
+                            Image.livithIcon(.deleteFillDefault)
+                                .frame(width: 24, height: 24)
+                        }
                     }
                 }
             }
