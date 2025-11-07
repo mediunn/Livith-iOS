@@ -10,14 +10,13 @@ struct LivithApp: App {
     // MARK: - LifeCycle
 
     init() {
-        Font.registerFont()
+        registerDependency()
     }
 
     var body: some Scene {
         WindowGroup {
-            SearchView()
+            SearchRootView()
                 .background(Color.livithColor(.black100))
-                .ignoresSafeArea()
         }
     }
 }
