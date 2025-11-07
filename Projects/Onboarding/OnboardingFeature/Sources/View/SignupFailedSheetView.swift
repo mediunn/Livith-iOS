@@ -11,8 +11,7 @@ import DesignSystem
 
 struct SignupFailedSheetView: View {
     @EnvironmentObject private var router: OnboardingRouter
-    // 각 요소의 등장 여부를 제어하는 State 변수
-    @State private var isVisible = true
+    @State private var isVisible: Bool = false
     
     var body: some View {
         ZStack {
@@ -36,11 +35,14 @@ struct SignupFailedSheetView: View {
                     .padding(.top, 4)
                 
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        isVisible = false
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                         router.dismissFullScreen()
                         
                         // TODO: 로그인 화면으로 돌아가기
-                        
                     }
                 } label: {
                     Text("처음으로 돌아가기")
@@ -58,7 +60,15 @@ struct SignupFailedSheetView: View {
             .background(Color.livithColor(.black90))
             .cornerRadius(12)
         }
+        .opacity(isVisible ? 1 : 0)
         .presentationBackground(.clear)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isVisible = true
+                }
+            }
+        }
     }
 }
 
