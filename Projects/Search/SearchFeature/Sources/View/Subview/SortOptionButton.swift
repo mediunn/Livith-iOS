@@ -1,3 +1,15 @@
+//
+//  SortOptionButton.swift
+//  Search
+//
+//  Created by Youjin Lee on 11/6/25.
+//  Copyright © 2025 Livith. All rights reserved.
+//
+
+import SwiftUI
+
+import DesignSystem
+
 struct SortOptionButton: View {
     let title: String
     let isSelected: Bool
@@ -6,7 +18,7 @@ struct SortOptionButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .padding(.horizontal, 16)
+                .frame(width: 70)
                 .padding(.vertical, 3)
                 .notosans(.body4Semibold)
                 .foregroundStyle(isSelected ?
