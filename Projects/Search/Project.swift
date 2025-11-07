@@ -28,7 +28,8 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .search(.searchDomain),
-                .shared(.designSystem)
+                .shared(.designSystem),
+                .core(.diContainer)
             ]
         )
     ]

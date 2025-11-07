@@ -7,43 +7,38 @@
 //
 
 import SwiftUI
+import Combine
 
 import SearchDomain
 import DesignSystem
 
 public struct SearchView: View {
-    
+
     // MARK: - Property
 
-    @State private var searchText: String = ""
-    @State private var isSearchActive: Bool = false
-    
-    @State private var searchedConcerts: [SearchDomain.ConcertEntity] = []
-    @State private var selectedGenreList: [SearchDomain.ConcertGenre] = []
-    @State private var selectedStatusList: [SearchDomain.ConcertStatus] = []
-    
-    @State private var selectedSort: SearchDomain.SearchSort = .latest
+    @ObservedObject private var store: SearchStore
 
-    @State private var errorMessage: String = ""
-    
     @State private var showFilter: Bool = false
     @State private var showSort: Bool = false
 
-    // MARK: - Lifecycle
-    
-    public init() { }
-    
+    // MARK: - Initializer
+
+    public init(store: SearchStore) {
+        self.store = store
+    }
+
     // MARK: - Body
 
     public var body: some View {
         VStack(spacing: 0) {
             searchBarView
                 .padding(.bottom, 16)
-            
+
             filterView
                 .padding(.bottom, 16)
+                .zIndex(100)
             
-            if searchedConcerts.isEmpty {
+            if store.state.searchedConcertList.isEmpty {
                 searchEmptyView
                     .padding(.top, 183)
             } else {
@@ -67,38 +62,34 @@ public struct SearchView: View {
 
 private extension SearchView {
     var genreFilterType: FilterButtonType {
-        if selectedGenreList.isEmpty {
+        if store.state.selectedGenreList.isEmpty {
             return .normal
         } else {
-            let genreNames = selectedGenreList.map { $0.genreText }
-            let text: String
-            if genreNames.count > 1 {
-                text = genreNames[0] + ", ..."
-            } else {
-                text = genreNames[0]
-            }
-            return .selected(text: text)
+            let genreNames = store.state.selectedGenreList.map { $0.genreText }
+            
+            return .selected(text: setButtonText(input: genreNames))
         }
     }
 
     var statusFilterType: FilterButtonType {
-        if selectedStatusList.isEmpty {
+        if store.state.selectedStatusList.isEmpty {
             return .normal
         } else {
-            let statusNames = selectedStatusList.map { $0.filterText }
-            let text: String
-            if statusNames.count > 1 {
-                text = statusNames[0] + ", ..."
-            } else {
-                text = statusNames[0]
-            }
-            return .selected(text: text)
+            let statusNames = store.state.selectedStatusList.map { $0.filterText }
+            
+            return .selected(text: setButtonText(input: statusNames))
         }
     }
 
     var searchBarView: some View {
-        SearchBarView(input: $searchText, onSubmit: performSearch)
-            .foregroundStyle(Color.livithColor(.black100))
+        SearchBarView(
+            input: Binding(
+                get: { store.state.searchMessage },
+                set: { store.send(.updateSearchMessage($0)) }
+            ),
+            onSubmit: performSearch
+        )
+        .foregroundStyle(Color.livithColor(.black100))
     }
 
     var filterView: some View {
@@ -107,7 +98,9 @@ private extension SearchView {
                 style: .genre,
                 type: genreFilterType,
                 action: { showFilter = true },
-                onClear: { selectedGenreList = [] }
+                onClear: {
+                    store.send(.settingButtonTapped(genres: [], status: store.state.selectedStatusList))
+                }
             )
             .padding(.leading, 16)
 
@@ -115,7 +108,9 @@ private extension SearchView {
                 style: .status,
                 type: statusFilterType,
                 action: { showFilter = true },
-                onClear: { selectedStatusList = [] }
+                onClear: {
+                    store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: []))
+                }
             )
             .padding(.leading, 8)
             
@@ -131,10 +126,10 @@ private extension SearchView {
             showSort.toggle()
         } label: {
             HStack(alignment: .center, spacing: 4) {
-                Text(selectedSort == .latest ? "최신순" : "가나다순")
+                Text(store.state.sortState == .latest ? "최신순" : "가나다순")
                     .notosans(.caption1Bold)
                     .foregroundStyle(Color.livithColor(.white100))
-                
+
                 Image.livithIcon(showSort ? .upLineSmall : .down1_5LineSmall)
                     .renderingMode(.template)
                     .foregroundStyle(Color.livithColor(.white100))
@@ -144,6 +139,7 @@ private extension SearchView {
             if showSort {
                 sortView
                     .offset(y: 30)
+                    .zIndex(1000)
             }
         }
     }
@@ -152,9 +148,9 @@ private extension SearchView {
         VStack(alignment: .center, spacing: 0) {
             SortOptionButton(
                 title: "최신순",
-                isSelected: selectedSort == .latest,
+                isSelected: store.state.sortState == .latest,
                 action: {
-                    selectedSort = .latest
+                    store.send(.sortStateChanged(.latest))
                     showSort = false
                 }
             )
@@ -162,9 +158,9 @@ private extension SearchView {
 
             SortOptionButton(
                 title: "가나다순",
-                isSelected: selectedSort == .alphabetical,
+                isSelected: store.state.sortState == .alphabetical,
                 action: {
-                    selectedSort = .alphabetical
+                    store.send(.sortStateChanged(.alphabetical))
                     showSort = false
                 }
             )
@@ -193,8 +189,11 @@ private extension SearchView {
     }
     
     var searchGrid: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3)) {
-            ForEach(searchedConcerts, id: \.id) { concert in
+        LazyVGrid(
+            columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
+            spacing: 16
+        ) {
+            ForEach(store.state.searchedConcertList, id: \.id) { concert in
                 ConcertDetailCard(
                     posterURL: concert.posterURL,
                     title: concert.title,
@@ -209,8 +208,18 @@ private extension SearchView {
     
     var filterBottomSheet: some View {
         FilterBottomSheetView(
-            selectedGenreList: $selectedGenreList,
-            selectedStatusList: $selectedStatusList,
+            selectedGenreList: Binding(
+                get: { store.state.selectedGenreList },
+                set: { newGenres in
+                    store.send(.settingButtonTapped(genres: newGenres, status: store.state.selectedStatusList))
+                }
+            ),
+            selectedStatusList: Binding(
+                get: { store.state.selectedStatusList },
+                set: { newStatus in
+                    store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: newStatus))
+                }
+            ),
             showFilter: $showFilter
         )
     }
@@ -224,13 +233,20 @@ private extension SearchView {
     }
     
     func performSearch() {
-        guard !searchText.isEmpty else { return }
-        // TODO: 실제 검색 로직 구현
-        isSearchActive = true
+        guard !store.state.searchMessage.isEmpty else { return }
+        store.send(.searchButtonTapped)
         hideKeyboard()
+    }
+    
+    func setButtonText(input: [String]) -> String {
+        if input.count > 1 {
+            return input[0] + ", ..."
+        } else {
+            return input[0]
+        }
     }
 }
 
 #Preview {
-    SearchView()
+    SearchView(store: SearchStore())
 }
