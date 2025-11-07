@@ -97,10 +97,8 @@ private extension NicknameSettingView {
     
     var nicknameTextField: some View {
         HStack {
-            TextField(Literals.placeholder, text: Binding(
-                get: { store.state.nickname },
-                set: { store.send(.updateNickname($0)) }
-            )).foregroundColor(.livithColor(.white100))
+            TextField(Literals.placeholder, text: nicknameBinding)
+                .foregroundColor(.livithColor(.white100))
                 .notosans(.body3Medium)
                 .autocorrectionDisabled()
                 .onChange(of: store.state.nickname) { oldValue, newValue in
@@ -220,6 +218,15 @@ private extension NicknameSettingView {
     
     var isSignupButtonEnabled: Bool {
         store.state.nicknameValidationState == .available
+    }
+    
+    var nicknameBinding: Binding<String> {
+        Binding {
+            store.state.nickname
+        } set: { newValue in
+            guard store.state.nicknameValidationState != .checking else { return }
+            store.send(.updateNickname(newValue))
+        }
     }
 }
 

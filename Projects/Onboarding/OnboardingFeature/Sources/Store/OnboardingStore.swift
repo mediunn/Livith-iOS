@@ -57,6 +57,8 @@ final class OnboardingStore: ObservableObject {
             validateNicknameFormat()
             
         case .checkNicknameDuplicate:
+            state.nicknameValidationState = .checking
+            
             checkNicknameDuplicate()
             
         case ._setNicknameValidationState(let validationState):
@@ -79,10 +81,6 @@ private extension OnboardingStore {
     }
     
     func checkNicknameDuplicate() {
-        guard state.nicknameValidationState == .valid else { return }
-        
-        send(._setNicknameValidationState(.checking))
-        
         // TODO: 실제 API 호출로 대체
         Task {
             try? await Task.sleep(for: .seconds(1))
