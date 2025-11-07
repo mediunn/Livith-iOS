@@ -16,6 +16,9 @@ public struct FilterBottomSheetView: View {
     @Binding var selectedStatusList: [SearchDomain.ConcertStatus]
     @Binding var showFilter: Bool
 
+    @State private var tempGenreList: [SearchDomain.ConcertGenre] = []
+    @State private var tempStatusList: [SearchDomain.ConcertStatus] = []
+
     public init(
         selectedGenreList: Binding<[SearchDomain.ConcertGenre]>,
         selectedStatusList: Binding<[SearchDomain.ConcertStatus]>,
@@ -54,10 +57,10 @@ public struct FilterBottomSheetView: View {
                 .padding(.top, 20)
 
             HStack(spacing: 12) {
-                
+
                 Button {
-                    selectedGenreList = []
-                    selectedStatusList = []
+                    tempGenreList = []
+                    tempStatusList = []
                 } label: {
                     Text("초기화")
                         .notosans(.body2Semibold)
@@ -70,6 +73,8 @@ public struct FilterBottomSheetView: View {
                 .disabled(!hasSelection)
 
                 Button {
+                    selectedGenreList = tempGenreList
+                    selectedStatusList = tempStatusList
                     showFilter = false
                 } label: {
                     Text("설정하기")
@@ -89,13 +94,16 @@ public struct FilterBottomSheetView: View {
         .presentationDragIndicator(.visible)
         .presentationBackground(Color.livithColor(.black90))
         .presentationCornerRadius(16)
-        
+        .onAppear {
+            tempGenreList = selectedGenreList
+            tempStatusList = selectedStatusList
+        }
     }
 }
 
 private extension FilterBottomSheetView {
     var hasSelection: Bool {
-        !selectedGenreList.isEmpty || !selectedStatusList.isEmpty
+        !tempGenreList.isEmpty || !tempStatusList.isEmpty
     }
 
     var genreOptions: some View {
@@ -103,25 +111,25 @@ private extension FilterBottomSheetView {
             HStack(alignment: .center, spacing: 10) {
                 FilterOptionButton(
                     title: "전체",
-                    isSelected: selectedGenreList.isEmpty,
-                    action: { selectedGenreList = [] }
+                    isSelected: tempGenreList.isEmpty,
+                    action: { tempGenreList = [] }
                 )
 
                 FilterOptionButton(
                     title: "J-POP",
-                    isSelected: selectedGenreList.contains(.jpop),
+                    isSelected: tempGenreList.contains(.jpop),
                     action: { toggleGenre(.jpop) }
                 )
 
                 FilterOptionButton(
                     title: "락/메탈",
-                    isSelected: selectedGenreList.contains(.rockMetal),
+                    isSelected: tempGenreList.contains(.rockMetal),
                     action: { toggleGenre(.rockMetal) }
                 )
 
                 FilterOptionButton(
                     title: "랩/힙합",
-                    isSelected: selectedGenreList.contains(.rapHiphop),
+                    isSelected: tempGenreList.contains(.rapHiphop),
                     action: { toggleGenre(.rapHiphop) }
                 )
             }
@@ -129,19 +137,19 @@ private extension FilterBottomSheetView {
             HStack(alignment: .center, spacing: 10) {
                 FilterOptionButton(
                     title: "클래식/재즈",
-                    isSelected: selectedGenreList.contains(.classicJazz),
+                    isSelected: tempGenreList.contains(.classicJazz),
                     action: { toggleGenre(.classicJazz) }
                 )
 
                 FilterOptionButton(
                     title: "어쿠스틱",
-                    isSelected: selectedGenreList.contains(.acoustic),
+                    isSelected: tempGenreList.contains(.acoustic),
                     action: { toggleGenre(.acoustic) }
                 )
 
                 FilterOptionButton(
                     title: "일렉트로닉",
-                    isSelected: selectedGenreList.contains(.electronic),
+                    isSelected: tempGenreList.contains(.electronic),
                     action: { toggleGenre(.electronic) }
                 )
             }
@@ -152,43 +160,43 @@ private extension FilterBottomSheetView {
         HStack(alignment: .center, spacing: 10) {
             FilterOptionButton(
                 title: "전체",
-                isSelected: selectedStatusList.isEmpty,
-                action: { selectedStatusList = [] }
+                isSelected: tempStatusList.isEmpty,
+                action: { tempStatusList = [] }
             )
 
             FilterOptionButton(
                 title: "진행중",
-                isSelected: selectedStatusList.contains(.ongoing),
+                isSelected: tempStatusList.contains(.ongoing),
                 action: { toggleStatus(.ongoing) }
             )
 
             FilterOptionButton(
                 title: "진행예정",
-                isSelected: selectedStatusList.contains(.upcoming),
+                isSelected: tempStatusList.contains(.upcoming),
                 action: { toggleStatus(.upcoming) }
             )
 
             FilterOptionButton(
                 title: "진행완료",
-                isSelected: selectedStatusList.contains(.completed),
+                isSelected: tempStatusList.contains(.completed),
                 action: { toggleStatus(.completed) }
             )
         }
     }
 
     func toggleGenre(_ genre: SearchDomain.ConcertGenre) {
-        if selectedGenreList.contains(genre) {
-            selectedGenreList.removeAll { $0 == genre }
+        if tempGenreList.contains(genre) {
+            tempGenreList.removeAll { $0 == genre }
         } else {
-            selectedGenreList.append(genre)
+            tempGenreList.append(genre)
         }
     }
 
     func toggleStatus(_ status: SearchDomain.ConcertStatus) {
-        if selectedStatusList.contains(status) {
-            selectedStatusList.removeAll { $0 == status }
+        if tempStatusList.contains(status) {
+            tempStatusList.removeAll { $0 == status }
         } else {
-            selectedStatusList.append(status)
+            tempStatusList.append(status)
         }
     }
 }
