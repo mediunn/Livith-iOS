@@ -14,7 +14,6 @@ struct NicknameSettingView: View {
     @EnvironmentObject private var router: OnboardingRouter
     @FocusState private var isNicknameFocused: Bool
     private let maxNicknameLength = 10
-    @State private var showSignupFailed = false
     
     var body: some View {
         ZStack {
@@ -54,6 +53,7 @@ struct NicknameSettingView: View {
             
         }
         .onChange(of: store.state.errorMessage) { oldValue, newValue in
+            guard !newValue.isEmpty else { return }
             print("Signup error changed: \(String(describing: newValue))")
             router.fullScreenCover(.signupFailed)
         }
