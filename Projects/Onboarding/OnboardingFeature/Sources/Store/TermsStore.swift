@@ -9,32 +9,32 @@
 import Foundation
 
 struct TermsState {
-	var isTermsAgreed: Bool = false
-	var isMarketingAgreed: Bool = false
+    var isTermsAgreed: Bool = false
+    var isMarketingAgreed: Bool = false
 }
 
 enum TermsIntent {
-	case toggleAllTermsAgreement
-	case toggleTermsAgreement
-	case toggleMarketingAgreement
+    case toggleAllTermsAgreement
+    case toggleTermsAgreement
+    case toggleMarketingAgreement
 }
 
 @MainActor
 final class TermsStore: ObservableObject {
-	@Published private(set) var state = TermsState()
-
-	func send(_ intent: TermsIntent) {
-		switch intent {
-		case .toggleAllTermsAgreement:
-			let newValue = !(state.isTermsAgreed && state.isMarketingAgreed)
-			state.isTermsAgreed = newValue
-			state.isMarketingAgreed = newValue
+    @Published private(set) var state = TermsState()
+    
+    func send(_ intent: TermsIntent) {
+        switch intent {
+        case .toggleAllTermsAgreement:
+            let newValue = !(state.isTermsAgreed && state.isMarketingAgreed)
+            state.isTermsAgreed = newValue
+            state.isMarketingAgreed = newValue
             
-		case .toggleTermsAgreement:
-			state.isTermsAgreed.toggle()
+        case .toggleTermsAgreement:
+            state.isTermsAgreed.toggle()
             
-		case .toggleMarketingAgreement:
-			state.isMarketingAgreed.toggle()
-		}
-	}
+        case .toggleMarketingAgreement:
+            state.isMarketingAgreed.toggle()
+        }
+    }
 }

@@ -24,12 +24,12 @@ struct SignupFailedSheetView: View {
                     .frame(width: 40, height: 40)
                     .padding(.top, 16)
                 
-                Text("오류가 발생했어요!")
+                Text(Literals.title)
                     .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .padding(.top, 4)
                 
-                Text("처음부터 다시 시도해주세요")
+                Text(Literals.description)
                     .notosans(.body4Regular)
                     .foregroundStyle(Color.livithColor(.black30))
                     .padding(.top, 4)
@@ -45,7 +45,7 @@ struct SignupFailedSheetView: View {
                         // TODO: 로그인 화면으로 돌아가기
                     }
                 } label: {
-                    Text("처음으로 돌아가기")
+                    Text(Literals.backButtonText)
                         .notosans(.body2Medium)
                         .foregroundColor(.livithColor(.black100))
                         .frame(maxWidth: .infinity)
@@ -69,6 +69,16 @@ struct SignupFailedSheetView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Literals
+
+private extension SignupFailedSheetView {
+    enum Literals {
+        static let title = "오류가 발생했어요!"
+        static let description = "잠시 후 다시 시도해주세요"
+        static let backButtonText = "로그인으로 돌아가기"
     }
 }
 

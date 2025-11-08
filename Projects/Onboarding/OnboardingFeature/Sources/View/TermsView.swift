@@ -12,6 +12,7 @@ import DesignSystem
 struct TermsView: View {
     @StateObject private var store = TermsStore()
     @EnvironmentObject private var router: OnboardingRouter
+    @Environment(\.openURL) private var openURL
     
     var body: some View {
         ZStack {
@@ -51,7 +52,7 @@ private extension TermsView {
     var navigationBar: some View {
         HStack {
             Button {
-             
+                
                 // TODO: 로그인 화면으로 이동
                 
             } label: {
@@ -131,7 +132,8 @@ private extension TermsView {
             Spacer()
             
             Button {
-                
+                guard let url = URL(string: Literals.termsURLString) else { return }
+                openURL(url)
             } label: {
                 Text(Literals.moreButtonText)
                     .notosans(.caption2Semibold)

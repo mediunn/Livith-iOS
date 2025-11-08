@@ -9,64 +9,98 @@
 import Foundation
 
 enum NicknameValidationState {
-	case idle
-	case valid
-	case invalid
-	case checking
-	case available
-	case duplicate
+    case idle
+    case valid
+    case invalid
+    case checking
+    case available
+    case duplicate
 }
 
 struct NicknameSettingState {
-	var nickname: String = ""
-	var nicknameValidationState: NicknameValidationState = .idle
+    var nickname: String = ""
+    var nicknameValidationState: NicknameValidationState = .idle
+    var isSignupSuccess: Bool = false
+    var errorMessage: String = ""
 }
 
 enum NicknameSettingIntent {
-	case updateNickname(String)
-	case checkNicknameDuplicate
-	case _setNicknameValidationState(NicknameValidationState)
+    case updateNickname(String)
+    case checkNicknameDuplicate
+    case signup
+    case _setNicknameValidationState(NicknameValidationState)
+    case _signupResult(Result<Void, Error>)
 }
 
 @MainActor
 final class NicknameSettingStore: ObservableObject {
-	@Published private(set) var state = NicknameSettingState()
-
-	func send(_ intent: NicknameSettingIntent) {
-		switch intent {
-		case .updateNickname(let nickname):
-			state.nickname = nickname
-			validateNicknameFormat()
+    @Published private(set) var state = NicknameSettingState()
+    
+    func send(_ intent: NicknameSettingIntent) {
+        switch intent {
+        case .updateNickname(let nickname):
+            state.nickname = nickname
+            validateNicknameFormat()
             
-		case .checkNicknameDuplicate:
-			state.nicknameValidationState = .checking
-			checkNicknameDuplicate()
+        case .checkNicknameDuplicate:
+            state.nicknameValidationState = .checking
+            checkNicknameDuplicate()
             
-		case ._setNicknameValidationState(let validationState):
-			state.nicknameValidationState = validationState
-		}
-	}
+        case .signup:
+            signup()
+            
+        case ._setNicknameValidationState(let validationState):
+            state.nicknameValidationState = validationState
+            
+        case ._signupResult(let result):
+            switch result {
+            case .success:
+                state.isSignupSuccess = true
+                
+            case .failure(let error):
+                state.isSignupSuccess = false
+                state.errorMessage = error.localizedDescription
+            }
+        }
+    }
 }
 
 // MARK: - Helper
 
 private extension NicknameSettingStore {
-	func validateNicknameFormat() {
-		guard !state.nickname.isEmpty else {
-			send(._setNicknameValidationState(.idle))
-			return
-		}
-		let pattern = "^[a-zA-Z0-9가-힣]{1,10}$"
-		let isValid = state.nickname.range(of: pattern, options: .regularExpression) != nil
-		send(._setNicknameValidationState(isValid ? .valid : .invalid))
-	}
-
-	func checkNicknameDuplicate() {
-		// TODO: 실제 API 호출로 대체
-		Task {
-			try? await Task.sleep(for: .seconds(1))
-			let isDuplicate = state.nickname == "test"
-			send(._setNicknameValidationState(isDuplicate ? .duplicate : .available))
-		}
-	}
+    func validateNicknameFormat() {
+        guard !state.nickname.isEmpty else {
+            send(._setNicknameValidationState(.idle))
+            return
+        }
+        let pattern = "^[a-zA-Z0-9가-힣]{1,10}$"
+        let isValid = state.nickname.range(of: pattern, options: .regularExpression) != nil
+        send(._setNicknameValidationState(isValid ? .valid : .invalid))
+    }
+    
+    func checkNicknameDuplicate() {
+        
+        // TODO: 실제 API 호출로 대체
+        
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            let isDuplicate = state.nickname == "test"
+            send(._setNicknameValidationState(isDuplicate ? .duplicate : .available))
+        }
+    }
+    
+    func signup() {
+        
+        // TODO: 실제 API 호출
+        
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            if state.nickname == "fail" {
+                let error = NSError(domain: "Signup", code: 1, userInfo: [NSLocalizedDescriptionKey: "회원가입 실패"])
+                send(._signupResult(.failure(error)))
+            } else {
+                send(._signupResult(.success(())))
+            }
+        }
+    }
 }

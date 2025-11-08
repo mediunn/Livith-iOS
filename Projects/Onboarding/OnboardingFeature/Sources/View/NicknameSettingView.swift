@@ -14,6 +14,7 @@ struct NicknameSettingView: View {
     @EnvironmentObject private var router: OnboardingRouter
     @FocusState private var isNicknameFocused: Bool
     private let maxNicknameLength = 10
+    @State private var showSignupFailed = false
     
     var body: some View {
         ZStack {
@@ -47,6 +48,15 @@ struct NicknameSettingView: View {
             .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
+        .onChange(of: store.state.isSignupSuccess) { oldValue, newValue in
+            
+            // TODO: 홈 화면으로 이동
+            
+        }
+        .onChange(of: store.state.errorMessage) { oldValue, newValue in
+            print("Signup error changed: \(String(describing: newValue))")
+            router.fullScreenCover(.signupFailed)
+        }
     }
 }
 
@@ -98,12 +108,12 @@ private extension NicknameSettingView {
     
     var nicknameTextField: some View {
         ZStack(alignment: .leading) {
-           if store.state.nickname.isEmpty, !isNicknameFocused {
-               Text(Literals.placeholder)
-                   .notosans(.body3Medium)
-                   .foregroundColor(Color.livithColor(.black50))
-           }
-           
+            if store.state.nickname.isEmpty, !isNicknameFocused {
+                Text(Literals.placeholder)
+                    .notosans(.body3Medium)
+                    .foregroundColor(Color.livithColor(.black50))
+            }
+            
             HStack {
                 TextField("", text: nicknameBinding)
                     .foregroundColor(.livithColor(.white100))
@@ -169,8 +179,7 @@ private extension NicknameSettingView {
     
     var signupButton: some View {
         Button {
-            // 실패 시나리오 시뮬레이션
-            router.fullScreenCover(.signupFailed)
+            store.send(.signup)
         } label: {
             Text(Literals.signupButtonText)
                 .notosans(.body2Medium)
