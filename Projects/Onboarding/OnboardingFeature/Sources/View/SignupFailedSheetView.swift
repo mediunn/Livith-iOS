@@ -35,11 +35,12 @@ struct SignupFailedSheetView: View {
                     .padding(.top, 4)
                 
                 Button {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        isVisible = false
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    Task { @MainActor in
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            isVisible = false
+                        }
+                        
+                        try? await Task.sleep(for: .seconds(0.4))
                         router.dismissFullScreen()
                         
                         // TODO: 로그인 화면으로 돌아가기
@@ -63,7 +64,8 @@ struct SignupFailedSheetView: View {
         .opacity(isVisible ? 1 : 0)
         .presentationBackground(.clear)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.4))
                 withAnimation(.easeOut(duration: 0.3)) {
                     isVisible = true
                 }
