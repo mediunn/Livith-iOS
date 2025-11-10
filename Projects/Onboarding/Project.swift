@@ -29,7 +29,8 @@ let project = Project.make(
             dependencies: [
                 .onboarding(.onboardingDomain),
                 .shared(.designSystem),
-                .core(.routing)
+                .core(.routing),
+                .core(.diContainer)
             ]
         )
     ]
