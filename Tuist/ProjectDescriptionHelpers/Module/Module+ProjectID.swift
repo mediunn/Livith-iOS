@@ -15,6 +15,7 @@ public enum ProjectID: String, CaseIterable {
     case shared = "Shared"
     case search = "Search"
     case login = "Login"
+    case onboarding = "Onboarding"
     
     public var name: String { rawValue }
     

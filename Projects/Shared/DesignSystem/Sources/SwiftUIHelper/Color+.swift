@@ -13,6 +13,7 @@ public extension Color {
         case black100, black90, black80, black50, black30, black5, white100
         case yellow30, yellow60
         case caution100
+        case transition, original
         
         public var color: Color {
             switch self {
@@ -36,6 +37,10 @@ public extension Color {
                 Color(DesignSystemAsset.ColorAssets.yellow60.color)
             case .caution100:
                 Color(DesignSystemAsset.ColorAssets.caution100.color)
+            case .transition:
+                Color(DesignSystemAsset.ColorAssets.transition.color)
+            case .original:
+                Color(DesignSystemAsset.ColorAssets.original.color)
             }
         }
     }

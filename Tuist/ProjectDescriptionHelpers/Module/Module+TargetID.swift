@@ -14,14 +14,16 @@ public enum TargetID {
     case core(CoreModule)
     case login(LoginModule)
     case shared(SharedModule)
+    case onboarding(OnboardingModule)
     case search(SearchModule)
-    
+
     public var name: String {
         switch self {
         case .app: return BuildConfiguration.appName
         case .core(let module): return module.rawValue
         case .shared(let module): return module.rawValue
         case .login(let module): return module.rawValue
+        case .onboarding(let module): return module.rawValue
         case .search(let module): return module.rawValue
         }
     }
@@ -44,6 +46,8 @@ public enum TargetID {
         case .shared(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .login(let module):
+            return ["\(module.rawValue)/Sources/**"]
+        case .onboarding(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .search(let module):
             return ["\(module.rawValue)/Sources/**"]

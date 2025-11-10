@@ -99,8 +99,15 @@ public extension Font {
 public struct NotosansModifier: ViewModifier {
     let style: Font.Notosans
     
+    private static var isFontRegistered = false
+    
     init(style: Font.Notosans) {
         self.style = style
+        
+        if !Self.isFontRegistered {
+            Font.registerFont()
+            Self.isFontRegistered = true
+        }
     }
     
     private var uiFont: UIFont {

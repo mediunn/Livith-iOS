@@ -71,3 +71,7 @@ Tuist/.build
 
 ### Config ###
 *.xcconfig
+
+### Copilot ###
+.github/instructions/
+.github/copilot-instructions.md

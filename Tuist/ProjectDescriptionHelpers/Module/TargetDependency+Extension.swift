@@ -29,4 +29,8 @@ extension TargetDependency {
     public static func external(_ dependency: ExternalDependency) -> TargetDependency {
         return .external(name: dependency.rawValue)
     }
+
+    public static func onboarding(_ module: OnboardingModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.onboarding.path)
+    }
 }
