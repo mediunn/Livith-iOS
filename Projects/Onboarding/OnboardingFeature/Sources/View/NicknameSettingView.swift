@@ -181,16 +181,22 @@ private extension NicknameSettingView {
         Button {
             store.send(.signup)
         } label: {
-            Text(Literals.signupButtonText)
-                .notosans(.body2Medium)
-                .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
-                .padding()
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(isSignupButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
-                .cornerRadius(8)
+            HStack(spacing: 8) {
+                Text(Literals.signupButtonText)
+                    .notosans(.body2Medium)
+                    .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
+                if store.state.isSignupLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.black100)))
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(isSignupButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
+            .cornerRadius(8)
         }
-        .disabled(!isSignupButtonEnabled)
+        .disabled(!isSignupButtonEnabled || store.state.isSignupLoading)
     }
 }
 
