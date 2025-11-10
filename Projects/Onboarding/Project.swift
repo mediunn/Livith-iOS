@@ -12,9 +12,22 @@ let project = Project.make(
     project: .onboarding,
     targets: [
         .make(
+            target: .onboarding(.onboardingData),
+            product: .framework,
+            dependencies: [
+                .onboarding(.onboardingDomain),
+                .core(.livithNetwork)
+            ]
+        ),
+        .make(
+            target: .onboarding(.onboardingDomain),
+            product: .framework
+        ),
+        .make(
             target: .onboarding(.onboardingFeature),
             product: .framework,
             dependencies: [
+                .onboarding(.onboardingDomain),
                 .shared(.designSystem),
                 .core(.routing)
             ]

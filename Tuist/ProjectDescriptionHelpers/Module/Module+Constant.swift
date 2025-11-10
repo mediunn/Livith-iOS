@@ -32,6 +32,8 @@ public enum LoginModule: String {
 // MARK: - Onboarding Module
 
 public enum OnboardingModule: String {
+    case onboardingData = "OnboardingData"
+    case onboardingDomain = "OnboardingDomain"
     case onboardingFeature = "OnboardingFeature"
 }
 
