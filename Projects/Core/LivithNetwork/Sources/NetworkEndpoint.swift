@@ -10,6 +10,9 @@ import Foundation
 
 import Alamofire
 
+public typealias HTTPMethod = Alamofire.HTTPMethod
+public typealias HTTPHeaders = Alamofire.HTTPHeaders
+
 public protocol NetworkEndpoint {
     var path: String? { get }
     var method: HTTPMethod { get }
