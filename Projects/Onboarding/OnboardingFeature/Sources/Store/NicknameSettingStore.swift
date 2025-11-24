@@ -8,20 +8,13 @@
 
 import Foundation
 
-enum NicknameValidationState {
-    case idle
-    case valid
-    case invalid
-    case checking
-    case available
-    case duplicate
-}
+import DIContainer
+import OnboardingDomain
 
 struct NicknameSettingState {
     var nickname: String = ""
     var nicknameValidationState: NicknameValidationState = .idle
-    var isSignupSuccess: Bool = false
-    var errorMessage: String = ""
+    var signupState: SignupState = .idle
 }
 
 enum NicknameSettingIntent {
@@ -29,37 +22,41 @@ enum NicknameSettingIntent {
     case checkNicknameDuplicate
     case signup
     case _setNicknameValidationState(NicknameValidationState)
-    case _signupResult(Result<Void, Error>)
+    case _signupResult(Result<Void, OnboardingError>)
 }
 
 @MainActor
 final class NicknameSettingStore: ObservableObject {
     @Published private(set) var state = NicknameSettingState()
     
+    @Injected(container: OnboardingPreviewDIContainer.shared) private var onboardingUseCase: OnboardingUseCase
+    
+    init() {}
+    
     func send(_ intent: NicknameSettingIntent) {
         switch intent {
         case .updateNickname(let nickname):
             state.nickname = nickname
             validateNicknameFormat()
-            
+
         case .checkNicknameDuplicate:
             state.nicknameValidationState = .checking
             checkNicknameDuplicate()
-            
+
         case .signup:
+            state.signupState = .loading
             signup()
-            
+
         case ._setNicknameValidationState(let validationState):
             state.nicknameValidationState = validationState
-            
+
         case ._signupResult(let result):
             switch result {
             case .success:
-                state.isSignupSuccess = true
-                
+                state.signupState = .success
+
             case .failure(let error):
-                state.isSignupSuccess = false
-                state.errorMessage = error.localizedDescription
+                state.signupState = .failure(error.localizedDescription)
             }
         }
     }
@@ -73,33 +70,33 @@ private extension NicknameSettingStore {
             send(._setNicknameValidationState(.idle))
             return
         }
-        let pattern = "^[a-zA-Z0-9가-힣]{1,10}$"
-        let isValid = state.nickname.range(of: pattern, options: .regularExpression) != nil
-        send(._setNicknameValidationState(isValid ? .valid : .invalid))
+        
+        do {
+            try onboardingUseCase.validateNicknameFormat(state.nickname)
+            send(._setNicknameValidationState(.valid))
+        } catch {
+            send(._setNicknameValidationState(.invalid))
+        }
     }
     
     func checkNicknameDuplicate() {
-        
-        // TODO: 실제 API 호출로 대체
-        
         Task {
-            try? await Task.sleep(for: .seconds(1))
-            let isDuplicate = state.nickname == "test"
-            send(._setNicknameValidationState(isDuplicate ? .duplicate : .available))
+            do {
+                try await onboardingUseCase.checkNicknameDuplicate(state.nickname)
+                send(._setNicknameValidationState(.available))
+            } catch {
+                send(._setNicknameValidationState(.duplicate))
+            }
         }
     }
     
     func signup() {
-        
-        // TODO: 실제 API 호출
-        
         Task {
-            try? await Task.sleep(for: .seconds(1))
-            if state.nickname == "fail" {
-                let error = NSError(domain: "Signup", code: 1, userInfo: [NSLocalizedDescriptionKey: "회원가입 실패"])
-                send(._signupResult(.failure(error)))
-            } else {
+            do {
+                try await onboardingUseCase.signup(nickname: state.nickname)
                 send(._signupResult(.success(())))
+            } catch let error as OnboardingError {
+                send(._signupResult(.failure(error)))
             }
         }
     }

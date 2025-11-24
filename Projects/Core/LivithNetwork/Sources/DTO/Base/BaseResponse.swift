@@ -9,8 +9,8 @@
 import Foundation
 
 public struct BaseResponse<T: Decodable>: Decodable {
-    let statusCode: Int
-    let error: String?
-    let message: String
-    let data: T?
+    public let statusCode: Int
+    public let error: String?
+    public let message: String
+    public let data: T?
 }

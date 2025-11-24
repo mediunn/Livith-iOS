@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+
 import DesignSystem
 
 struct NicknameSettingView: View {
@@ -47,15 +48,19 @@ struct NicknameSettingView: View {
             .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
-        .onChange(of: store.state.isSignupSuccess) { oldValue, newValue in
-            
-            // TODO: 홈 화면으로 이동
-            
-        }
-        .onChange(of: store.state.errorMessage) { oldValue, newValue in
-            guard !newValue.isEmpty else { return }
-            print("Signup error changed: \(String(describing: newValue))")
-            router.fullScreenCover(.signupFailed)
+        .onChange(of: store.state.signupState) { oldValue, newValue in
+            switch newValue {
+            case .success:
+                // TODO: 홈 화면으로 이동
+                break
+                
+            case .failure(let message):
+                print("Signup error: \(message)")
+                router.fullScreenCover(.signupFailed)
+                
+            default:
+                break
+            }
         }
     }
 }
@@ -181,16 +186,22 @@ private extension NicknameSettingView {
         Button {
             store.send(.signup)
         } label: {
-            Text(Literals.signupButtonText)
-                .notosans(.body2Medium)
-                .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
-                .padding()
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(isSignupButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
-                .cornerRadius(8)
+            HStack(spacing: 8) {
+                Text(Literals.signupButtonText)
+                    .notosans(.body2Medium)
+                    .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
+                if case .loading = store.state.signupState {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.black100)))
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(isSignupButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
+            .cornerRadius(8)
         }
-        .disabled(!isSignupButtonEnabled)
+        .disabled(!isSignupButtonEnabled || isSignupLoading)
     }
 }
 
@@ -235,6 +246,10 @@ private extension NicknameSettingView {
     
     var isSignupButtonEnabled: Bool {
         store.state.nicknameValidationState == .available
+    }
+    
+    var isSignupLoading: Bool {
+        store.state.signupState == .loading
     }
     
     var nicknameBinding: Binding<String> {
