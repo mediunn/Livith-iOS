@@ -16,10 +16,9 @@ public final class OnboardingUseCaseImpl: OnboardingUseCase {
     }
     
     public func validateNicknameFormat(_ nickname: String) throws(OnboardingError) {
-        let pattern = "^[a-zA-Z0-9가-힣]{1,10}$"
-        let isValid = nickname.range(of: pattern, options: .regularExpression) != nil
+        let pattern = /^[a-zA-Z0-9가-힣]{1,10}$/
         
-        if !isValid {
+        guard (nickname.wholeMatch(of: pattern) != nil) else {
             throw OnboardingError.invalidNicknameFormat
         }
     }
