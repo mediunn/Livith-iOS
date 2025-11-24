@@ -61,8 +61,8 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
         let request = DTO.Request.CreateUser(
             nickname: nickname,
             marketingConsent: false,
-            userId: "",
-            providerId: "",
+            userID: "",
+            providerID: "",
             provider: "",
             email: nil
         )

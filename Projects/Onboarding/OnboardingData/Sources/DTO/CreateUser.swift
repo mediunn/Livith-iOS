@@ -20,6 +20,12 @@ public extension DTO.Request {
         let providerID: String
         let provider: String
         let email: String?
+
+        enum CodingKeys: String, CodingKey {
+            case nickname, marketingConsent, provider, email
+            case userID = "userId"
+            case providerID = "providerId"
+        }
     }
 }
 
@@ -31,12 +37,18 @@ public extension DTO.Response {
         
         struct User: Decodable {
             let id: Int
-            let interestConcertId: Int?
+            let interestConcertID: Int?
             let provider: String
-            let providerId: String
+            let providerID: String
             let email: String?
             let nickname: String
             let marketingConsent: Bool
+
+            enum CodingKeys: String, CodingKey {
+                case id, provider, email, nickname, marketingConsent
+                case interestConcertID = "interestConcertId"
+                case providerID = "providerId"
+            }
         }
     }
 }
