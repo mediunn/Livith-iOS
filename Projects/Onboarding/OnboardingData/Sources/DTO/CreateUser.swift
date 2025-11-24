@@ -16,8 +16,8 @@ public extension DTO.Request {
     struct CreateUser: Encodable {
         let nickname: String
         let marketingConsent: Bool
-        let userId: String
-        let providerId: String
+        let userID: String
+        let providerID: String
         let provider: String
         let email: String?
     }
