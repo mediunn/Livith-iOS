@@ -53,15 +53,6 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
         } catch {
             throw OnboardingError.unknown
         }
-        
-        do {
-            let response = 
-        
-        } catch let error as NetworkError {
-            
-        } catch {
-            
-        }
     }
 
     func signup(nickname: String) async throws(OnboardingError) {
