@@ -47,15 +47,19 @@ struct NicknameSettingView: View {
             .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
-        .onChange(of: store.state.isSignupSuccess) { oldValue, newValue in
-            
-            // TODO: 홈 화면으로 이동
-            
-        }
-        .onChange(of: store.state.errorMessage) { oldValue, newValue in
-            guard !newValue.isEmpty else { return }
-            print("Signup error changed: \(String(describing: newValue))")
-            router.fullScreenCover(.signupFailed)
+        .onChange(of: store.state.signupState) { oldValue, newValue in
+            switch newValue {
+            case .success:
+                // TODO: 홈 화면으로 이동
+                break
+                
+            case .failure(let message):
+                print("Signup error: \(message)")
+                router.fullScreenCover(.signupFailed)
+                
+            default:
+                break
+            }
         }
     }
 }
@@ -185,7 +189,7 @@ private extension NicknameSettingView {
                 Text(Literals.signupButtonText)
                     .notosans(.body2Medium)
                     .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
-                if store.state.isSignupLoading {
+                if case .loading = store.state.signupState {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.black100)))
                 }
@@ -196,7 +200,7 @@ private extension NicknameSettingView {
             .background(isSignupButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
             .cornerRadius(8)
         }
-        .disabled(!isSignupButtonEnabled || store.state.isSignupLoading)
+        .disabled(!isSignupButtonEnabled || isSignupLoading)
     }
 }
 
@@ -241,6 +245,10 @@ private extension NicknameSettingView {
     
     var isSignupButtonEnabled: Bool {
         store.state.nicknameValidationState == .available
+    }
+    
+    var isSignupLoading: Bool {
+        store.state.signupState == .loading
     }
     
     var nicknameBinding: Binding<String> {

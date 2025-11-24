@@ -14,9 +14,7 @@ import OnboardingDomain
 struct NicknameSettingState {
     var nickname: String = ""
     var nicknameValidationState: NicknameValidationState = .idle
-    var isSignupSuccess: Bool = false
-    var errorMessage: String = ""
-    var isSignupLoading: Bool = false
+    var signupState: SignupState = .idle
 }
 
 enum NicknameSettingIntent {
@@ -46,22 +44,19 @@ final class NicknameSettingStore: ObservableObject {
             checkNicknameDuplicate()
 
         case .signup:
-            state.isSignupLoading = true
+            state.signupState = .loading
             signup()
 
         case ._setNicknameValidationState(let validationState):
             state.nicknameValidationState = validationState
 
         case ._signupResult(let result):
-            state.isSignupLoading = false
             switch result {
             case .success:
-                state.isSignupSuccess = true
-                state.errorMessage = ""
+                state.signupState = .success
 
             case .failure(let error):
-                state.isSignupSuccess = false
-                state.errorMessage = error.localizedDescription
+                state.signupState = .failure(error.localizedDescription)
             }
         }
     }
