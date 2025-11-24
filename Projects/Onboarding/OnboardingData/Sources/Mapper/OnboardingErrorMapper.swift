@@ -19,18 +19,18 @@ struct OnboardingErrorMapper {
                 return .unknown
             }
             
-            if message == "이미 존재하는 닉네임이에요." {
+            if message == Literals.duplicateNicknameMessage {
                 return .nicknameDuplicated
             }
             
-            if message == "nickname must be shorter than or equal to 10 characters" {
+            if message == Literals.invalidNicknameLengthMessage {
                 return .invalidNicknameFormat
             }
             
             return .unknown
             
         case .notFound(let message):
-            if message == "해당 유저가 존재하지 않습니다." {
+            if message == Literals.userNotFoundMessage {
                 return .unknown
             }
             return .unknown
@@ -44,5 +44,15 @@ struct OnboardingErrorMapper {
         default:
             return .unknown
         }
+    }
+}
+
+// MARK: - Literals
+
+private extension OnboardingErrorMapper {
+    enum Literals {
+        static let duplicateNicknameMessage = "이미 존재하는 닉네임이에요."
+        static let invalidNicknameLengthMessage = "nickname must be shorter than or equal to 10 characters"
+        static let userNotFoundMessage = "해당 유저가 존재하지 않습니다."
     }
 }
