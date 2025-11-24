@@ -24,7 +24,11 @@ public final class OnboardingUseCaseImpl: OnboardingUseCase {
     }
     
     public func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) {
-        try await onboardingRepository.checkNicknameDuplicate(nickname)
+        let isAvailable = try await onboardingRepository.checkNicknameDuplicate(nickname)
+        
+        if !isAvailable {
+            throw OnboardingError.nicknameDuplicated
+        }
     }
     
     public func signup(nickname: String) async throws(OnboardingError) {

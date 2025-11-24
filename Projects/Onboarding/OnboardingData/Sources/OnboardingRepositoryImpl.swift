@@ -27,24 +27,17 @@ final class OnboardingRepositoryImpl {
 // MARK: - OnboardingRepository
 
 extension OnboardingRepositoryImpl: OnboardingRepository {
-    func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) {
+    func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) -> Bool {
         do {
             let response: BaseResponse<DTO.Response.CheckNicknameDuplicate> = try await service.request(
                 OnboardingEndpoint.checkNicknameDuplicate(nickname: nickname)
             )
             
-            if let error = response.error {
-                throw OnboardingError.signupFailed(reason: error)
-            }
-            
             guard let data = response.data else {
                 throw OnboardingError.unknown
             }
             
-            // available이 false면 중복된 닉네임
-            if !data.available {
-                throw OnboardingError.nicknameDuplicated
-            }
+            return data.available
             
         } catch let error as OnboardingError {
             throw error
