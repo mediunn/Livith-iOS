@@ -90,8 +90,6 @@ public struct FilterBottomSheetView: View {
             .padding(.top, 24)
             .padding(.horizontal, 16)
         }
-        .presentationDetents([.height(368)])
-        .presentationDragIndicator(.visible)
         .presentationBackground(Color.livithColor(.black90))
         .presentationCornerRadius(16)
         .onAppear {

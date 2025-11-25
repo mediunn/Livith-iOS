@@ -33,7 +33,6 @@ extension SearchRepositoryImpl: SearchRepository {
             cursor: cursor,
             size: size
         )
-
         let response: DTO.Response.FetchFilterSearchResult = try await service.request(endpoint)
         
         return mapper.toDomain(from: response)
