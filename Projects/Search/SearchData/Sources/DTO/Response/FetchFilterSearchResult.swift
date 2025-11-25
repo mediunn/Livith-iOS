@@ -15,7 +15,7 @@ import LivithNetwork
 public extension DTO.Response {
     struct FetchFilterSearchResult: Decodable {
         public let data: [FilteredConcert]
-        public let cursor: Cursor
+        public let cursor: Cursor?
         public let totalCount: Int
 
         public struct FilteredConcert: Decodable {
