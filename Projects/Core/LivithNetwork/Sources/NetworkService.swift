@@ -14,7 +14,7 @@ public protocol NetworkServiceProtocol {
     func request<T: Decodable>(_ endPoint: NetworkEndpoint) async throws(NetworkError) -> T
 }
 
-public final class NetworkService: NetworkServiceProtocol {
+public final class NetworkService<EndPoint: NetworkEndpoint>: NetworkServiceProtocol {
     private let session: Session
     private let responseHandler: ResponseHandlerProtocol
     private let errorMapper: ErrorMapperProtocol
@@ -46,7 +46,7 @@ public final class NetworkService: NetworkServiceProtocol {
 // MARK: - Request Method
 
 public extension NetworkService {
-    func request<T: Decodable>(_ endPoint: NetworkEndpoint) async throws(NetworkError) -> T {
+    func request<T: Decodable>(_ endPoint: any NetworkEndpoint) async throws(NetworkError) -> T {
         guard let endpoint = endPoint.path else {
             throw NetworkError.invalidURL
         }
