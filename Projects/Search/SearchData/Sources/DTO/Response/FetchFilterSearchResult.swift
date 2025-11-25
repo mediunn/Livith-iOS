@@ -53,7 +53,7 @@ public extension DTO.Response {
         }
 
         public struct Cursor: Decodable {
-            public let startDate: String
+            public let value: String
             public let id: Int
         }
     }

@@ -15,12 +15,12 @@ import SearchDomain
 
 public enum SearchEndpoint {
     case fetchFilterSearchResult(
-        genre: SearchDomain.ConcertGenre?,
+        genre: [SearchDomain.ConcertGenre],
         sort: SearchDomain.SearchSort?,
-        status: SearchDomain.ConcertStatus?,
+        status: [SearchDomain.ConcertStatus],
         keyword: String?,
         cursor: String?,
-        size: String?
+        size: Int?
     )
     case fetchRecommendedSearchResult(letter: String)
 }
@@ -46,9 +46,9 @@ extension SearchEndpoint: NetworkEndpoint {
             size: let size
         ):
             let params: [String: Any?] = [
-                "genre": genre?.rawValue,
+                "genre": genre.map(\.rawValue),
                 "sort": sort?.rawValue,
-                "status": status?.rawValue,
+                "status": status.map(\.rawValue),
                 "keyword": keyword,
                 "cursor": cursor,
                 "size": size

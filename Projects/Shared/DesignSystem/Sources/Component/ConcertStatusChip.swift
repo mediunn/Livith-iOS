@@ -26,13 +26,23 @@ public struct ConcertStatusChip: View {
     
     public var body: some View {
         ZStack(alignment: .center) {
-            Text(statusText)
-                .notosans(.caption1Bold)
-                .foregroundStyle(Color.livithColor(.black30))
+            buttonText
         }
         .padding(.horizontal, 13)
         .padding(.vertical, 7)
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
+}
+
+private extension ConcertStatusChip {
+    var buttonText: some View {
+        Text(remainDays == 0 ? statusText : "\(statusText)\(remainDays)")
+            .notosans(.caption1Bold)
+            .foregroundStyle(Color.livithColor(.black30))
+    }
+}
+
+#Preview {
+    ConcertStatusChip(statusText: "D-", remainDays: 3)
 }

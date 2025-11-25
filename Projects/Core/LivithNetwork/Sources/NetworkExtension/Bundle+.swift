@@ -9,8 +9,8 @@
 import Foundation
 
 public extension Bundle {
-    static let versionedBaseURL: URL = {
-        guard let url = URL(string: baseURL + version) else {
+    static let baseURL: URL = {
+        guard let url = URL(string: baseURLString) else {
             fatalError("BASE_URL에서 추출한 문자열을 URL로 변환할 수 없습니다.")
         }
         
@@ -20,8 +20,8 @@ public extension Bundle {
 
 private extension Bundle {
     static func object(dictionaryKey: String) -> String {
-        let networkBundle = Bundle(identifier: "com.youz2me.livith.network") ?? Bundle.main
-        
+        let networkBundle = Bundle(identifier: "com.youz2me.livith.livithnetwork") ?? Bundle.main
+
         guard let object = networkBundle.object(forInfoDictionaryKey: dictionaryKey) as? String else {
             fatalError("\(dictionaryKey)을 찾을 수 없습니다.")
         }
@@ -31,6 +31,6 @@ private extension Bundle {
 }
 
 private extension Bundle {
-    static let baseURL: String = object(dictionaryKey: "BASE_URL")
+    static let baseURLString: String = object(dictionaryKey: "BASE_URL")
     static let version: String = object(dictionaryKey: "CURRENT_VERSION")
 }

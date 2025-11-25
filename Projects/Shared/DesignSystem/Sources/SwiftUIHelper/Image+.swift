@@ -22,6 +22,7 @@ public extension Image {
         case closeLineSmall
         case deleteFillDefault, deleteFillPressed
         case down1_5LineSmall, downLineSmall
+        case upLineSmall
         case durationLine
         case earth
         case genreLine
@@ -144,6 +145,8 @@ public extension Image {
                 DesignSystemAsset.ImageAssets.icnTicketPressed.swiftUIImage
             case .trash:
                 DesignSystemAsset.ImageAssets.icnTrash.swiftUIImage
+            case .upLineSmall:
+                DesignSystemAsset.ImageAssets.icnLineSmallUp.swiftUIImage
             }
         }
     }

@@ -28,9 +28,24 @@ public final class ResponseHandler: ResponseHandlerProtocol {
         }
         
         do {
-            let decodedValue = try decoder.decode(T.self, from: data)
-            return decodedValue
+            let baseResponse = try decoder.decode(BaseResponse<T>.self, from: data)
+            
+            guard let unwrappedData = baseResponse.data else {
+                throw NetworkError.noData
+            }
+
+            return unwrappedData
+        } catch let error as NetworkError {
+            throw error
         } catch {
+            print("❌ [Decoding Error] ===============")
+            
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Error: \(error.localizedDescription)")
+                print("📦 Raw JSON response:")
+                print(jsonString)
+            }
+            
             throw NetworkError.decodingFailed(error)
         }
     }

@@ -20,7 +20,9 @@ let project = Project.make(
             dependencies: [
                 .shared(.designSystem),
                 .login(.loginFeature),
-                .search(.searchFeature)
+                .search(.searchFeature),
+                .search(.searchData),
+                .core(.diContainer)
             ]
         )
     ],

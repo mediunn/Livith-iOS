@@ -27,7 +27,7 @@ public final class NetworkService<EndPoint: NetworkEndpoint> {
 
     public convenience init(
         interceptor: RequestInterceptor? = nil,
-        eventMonitors: [EventMonitor] = [],
+        eventMonitors: [EventMonitor] = [LoggingMonitor.init()],
         configuration: URLSessionConfiguration = .default
     ) {
         let session = Session(
@@ -47,7 +47,7 @@ public extension NetworkService {
             throw NetworkError.invalidURL
         }
 
-        let url = Bundle.versionedBaseURL.appendingPathComponent(endpoint)
+        let url = Bundle.baseURL.appendingPathComponent(endpoint)
         let dataRequest: DataRequest
 
         switch (endPoint.body, endPoint.query) {
@@ -60,11 +60,12 @@ public extension NetworkService {
                 headers: endPoint.headers
             )
         case (_, let query?):
+            let encoding = URLEncoding(arrayEncoding: .noBrackets)
             dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 parameters: query,
-                encoding: URLEncoding.queryString,
+                encoding: encoding,
                 headers: endPoint.headers
             )
         default:

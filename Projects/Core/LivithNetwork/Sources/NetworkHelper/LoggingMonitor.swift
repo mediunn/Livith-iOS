@@ -37,11 +37,19 @@ public final class LoggingMonitor: EventMonitor {
     public func request<Value>(_ request: DataRequest, didParseResponse response: DataResponse<Value, AFError>) {
         guard let httpResponse = response.response else { return }
 
+        let statusCode = httpResponse.statusCode
+        let isError = !(200..<300).contains(statusCode)
+        
         switch response.result {
         case .success:
-            print("✅ [Response] ====================")
+            if isError {
+                print("❌ [HTTP Error] ==================")
+            } else {
+                print("✅ [Response] ====================")
+            }
+
             print("URL: \(httpResponse.url?.absoluteString ?? "URL을 찾을 수 없습니다")")
-            print("Status Code: \(httpResponse.statusCode)")
+            print("Status Code: \(statusCode)")
 
             if let headers = httpResponse.allHeaderFields as? [String: Any] {
                 print("Headers: \(headers)")
@@ -57,10 +65,15 @@ public final class LoggingMonitor: EventMonitor {
             print("======================================\n")
 
         case .failure(let error):
-            print("❌ [Error] =======================")
-            print("Status Code: \(httpResponse.statusCode)")
+            print("❌ [Network Error] ===============")
             print("URL: \(httpResponse.url?.absoluteString ?? "URL을 찾을 수 없습니다")")
+            print("Status Code: \(statusCode)")
             print("Error: \(error.localizedDescription)")
+
+            if let underlyingError = error.underlyingError {
+                print("Underlying Error: \(underlyingError)")
+            }
+
             print("======================================\n")
         }
     }
