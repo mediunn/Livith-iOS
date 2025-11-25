@@ -10,7 +10,11 @@
 
 import Foundation
 
+<<<<<<<< HEAD:Projects/Search/SearchData/Sources/DTO/Response/FetchFilterSearchResult.swift
 import LivithNetwork
+========
+import livithnetwork
+>>>>>>>> 9d91377 ([Feat] #18 - Search Data 레이어 구현):Livith-iOS/Projects/Search/Sources/SearchData/DTO/Response/FetchFilterSearchResult.swift
 
 public extension DTO.Response {
     struct FetchFilterSearchResult: Decodable {
