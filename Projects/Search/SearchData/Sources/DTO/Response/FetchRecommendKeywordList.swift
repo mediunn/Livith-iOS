@@ -10,11 +10,7 @@
 
 import Foundation
 
-<<<<<<<< HEAD:Projects/Search/SearchData/Sources/DTO/Response/FetchRecommendKeywordList.swift
 import LivithNetwork
-========
-import livithnetwork
->>>>>>>> 9d91377 ([Feat] #18 - Search Data 레이어 구현):Livith-iOS/Projects/Search/Sources/SearchData/DTO/Response/FetchRecommendKeywordList.swift
 
 public extension DTO.Response {
     typealias FetchRecommendKeywordList = [String]

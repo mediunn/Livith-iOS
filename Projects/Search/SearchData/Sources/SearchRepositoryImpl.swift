@@ -13,7 +13,7 @@ import LivithNetwork
 import SearchDomain
 
 public final class SearchRepositoryImpl {
-    private let service: NetworkService = .init()
+    private let service: NetworkService<SearchEndpoint> = .init()
     private let mapper: SearchMapper = .init()
 }
 

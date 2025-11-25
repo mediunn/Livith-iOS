@@ -10,8 +10,6 @@
 
 import Foundation
 
-import livithnetwork
-
 public extension DTO.Response {
     typealias FetchBannerList = [Banner]
 

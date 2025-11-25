@@ -10,11 +10,7 @@ import Foundation
 
 import Alamofire
 
-public protocol NetworkServiceProtocol {
-    func request<T: Decodable>(_ endPoint: NetworkEndpoint) async throws(NetworkError) -> T
-}
-
-public final class NetworkService<EndPoint: NetworkEndpoint>: NetworkServiceProtocol {
+public final class NetworkService<EndPoint: NetworkEndpoint> {
     private let session: Session
     private let responseHandler: ResponseHandlerProtocol
     private let errorMapper: ErrorMapperProtocol

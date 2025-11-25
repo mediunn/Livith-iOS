@@ -10,8 +10,6 @@
 
 import Foundation
 
-import livithnetwork
-
 public extension DTO.Response {
     struct FetchConcertList: Decodable {
         public let data: [Concert]
