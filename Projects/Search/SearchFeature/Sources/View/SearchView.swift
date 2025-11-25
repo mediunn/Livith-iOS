@@ -18,6 +18,7 @@ public struct SearchView: View {
 
     @ObservedObject private var store: SearchStore
 
+    @State private var showError: Bool = false
     @State private var showFilter: Bool = false
     @State private var showSort: Bool = false
 
@@ -48,9 +49,18 @@ public struct SearchView: View {
                 }
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: store.state.searchedConcertList.map { $0.id })
         .background(Color.livithColor(.black100))
         .onTapGesture {
             hideKeyboard()
+        }
+        .onChange(of: store.state.errorMessage) { _, newValue in
+            showError = !newValue.isEmpty
+        }
+        .alert("오류", isPresented: $showError) {
+            Button("확인", role: .cancel) { }
+        } message: {
+            Text(store.state.errorMessage)
         }
         .sheet(isPresented: $showFilter) {
             filterBottomSheet
@@ -202,6 +212,7 @@ private extension SearchView {
                     status: concert.status.statusChipText,
                     remainDays: concert.daysLeft
                 )
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
     }
