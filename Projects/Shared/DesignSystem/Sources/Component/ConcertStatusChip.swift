@@ -37,7 +37,7 @@ public struct ConcertStatusChip: View {
 
 private extension ConcertStatusChip {
     var buttonText: some View {
-        Text(remainDays == 0 ? statusText : "\(statusText)\(remainDays)")
+        Text(remainDays <= 0 ? statusText : "\(statusText)\(remainDays)")
             .notosans(.caption1Bold)
             .foregroundStyle(Color.livithColor(.black30))
     }
