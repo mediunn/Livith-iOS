@@ -24,6 +24,8 @@ public struct FilterOptionButton: View {
                 .padding(.vertical, 8)
                 .background(background)
         }
+        .buttonStyle(.plain)
+        .transaction { $0.animation = nil }
     }
     
     private var textColor: Color {
