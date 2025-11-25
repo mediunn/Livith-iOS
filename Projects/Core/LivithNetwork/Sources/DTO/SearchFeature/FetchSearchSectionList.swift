@@ -10,6 +10,8 @@
 
 import Foundation
 
+import livithnetwork
+
 public extension DTO.Response {
     typealias FetchSearchSectionList = [SearchSection]
 
