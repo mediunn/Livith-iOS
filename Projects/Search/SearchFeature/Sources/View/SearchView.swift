@@ -55,7 +55,7 @@ public struct SearchView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: store.state.searchedConcertList.map { $0.id })
-        .background(Color.livithColor(.black100))
+        .background(Color.livithColor(.black100).ignoresSafeArea())
         .onChange(of: store.state.errorMessage) { _, newValue in
             showError = !newValue.isEmpty
         }
