@@ -37,15 +37,17 @@ public struct SearchView: View {
             searchBarView
                 .padding(.bottom, 16)
 
-            filterView
-                .padding(.bottom, 16)
-                .zIndex(100)
-            
-            if store.state.searchedConcertList.isEmpty {
-                searchEmptyView
-                    .padding(.top, 183)
-            } else {
-                searchResultView
+            ScrollView {
+                filterView
+                    .padding(.bottom, 16)
+                    .zIndex(100)
+
+                if store.state.searchedConcertList.isEmpty {
+                    searchEmptyView
+                        .padding(.top, 183)
+                } else {
+                    searchResultView
+                }
             }
         }
         .animation(.easeInOut(duration: 0.3), value: store.state.searchedConcertList.map { $0.id })
@@ -207,31 +209,39 @@ private extension SearchView {
         Spacer()
     }
     
+    var searchResultCell: some View {
+        ForEach(store.state.searchedConcertList, id: \.id) { concert in
+            ConcertDetailCard(
+                posterURL: concert.posterURL,
+                title: concert.title,
+                date: concert.startDate,
+                artist: concert.artist,
+                status: concert.status.statusChipText,
+                remainDays: concert.daysLeft
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            .onAppear {
+                if concert.id == store.state.searchedConcertList.last?.id {
+                    store.send(.loadNextPage)
+                }
+            }
+            .onTapGesture {
+                // TODO: 상세 화면으로 이동
+                print("상세 화면으로 이동 \(concert.id)")
+            }
+        }
+    }
+    
     var searchResultView: some View {
-        ScrollView {
+        VStack(spacing: 0) {
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
                 spacing: 16
             ) {
-                ForEach(store.state.searchedConcertList, id: \.id) { concert in
-                    ConcertDetailCard(
-                        posterURL: concert.posterURL,
-                        title: concert.title,
-                        date: concert.startDate,
-                        artist: concert.artist,
-                        status: concert.status.statusChipText,
-                        remainDays: concert.daysLeft
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                    .onAppear {
-                        if concert.id == store.state.searchedConcertList.last?.id {
-                            store.send(.loadNextPage)
-                        }
-                    }
-                }
+                searchResultCell
             }
             .padding(.horizontal, 16)
-            
+
             if store.state.isLoadingMore {
                 ProgressView()
                     .frame(maxWidth: .infinity)
