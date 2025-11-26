@@ -31,10 +31,17 @@ public struct FilterBottomSheetView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            Rectangle()
+                .fill(Color.livithColor(.black80))
+                .frame(height: 6)
+                .padding(.top, 10)
+                .padding(.horizontal, 150)
+                .padding(.bottom, 8)
+                .cornerRadius(8)
+
             Text("장르")
                 .notosans(.body2Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
-                .padding(.top, 24)
                 .padding(.horizontal, 16)
 
             genreOptions
@@ -56,42 +63,12 @@ public struct FilterBottomSheetView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 20)
 
-            HStack(spacing: 12) {
-
-                Button {
-                    tempGenreList = []
-                    tempStatusList = []
-                } label: {
-                    Text("초기화")
-                        .notosans(.body2Semibold)
-                        .foregroundStyle(hasSelection ? Color.livithColor(.black100) : Color.livithColor(.black50))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(hasSelection ? Color.livithColor(.yellow30) : Color.livithColor(.black80))
-                        .cornerRadius(12)
-                }
-                .disabled(!hasSelection)
-
-                Button {
-                    selectedGenreList = tempGenreList
-                    selectedStatusList = tempStatusList
-                    showFilter = false
-                } label: {
-                    Text("설정하기")
-                        .notosans(.body2Semibold)
-                        .foregroundStyle(hasSelection ? Color.livithColor(.black100) : Color.livithColor(.black50))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(hasSelection ? Color.livithColor(.yellow30) : Color.livithColor(.black80))
-                        .cornerRadius(12)
-                }
-                .disabled(!hasSelection)
-            }
-            .padding(.top, 24)
-            .padding(.horizontal, 16)
+            setupButtons
+                .padding(.top, 24)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
         }
-        .presentationBackground(Color.livithColor(.black90))
-        .presentationCornerRadius(16)
+        .animation(nil, value: showFilter)
         .onAppear {
             tempGenreList = selectedGenreList
             tempStatusList = selectedStatusList
@@ -104,6 +81,10 @@ private extension FilterBottomSheetView {
         !tempGenreList.isEmpty || !tempStatusList.isEmpty
     }
 
+    var selectableGenres: [ConcertGenre] {
+        ConcertGenre.allCases.filter { $0 != .all }
+    }
+
     var genreOptions: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 10) {
@@ -113,72 +94,74 @@ private extension FilterBottomSheetView {
                     action: { tempGenreList = [] }
                 )
 
-                FilterOptionButton(
-                    title: "J-POP",
-                    isSelected: tempGenreList.contains(.jpop),
-                    action: { toggleGenre(.jpop) }
-                )
-
-                FilterOptionButton(
-                    title: "락/메탈",
-                    isSelected: tempGenreList.contains(.rockMetal),
-                    action: { toggleGenre(.rockMetal) }
-                )
-
-                FilterOptionButton(
-                    title: "랩/힙합",
-                    isSelected: tempGenreList.contains(.rapHiphop),
-                    action: { toggleGenre(.rapHiphop) }
-                )
+                ForEach(selectableGenres.prefix(3), id: \.self) { genre in
+                    FilterOptionButton(
+                        title: genre.genreText,
+                        isSelected: tempGenreList.contains(genre),
+                        action: { toggleGenre(genre) }
+                    )
+                }
             }
 
             HStack(alignment: .center, spacing: 10) {
-                FilterOptionButton(
-                    title: "클래식/재즈",
-                    isSelected: tempGenreList.contains(.classicJazz),
-                    action: { toggleGenre(.classicJazz) }
-                )
-
-                FilterOptionButton(
-                    title: "어쿠스틱",
-                    isSelected: tempGenreList.contains(.acoustic),
-                    action: { toggleGenre(.acoustic) }
-                )
-
-                FilterOptionButton(
-                    title: "일렉트로닉",
-                    isSelected: tempGenreList.contains(.electronic),
-                    action: { toggleGenre(.electronic) }
-                )
+                ForEach(selectableGenres.suffix(3), id: \.self) { genre in
+                    FilterOptionButton(
+                        title: genre.genreText,
+                        isSelected: tempGenreList.contains(genre),
+                        action: { toggleGenre(genre) }
+                    )
+                }
             }
         }
     }
 
     var statusOptions: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 4) {
             FilterOptionButton(
                 title: "전체",
                 isSelected: tempStatusList.isEmpty,
                 action: { tempStatusList = [] }
             )
 
-            FilterOptionButton(
-                title: "진행중",
-                isSelected: tempStatusList.contains(.ongoing),
-                action: { toggleStatus(.ongoing) }
-            )
+            ForEach(ConcertStatus.allCases, id: \.self) { status in
+                FilterOptionButton(
+                    title: status.filterText,
+                    isSelected: tempStatusList.contains(status),
+                    action: { toggleStatus(status) }
+                )
+            }
+        }
+    }
+    
+    var setupButtons: some View {
+        HStack(spacing: 12) {
+            Button {
+                tempGenreList = []
+                tempStatusList = []
+            } label: {
+                Text("초기화")
+                    .notosans(.body3Semibold)
+                    .foregroundStyle(hasSelection ? Color.livithColor(.white100) : Color.livithColor(.black50))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 51)
+                    .background(hasSelection ? Color.livithColor(.black50) : Color.livithColor(.black80))
+                    .cornerRadius(6)
+            }
+            .disabled(!hasSelection)
 
-            FilterOptionButton(
-                title: "진행예정",
-                isSelected: tempStatusList.contains(.upcoming),
-                action: { toggleStatus(.upcoming) }
-            )
-
-            FilterOptionButton(
-                title: "진행완료",
-                isSelected: tempStatusList.contains(.completed),
-                action: { toggleStatus(.completed) }
-            )
+            Button {
+                selectedGenreList = tempGenreList
+                selectedStatusList = tempStatusList
+                showFilter = false
+            } label: {
+                Text("설정하기")
+                    .notosans(.body3Semibold)
+                    .foregroundStyle(Color.livithColor(.black100))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 51)
+                    .background(Color.livithColor(.yellow30))
+                    .cornerRadius(6)
+            }
         }
     }
 

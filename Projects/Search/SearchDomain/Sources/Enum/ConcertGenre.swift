@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ConcertGenre: String {
+public enum ConcertGenre: String, CaseIterable {
     case jpop
     case rockMetal
     case rapHiphop

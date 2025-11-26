@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ConcertStatus: String {
+public enum ConcertStatus: String, CaseIterable {
     case ongoing
     case upcoming
     case completed
