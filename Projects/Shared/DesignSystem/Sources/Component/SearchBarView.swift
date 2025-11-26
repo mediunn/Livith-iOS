@@ -14,12 +14,18 @@ public struct SearchBarView: View {
 
     @Binding var input: String
     @FocusState private var isFocused: Bool
+    var onChange: () -> Void
     var onSubmit: () -> Void
 
     // MARK: - LifeCycle
-
-    public init(input: Binding<String>, onSubmit: @escaping () -> Void = {}) {
+    
+    public init(
+        input: Binding<String>,
+        onChange: @escaping () -> Void,
+        onSubmit: @escaping () -> Void
+    ) {
         self._input = input
+        self.onChange = onChange
         self.onSubmit = onSubmit
     }
     
