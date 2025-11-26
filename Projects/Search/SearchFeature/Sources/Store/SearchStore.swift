@@ -31,6 +31,7 @@ public struct SearchState {
 }
 
 public enum SearchIntent {
+    case viewDidLoad
     case updateSearchMessage(String)
     case sortStateChanged(SearchDomain.SearchSort)
     case resetButtonTapped
@@ -52,32 +53,28 @@ public final class SearchStore: ObservableObject {
     @MainActor
     public func send(_ intent: SearchIntent) {
         switch intent {
+        case .viewDidLoad:
+            fetchFilterSearchResult()
         case .updateSearchMessage(let message):
             state.searchMessage = message
-
         case .sortStateChanged(let state):
             self.state.sortState = state
             fetchFilterSearchResult()
         case .resetButtonTapped:
             state.selectedGenreList.removeAll()
             state.selectedStatusList.removeAll()
-
         case .clearButtonTapped:
             state.searchMessage = ""
-
         case .searchButtonTapped:
             fetchFilterSearchResult()
-            
         case .settingButtonTapped(genres: let genres, status: let status):
             state.selectedGenreList = genres
             state.selectedStatusList = status
             fetchFilterSearchResult()
         case ._setErrorMessage(let message):
             state.errorMessage = message
-            
         case ._setConcertList(let concerts):
             state.searchedConcertList = concerts
-            
         case ._setConcertActive(let isActive):
             state.isSearchActive = isActive
         }
