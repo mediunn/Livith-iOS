@@ -69,9 +69,11 @@ public struct FilterBottomSheetView: View {
                 .padding(.bottom, 24)
         }
         .animation(nil, value: showFilter)
-        .onAppear {
-            tempGenreList = selectedGenreList
-            tempStatusList = selectedStatusList
+        .onChange(of: showFilter) { _, isShowing in
+            if isShowing {
+                tempGenreList = selectedGenreList
+                tempStatusList = selectedStatusList
+            }
         }
     }
 }
