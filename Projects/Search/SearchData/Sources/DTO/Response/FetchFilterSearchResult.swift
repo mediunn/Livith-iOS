@@ -27,7 +27,7 @@ public extension DTO.Response {
             public let status: String
             public let posterURL: String
             public let artist: String
-            public let daysLeft: Int
+            public let daysLeft: Int?
             public let ticketSite: String
             public let ticketURL: String
             public let venue: String

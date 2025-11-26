@@ -25,7 +25,7 @@ public class SearchMapper {
                 title: concert.title,
                 artist: concert.artist,
                 status: status,
-                daysLeft: concert.daysLeft,
+                daysLeft: concert.daysLeft ?? 0,
                 startDate: concert.startDate,
                 endDate: concert.endDate,
                 posterURL: posterURL,

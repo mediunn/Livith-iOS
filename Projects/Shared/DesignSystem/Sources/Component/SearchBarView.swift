@@ -80,6 +80,9 @@ private extension SearchBarView {
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
                 .focused($isFocused)
+                .onChange(of: input, { _, _ in
+                    onChange()
+                })
                 .onSubmit {
                     isFocused = false
                     onSubmit()
