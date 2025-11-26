@@ -24,7 +24,7 @@ extension SearchRepositoryImpl: SearchRepository {
         keyword: String?,
         cursor: String?,
         size: Int?
-    ) async throws -> [SearchDomain.ConcertEntity] {
+    ) async throws -> SearchDomain.SearchResultEntity {
         let endpoint = SearchEndpoint.fetchFilterSearchResult(
             genre: genre,
             sort: sort,
