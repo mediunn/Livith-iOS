@@ -6,11 +6,11 @@
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
-import SearchDomain
 import DesignSystem
+import SearchDomain
 
 public struct SearchView: View {
 
@@ -26,6 +26,8 @@ public struct SearchView: View {
 
     public init(store: SearchStore) {
         self.store = store
+        
+        store.send(.viewDidLoad)
     }
 
     // MARK: - Body
@@ -57,13 +59,17 @@ public struct SearchView: View {
         .onChange(of: store.state.errorMessage) { _, newValue in
             showError = !newValue.isEmpty
         }
-        .alert("오류", isPresented: $showError) {
-            Button("확인", role: .cancel) { }
-        } message: {
-            Text(store.state.errorMessage)
+        .overlay {
+            if showError {
+                ErrorSheetView(
+                    title: "오류가 발생했어요!",
+                    message: store.state.errorMessage
+                )
+            }
         }
-        .sheet(isPresented: $showFilter) {
-            filterBottomSheet
+        .overlay {
+            customFilterSheet
+                .ignoresSafeArea()
         }
     }
 }
@@ -97,7 +103,13 @@ private extension SearchView {
                 get: { store.state.searchMessage },
                 set: { store.send(.updateSearchMessage($0)) }
             ),
-            onSubmit: performSearch
+            onChange: {
+                if isCompleteKorean() { performSearch() }
+            },
+            onSubmit:  {
+                performSearch()
+                hideKeyboard()
+            }
         )
         .foregroundStyle(Color.livithColor(.black100))
     }
@@ -234,6 +246,36 @@ private extension SearchView {
             showFilter: $showFilter
         )
     }
+
+    var customFilterSheet: some View {
+        ZStack(alignment: .bottom) {
+            Color.black
+                .opacity(showFilter ? 0.4 : 0)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    showFilter = false
+                }
+                .allowsHitTesting(showFilter)
+                .animation(.easeInOut(duration: 0.3), value: showFilter)
+            
+            VStack(spacing: 0) {
+                filterBottomSheet
+            }
+            .frame(maxWidth: .infinity)
+            .background(Color.livithColor(.black90))
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 16,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 16
+                )
+            )
+            .drawingGroup()
+            .offset(y: showFilter ? 0 : 420)
+            .animation(.easeInOut(duration: 0.3), value: showFilter)
+        }
+    }
 }
 
 // MARK: - Helper Method
@@ -243,10 +285,16 @@ private extension SearchView {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
+    func isCompleteKorean() -> Bool {
+        let message = store.state.searchMessage
+        guard let lastChar = message.last else { return false }
+        
+        return !String(lastChar).contains(/[ㄱ-ㅎ]/)
+    }
+    
     func performSearch() {
         guard !store.state.searchMessage.isEmpty else { return }
         store.send(.searchButtonTapped)
-        hideKeyboard()
     }
     
     func setButtonText(input: [String]) -> String {
