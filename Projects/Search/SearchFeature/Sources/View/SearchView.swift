@@ -106,6 +106,9 @@ private extension SearchView {
             onChange: {
                 if isCompleteKorean() { performSearch() }
             },
+            onClear: {
+                store.send(.clearButtonTapped)
+            },
             onSubmit:  {
                 performSearch()
                 hideKeyboard()

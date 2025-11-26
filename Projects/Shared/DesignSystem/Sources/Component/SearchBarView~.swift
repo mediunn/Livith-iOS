@@ -19,7 +19,7 @@ public struct SearchBarView: View {
     var onSubmit: () -> Void
 
     // MARK: - LifeCycle
-    
+
     public init(
         input: Binding<String>,
         onChange: @escaping () -> Void,

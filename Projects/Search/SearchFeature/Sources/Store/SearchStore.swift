@@ -74,6 +74,9 @@ public final class SearchStore: ObservableObject {
             state.selectedStatusList.removeAll()
         case .clearButtonTapped:
             state.searchMessage = ""
+            state.cursor = nil
+            state.hasMorePages = true
+            fetchFilterSearchResult()
         case .searchButtonTapped:
             searchWithDebounce()
         case .settingButtonTapped(genres: let genres, status: let status):
