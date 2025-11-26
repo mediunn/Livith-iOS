@@ -64,8 +64,10 @@ public final class SearchStore: ObservableObject {
             loadNextPageIfNeeded()
         case .updateSearchMessage(let message):
             state.searchMessage = message
-        case .sortStateChanged(let state):
-            self.state.sortState = state
+        case .sortStateChanged(let sort):
+            state.sortState = sort
+            state.cursor = nil
+            state.hasMorePages = true
             fetchFilterSearchResult()
         case .resetButtonTapped:
             state.selectedGenreList.removeAll()
@@ -77,6 +79,8 @@ public final class SearchStore: ObservableObject {
         case .settingButtonTapped(genres: let genres, status: let status):
             state.selectedGenreList = genres
             state.selectedStatusList = status
+            state.cursor = nil
+            state.hasMorePages = true
             fetchFilterSearchResult()
         case ._setErrorMessage(let message):
             state.errorMessage = message
