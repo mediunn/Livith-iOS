@@ -12,10 +12,13 @@ import DIContainer
 import SearchDomain
 
 public struct SearchState {
-    public var cursor: (title: String, id: Int)? = nil
+    public var cursor: (value: String, id: Int)? = nil
 
     public var errorMessage: String = ""
     public var searchMessage: String = ""
+    
+    public var hasMorePages: Bool = true
+    public var isLoadingMore: Bool = false
 
     public var isSortShown: Bool = false
     public var isFilterShown: Bool = false
@@ -32,11 +35,12 @@ public struct SearchState {
 
 public enum SearchIntent {
     case viewDidLoad
-    case updateSearchMessage(String)
-    case sortStateChanged(SearchDomain.SearchSort)
+    case loadNextPage
     case resetButtonTapped
     case clearButtonTapped
     case searchButtonTapped
+    case updateSearchMessage(String)
+    case sortStateChanged(SearchDomain.SearchSort)
     case settingButtonTapped(genres: [SearchDomain.ConcertGenre], status: [SearchDomain.ConcertStatus])
     
     case _setConcertActive(Bool)
@@ -56,6 +60,8 @@ public final class SearchStore: ObservableObject {
         switch intent {
         case .viewDidLoad:
             fetchFilterSearchResult()
+        case .loadNextPage:
+            loadNextPageIfNeeded()
         case .updateSearchMessage(let message):
             state.searchMessage = message
         case .sortStateChanged(let state):
@@ -67,12 +73,7 @@ public final class SearchStore: ObservableObject {
         case .clearButtonTapped:
             state.searchMessage = ""
         case .searchButtonTapped:
-            searchTask?.cancel()
-            searchTask = Task {
-                try? await Task.sleep(for: .milliseconds(300))
-                guard !Task.isCancelled else { return }
-                fetchFilterSearchResult()
-            }
+            searchWithDebounce()
         case .settingButtonTapped(genres: let genres, status: let status):
             state.selectedGenreList = genres
             state.selectedStatusList = status
@@ -88,14 +89,36 @@ public final class SearchStore: ObservableObject {
 }
 
 private extension SearchStore {
-    func fetchFilterSearchResult() {
+    func loadNextPageIfNeeded() {
+        guard !state.isLoadingMore, state.hasMorePages else { return }
+        state.isLoadingMore = true
+        Task {
+            try? await Task.sleep(for: .milliseconds(800))
+            fetchFilterSearchResult(isNextPage: true)
+        }
+    }
+    
+    func searchWithDebounce() {
+        searchTask?.cancel()
+        
+        searchTask = Task {
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            
+            state.cursor = nil
+            state.hasMorePages = true
+            fetchFilterSearchResult()
+        }
+    }
+    
+    func fetchFilterSearchResult(isNextPage: Bool = false) {
         Task { @MainActor in
             let cursorText: String? = state.cursor.map { cursor in
-                "{\"value\":\"\(cursor.title)\",\"id\":\(cursor.id)}"
+                "{\"value\":\"\(cursor.value)\",\"id\":\(cursor.id)}"
             }
 
             do {
-                let results = try await repository.fetchFilterSearchResult(
+                let result = try await repository.fetchFilterSearchResult(
                     genre: state.selectedGenreList,
                     sort: state.sortState,
                     status: state.selectedStatusList,
@@ -105,9 +128,19 @@ private extension SearchStore {
                 )
                 
                 state.isSearchActive = true
-                state.searchedConcertList = results
+
+                if isNextPage {
+                    state.searchedConcertList.append(contentsOf: result.concerts)
+                } else {
+                    state.searchedConcertList = result.concerts
+                }
+
+                state.cursor = result.cursor
+                state.hasMorePages = result.cursor != nil
+                state.isLoadingMore = false
             } catch {
                 state.errorMessage = error.localizedDescription
+                state.isLoadingMore = false
             }
         }
     }
