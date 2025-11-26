@@ -45,6 +45,7 @@ public enum SearchIntent {
 }
 
 public final class SearchStore: ObservableObject {
+    private var searchTask: Task<Void, Never>?
     @Published private(set) var state = SearchState()
     @Injected private var repository: SearchRepository
 
@@ -66,7 +67,12 @@ public final class SearchStore: ObservableObject {
         case .clearButtonTapped:
             state.searchMessage = ""
         case .searchButtonTapped:
-            fetchFilterSearchResult()
+            searchTask?.cancel()
+            searchTask = Task {
+                try? await Task.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                fetchFilterSearchResult()
+            }
         case .settingButtonTapped(genres: let genres, status: let status):
             state.selectedGenreList = genres
             state.selectedStatusList = status
