@@ -45,10 +45,7 @@ public struct SearchView: View {
                 searchEmptyView
                     .padding(.top, 183)
             } else {
-                ScrollView {
-                    searchGrid
-                        .padding(.horizontal, 16)
-                }
+                searchResultView
             }
         }
         .animation(.easeInOut(duration: 0.3), value: store.state.searchedConcertList.map { $0.id })
@@ -210,21 +207,35 @@ private extension SearchView {
         Spacer()
     }
     
-    var searchGrid: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-            spacing: 16
-        ) {
-            ForEach(store.state.searchedConcertList, id: \.id) { concert in
-                ConcertDetailCard(
-                    posterURL: concert.posterURL,
-                    title: concert.title,
-                    date: concert.startDate,
-                    artist: concert.artist,
-                    status: concert.status.statusChipText,
-                    remainDays: concert.daysLeft
-                )
-                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+    var searchResultView: some View {
+        ScrollView {
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
+                spacing: 16
+            ) {
+                ForEach(store.state.searchedConcertList, id: \.id) { concert in
+                    ConcertDetailCard(
+                        posterURL: concert.posterURL,
+                        title: concert.title,
+                        date: concert.startDate,
+                        artist: concert.artist,
+                        status: concert.status.statusChipText,
+                        remainDays: concert.daysLeft
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .onAppear {
+                        if concert.id == store.state.searchedConcertList.last?.id {
+                            store.send(.loadNextPage)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            
+            if store.state.isLoadingMore {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
             }
         }
     }
