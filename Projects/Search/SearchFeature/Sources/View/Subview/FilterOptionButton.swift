@@ -18,10 +18,10 @@ public struct FilterOptionButton: View {
     public var body: some View {
         Button(action: action) {
             Text(title)
-                .notosans(.body4Medium)
+                .notosans(.caption1Bold)
                 .foregroundStyle(textColor)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 13)
+                .padding(.vertical, 7)
                 .background(background)
         }
         .buttonStyle(.plain)
@@ -29,7 +29,7 @@ public struct FilterOptionButton: View {
     }
     
     private var textColor: Color {
-        isSelected ? Color.livithColor(.black100) : Color.livithColor(.black30)
+        isSelected ? Color.livithColor(.black100) : Color.livithColor(.black50)
     }
     
     private var background: some View {
