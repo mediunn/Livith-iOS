@@ -49,12 +49,13 @@ public struct SearchView: View {
                     searchResultView
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                hideKeyboard()
+            }
         }
         .animation(.easeInOut(duration: 0.3), value: store.state.searchedConcertList.map { $0.id })
         .background(Color.livithColor(.black100))
-        .onTapGesture {
-            hideKeyboard()
-        }
         .onChange(of: store.state.errorMessage) { _, newValue in
             showError = !newValue.isEmpty
         }
