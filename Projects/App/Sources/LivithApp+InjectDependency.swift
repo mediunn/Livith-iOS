@@ -13,6 +13,10 @@ import SearchData
 
 extension LivithApp {
     func registerDependency() {
-        DIContainer.shared.register(assemblers: [SearchAssembler()])
+        DIContainer.shared.register(
+            assemblers: [
+                SearchAssembler()
+            ]
+        )
     }
 }

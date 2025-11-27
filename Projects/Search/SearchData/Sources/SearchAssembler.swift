@@ -14,6 +14,6 @@ public struct SearchAssembler: DependencyAssembler {
     public init() { }
     
     public func assemble(to container: any DependencyContainer) {
-        DIContainer.shared.register(SearchRepositoryImpl(), for: SearchRepository.self)
+        container.register(SearchRepositoryImpl(), for: SearchRepository.self)
     }
 }

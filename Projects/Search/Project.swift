@@ -29,7 +29,8 @@ let project = Project.make(
             dependencies: [
                 .search(.searchDomain),
                 .shared(.designSystem),
-                .core(.diContainer)
+                .core(.diContainer),
+                .core(.livithConcurrency)
             ]
         )
     ]

@@ -8,6 +8,7 @@
 
 import Foundation
 
+import LivithConcurrency
 import DIContainer
 import SearchDomain
 
@@ -110,8 +111,7 @@ private extension SearchStore {
         searchTask?.cancel()
         
         searchTask = Task {
-            try? await Task.sleep(for: .milliseconds(300))
-            guard !Task.isCancelled else { return }
+            guard await Task.wait(for: .milliseconds(300)) else { return }
             
             state.cursor = nil
             state.hasMorePages = true
@@ -139,7 +139,7 @@ private extension SearchStore {
                     size: 12
                 )
 
-                guard !Task.isCancelled else { return }
+                guard await Task.wait() else { return }
 
                 state.isSearchActive = true
 
@@ -153,7 +153,7 @@ private extension SearchStore {
                 state.hasMorePages = result.cursor != nil
                 state.isLoadingMore = false
             } catch {
-                guard !Task.isCancelled else { return }
+                guard await Task.wait() else { return }
                 state.errorMessage = error.localizedDescription
                 state.isLoadingMore = false
             }
