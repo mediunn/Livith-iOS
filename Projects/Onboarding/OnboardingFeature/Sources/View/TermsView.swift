@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DesignSystem
+import DSKit
 
 struct TermsView: View {
     @StateObject private var store = TermsStore()

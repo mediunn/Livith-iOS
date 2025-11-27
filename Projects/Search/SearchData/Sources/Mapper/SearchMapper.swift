@@ -12,8 +12,8 @@ import LivithNetwork
 import SearchDomain
 
 public class SearchMapper {
-    func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> [ConcertEntity] {
-        return response.data.compactMap { concert in
+    func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResultEntity {
+        let concerts = response.data.compactMap { concert -> ConcertEntity? in
             guard let status = ConcertStatus(rawValue: concert.status),
                   let posterURL = URL(string: concert.posterURL),
                   let ticketURL = URL(string: concert.ticketURL) else {
@@ -25,7 +25,7 @@ public class SearchMapper {
                 title: concert.title,
                 artist: concert.artist,
                 status: status,
-                daysLeft: concert.daysLeft,
+                daysLeft: concert.daysLeft ?? 0,
                 startDate: concert.startDate,
                 endDate: concert.endDate,
                 posterURL: posterURL,
@@ -36,5 +36,11 @@ public class SearchMapper {
                 label: concert.label
             )
         }
+
+        return SearchResultEntity(
+            concerts: concerts,
+            cursor: response.cursor.map { ($0.value, $0.id) },
+            totalCount: response.totalCount
+        )
     }
 }

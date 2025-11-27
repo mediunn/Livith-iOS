@@ -10,12 +10,12 @@ import Foundation
 
 public protocol SearchRepository {
     func fetchFilterSearchResult(
-        genre: ConcertGenre?,
+        genre: [ConcertGenre],
         sort: SearchSort?,
-        status: ConcertStatus?,
+        status: [ConcertStatus],
         keyword: String?,
         cursor: String?,
-        size: String?
-    ) async throws -> [ConcertEntity]
+        size: Int?
+    ) async throws -> SearchResultEntity
     func fetchRecommendedSearchResult(keyword: String) async throws -> [String]
 }

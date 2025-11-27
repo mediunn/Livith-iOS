@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ConcertGenre: String {
+public enum ConcertGenre: String, CaseIterable {
     case jpop
     case rockMetal
     case rapHiphop
@@ -35,6 +35,25 @@ public extension ConcertGenre {
             return "ELECTRONIC"
         case .all:
             return "ALL"
+        }
+    }
+    
+    var genreText: String {
+        switch self {
+        case .jpop:
+            return "J-POP"
+        case .rockMetal:
+            return "락/메탈"
+        case .rapHiphop: 
+            return "랩/힙합"
+        case .classicJazz: 
+            return "클래식/재즈"
+        case .acoustic: 
+            return "어쿠스틱"
+        case .electronic: 
+            return "일렉트로닉"
+        case .all: 
+            return "전체"
         }
     }
 }

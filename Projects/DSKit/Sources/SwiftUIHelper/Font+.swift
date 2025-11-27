@@ -29,13 +29,13 @@ public extension Font {
         var fontName: String {
             switch self {
             case .title, .caption1Bold:
-                return DesignSystemFontFamily.NotoSansKR.bold.name
+                return DSKitFontFamily.NotoSansKR.bold.name
             case .headSemibold, .body1Semibold, .body2Semibold, .body3Semibold, .body4Semibold, .caption1Semibold, .caption2Semibold:
-                return DesignSystemFontFamily.NotoSansKR.semiBold.name
+                return DSKitFontFamily.NotoSansKR.semiBold.name
             case .headMedium, .body2Medium, .body3Medium, .body4Medium:
-                return DesignSystemFontFamily.NotoSansKR.medium.name
+                return DSKitFontFamily.NotoSansKR.medium.name
             default:
-                return DesignSystemFontFamily.NotoSansKR.regular.name
+                return DSKitFontFamily.NotoSansKR.regular.name
             }
         }
         
@@ -83,9 +83,9 @@ public extension Font {
     }
     
     static func registerFont() {
-        guard let bundle = Bundle(identifier: "com.youz2me.livith.designsystem") else { return }
+        guard let bundle = Bundle(identifier: "com.youz2me.livith.dskit") else { return }
 
-        for font in DesignSystemFontFamily.NotoSansKR.all {
+        for font in DSKitFontFamily.NotoSansKR.all {
             guard let url = bundle.url(forResource: font.name, withExtension: "ttf"),
                   CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) else {
                 return

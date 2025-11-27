@@ -1,22 +1,27 @@
 //
-//  SignupFailedSheetView.swift
-//  OnboardingFeature
+//  ErrorSheetView.swift
+//  DesignSystem
 //
-//  Created by 김진웅 on 11/8/25.
+//  Created by Youjin Lee on 11/27/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
 import SwiftUI
 
-import DSKit
-
-struct SignupFailedSheetView: View {
-    @EnvironmentObject private var router: OnboardingRouter
+public struct ErrorSheetView: View {
+    private let title: String
+    private let message: String
+    
     @State private var isVisible: Bool = false
     
-    var body: some View {
+    public init(title: String, message: String) {
+        self.title = title
+        self.message = message
+    }
+    
+    public var body: some View {
         ZStack {
-            Color.livithColor(.black100).opacity(0.8)
+            Color.livithColor(.black100).opacity(0.9)
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -25,12 +30,12 @@ struct SignupFailedSheetView: View {
                     .frame(width: 40, height: 40)
                     .padding(.top, 16)
                 
-                Text(Literals.title)
+                Text(title)
                     .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .padding(.top, 4)
                 
-                Text(Literals.description)
+                Text(message)
                     .notosans(.body4Regular)
                     .foregroundStyle(Color.livithColor(.black30))
                     .padding(.top, 4)
@@ -42,12 +47,9 @@ struct SignupFailedSheetView: View {
                         }
                         
                         try? await Task.sleep(for: .seconds(0.4))
-                        router.dismissFullScreen()
-                        
-                        // TODO: 로그인 화면으로 돌아가기
                     }
                 } label: {
-                    Text(Literals.backButtonText)
+                    Text("확인")
                         .notosans(.body2Medium)
                         .foregroundColor(.livithColor(.black100))
                         .frame(maxWidth: .infinity)
@@ -73,19 +75,4 @@ struct SignupFailedSheetView: View {
             }
         }
     }
-}
-
-// MARK: - Literals
-
-private extension SignupFailedSheetView {
-    enum Literals {
-        static let title = "오류가 발생했어요!"
-        static let description = "잠시 후 다시 시도해주세요"
-        static let backButtonText = "로그인으로 돌아가기"
-    }
-}
-
-#Preview {
-    SignupFailedSheetView()
-        .environmentObject(OnboardingRouter())
 }

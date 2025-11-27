@@ -9,10 +9,10 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.make(
-    project: .shared,
+    project: .dsKit,
     targets: [
         .make(
-            target: .shared(.designSystem),
+            target: .dsKit,
             product: .framework,
             dependencies: [
                 .external(.kingfisher)

@@ -7,44 +7,50 @@
 //
 
 import Foundation
-import Combine
 
 import LivithNetwork
 import SearchDomain
 
 public final class SearchRepositoryImpl {
-    private let service: NetworkService = .init()
-    private let mapper: SearchMapper = .init()
+    private let service: NetworkService<SearchEndpoint> = .init()
+    private let entityMapper: SearchMapper = .init()
+    private let errorMapper: SearchErrorMapper = .init()
 }
 
 extension SearchRepositoryImpl: SearchRepository {
     public func fetchFilterSearchResult(
-        genre: SearchDomain.ConcertGenre?,
+        genre: [SearchDomain.ConcertGenre],
         sort: SearchDomain.SearchSort?,
-        status: SearchDomain.ConcertStatus?,
+        status: [SearchDomain.ConcertStatus],
         keyword: String?,
         cursor: String?,
-        size: String?
-    ) async throws -> [SearchDomain.ConcertEntity] {
-        let endpoint = SearchEndpoint.fetchFilterSearchResult(
-            genre: genre,
-            sort: sort,
-            status: status,
-            keyword: keyword,
-            cursor: cursor,
-            size: size
-        )
+        size: Int?
+    ) async throws -> SearchDomain.SearchResultEntity {
+        do {
+            let endpoint = SearchEndpoint.fetchFilterSearchResult(
+                genre: genre,
+                sort: sort,
+                status: status,
+                keyword: keyword,
+                cursor: cursor,
+                size: size
+            )
+            let response: DTO.Response.FetchFilterSearchResult = try await service.request(endpoint)
 
-        let response: DTO.Response.FetchFilterSearchResult = try await service.request(endpoint)
-        
-        return mapper.toDomain(from: response)
+            return entityMapper.toDomain(from: response)
+        } catch let error {
+            throw errorMapper.mapToSearchError(error)
+        }
     }
-    
+
     public func fetchRecommendedSearchResult(keyword: String) async throws -> [String] {
-        let endpoint = SearchEndpoint.fetchRecommendedSearchResult(letter: keyword)
-        
-        let response: DTO.Response.FetchRecommendKeywordList = try await service.request(endpoint)
-        
-        return response
+        do {
+            let endpoint = SearchEndpoint.fetchRecommendedSearchResult(letter: keyword)
+            let response: DTO.Response.FetchRecommendKeywordList = try await service.request(endpoint)
+
+            return response
+        } catch let error {
+            throw errorMapper.mapToSearchError(error)
+        }
     }
 }

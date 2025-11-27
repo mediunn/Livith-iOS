@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DesignSystem
+import DSKit
 
 struct NicknameSettingView: View {
     @StateObject private var store = NicknameSettingStore()

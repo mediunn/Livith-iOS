@@ -15,7 +15,7 @@ import LivithNetwork
 public extension DTO.Response {
     struct FetchFilterSearchResult: Decodable {
         public let data: [FilteredConcert]
-        public let cursor: Cursor
+        public let cursor: Cursor?
         public let totalCount: Int
 
         public struct FilteredConcert: Decodable {
@@ -27,7 +27,7 @@ public extension DTO.Response {
             public let status: String
             public let posterURL: String
             public let artist: String
-            public let daysLeft: Int
+            public let daysLeft: Int?
             public let ticketSite: String
             public let ticketURL: String
             public let venue: String
@@ -53,7 +53,7 @@ public extension DTO.Response {
         }
 
         public struct Cursor: Decodable {
-            public let startDate: String
+            public let value: String
             public let id: Int
         }
     }

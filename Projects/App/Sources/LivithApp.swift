@@ -2,7 +2,7 @@ import SwiftUI
 
 import LoginFeature
 import SearchFeature
-import DesignSystem
+import DSKit
 
 @main
 struct LivithApp: App {
@@ -10,14 +10,13 @@ struct LivithApp: App {
     // MARK: - LifeCycle
 
     init() {
-        Font.registerFont()
+        registerDependency()
     }
 
     var body: some Scene {
         WindowGroup {
-            SearchView()
+            SearchView(store: SearchStore())
                 .background(Color.livithColor(.black100))
-                .ignoresSafeArea()
         }
     }
 }

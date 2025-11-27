@@ -9,21 +9,33 @@
 import SwiftUI
 
 public struct SearchBarView: View {
-    
+
     // MARK: Property
-    
+
     @Binding var input: String
-    
+    @FocusState private var isFocused: Bool
+    var onChange: () -> Void
+    var onClear: () -> Void
+    var onSubmit: () -> Void
+
     // MARK: - LifeCycle
     
-    public init(input: Binding<String>) {
+    public init(
+        input: Binding<String>,
+        onChange: @escaping () -> Void,
+        onClear: @escaping () -> Void,
+        onSubmit: @escaping () -> Void
+    ) {
         self._input = input
+        self.onChange = onChange
+        self.onClear = onClear
+        self.onSubmit = onSubmit
     }
     
     // MARK: - Body
     
     public var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center) {
             backButton()
             searchBar()
         }
@@ -67,7 +79,7 @@ private extension SearchBarView {
     @ViewBuilder
     func searchTextField() -> some View {
         ZStack(alignment: .leading) {
-            if input.isEmpty {
+            if input.isEmpty && !isFocused {
                 Text("찾고 있는 콘서트나 가수를 검색하세요")
                     .notosans(.body3Medium)
                     .foregroundStyle(Color.livithColor(.black50))
@@ -76,18 +88,38 @@ private extension SearchBarView {
             TextField("", text: $input)
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
+                .focused($isFocused)
+                .onChange(of: input, { _, _ in
+                    onChange()
+                })
+                .onSubmit {
+                    isFocused = false
+                    onSubmit()
+                }
         }
     }
     
     @ViewBuilder
     func searchButton() -> some View {
-        Button (action: {
-            // TODO: 화면 전환 구현
-        }) {
-            Image.livithIcon(.searchLineDefault)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 38, height: 38)
+        if !input.isEmpty && isFocused {
+            Button (action: {
+                input = ""
+                onClear()
+            }) {
+                Image.livithIcon(.deleteFillDefault)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+            }
+        } else {
+            Button (action: {
+                // TODO: 화면 전환 구현
+            }) {
+                Image.livithIcon(.searchLineDefault)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 38, height: 38)
+            }
         }
     }
 }

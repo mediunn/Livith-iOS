@@ -10,11 +10,7 @@ import Foundation
 
 import Alamofire
 
-public protocol NetworkServiceProtocol {
-    func request<T: Decodable>(_ endPoint: NetworkEndpoint) async throws(NetworkError) -> T
-}
-
-public final class NetworkService: NetworkServiceProtocol {
+public final class NetworkService<EndPoint: NetworkEndpoint> {
     private let session: Session
     private let responseHandler: ResponseHandlerProtocol
     private let errorMapper: ErrorMapperProtocol
@@ -31,7 +27,7 @@ public final class NetworkService: NetworkServiceProtocol {
 
     public convenience init(
         interceptor: RequestInterceptor? = nil,
-        eventMonitors: [EventMonitor] = [],
+        eventMonitors: [EventMonitor] = [LoggingMonitor.init()],
         configuration: URLSessionConfiguration = .default
     ) {
         let session = Session(
@@ -46,12 +42,12 @@ public final class NetworkService: NetworkServiceProtocol {
 // MARK: - Request Method
 
 public extension NetworkService {
-    func request<T: Decodable>(_ endPoint: NetworkEndpoint) async throws(NetworkError) -> T {
+    func request<T: Decodable>(_ endPoint: any NetworkEndpoint) async throws(NetworkError) -> T {
         guard let endpoint = endPoint.path else {
             throw NetworkError.invalidURL
         }
 
-        let url = Bundle.versionedBaseURL.appendingPathComponent(endpoint)
+        let url = Bundle.baseURL.appendingPathComponent(endpoint)
         let dataRequest: DataRequest
 
         switch (endPoint.body, endPoint.query) {
@@ -64,11 +60,12 @@ public extension NetworkService {
                 headers: endPoint.headers
             )
         case (_, let query?):
+            let encoding = URLEncoding(arrayEncoding: .noBrackets)
             dataRequest = session.request(
                 url,
                 method: endPoint.method,
                 parameters: query,
-                encoding: URLEncoding.queryString,
+                encoding: encoding,
                 headers: endPoint.headers
             )
         default:

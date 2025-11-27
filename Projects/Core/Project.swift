@@ -35,6 +35,10 @@ let project = Project.make(
         .make(
             target: .core(.routing),
             product: .framework
+        ),
+        .make(
+            target: .core(.livithConcurrency),
+            product: .framework
         )
     ]
 )
