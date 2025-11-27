@@ -208,7 +208,7 @@ private extension SearchView {
     
     @ViewBuilder
     var searchEmptyView: some View {
-        EmptyView(text: "검색 결과가 없어요")
+        LivithEmptyView(text: "검색 결과가 없어요")
 
         Spacer()
     }
@@ -314,7 +314,7 @@ private extension SearchView {
         let message = store.state.searchMessage
         guard let lastChar = message.last else { return false }
         
-        return !String(lastChar).contains(/[ㄱ-ㅎ]/)
+        return !String(lastChar).contains(/[ㄱ-ㅎㅏ-ㅣ]/)
     }
     
     func performSearch() {

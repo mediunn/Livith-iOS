@@ -32,5 +32,4 @@ private extension Bundle {
 
 private extension Bundle {
     static let baseURLString: String = object(dictionaryKey: "BASE_URL")
-    static let version: String = object(dictionaryKey: "CURRENT_VERSION")
 }

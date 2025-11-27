@@ -13,7 +13,8 @@ import SearchDomain
 
 public final class SearchRepositoryImpl {
     private let service: NetworkService<SearchEndpoint> = .init()
-    private let mapper: SearchMapper = .init()
+    private let entityMapper: SearchMapper = .init()
+    private let errorMapper: SearchErrorMapper = .init()
 }
 
 extension SearchRepositoryImpl: SearchRepository {
@@ -25,23 +26,31 @@ extension SearchRepositoryImpl: SearchRepository {
         cursor: String?,
         size: Int?
     ) async throws -> SearchDomain.SearchResultEntity {
-        let endpoint = SearchEndpoint.fetchFilterSearchResult(
-            genre: genre,
-            sort: sort,
-            status: status,
-            keyword: keyword,
-            cursor: cursor,
-            size: size
-        )
-        let response: DTO.Response.FetchFilterSearchResult = try await service.request(endpoint)
-        
-        return mapper.toDomain(from: response)
+        do {
+            let endpoint = SearchEndpoint.fetchFilterSearchResult(
+                genre: genre,
+                sort: sort,
+                status: status,
+                keyword: keyword,
+                cursor: cursor,
+                size: size
+            )
+            let response: DTO.Response.FetchFilterSearchResult = try await service.request(endpoint)
+
+            return entityMapper.toDomain(from: response)
+        } catch let error {
+            throw errorMapper.mapToSearchError(error)
+        }
     }
-    
+
     public func fetchRecommendedSearchResult(keyword: String) async throws -> [String] {
-        let endpoint = SearchEndpoint.fetchRecommendedSearchResult(letter: keyword)
-        let response: DTO.Response.FetchRecommendKeywordList = try await service.request(endpoint)
-        
-        return response
+        do {
+            let endpoint = SearchEndpoint.fetchRecommendedSearchResult(letter: keyword)
+            let response: DTO.Response.FetchRecommendKeywordList = try await service.request(endpoint)
+
+            return response
+        } catch let error {
+            throw errorMapper.mapToSearchError(error)
+        }
     }
 }

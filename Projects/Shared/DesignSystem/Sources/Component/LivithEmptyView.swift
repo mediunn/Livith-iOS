@@ -1,5 +1,5 @@
 //
-//  EmptyView.swift
+//  LivithEmptyView.swift
 //  DesignSystem
 //
 //  Created by Youjin Lee on 11/6/25.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-public struct EmptyView: View {
+public struct LivithEmptyView: View {
     private var text: String
     
     public init(text: String) {

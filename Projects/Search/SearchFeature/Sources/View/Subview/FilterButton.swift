@@ -133,12 +133,6 @@ private extension FilterButton {
     }
 }
 
-public extension FilterButton {
-    func updateStyle() {
-        
-    }
-}
-
 #Preview {
     FilterButton(style: .status, type: .selected(text: "J-POP, ..."), action: {})
         .background(Color.livithColor(.black100))

@@ -50,6 +50,7 @@ public enum SearchIntent {
 
 public final class SearchStore: ObservableObject {
     private var searchTask: Task<Void, Never>?
+    private var fetchTask: Task<Void, Never>?
     @Published private(set) var state = SearchState()
     @Injected private var repository: SearchRepository
 
@@ -100,7 +101,7 @@ private extension SearchStore {
         guard !state.isLoadingMore, state.hasMorePages else { return }
         state.isLoadingMore = true
         Task {
-            try? await Task.sleep(for: .milliseconds(800))
+            try? await Task.sleep(for: .milliseconds(500))
             fetchFilterSearchResult(isNextPage: true)
         }
     }
@@ -119,7 +120,11 @@ private extension SearchStore {
     }
     
     func fetchFilterSearchResult(isNextPage: Bool = false) {
-        Task { @MainActor in
+        if !isNextPage {
+            fetchTask?.cancel()
+        }
+
+        fetchTask = Task { @MainActor in
             let cursorText: String? = state.cursor.map { cursor in
                 "{\"value\":\"\(cursor.value)\",\"id\":\(cursor.id)}"
             }
@@ -133,7 +138,9 @@ private extension SearchStore {
                     cursor: cursorText,
                     size: 12
                 )
-                
+
+                guard !Task.isCancelled else { return }
+
                 state.isSearchActive = true
 
                 if isNextPage {
@@ -146,6 +153,7 @@ private extension SearchStore {
                 state.hasMorePages = result.cursor != nil
                 state.isLoadingMore = false
             } catch {
+                guard !Task.isCancelled else { return }
                 state.errorMessage = error.localizedDescription
                 state.isLoadingMore = false
             }
