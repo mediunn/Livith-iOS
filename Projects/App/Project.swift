@@ -18,7 +18,7 @@ let project = Project.make(
             product: .app,
             infoPlist: .file(path: "Resources/App-Info.plist"),
             dependencies: [
-                .shared(.designSystem),
+                .dsKit(),
                 .login(.loginFeature),
                 .search(.searchFeature),
                 .search(.searchData),

@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DesignSystem
+import DSKit
 
 struct SignupFailedSheetView: View {
     @EnvironmentObject private var router: OnboardingRouter

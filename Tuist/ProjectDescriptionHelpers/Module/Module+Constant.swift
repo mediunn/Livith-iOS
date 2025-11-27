@@ -18,10 +18,10 @@ public enum CoreModule: String {
     case livithConcurrency = "LivithConcurrency"
 }
 
-// MARK: - Shared Module
+// MARK: - DSKitModule Module
 
-public enum SharedModule: String {
-    case designSystem = "DesignSystem"
+public enum DSKitModule: String {
+    case dsKit = "DSKit"
 }
 
 // MARK: - Login Module

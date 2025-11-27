@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DesignSystem
+import DSKit
 
 struct SortOptionButton: View {
     let title: String

@@ -9,7 +9,7 @@
 import Combine
 import SwiftUI
 
-import DesignSystem
+import DSKit
 import SearchDomain
 
 public struct SearchView: View {

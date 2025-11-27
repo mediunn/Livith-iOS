@@ -15,7 +15,7 @@ let project = Project.make(
             target: .login(.loginFeature),
             product: .framework,
             dependencies: [
-                .shared(.designSystem)
+                .dsKit()
             ]
         )
     ]

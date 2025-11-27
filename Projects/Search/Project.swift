@@ -28,7 +28,7 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .search(.searchDomain),
-                .shared(.designSystem),
+                .dsKit(),
                 .core(.diContainer),
                 .core(.livithConcurrency)
             ]

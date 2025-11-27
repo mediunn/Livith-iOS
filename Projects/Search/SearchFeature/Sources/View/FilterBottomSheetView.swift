@@ -9,7 +9,7 @@
 import SwiftUI
 
 import SearchDomain
-import DesignSystem
+import DSKit
 
 public struct FilterBottomSheetView: View {
     @Binding var selectedGenreList: [SearchDomain.ConcertGenre]

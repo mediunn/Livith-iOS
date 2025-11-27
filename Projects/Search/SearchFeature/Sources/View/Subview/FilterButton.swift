@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DesignSystem
+import DSKit
 
 public enum FilterButtonStyle {
     case genre
