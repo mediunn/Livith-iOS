@@ -75,3 +75,7 @@ Tuist/.build
 ### Copilot ###
 .github/instructions/
 .github/copilot-instructions.md
+
+### Module Scripts ###
+.module_backup/
+claude.md
