@@ -29,7 +29,7 @@ DEPENDENCY_FILE="$HELPERS_DIR/TargetDependency+Extension.swift"
 clear
 echo ""
 echo -e "${BOLD}${CYAN}╔════════════════════════════════════════╗${NC}"
-echo -e "${BOLD}${CYAN}║     🛠️  Tuist 모듈 생성 스크립트      ║${NC}"
+echo -e "${BOLD}${CYAN}║     🛠️  Tuist 모듈 생성 스크립트            ║${NC}"
 echo -e "${BOLD}${CYAN}╚════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -298,7 +298,7 @@ fi
 # 완료 메시지
 echo ""
 echo -e "${BOLD}${GREEN}╔════════════════════════════════════════╗${NC}"
-echo -e "${BOLD}${GREEN}║       ✅ 모듈 생성 완료!               ║${NC}"
+echo -e "${BOLD}${GREEN}║       ✅ 모듈 생성 완료!                   ║${NC}"
 echo -e "${BOLD}${GREEN}╚════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "   ${BOLD}생성된 구조:${NC}"
