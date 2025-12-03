@@ -27,15 +27,9 @@ public enum DSKitModule: String {
 // MARK: - Login Module
 
 public enum LoginModule: String {
+    case loginData = "LoginData"
+    case loginDomain = "LoginDomain"
     case loginFeature = "LoginFeature"
-}
-
-// MARK: - Onboarding Module
-
-public enum OnboardingModule: String {
-    case onboardingData = "OnboardingData"
-    case onboardingDomain = "OnboardingDomain"
-    case onboardingFeature = "OnboardingFeature"
 }
 
 // MARK: - Search Module
