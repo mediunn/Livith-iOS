@@ -16,6 +16,7 @@ public enum TargetID {
     case dsKit
     case onboarding(OnboardingModule)
     case search(SearchModule)
+    case home(HomeModule)
     case user(UserModule)
 
     public var name: String {
@@ -26,6 +27,7 @@ public enum TargetID {
         case .login(let module): return module.rawValue
         case .onboarding(let module): return module.rawValue
         case .search(let module): return module.rawValue
+        case .home(let module): return module.rawValue
         case .user(let module): return module.rawValue
         }
     }
@@ -52,6 +54,8 @@ public enum TargetID {
         case .onboarding(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .search(let module):
+            return ["\(module.rawValue)/Sources/**"]
+        case .home(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .user(let module):
             return ["\(module.rawValue)/Sources/**"]
