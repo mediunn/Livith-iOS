@@ -76,6 +76,9 @@ Tuist/.build
 .github/instructions/
 .github/copilot-instructions.md
 
+### GEMINI ###
+.gemini/
+
 ### Module Scripts ###
 .module_backup/
 claude.md
