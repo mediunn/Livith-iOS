@@ -77,7 +77,7 @@ public extension Color {
     /// let backgroundColor = Color("#F5F5F5")
     /// let textColor = Color("333333")
     /// ```
-    init(_ hex: String, opacity: Double = 1.0) {
+    init(hex: String, opacity: Double = 1.0) {
         var hexFormatted = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         
         if hexFormatted.hasPrefix("#") {
