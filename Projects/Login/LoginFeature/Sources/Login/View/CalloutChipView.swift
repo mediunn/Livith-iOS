@@ -8,6 +8,8 @@
 
 import SwiftUI
 
+import DSKit
+
 struct CalloutChipView: View {
     let text: String
     let targetText: String?
@@ -21,7 +23,7 @@ struct CalloutChipView: View {
         ZStack(alignment: .bottom) {
             RoundedRectangle(cornerRadius: 24)
                 .fill(Color(hex: "#2f3745"))
-                .frame(height: 36)
+                .frame(height: 32)
                 .overlay {
                     Text(attributedString)
                         .notosans(.caption1Bold)
@@ -29,8 +31,8 @@ struct CalloutChipView: View {
             
             TriangleTail()
                 .fill(Color(hex: "#2f3745"))
-                .frame(width: 16, height: 12)
-                .offset(y: 12)
+                .frame(width: 12, height: 8)
+                .offset(y: 8)
                 
         }
         .frame(height: 48)

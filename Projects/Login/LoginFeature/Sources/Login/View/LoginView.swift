@@ -50,7 +50,7 @@ private extension LoginView {
     var loginButtons: some View {
         VStack(spacing: 20) {
             CalloutChipView(text: Literals.greetingMessage, targetText: "모든 서비스 이용")
-                .frame(width: 273, height: 48)
+                .frame(width: 272, height: 36)
             
             VStack(spacing: 12) {
                 LoginButton(
