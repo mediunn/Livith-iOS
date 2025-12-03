@@ -46,6 +46,15 @@ public enum SearchModule: String {
     case searchFeature = "SearchFeature"
 }
 
+
+// MARK: - User Module
+
+public enum UserModule: String {
+    case userData = "UserData"
+    case userDomain = "UserDomain"
+    case userFeature = "UserFeature"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {

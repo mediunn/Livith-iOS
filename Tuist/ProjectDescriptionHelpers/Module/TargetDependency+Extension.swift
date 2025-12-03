@@ -33,4 +33,8 @@ extension TargetDependency {
     public static func onboarding(_ module: OnboardingModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.onboarding.path)
     }
+
+    public static func user(_ module: UserModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.user.path)
+    }
 }
