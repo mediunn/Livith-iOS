@@ -1,8 +1,8 @@
 //
 //  Project.swift
-//  
+//  Login
 //
-//  Created by YOUJIM on 9/28/25.
+//  Created by 김진웅 on 10/12/25.
 //
 
 import ProjectDescription
@@ -12,10 +12,26 @@ let project = Project.make(
     project: .login,
     targets: [
         .make(
+            target: .login(.loginData),
+            product: .framework,
+            dependencies: [
+                .login(.loginDomain),
+                .core(.diContainer),
+                .core(.livithNetwork)
+            ]
+        ),
+        .make(
+            target: .login(.loginDomain),
+            product: .framework
+        ),
+        .make(
             target: .login(.loginFeature),
             product: .framework,
             dependencies: [
-                .dsKit()
+                .login(.loginDomain),
+                .dsKit(),
+                .core(.routing),
+                .core(.diContainer)
             ]
         )
     ]
