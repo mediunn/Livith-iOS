@@ -16,6 +16,7 @@ public enum CoreModule: String {
     case persistence = "Persistence"
     case livithNetwork = "LivithNetwork"
     case livithConcurrency = "LivithConcurrency"
+    case auth = "Auth"
 }
 
 // MARK: - DSKitModule Module
@@ -54,4 +55,7 @@ public enum UserModule: String {
 public enum ExternalDependency: String {
     case alamofire = "Alamofire"
     case kingfisher = "Kingfisher"
+    case kakaoSDKCommon = "KakaoSDKCommon"
+    case kakaoSDKAuth = "KakaoSDKAuth"
+    case kakaoSDKUser = "KakaoSDKUser"
 }
