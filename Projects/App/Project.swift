@@ -20,8 +20,12 @@ let project = Project.make(
             dependencies: [
                 .dsKit(),
                 .login(.loginFeature),
+                .home(.homeFeature),
+                .home(.homeData),
                 .search(.searchFeature),
                 .search(.searchData),
+                .user(.userFeature),
+                .user(.userData),
                 .core(.diContainer)
             ]
         )
