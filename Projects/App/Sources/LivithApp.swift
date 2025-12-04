@@ -1,7 +1,5 @@
 import SwiftUI
 
-import LoginFeature
-import SearchFeature
 import DSKit
 
 @main
@@ -15,8 +13,7 @@ struct LivithApp: App {
 
     var body: some Scene {
         WindowGroup {
-            SearchView(store: SearchStore())
-                .background(Color.livithColor(.black100))
+            LivithMainTabView()
         }
     }
 }

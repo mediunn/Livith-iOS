@@ -1,6 +1,6 @@
 //
 //  Placeholder.swift
-//  UserFeature
+//  HomeDomain
 //
 
 import Foundation
