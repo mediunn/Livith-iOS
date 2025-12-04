@@ -39,6 +39,15 @@ let project = Project.make(
         .make(
             target: .core(.livithConcurrency),
             product: .framework
+        ),
+        .make(
+            target: .core(.auth),
+            product: .framework,
+            dependencies: [
+                .external(.kakaoSDKAuth),
+                .external(.kakaoSDKUser),
+                .external(.kakaoSDKCommon)
+            ]
         )
     ]
 )
