@@ -10,12 +10,12 @@ import Foundation
 import AuthenticationServices
 
 @MainActor
-final class AppleLoginService: NSObject, AuthService {
+public final class AppleLoginService: NSObject, AuthService {
     private var activeContinuation: CheckedContinuation<AuthCredential, Error>?
     
     public override init() {}
     
-    func login() async throws(AuthError) -> AuthCredential {
+    public func login() async throws(AuthError) -> AuthCredential {
         do {
             return try await withCheckedThrowingContinuation { continuation in
                 if let oldContinuation = activeContinuation {
@@ -37,7 +37,7 @@ final class AppleLoginService: NSObject, AuthService {
 // MARK: - ASAuthorizationControllerDelegate
 
 extension AppleLoginService: ASAuthorizationControllerDelegate {
-    func authorizationController(
+    public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
@@ -53,7 +53,7 @@ extension AppleLoginService: ASAuthorizationControllerDelegate {
         activeContinuation = nil
     }
     
-    func authorizationController(
+    public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
@@ -82,7 +82,7 @@ extension AppleLoginService: ASAuthorizationControllerDelegate {
 // MARK: - ASAuthorizationControllerPresentationContextProviding
 
 extension AppleLoginService: ASAuthorizationControllerPresentationContextProviding {
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+    public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         guard let activeScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }),
               let windowScene = activeScene as? UIWindowScene,
               let window = windowScene.windows.first(where: { $0.isKeyWindow })
