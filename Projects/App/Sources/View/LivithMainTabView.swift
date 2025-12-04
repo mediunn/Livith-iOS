@@ -48,6 +48,10 @@ public struct LivithMainTabView: View {
     // MARK: - Property
 
     @State private var selectedTab: Tab = .home
+    
+    // MARK: - LifeCycle
+
+    public init() { }
 
     // MARK: - Body
 
@@ -69,10 +73,12 @@ public struct LivithMainTabView: View {
         }
         .ignoresSafeArea(edges: .bottom)
     }
+}
 
-    // MARK: - Custom TabBar
+// MARK: - Components Extension
 
-    private var customTabBar: some View {
+private extension LivithMainTabView {
+    var customTabBar: some View {
         HStack(spacing: 73) {
             ForEach(Tab.allCases, id: \.self) { tab in
                 Button {
