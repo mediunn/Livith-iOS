@@ -18,6 +18,7 @@ public enum ProjectID: String, CaseIterable {
     case onboarding = "Onboarding"
     
     case user = "User"
+    case home = "Home"
     public var name: String { rawValue }
     
     public var path: Path {
