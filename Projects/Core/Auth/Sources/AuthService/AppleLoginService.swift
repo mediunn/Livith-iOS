@@ -9,12 +9,12 @@
 import Foundation
 import AuthenticationServices
 
-@MainActor
 public final class AppleLoginService: NSObject, AuthService {
     private var activeContinuation: CheckedContinuation<AuthCredential, Error>?
     
     public override init() {}
     
+    @MainActor
     public func login() async throws(AuthError) -> AuthCredential {
         do {
             return try await withCheckedThrowingContinuation { continuation in
