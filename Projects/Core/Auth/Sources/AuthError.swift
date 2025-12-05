@@ -9,14 +9,14 @@
 import Foundation
 
 public enum AuthError: Error, LocalizedError {
-    case cancelled
+    case canceled
     case networkError
     case missingToken
     case unknown
     
     public var errorDescription: String? {
         switch self {
-        case .cancelled:
+        case .canceled:
             return "로그인 과정이 취소되었습니다."
         case .networkError:
             return "네트워크 오류로 로그인에 실패했습니다."

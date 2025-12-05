@@ -19,7 +19,7 @@ public final class AppleLoginService: NSObject, AuthService {
         do {
             return try await withCheckedThrowingContinuation { continuation in
                 if let oldContinuation = activeContinuation {
-                    oldContinuation.resume(throwing: AuthError.cancelled)
+                    oldContinuation.resume(throwing: AuthError.canceled)
                 }
                 
                 activeContinuation = continuation
@@ -72,7 +72,7 @@ extension AppleLoginService: ASAuthorizationControllerDelegate {
         
         switch authorizationError.code {
         case .canceled:
-            return .cancelled
+            return .canceled
         default:
             return .unknown
         }

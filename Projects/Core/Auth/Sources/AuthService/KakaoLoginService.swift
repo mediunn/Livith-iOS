@@ -78,7 +78,7 @@ private extension KakaoLoginService {
         }
         
         if case .ClientFailed(let reason, _) = sdkError, reason == .Cancelled {
-            return .cancelled
+            return .canceled
         }
         
         return .unknown
