@@ -15,7 +15,7 @@ public protocol LoginUseCase {
 public final class LoginUseCaseImpl: LoginUseCase {
     private let repository: LoginRepository
     
-    init(repository: LoginRepository) {
+    public init(repository: LoginRepository) {
         self.repository = repository
     }
     

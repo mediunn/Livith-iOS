@@ -12,4 +12,10 @@ public struct TempUser {
     let provider: SocialLoginProvider
     let providerID: String
     let email: String?
+    
+    public init(provider: SocialLoginProvider, providerID: String, email: String?) {
+        self.provider = provider
+        self.providerID = providerID
+        self.email = email
+    }
 }
