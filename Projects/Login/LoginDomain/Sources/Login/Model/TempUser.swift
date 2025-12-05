@@ -9,9 +9,9 @@
 import Foundation
 
 public struct TempUser {
-    let provider: SocialLoginProvider
-    let providerID: String
-    let email: String?
+    public let provider: SocialLoginProvider
+    public let providerID: String
+    public let email: String?
     
     public init(provider: SocialLoginProvider, providerID: String, email: String?) {
         self.provider = provider
