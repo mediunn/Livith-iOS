@@ -15,9 +15,12 @@ public struct LoginAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: DependencyContainer) {
-        let onboardingRepository = OnboardingRepositoryImpl()
-        let useCase = OnboardingUseCaseImpl(onboardingRepository: onboardingRepository)
-
-        container.register({ useCase }, for: OnboardingUseCase.self)
+        container.register({
+            LoginUseCaseImpl(repository: LoginRepositoryImpl())
+        }, for: LoginUseCase.self)
+        
+        container.register({
+            OnboardingUseCaseImpl(onboardingRepository: OnboardingRepositoryImpl())
+        }, for: OnboardingUseCase.self)
     }
 }
