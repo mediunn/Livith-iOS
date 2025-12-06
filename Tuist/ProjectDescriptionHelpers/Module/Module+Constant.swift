@@ -16,6 +16,7 @@ public enum CoreModule: String {
     case persistence = "Persistence"
     case livithNetwork = "LivithNetwork"
     case livithConcurrency = "LivithConcurrency"
+    case auth = "Auth"
 }
 
 // MARK: - DSKitModule Module
@@ -27,15 +28,9 @@ public enum DSKitModule: String {
 // MARK: - Login Module
 
 public enum LoginModule: String {
+    case loginData = "LoginData"
+    case loginDomain = "LoginDomain"
     case loginFeature = "LoginFeature"
-}
-
-// MARK: - Onboarding Module
-
-public enum OnboardingModule: String {
-    case onboardingData = "OnboardingData"
-    case onboardingDomain = "OnboardingDomain"
-    case onboardingFeature = "OnboardingFeature"
 }
 
 // MARK: - Search Module
@@ -69,4 +64,7 @@ public enum HomeModule: String {
 public enum ExternalDependency: String {
     case alamofire = "Alamofire"
     case kingfisher = "Kingfisher"
+    case kakaoSDKCommon = "KakaoSDKCommon"
+    case kakaoSDKAuth = "KakaoSDKAuth"
+    case kakaoSDKUser = "KakaoSDKUser"
 }
