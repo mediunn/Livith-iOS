@@ -50,7 +50,7 @@ public struct UserView: View {
 private extension UserView {
     var backgroundGradient: some View {
         LinearGradient(
-            colors: [Color.init("2F3745", opacity: 1.0), Color.init("14171B", opacity: 1.0)],
+            colors: [Color.init(hex: "2F3745", opacity: 1.0), Color.init(hex: "14171B", opacity: 1.0)],
             startPoint: UnitPoint(x: 0.0, y: 0.0),
             endPoint: UnitPoint(x: 0.0, y: 297.0)
         )
@@ -61,7 +61,7 @@ private extension UserView {
             "\(nickname)님, 반가워요!\n공연 준비 시작해볼까요?",
             highlighting: "\(nickname)",
             color: .livithColor(.white100),
-            font: .notosans(.body1Semibold)
+            font: .notosans(.headSemibold)
         )
         .notosans(.headMedium)
         .foregroundStyle(Color.livithColor(.black30))
@@ -84,7 +84,7 @@ private extension UserView {
     var divideLine: some View {
         Divider()
             .frame(height: 5)
-            .background(Color.init("29303C", opacity: 1.0))
+            .background(Color.init(hex: "29303C", opacity: 1.0))
     }
 }
 
@@ -102,4 +102,8 @@ private extension UserView {
     enum Constant {
         static let versionString: String = "2.0.0"
     }
+}
+
+#Preview {
+    UserView(nickname: "유지미")
 }
