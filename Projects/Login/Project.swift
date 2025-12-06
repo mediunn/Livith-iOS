@@ -17,7 +17,8 @@ let project = Project.make(
             dependencies: [
                 .login(.loginDomain),
                 .core(.diContainer),
-                .core(.livithNetwork)
+                .core(.livithNetwork),
+                .core(.auth)
             ]
         ),
         .make(
