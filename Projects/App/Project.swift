@@ -17,6 +17,7 @@ let project = Project.make(
             target: .app,
             product: .app,
             infoPlist: .file(path: "Resources/App-Info.plist"),
+            entitlements: .file(path: "Resources/Livith-iOS.entitlements"),
             dependencies: [
                 .dsKit(),
                 .login(.loginFeature),
