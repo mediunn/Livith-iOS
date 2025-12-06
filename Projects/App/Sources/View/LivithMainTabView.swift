@@ -64,7 +64,7 @@ public struct LivithMainTabView: View {
                 case .search:
                     SearchView(store: SearchStore())
                 case .my:
-                    UserView()
+                    UserView(nickname: "유짐이")
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
