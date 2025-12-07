@@ -44,7 +44,7 @@ public final class TokenServiceImpl: TokenService {
         do {
             try storage.delete()
         } catch TokenError.expired {
-            NotificationCenter.default.post(name: .reloginRequired, object: nil)
+            postReloginNotification()
             throw TokenError.expired
         }
     }
@@ -61,7 +61,7 @@ public final class TokenServiceImpl: TokenService {
             try storage.save(newToken)
             return newToken.accessToken
         } catch TokenError.expired {
-            NotificationCenter.default.post(name: .reloginRequired, object: nil)
+            postReloginNotification()
             throw TokenError.expired
         }
     }
