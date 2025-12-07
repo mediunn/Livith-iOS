@@ -41,12 +41,7 @@ public final class TokenServiceImpl: TokenService {
     }
     
     public func removeTokens() throws(TokenError) {
-        do {
-            try storage.delete()
-        } catch TokenError.expired {
-            postReloginNotification()
-            throw TokenError.expired
-        }
+        try storage.delete()
     }
     
     public func refreshTokens() async throws(TokenError) -> String {
