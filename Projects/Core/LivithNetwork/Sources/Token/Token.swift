@@ -9,12 +9,13 @@
 import Foundation
 
 struct Token: Equatable {
+    static let refreshTokenExpirationInterval: TimeInterval = 3 * 24 * 60 * 60
+    
     let accessToken: String
     let refreshToken: String
     let refreshTokenIssuedAt: Date
     
     var isExpired: Bool {
-        let threeDaysInSeconds: TimeInterval = 3 * 24 * 60 * 60
-        return Date().timeIntervalSince(refreshTokenIssuedAt) > threeDaysInSeconds
+        return Date().timeIntervalSince(refreshTokenIssuedAt) > Self.refreshTokenExpirationInterval
     }
 }
