@@ -32,17 +32,12 @@ public final class TokenServiceImpl: TokenService {
     }
     
     public func saveTokens(accessToken: String, refreshToken: String) throws(TokenError) {
-        do {
-            let token = Token(
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-                refreshTokenIssuedAt: Date()
-            )
-            try storage.save(token)
-        } catch TokenError.expired {
-            postReloginNotification()
-            throw .expired
-        }
+        let token = Token(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            refreshTokenIssuedAt: Date()
+        )
+        try storage.save(token)
     }
     
     public func removeTokens() throws(TokenError) {

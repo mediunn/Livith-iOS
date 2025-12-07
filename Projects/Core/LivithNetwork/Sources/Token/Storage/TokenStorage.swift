@@ -17,7 +17,7 @@ struct TokenStorage {
     }
     
     func save(_ token: Token) throws(TokenError) {
-        try delete()
+        try? delete()
         
         do {
             try add(key: .accessToken, value: token.accessToken)
