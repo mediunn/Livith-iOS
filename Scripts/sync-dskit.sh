@@ -3,9 +3,7 @@
 # DSKit 에셋 동기화 스크립트
 # TuistAssets+DSKit.swift를 읽어서 Image+.swift, Color+.swift에 누락된 에셋을 추가합니다.
 #
-# 사용법:
-#   make sync-dskit        # 누락된 에셋 확인만
-#   make sync-dskit-auto   # 누락된 에셋 자동 추가
+# 사용법: make sync-dskit
 
 set -e
 
@@ -15,17 +13,13 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 TUIST_ASSETS="$PROJECT_ROOT/Projects/DSKit/Derived/Sources/TuistAssets+DSKit.swift"
 IMAGE_EXT="$PROJECT_ROOT/Projects/DSKit/Sources/SwiftUIHelper/Image+.swift"
 COLOR_EXT="$PROJECT_ROOT/Projects/DSKit/Sources/SwiftUIHelper/Color+.swift"
-
-# 자동 추가 모드 확인
-AUTO_MODE=false
-if [ "$1" = "--auto" ] || [ "$1" = "-a" ]; then
-    AUTO_MODE=true
-fi
+IMAGE_ASSETS_DIR="$PROJECT_ROOT/Projects/DSKit/Resources/ImageAssets.xcassets"
 
 # 색상 출력
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 echo "🔄 DSKit 에셋 동기화 시작..."
@@ -64,39 +58,77 @@ lowercase_first() {
     echo "${first}${str:1}"
 }
 
+# camelCase를 snake_case로 변환 (파일명 찾기용)
+to_snake_case() {
+    echo "$1" | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]' | sed 's/^_//'
+}
+
+# 에셋이 Icon 폴더에 있는지 확인
+is_in_icon_folder() {
+    local tuist_var="$1"
+    local file_name=$(to_snake_case "$tuist_var")
+
+    if [ -d "$IMAGE_ASSETS_DIR/Icon/${file_name}.imageset" ]; then
+        return 0  # true - Icon 폴더에 있음
+    else
+        return 1  # false - Icon 폴더에 없음
+    fi
+}
+
 echo "📦 이미지 에셋 동기화..."
 
 # TuistAssets에서 이미지 에셋 추출 (ImageAssets 블록에서)
-TUIST_ICONS=$(sed -n '/enum ImageAssets/,/}/p' "$TUIST_ASSETS" | grep -oE 'static let icn[A-Za-z0-9]+' | sed 's/static let //' | sort -u)
-TUIST_IMAGES=$(sed -n '/enum ImageAssets/,/}/p' "$TUIST_ASSETS" | grep -oE 'static let image[A-Za-z0-9]+' | sed 's/static let //' | sort -u)
+# icn_, btn_, image_ 모두 추출
+ALL_ASSETS=$(sed -n '/enum ImageAssets/,/}/p' "$TUIST_ASSETS" | grep -oE 'static let [a-zA-Z0-9]+' | sed 's/static let //' | sort -u)
 
 # Image+.swift 전체 내용
 IMAGE_CONTENT=$(cat "$IMAGE_EXT")
 
-# 누락된 아이콘 찾기
+# 누락된 아이콘/이미지 분류
 MISSING_ICONS=""
-for tuist_var in $TUIST_ICONS; do
-    # 예외 매핑 확인
-    exception_case=$(get_exception_case "$tuist_var" "$ICON_EXCEPTIONS")
-    if [ -n "$exception_case" ]; then
-        enum_case="$exception_case"
-    else
-        # icnApple -> Apple -> apple
-        without_prefix="${tuist_var#icn}"
+MISSING_IMAGES=""
+
+for tuist_var in $ALL_ASSETS; do
+    # 접두사에 따라 enum case 이름 생성
+    if [[ "$tuist_var" == icn* ]]; then
+        # 예외 매핑 확인
+        exception_case=$(get_exception_case "$tuist_var" "$ICON_EXCEPTIONS")
+        if [ -n "$exception_case" ]; then
+            enum_case="$exception_case"
+        else
+            without_prefix="${tuist_var#icn}"
+            enum_case=$(lowercase_first "$without_prefix")
+        fi
+    elif [[ "$tuist_var" == btn* ]]; then
+        without_prefix="${tuist_var#btn}"
         enum_case=$(lowercase_first "$without_prefix")
+    elif [[ "$tuist_var" == image* ]]; then
+        without_prefix="${tuist_var#image}"
+        enum_case=$(lowercase_first "$without_prefix")
+    else
+        continue
     fi
 
-    # 실제 파일에서 해당 케이스가 있는지 확인 (다양한 패턴)
-    if ! echo "$IMAGE_CONTENT" | grep -qE "case[[:space:]].*${enum_case}|\.${enum_case}:"; then
+    # 이미 존재하는지 확인
+    if echo "$IMAGE_CONTENT" | grep -qE "case[[:space:]].*${enum_case}|\.${enum_case}:"; then
+        continue
+    fi
+
+    # 폴더 위치 확인해서 분류
+    if is_in_icon_folder "$tuist_var"; then
         MISSING_ICONS="$MISSING_ICONS|$tuist_var:$enum_case"
+    else
+        MISSING_IMAGES="$MISSING_IMAGES|$tuist_var:$enum_case"
     fi
 done
 
 # 첫 번째 빈 항목 제거
 MISSING_ICONS="${MISSING_ICONS#|}"
+MISSING_IMAGES="${MISSING_IMAGES#|}"
 
+# 아이콘 처리
 if [ -n "$MISSING_ICONS" ]; then
-    echo -e "${YELLOW}⚠️  누락된 아이콘 발견:${NC}"
+    echo -e "${YELLOW}⚠️  누락된 아이콘 발견 (Icon 폴더):${NC}"
     echo "$MISSING_ICONS" | tr '|' '\n' | while read item; do
         if [ -n "$item" ]; then
             tuist_var=$(echo "$item" | cut -d':' -f1)
@@ -105,9 +137,12 @@ if [ -n "$MISSING_ICONS" ]; then
         fi
     done
 
-    if [ "$AUTO_MODE" = true ]; then
+    echo ""
+    read -p "   추가할까요? (Y/n): " ADD_ICONS
+
+    if [[ ! "$ADD_ICONS" =~ ^[Nn]$ ]]; then
         echo ""
-        echo -e "${GREEN}🔧 자동으로 추가 중...${NC}"
+        echo -e "${GREEN}🔧 추가 중...${NC}"
 
         echo "$MISSING_ICONS" | tr '|' '\n' | while read item; do
             if [ -n "$item" ]; then
@@ -128,28 +163,7 @@ if [ -n "$MISSING_ICONS" ]; then
             fi
         done
     else
-        echo ""
-        echo -e "${GREEN}📝 Image+.swift의 LivithIcon enum에 다음을 추가하세요:${NC}"
-        echo ""
-        echo "   // enum case 추가:"
-        echo "$MISSING_ICONS" | tr '|' '\n' | while read item; do
-            if [ -n "$item" ]; then
-                enum_case=$(echo "$item" | cut -d':' -f2)
-                echo "   case $enum_case"
-            fi
-        done
-        echo ""
-        echo "   // switch문에 추가:"
-        echo "$MISSING_ICONS" | tr '|' '\n' | while read item; do
-            if [ -n "$item" ]; then
-                tuist_var=$(echo "$item" | cut -d':' -f1)
-                enum_case=$(echo "$item" | cut -d':' -f2)
-                echo "   case .$enum_case:"
-                echo "       DSKitAsset.ImageAssets.$tuist_var.swiftUIImage"
-            fi
-        done
-        echo ""
-        echo -e "${YELLOW}💡 자동 추가하려면: make sync-dskit-auto${NC}"
+        echo -e "   ${CYAN}건너뜀${NC}"
     fi
 else
     echo -e "${GREEN}✅ 모든 아이콘이 동기화되어 있습니다.${NC}"
@@ -157,23 +171,9 @@ fi
 
 echo ""
 
-# 누락된 이미지 찾기
-MISSING_IMAGES=""
-for tuist_var in $TUIST_IMAGES; do
-    # imageLivithLogo -> LivithLogo -> livithLogo
-    without_prefix="${tuist_var#image}"
-    enum_case=$(lowercase_first "$without_prefix")
-
-    # 실제 파일에서 해당 케이스가 있는지 확인
-    if ! echo "$IMAGE_CONTENT" | grep -qE "case[[:space:]].*${enum_case}|\.${enum_case}:"; then
-        MISSING_IMAGES="$MISSING_IMAGES|$tuist_var:$enum_case"
-    fi
-done
-
-MISSING_IMAGES="${MISSING_IMAGES#|}"
-
+# 이미지 처리
 if [ -n "$MISSING_IMAGES" ]; then
-    echo -e "${YELLOW}⚠️  누락된 이미지 발견:${NC}"
+    echo -e "${YELLOW}⚠️  누락된 이미지 발견 (Image 폴더):${NC}"
     echo "$MISSING_IMAGES" | tr '|' '\n' | while read item; do
         if [ -n "$item" ]; then
             tuist_var=$(echo "$item" | cut -d':' -f1)
@@ -182,19 +182,22 @@ if [ -n "$MISSING_IMAGES" ]; then
         fi
     done
 
-    if [ "$AUTO_MODE" = true ]; then
+    echo ""
+    read -p "   추가할까요? (Y/n): " ADD_IMAGES
+
+    if [[ ! "$ADD_IMAGES" =~ ^[Nn]$ ]]; then
         echo ""
-        echo -e "${GREEN}🔧 자동으로 추가 중...${NC}"
+        echo -e "${GREEN}🔧 추가 중...${NC}"
 
         echo "$MISSING_IMAGES" | tr '|' '\n' | while read item; do
             if [ -n "$item" ]; then
                 tuist_var=$(echo "$item" | cut -d':' -f1)
                 enum_case=$(echo "$item" | cut -d':' -f2)
 
-                # enum case 추가
+                # enum case 추가 (case splash 뒤에)
                 sed -i '' "s/case splash$/case splash, $enum_case/" "$IMAGE_EXT"
 
-                # switch case 추가
+                # switch case 추가 (case .splash: 블록 다음에)
                 sed -i '' "/case \.splash:/,/swiftUIImage/{
                     /swiftUIImage/a\\
             case .$enum_case:\\
@@ -205,28 +208,7 @@ if [ -n "$MISSING_IMAGES" ]; then
             fi
         done
     else
-        echo ""
-        echo -e "${GREEN}📝 Image+.swift의 LivithImage enum에 다음을 추가하세요:${NC}"
-        echo ""
-        echo "   // enum case 추가:"
-        echo "$MISSING_IMAGES" | tr '|' '\n' | while read item; do
-            if [ -n "$item" ]; then
-                enum_case=$(echo "$item" | cut -d':' -f2)
-                echo "   case $enum_case"
-            fi
-        done
-        echo ""
-        echo "   // switch문에 추가:"
-        echo "$MISSING_IMAGES" | tr '|' '\n' | while read item; do
-            if [ -n "$item" ]; then
-                tuist_var=$(echo "$item" | cut -d':' -f1)
-                enum_case=$(echo "$item" | cut -d':' -f2)
-                echo "   case .$enum_case:"
-                echo "       DSKitAsset.ImageAssets.$tuist_var.swiftUIImage"
-            fi
-        done
-        echo ""
-        echo -e "${YELLOW}💡 자동 추가하려면: make sync-dskit-auto${NC}"
+        echo -e "   ${CYAN}건너뜀${NC}"
     fi
 else
     echo -e "${GREEN}✅ 모든 이미지가 동기화되어 있습니다.${NC}"
@@ -256,9 +238,12 @@ if [ -n "$MISSING_COLORS" ]; then
         echo "   - $color (DSKitAsset.ColorAssets.$color)"
     done
 
-    if [ "$AUTO_MODE" = true ]; then
+    echo ""
+    read -p "   추가할까요? (Y/n): " ADD_COLORS
+
+    if [[ ! "$ADD_COLORS" =~ ^[Nn]$ ]]; then
         echo ""
-        echo -e "${GREEN}🔧 자동으로 추가 중...${NC}"
+        echo -e "${GREEN}🔧 추가 중...${NC}"
 
         for color in $MISSING_COLORS; do
             # enum case 추가
@@ -274,25 +259,11 @@ if [ -n "$MISSING_COLORS" ]; then
             echo "   ✅ $color 추가됨"
         done
     else
-        echo ""
-        echo -e "${GREEN}📝 Color+.swift의 LivithColor enum에 다음을 추가하세요:${NC}"
-        echo ""
-        echo "   // enum case 추가:"
-        for color in $MISSING_COLORS; do
-            echo "   case $color"
-        done
-        echo ""
-        echo "   // switch문에 추가:"
-        for color in $MISSING_COLORS; do
-            echo "   case .$color:"
-            echo "       Color(DSKitAsset.ColorAssets.$color.color)"
-        done
-        echo ""
-        echo -e "${YELLOW}💡 자동 추가하려면: make sync-dskit-auto${NC}"
+        echo -e "   ${CYAN}건너뜀${NC}"
     fi
 else
     echo -e "${GREEN}✅ 모든 컬러가 동기화되어 있습니다.${NC}"
 fi
 
 echo ""
-echo "🎉 동기화 검사 완료!"
+echo "🎉 동기화 완료!"
