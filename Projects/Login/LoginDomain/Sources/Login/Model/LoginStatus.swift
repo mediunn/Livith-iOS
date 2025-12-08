@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum LoginStatus {
+public enum LoginStatus: Equatable {
     case existingUser
     case newUser(tempUser: TempUser)
 }

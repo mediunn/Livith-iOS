@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct TempUser {
+public struct TempUser: Equatable {
     public let provider: SocialLoginProvider
     public let providerID: String
     public let email: String?
