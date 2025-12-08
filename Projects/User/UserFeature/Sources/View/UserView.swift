@@ -27,7 +27,7 @@ public struct UserView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 46) {
+            HStack(alignment: .center, spacing: 68) {
                 titleText
                 editButton
             }
