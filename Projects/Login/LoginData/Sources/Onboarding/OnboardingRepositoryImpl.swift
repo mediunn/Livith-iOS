@@ -31,22 +31,13 @@ final class OnboardingRepositoryImpl {
 extension OnboardingRepositoryImpl: OnboardingRepository {
     func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) -> Bool {
         do {
-            let response: BaseResponse<DTO.Response.CheckNicknameDuplicate> = try await service.request(
+            let response: DTO.Response.CheckNicknameDuplicate = try await service.request(
                 OnboardingEndpoint.checkNicknameDuplicate(nickname: nickname)
             )
             
-            guard let data = response.data else {
-                throw OnboardingError.unknown
-            }
-            
-            return data.available
-            
-        } catch let error as OnboardingError {
-            throw error
-        } catch let error as NetworkError {
-            throw errorMapper.mapToOnboardingError(error)
+            return response.available
         } catch {
-            throw OnboardingError.unknown
+            throw errorMapper.mapToOnboardingError(error)
         }
     }
 
@@ -62,24 +53,15 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
         )
         
         do {
-            let response: BaseResponse<DTO.Response.CreateUser> = try await service.request(
+            let response: DTO.Response.CreateUser = try await service.request(
                 OnboardingEndpoint.signup(request: request, client: "mobile")
             )
-            
-            if let error = response.error {
-                throw OnboardingError.signupFailed(reason: error)
-            }
             
             // TODO: 토큰 저장 로직 추가 필요
             // response.data?.accessToken
             // response.data?.refreshToken
-            
-        } catch let error as OnboardingError {
-            throw error
-        } catch let error as NetworkError {
-            throw errorMapper.mapToOnboardingError(error)
         } catch {
-            throw OnboardingError.unknown
+            throw errorMapper.mapToOnboardingError(error)
         }
     }
 }

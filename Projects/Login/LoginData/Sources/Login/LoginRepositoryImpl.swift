@@ -60,14 +60,10 @@ private extension LoginRepositoryImpl {
         switch provider {
         case .apple:
             let endpoint = LoginEndpoint.appleLogin(identityToken: credential.token)
-            let response: BaseResponse<DTO.Response.AppleLogin> = try await loginService.request(endpoint)
+            let response: DTO.Response.AppleLogin = try await loginService.request(endpoint)
             
-            guard let data = response.data else {
-                throw LoginError.noData
-            }
-            
-            if data.isNewUser {
-                guard let tempUserData = data.tempUser else {
+            if response.isNewUser {
+                guard let tempUserData = response.tempUser else {
                     throw LoginError.noData
                 }
                 let tempUser = TempUser(
@@ -82,14 +78,10 @@ private extension LoginRepositoryImpl {
             
         case .kakao:
             let endpoint = LoginEndpoint.kakaoLogin(accessToken: credential.token)
-            let response: BaseResponse<DTO.Response.KakaoLogin> = try await loginService.request(endpoint)
+            let response: DTO.Response.KakaoLogin = try await loginService.request(endpoint)
             
-            guard let data = response.data else {
-                throw LoginError.noData
-            }
-            
-            if data.isNewUser {
-                guard let tempUserData = data.tempUser else {
+            if response.isNewUser {
+                guard let tempUserData = response.tempUser else {
                     throw LoginError.noData
                 }
                 let tempUser = TempUser(
