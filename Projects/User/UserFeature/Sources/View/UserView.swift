@@ -36,12 +36,30 @@ public struct UserView: View {
             .padding(.bottom, 20)
             
             divideLine
-            .padding(.bottom, 20)
+                .padding(.bottom, 20)
+            
+            feedbackButton
+                .frame(height: 84)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
+            
+            InfoListView(title: "버전정보", type: .value("2.0.0"))
+                .padding(.bottom, 12)
+            
+            InfoListView(title: "업데이트 노트", type: .navigation, action: { showUpdateNote() })
+                .padding(.bottom, 12)
+            
+            InfoListView(title: "이용약관", type: .navigation, action: { showTerms() })
+                .padding(.bottom, 12)
+            
+            InfoListView(title: "로그아웃", type: .action, action: { logout() })
+                .padding(.bottom, 12)
+            
+            InfoListView(title: "회원탈퇴", type: .action, action: { deleteAccount() })
+                .padding(.bottom, 34)
         }
-        .background {
-            backgroundGradient
-                .ignoresSafeArea()
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(backgroundGradient.ignoresSafeArea())
     }
 }
 
@@ -49,11 +67,18 @@ public struct UserView: View {
 
 private extension UserView {
     var backgroundGradient: some View {
-        LinearGradient(
-            colors: [Color.init(hex: "2F3745", opacity: 1.0), Color.init(hex: "14171B", opacity: 1.0)],
-            startPoint: UnitPoint(x: 0.0, y: 0.0),
-            endPoint: UnitPoint(x: 0.0, y: 297.0)
-        )
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                LinearGradient(
+                    colors: [Color.init(hex: "2F3745"), Color.init(hex: "14171B")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 297)
+                
+                Color.livithColor(.black100)
+            }
+        }
     }
     
     var titleText: some View {
@@ -86,6 +111,16 @@ private extension UserView {
             .frame(height: 5)
             .background(Color.init(hex: "29303C", opacity: 1.0))
     }
+    
+    var feedbackButton: some View {
+        Button {
+            showFeedbackForm()
+        } label: {
+            Image.livithImage(.feedback)
+                .resizable()
+                .scaledToFill()
+        }
+    }
 }
 
 // MARK: - Helper Method
@@ -93,6 +128,26 @@ private extension UserView {
 private extension UserView {
     func showEditView() {
         // TODO: 닉네임 수정 화면으로 이동
+    }
+    
+    func showFeedbackForm() {
+        // TODO: 폼 화면으로 이동
+    }
+    
+    func showUpdateNote() {
+        
+    }
+    
+    func showTerms() {
+        
+    }
+    
+    func logout() {
+        
+    }
+    
+    func deleteAccount() {
+        
     }
 }
 
