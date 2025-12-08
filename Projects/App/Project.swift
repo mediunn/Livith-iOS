@@ -20,6 +20,7 @@ let project = Project.make(
             entitlements: .file(path: "Resources/Livith-iOS.entitlements"),
             dependencies: [
                 .dsKit(),
+                .login(.loginData),
                 .login(.loginFeature),
                 .home(.homeFeature),
                 .home(.homeData),
