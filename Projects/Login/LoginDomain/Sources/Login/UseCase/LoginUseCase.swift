@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol LoginUseCase {
-    func execute(for provider: SocialLoginProvider) async throws(LoginError) -> LoginResult
+    func execute(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus
 }
 
 public final class LoginUseCaseImpl: LoginUseCase {
@@ -19,7 +19,7 @@ public final class LoginUseCaseImpl: LoginUseCase {
         self.repository = repository
     }
     
-    public func execute(for provider: SocialLoginProvider) async throws(LoginError) -> LoginResult {
+    public func execute(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus {
         return try await repository.login(for: provider)
     }
 }

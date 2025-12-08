@@ -1,5 +1,5 @@
 //
-//  LoginResult.swift
+//  LoginStatus.swift
 //  LoginDomain
 //
 //  Created by 김진웅 on 12/5/25.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum LoginResult {
+public enum LoginStatus {
     case existingUser
     case newUser(tempUser: TempUser)
 }

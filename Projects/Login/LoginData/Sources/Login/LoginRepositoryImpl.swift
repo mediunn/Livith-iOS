@@ -34,7 +34,7 @@ final class LoginRepositoryImpl {
 }
 
 extension LoginRepositoryImpl: LoginRepository {
-    func login(for provider: SocialLoginProvider) async throws(LoginError) -> LoginResult {
+    func login(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus {
         do {
             let credential = try await getCredential(for: provider)
             return try await performBackendLogin(with: credential, for: provider)
@@ -56,7 +56,7 @@ private extension LoginRepositoryImpl {
         }
     }
     
-    func performBackendLogin(with credential: AuthCredential, for provider: SocialLoginProvider) async throws -> LoginResult {
+    func performBackendLogin(with credential: AuthCredential, for provider: SocialLoginProvider) async throws -> LoginStatus {
         switch provider {
         case .apple:
             let endpoint = LoginEndpoint.appleLogin(identityToken: credential.token)

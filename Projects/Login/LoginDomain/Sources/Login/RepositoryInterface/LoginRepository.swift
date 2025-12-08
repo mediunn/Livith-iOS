@@ -9,5 +9,5 @@
 import Foundation
 
 public protocol LoginRepository {
-    func login(for provider: SocialLoginProvider) async throws(LoginError) -> LoginResult
+    func login(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus
 }
