@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 
 import Routing
+import LoginDomain
 
 @MainActor
 final class LoginRouter: ObservableObject, Routing {
@@ -19,14 +20,26 @@ final class LoginRouter: ObservableObject, Routing {
     @Published var sheet: Route?
     @Published var fullScreenCover: Route?
     
+    private var tempUser: TempUser?
+    
     func view(to route: Route, with style: PresentationStyle) -> AnyView {
         switch route {
         case .login:
             return AnyView(LoginView())
-        case .terms:
+            
+        case .terms(let tempUser):
+            self.tempUser = tempUser
+            
             return AnyView(TermsView())
-        case .nickname:
-            return AnyView(NicknameSettingView())
+            
+        case .nickname(let marketingConsent):
+            guard let tempUser = tempUser else {
+                return AnyView(EmptyView())
+            }
+            
+            let store = NicknameSettingStore(marketingConsent: marketingConsent, tempUser: tempUser)
+            return AnyView(NicknameSettingView(store: store))
+            
         case .signupFailed:
             return AnyView(SignupFailedSheetView())
         }

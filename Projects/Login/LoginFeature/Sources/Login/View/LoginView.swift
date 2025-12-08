@@ -9,8 +9,15 @@
 import SwiftUI
 
 import DSKit
+import LoginDomain
 
 struct LoginView: View {
+    @StateObject private var store = LoginStore()
+    @EnvironmentObject private var loginRouter: LoginRouter
+    
+    @State private var showErrorAlert = false
+    @State private var errorAlertMessage = ""
+    
     var body: some View {
         ZStack {
             Color.livithColor(.black100)
@@ -23,6 +30,34 @@ struct LoginView: View {
                 
                 loginButtons
             }
+        }
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .onChange(of: store.state.errorMessage) { oldValue, newValue in
+            guard let errorMessage = newValue, !errorMessage.isEmpty else { return }
+            errorAlertMessage = errorMessage
+            showErrorAlert = true
+        }
+        .onChange(of: store.state.status) { oldValue, newValue in
+            guard let loginStatus = newValue else { return }
+            handleLoginSuccess(loginStatus)
+        }
+        .alert("로그인 오류", isPresented: $showErrorAlert) {
+            Button("확인") {
+                showErrorAlert = false
+            }
+        } message: {
+            Text(errorAlertMessage)
+        }
+    }
+    
+    private func handleLoginSuccess(_ status: LoginStatus) {
+        switch status {
+        case .existingUser:
+            break
+        case .newUser(let tempUser):
+            loginRouter.push(.terms(tempUser))
         }
     }
 }
@@ -59,8 +94,7 @@ private extension LoginView {
                     textColor: Color(hex: "#14171b"),
                     icon: Image.livithIcon(.kakao)
                 ) {
-
-                    // TODO: 카카오 로그인 버튼 액션 구현
+                    store.send(.kakaoLogin)
                 }
                 
                 LoginButton(
@@ -69,26 +103,13 @@ private extension LoginView {
                     textColor: Color(hex: "#f2f4f6"),
                     icon: Image.livithIcon(.apple)
                 ) {
-                    
-                    // TODO: Apple 로그인 버튼 액션 구현
-                    
+                    store.send(.appleLogin)
                 }
             }
         }
         .padding(.top, 40)
         .padding(.horizontal, 16)
         .padding(.bottom, 100)
-    }
-}
-
-// MARK: - Helpers
-
-private extension LoginView {
-    var window: UIWindow? {
-        UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first?.windows
-            .first(where: { $0.isKeyWindow })
     }
 }
 

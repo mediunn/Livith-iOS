@@ -30,28 +30,36 @@ final class NicknameSettingStore: ObservableObject {
     
     @Injected private var onboardingUseCase: OnboardingUseCase
     
+    private let marketingConsent: Bool
+    private let tempUser: TempUser
+    
+    init(marketingConsent: Bool, tempUser: TempUser) {
+        self.marketingConsent = marketingConsent
+        self.tempUser = tempUser
+    }
+    
     func send(_ intent: NicknameSettingIntent) {
         switch intent {
         case .updateNickname(let nickname):
             state.nickname = nickname
             validateNicknameFormat()
-
+            
         case .checkNicknameDuplicate:
             state.nicknameValidationState = .checking
             checkNicknameDuplicate()
-
+            
         case .signup:
             state.signupState = .loading
             signup()
-
+            
         case ._setNicknameValidationState(let validationState):
             state.nicknameValidationState = validationState
-
+            
         case ._signupResult(let result):
             switch result {
             case .success:
                 state.signupState = .success
-
+                
             case .failure(let error):
                 state.signupState = .failure(error.localizedDescription)
             }

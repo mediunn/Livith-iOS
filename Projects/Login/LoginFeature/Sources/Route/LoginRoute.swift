@@ -9,11 +9,12 @@
 import Foundation
 
 import Routing
+import LoginDomain
 
 enum LoginRoute: Routable {
     case login
-    case terms
-    case nickname
+    case terms(TempUser)
+    case nickname(Bool)
     case signupFailed
     
     var id: String {

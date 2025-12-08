@@ -9,12 +9,17 @@
 import SwiftUI
 
 import DSKit
+import LoginDomain
 
 struct NicknameSettingView: View {
-    @StateObject private var store = NicknameSettingStore()
-    @EnvironmentObject private var router: OnboardingRouter
+    @ObservedObject var store: NicknameSettingStore
+    @EnvironmentObject private var router: LoginRouter
     @FocusState private var isNicknameFocused: Bool
     private let maxNicknameLength = 10
+    
+    init(store: NicknameSettingStore) {
+        self.store = store
+    }
     
     var body: some View {
         ZStack {
