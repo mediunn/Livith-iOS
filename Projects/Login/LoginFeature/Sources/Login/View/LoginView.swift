@@ -15,9 +15,6 @@ struct LoginView: View {
     @StateObject private var store = LoginStore()
     @EnvironmentObject private var loginRouter: LoginRouter
     
-    @State private var showErrorAlert = false
-    @State private var errorAlertMessage = ""
-    
     var body: some View {
         ZStack {
             Color.livithColor(.black100)
@@ -34,21 +31,20 @@ struct LoginView: View {
         .onAppear {
             store.send(.onAppear)
         }
-        .onChange(of: store.state.errorMessage) { oldValue, newValue in
-            guard let errorMessage = newValue, !errorMessage.isEmpty else { return }
-            errorAlertMessage = errorMessage
-            showErrorAlert = true
+        .alert(
+            Literals.errorAlertTitle,
+            isPresented: .constant(store.state.errorMessage != nil),
+            presenting: store.state.errorMessage
+        ) { _ in
+            Button(Literals.confirmButtonTitle) {
+                store.send(.onAppear)
+            }
+        } message: { errorMessage in
+            Text(errorMessage)
         }
         .onChange(of: store.state.status) { oldValue, newValue in
             guard let loginStatus = newValue else { return }
             handleLoginSuccess(loginStatus)
-        }
-        .alert("로그인 오류", isPresented: $showErrorAlert) {
-            Button("확인") {
-                showErrorAlert = false
-            }
-        } message: {
-            Text(errorAlertMessage)
         }
     }
     
@@ -122,6 +118,8 @@ private extension LoginView {
         static let greetingMessage = "회원가입하고 모든 서비스 이용해보세요!"
         static let kakaoLoginMessage = "카카오로 최근에 로그인 했어요"
         static let appleLoginMessage = "Apple로 최근에 로그인 했어요"
+        static let errorAlertTitle = "알림"
+        static let confirmButtonTitle = "확인"
     }
 }
 
