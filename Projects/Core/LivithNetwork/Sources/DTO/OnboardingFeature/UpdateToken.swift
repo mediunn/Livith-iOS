@@ -12,6 +12,13 @@ import Foundation
 
 public extension DTO.Request {
     struct UpdateToken: Encodable {
+        public let refreshToken: String
+    }
+}
+
+public extension DTO.Response {
+    struct UpdateToken: Decodable {
         public let accessToken: String
+        public let refreshToken: String
     }
 }
