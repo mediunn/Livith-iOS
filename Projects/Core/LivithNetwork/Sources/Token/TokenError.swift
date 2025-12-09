@@ -9,28 +9,22 @@
 import Foundation
 
 public enum TokenError: Error, LocalizedError {
-    case notFound
     case saveFailed
     case deleteFailed
     case noData
-    case noConnection
-    case expired
+    case refreshTokenExpired
     case networkError
     case unknown
     
     public var errorDescription: String? {
         switch self {
-        case .notFound:
-            return "토큰을 찾을 수 없습니다."
         case .saveFailed:
             return "토큰 저장에 실패했습니다."
         case .deleteFailed:
             return "토큰 삭제에 실패했습니다."
         case .noData:
             return "토큰 데이터가 없습니다."
-        case .noConnection:
-            return "토큰 연결에 실패했습니다."
-        case .expired:
+        case .refreshTokenExpired:
             return "리프레시 토큰이 만료되었습니다."
         case .networkError:
             return "네트워크 오류로 인해 토큰 작업에 실패했습니다."

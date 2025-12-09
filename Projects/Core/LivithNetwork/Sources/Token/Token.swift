@@ -15,7 +15,7 @@ struct Token: Equatable {
     let refreshToken: String
     let refreshTokenIssuedAt: Date
     
-    var isExpired: Bool {
+    var refreshTokenIsExpired: Bool {
         return Date().timeIntervalSince(refreshTokenIssuedAt) > Self.refreshTokenExpirationInterval
     }
 }

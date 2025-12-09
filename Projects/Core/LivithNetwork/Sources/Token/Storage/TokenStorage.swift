@@ -42,8 +42,8 @@ struct TokenStorage {
 
         let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: issuedAt)
 
-        if token.isExpired {
-            throw .expired
+        if token.refreshTokenIsExpired {
+            throw .refreshTokenExpired
         }
         
         return token
@@ -102,7 +102,7 @@ private extension TokenStorage {
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         
         guard status != errSecItemNotFound else {
-            throw TokenError.notFound
+            throw TokenError.noData
         }
         
         guard status == errSecSuccess else {

@@ -20,27 +20,18 @@ final class TokenRefresher {
     func refresh(with refreshToken: String) async throws(TokenError) -> DTO.Response.UpdateToken {
         do {
             let requestBody = DTO.Request.UpdateToken(refreshToken: refreshToken)
-            let response: BaseResponse<DTO.Response.UpdateToken> = try await service.request(
+            return try await service.request(
                 TokenRefreshEndpoint.updateToken(requestBody)
             )
-            
-            guard let data = response.data else {
-                throw TokenError.noData
-            }
-            return data
-        } catch let error as NetworkError {
+        } catch {
             switch error {
             case .unauthorized:
-                throw TokenError.expired
-            case .noData:
-                throw TokenError.noData
-            case .noConnection:
-                throw TokenError.noConnection
+                throw .refreshTokenExpired
+            case .serverError, .noConnection:
+                throw .networkError
             default:
-                throw TokenError.networkError
+                throw .unknown
             }
-        } catch {
-            throw TokenError.unknown
         }
     }
 }

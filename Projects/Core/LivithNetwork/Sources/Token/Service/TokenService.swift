@@ -10,9 +10,9 @@ import Foundation
 
 public protocol TokenService {
     func getAccessToken() async throws(TokenError) -> String
-    func saveTokens(accessToken: String, refreshToken: String) throws(TokenError)
-    func removeTokens() throws(TokenError)
     func refreshTokens() async throws(TokenError) -> String
+    func removeTokens() async throws(TokenError)
+    var isRefreshTokenExpired: Bool { get }
 }
 
 public final class TokenServiceImpl: TokenService {
@@ -25,40 +25,39 @@ public final class TokenServiceImpl: TokenService {
         do {
             let token = try storage.fetch()
             return token.accessToken
-        } catch TokenError.expired {
+        } catch TokenError.refreshTokenExpired {
             postReloginNotification()
-            throw .expired
+            throw .refreshTokenExpired
         }
     }
-    
-    public func saveTokens(accessToken: String, refreshToken: String) throws(TokenError) {
-        let token = Token(
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-            refreshTokenIssuedAt: Date()
-        )
-        try storage.save(token)
-    }
-    
-    public func removeTokens() throws(TokenError) {
-        try storage.delete()
-    }
-    
+
     public func refreshTokens() async throws(TokenError) -> String {
         do {
             let token = try storage.fetch()
-            let newTokens = try await refresher.refresh(with: token.refreshToken)
+            let response = try await refresher.refresh(with: token.refreshToken)
             let newToken = Token(
-                accessToken: newTokens.accessToken,
-                refreshToken: newTokens.refreshToken,
-                refreshTokenIssuedAt: Date()
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+                refreshTokenIssuedAt: .now
             )
             try storage.save(newToken)
             return newToken.accessToken
-        } catch TokenError.expired {
+        } catch TokenError.refreshTokenExpired {
             postReloginNotification()
-            throw TokenError.expired
+            throw .refreshTokenExpired
         }
+    }
+
+    public func removeTokens() async throws(TokenError) {
+        do {
+            try storage.delete()
+        } catch {
+            throw TokenError.deleteFailed
+        }
+    }
+
+    public var isRefreshTokenExpired: Bool {
+        (try? storage.fetch().refreshTokenIsExpired) ?? true
     }
 }
 
