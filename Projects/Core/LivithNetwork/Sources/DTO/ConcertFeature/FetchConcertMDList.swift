@@ -16,8 +16,8 @@ public extension DTO.Response {
     struct ConcertMD: Decodable {
         public let id: Int
         public let name: String
-        public let price: String
-        public let imageURL: String
+        public let price: String?
+        public let imageURL: String?
 
         enum CodingKeys: String, CodingKey {
             case id
