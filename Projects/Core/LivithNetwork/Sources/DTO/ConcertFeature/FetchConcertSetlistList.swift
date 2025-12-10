@@ -16,7 +16,7 @@ public extension DTO.Response {
     struct ConcertSetlist: Decodable {
         public let id: Int
         public let title: String
-        public let imageURL: String
+        public let imageURL: String?
         public let type: String
         public let startDate: String
         public let endDate: String
