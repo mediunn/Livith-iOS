@@ -70,8 +70,7 @@ struct NicknameSettingView: View {
                 // TODO: 홈 화면으로 이동
                 break
                 
-            case .failure(let message):
-                print("Signup error: \(message)")
+            case .failure:
                 router.fullScreenCover(.signupFailed)
                 
             default:

@@ -12,5 +12,5 @@ enum SignupStatus: Equatable {
     case idle
     case loading
     case success
-    case failure(String)
+    case failure
 }

@@ -58,6 +58,7 @@ final class NicknameSettingStore: ObservableObject {
             
         case .confirmAlert:
             state.errorMessage = nil
+            state.signupStatus = .idle
             
         case ._setNicknameValidationState(let validationState):
             state.nicknameValidationStatus = validationState
@@ -92,7 +93,14 @@ final class NicknameSettingStore: ObservableObject {
                 state.signupStatus = .success
                 
             case .failure(let error):
-                state.signupStatus = .failure(error.localizedDescription)
+                guard let onboardingError = error as? OnboardingError,
+                      onboardingError == .unknown || onboardingError == .serverError
+                else {
+                    state.errorMessage = errorMessage(error)
+                    return
+                }
+
+                state.signupStatus = .failure
             }
         }
     }
@@ -132,9 +140,9 @@ private extension NicknameSettingStore {
         Task {
             do {
                 try await onboardingUseCase.signup(nickname: state.nickname)
-                await MainActor.run { send(._duplicateResult(.success(()))) }
+                await MainActor.run { send(._signupResult(.success(()))) }
             } catch {
-                await MainActor.run { send(._duplicateResult(.failure(error))) }
+                await MainActor.run { send(._signupResult(.failure(error))) }
             }
         }
     }
