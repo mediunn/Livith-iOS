@@ -13,7 +13,7 @@ import Foundation
 public extension DTO.Response {
     struct FetchConcertCommentList: Decodable {
         public let data: [Comment]
-        public let cursor: Cursor
+        public let cursor: Cursor?
         public let totalCount: Int
 
         public struct Comment: Decodable {
