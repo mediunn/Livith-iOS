@@ -30,9 +30,9 @@ public extension DTO.Response {
         public let artist: String
         public let createdAt: String
         public let updatedAt: String
-        public let artistId: Int
-        public let ticketSite: String
-        public let ticketURL: String
+        public let artistID: Int
+        public let ticketSite: String?
+        public let ticketURL: String?
         public let venue: String
         public let introduction: String
         public let label: String?
@@ -50,7 +50,7 @@ public extension DTO.Response {
             case artist
             case createdAt
             case updatedAt
-            case artistId
+            case artistID = "artistId"
             case ticketSite
             case ticketURL = "ticketUrl"
             case venue

@@ -30,11 +30,11 @@ public extension DTO.Response {
         public let status: String
         public let posterURL: String
         public let artist: String
-        public let ticketSite: String
-        public let ticketURL: String
+        public let ticketSite: String?
+        public let ticketURL: String?
         public let venue: String
         public let introduction: String
-        public let label: String
+        public let label: String?
 
         enum CodingKeys: String, CodingKey {
             case id
