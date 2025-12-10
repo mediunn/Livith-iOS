@@ -18,12 +18,14 @@ public extension DTO.Response {
         public let title: String
         public let category: String
         public let imageURL: String
+        public let content: String
 
         enum CodingKeys: String, CodingKey {
             case id
             case title
             case category
             case imageURL = "imgUrl"
+            case content
         }
     }
 }
