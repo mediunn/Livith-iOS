@@ -11,6 +11,6 @@ import Foundation
 public protocol UserRepository {
     func checkNicknameDuplicate(nickname: String) async throws(UserError) -> Bool
     func changeNewNickname(nickname: String) async throws(UserError) -> String
-    func logout() async throws(UserError) -> Void
-    func unRegister(reason: String) async throws(UserError) -> Void
+    func deleteUser(reason: String) async throws(UserError) -> Void
+    func logoutSession() async throws(UserError) -> Void
 }
