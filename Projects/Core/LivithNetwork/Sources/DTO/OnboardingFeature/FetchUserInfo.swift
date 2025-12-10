@@ -19,7 +19,17 @@ public extension DTO.Response {
     
     struct User: Decodable {
         public let id: String
+        public let interestConcertID: Int?
+        public let provider: String
+        public let providerID: String
+        public let email: String?
         public let nickname: String
-        public let email: String
+        public let marketingConsent: Bool
+        
+        enum CodingKeys: String, CodingKey {
+            case id
+            case interestConcertID = "interestConcertId"
+            case provider, providerID, email, nickname, marketingConsent
+        }
     }
 }
