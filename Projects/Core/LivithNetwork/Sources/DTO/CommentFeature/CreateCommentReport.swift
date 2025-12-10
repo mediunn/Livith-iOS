@@ -22,7 +22,7 @@ public extension DTO.Response {
         public let commentID: Int
         public let commentUserID: Int
         public let commentContent: String
-        public let reportReason: String
+        public let reportReason: String?
         public let createdAt: String
 
         enum CodingKeys: String, CodingKey {
