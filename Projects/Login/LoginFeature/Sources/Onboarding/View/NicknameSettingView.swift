@@ -52,8 +52,19 @@ struct NicknameSettingView: View {
             }
             .padding(.horizontal, 16)
         }
+        .alert(
+            Literals.errorAlertTitle,
+            isPresented: .constant(store.state.errorMessage != nil),
+            presenting: store.state.errorMessage
+        ) { _ in
+            Button(Literals.confirmButtonTitle) {
+                store.send(.confirmAlert)
+            }
+        } message: { errorMessage in
+            Text(errorMessage)
+        }
         .ignoresSafeArea(.all, edges: .bottom)
-        .onChange(of: store.state.signupState) { oldValue, newValue in
+        .onChange(of: store.state.signupStatus) { oldValue, newValue in
             switch newValue {
             case .success:
                 // TODO: 홈 화면으로 이동
@@ -138,7 +149,7 @@ private extension NicknameSettingView {
                     .onSubmit {
                         isNicknameFocused = false
                     }
-                    .disabled(store.state.nicknameValidationState == .checking)
+                    .disabled(store.state.nicknameValidationStatus == .checking)
                 
                 if !store.state.nickname.isEmpty {
                     Spacer()
@@ -195,7 +206,8 @@ private extension NicknameSettingView {
                 Text(Literals.signupButtonText)
                     .notosans(.body2Medium)
                     .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
-                if case .loading = store.state.signupState {
+                
+                if case .loading = store.state.signupStatus {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.black100)))
                 }
@@ -214,15 +226,15 @@ private extension NicknameSettingView {
 
 private extension NicknameSettingView {
     var duplicateButtonText: String {
-        store.state.nicknameValidationState == .available ? Literals.checkCompleted : Literals.checkDuplicate
+        store.state.nicknameValidationStatus == .available ? Literals.checkCompleted : Literals.checkDuplicate
     }
     
     var isDuplicateButtonEnabled: Bool {
-        store.state.nicknameValidationState == .valid
+        store.state.nicknameValidationStatus == .valid
     }
     
     var statusMessage: String {
-        switch store.state.nicknameValidationState {
+        switch store.state.nicknameValidationStatus {
         case .idle:
             return "10자리 이내 문자/숫자로 입력 가능해요"
         case .valid:
@@ -239,7 +251,7 @@ private extension NicknameSettingView {
     }
     
     var statusMessageColor: Color {
-        switch store.state.nicknameValidationState {
+        switch store.state.nicknameValidationStatus {
         case .idle, .valid, .checking:
             return .livithColor(.black50)
         case .invalid, .duplicate:
@@ -250,18 +262,18 @@ private extension NicknameSettingView {
     }
     
     var isSignupButtonEnabled: Bool {
-        store.state.nicknameValidationState == .available
+        store.state.nicknameValidationStatus == .available
     }
     
     var isSignupLoading: Bool {
-        store.state.signupState == .loading
+        store.state.signupStatus == .loading
     }
     
     var nicknameBinding: Binding<String> {
         Binding {
             store.state.nickname
         } set: { newValue in
-            guard store.state.nicknameValidationState != .checking else { return }
+            guard store.state.nicknameValidationStatus != .checking else { return }
             store.send(.updateNickname(newValue))
         }
     }
@@ -277,5 +289,7 @@ private extension NicknameSettingView {
         static let checkDuplicate = "중복확인"
         static let checkCompleted = "확인완료"
         static let signupButtonText = "가입 완료"
+        static let errorAlertTitle = "알림"
+        static let confirmButtonTitle = "확인"
     }
 }

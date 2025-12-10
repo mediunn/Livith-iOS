@@ -1,5 +1,5 @@
 //
-//  SignupState.swift
+//  SignupStatus.swift
 //  LoginFeature
 //
 //  Created by 김진웅 on 11/24/25.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum SignupState: Equatable {
+enum SignupStatus: Equatable {
     case idle
     case loading
     case success
