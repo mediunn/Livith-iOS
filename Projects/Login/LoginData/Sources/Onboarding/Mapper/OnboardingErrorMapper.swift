@@ -12,7 +12,7 @@ import LivithNetwork
 import LoginDomain
 
 struct OnboardingErrorMapper {
-    func mapToOnboardingError(_ networkError: NetworkError) -> OnboardingError {
+    func mapToDomainError(_ networkError: NetworkError) -> OnboardingError {
         switch networkError {
         case .serverError:
             return .serverError
