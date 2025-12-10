@@ -16,7 +16,7 @@ public extension DTO.Response {
         public let setlistID: Int
         public let songID: Int
         public let fanchant: [String]
-        public let fanchantPoint: String
+        public let fanchantPoint: String?
 
         enum CodingKeys: String, CodingKey {
             case id
