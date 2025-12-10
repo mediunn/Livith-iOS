@@ -35,17 +35,17 @@ final class LoginStore: ObservableObject {
             state.errorMessage = nil
             
         case .kakaoLogin:
-            login(for: .kakao)
+            performLogin(for: .kakao)
             
         case .appleLogin:
-            login(for: .apple)
+            performLogin(for: .apple)
             
         case ._loginResult(let result):
             switch result {
             case .success(let loginResult):
                 state.status = loginResult
             case .failure(let error):
-                state.errorMessage = errorMessage(from: error)
+                state.errorMessage = formatErrorMessage(from: error)
             }
         }
     }
@@ -54,7 +54,7 @@ final class LoginStore: ObservableObject {
 // MARK: - Helpers
 
 private extension LoginStore {
-    func login(for socialProvider: SocialLoginProvider) {
+    func performLogin(for socialProvider: SocialLoginProvider) {
         Task {
             do {
                 let loginResult = try await useCase.execute(for: socialProvider)
@@ -65,7 +65,7 @@ private extension LoginStore {
         }
     }
     
-    func errorMessage(from error: Error) -> String? {
+    func formatErrorMessage(from error: Error) -> String? {
         guard let loginError = error as? LoginError else { return LoginError.unknown.errorDescription }
         
         switch loginError {

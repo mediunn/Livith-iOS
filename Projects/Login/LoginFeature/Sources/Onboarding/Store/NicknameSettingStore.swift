@@ -23,9 +23,8 @@ enum NicknameSettingIntent {
     case checkNicknameDuplicate
     case signup
     case confirmAlert
-    case _setNicknameValidationState(NicknameValidationStatus)
-    case _validateResult(Result<Void, Error>)
-    case _duplicateResult(Result<Void, Error>)
+    case _validationResult(Result<Void, Error>)
+    case _duplicateCheckResult(Result<Void, Error>)
     case _signupResult(Result<Void, Error>)
 }
 
@@ -46,24 +45,21 @@ final class NicknameSettingStore: ObservableObject {
         switch intent {
         case .updateNickname(let nickname):
             state.nickname = nickname
-            validateNicknameFormat()
+            performNicknameValidation()
             
         case .checkNicknameDuplicate:
             state.nicknameValidationStatus = .checking
-            checkNicknameDuplicate()
+            performDuplicateCheck()
             
         case .signup:
             state.signupStatus = .loading
-            signup()
+            performSignup()
             
         case .confirmAlert:
             state.errorMessage = nil
             state.signupStatus = .idle
-            
-        case ._setNicknameValidationState(let validationState):
-            state.nicknameValidationStatus = validationState
         
-        case ._validateResult(let result):
+        case ._validationResult(let result):
             switch result {
             case .success:
                 state.nicknameValidationStatus = .valid
@@ -71,20 +67,20 @@ final class NicknameSettingStore: ObservableObject {
                 state.nicknameValidationStatus = .invalid
             }
             
-        case ._duplicateResult(let result):
+        case ._duplicateCheckResult(let result):
             switch result {
             case .success:
                 state.nicknameValidationStatus = .available
                 
             case .failure(let error):
-                guard let onboardingError = error as? OnboardingError,
-                      onboardingError == .nicknameDuplicated
-                else {
+                let onboardingError = error as? OnboardingError
+
+                if onboardingError == .nicknameDuplicated {
+                    state.nicknameValidationStatus = .duplicate
+                } else {
                     state.nicknameValidationStatus = .valid
-                    state.errorMessage = errorMessage(error)
-                    return
+                    state.errorMessage = formatErrorMessage(error)
                 }
-                state.nicknameValidationStatus = .duplicate
             }
             
         case ._signupResult(let result):
@@ -93,14 +89,14 @@ final class NicknameSettingStore: ObservableObject {
                 state.signupStatus = .success
                 
             case .failure(let error):
-                guard let onboardingError = error as? OnboardingError,
-                      onboardingError == .unknown || onboardingError == .serverError
-                else {
-                    state.errorMessage = errorMessage(error)
-                    return
-                }
+                let onboardingError = error as? OnboardingError
+                let isRecoverableError = onboardingError == .invalidNicknameFormat || onboardingError == .nicknameDuplicated
 
-                state.signupStatus = .failure
+                if isRecoverableError {
+                    state.errorMessage = formatErrorMessage(error)
+                } else {
+                    state.signupStatus = .failure
+                }
             }
         }
     }
@@ -109,34 +105,34 @@ final class NicknameSettingStore: ObservableObject {
 // MARK: - Helper
 
 private extension NicknameSettingStore {
-    func validateNicknameFormat() {
+    func performNicknameValidation() {
         guard !state.nickname.isEmpty else {
-            send(._setNicknameValidationState(.idle))
+            state.nicknameValidationStatus = .idle
             return
         }
         
         Task {
             do {
                 try onboardingUseCase.validateNicknameFormat(state.nickname)
-                await MainActor.run { send(._validateResult(.success(()))) }
+                await MainActor.run { send(._validationResult(.success(()))) }
             } catch {
-                await MainActor.run { send(._validateResult(.failure(error))) }
+                await MainActor.run { send(._validationResult(.failure(error))) }
             }
         }
     }
     
-    func checkNicknameDuplicate() {
+    func performDuplicateCheck() {
         Task {
             do {
                 try await onboardingUseCase.checkNicknameDuplicate(state.nickname)
-                await MainActor.run { send(._duplicateResult(.success(()))) }
+                await MainActor.run { send(._duplicateCheckResult(.success(()))) }
             } catch {
-                await MainActor.run { send(._duplicateResult(.failure(error))) }
+                await MainActor.run { send(._duplicateCheckResult(.failure(error))) }
             }
         }
     }
     
-    func signup() {
+    func performSignup() {
         Task {
             do {
                 try await onboardingUseCase.signup(nickname: state.nickname)
@@ -147,11 +143,10 @@ private extension NicknameSettingStore {
         }
     }
     
-    func errorMessage(_ error: Error) -> String? {
+    func formatErrorMessage(_ error: Error) -> String? {
         guard let onboardingError = error as? OnboardingError else {
             return OnboardingError.unknown.errorDescription
         }
-        
         return onboardingError.errorDescription
     }
 }
