@@ -42,8 +42,10 @@ extension UserRepositoryImpl: UserRepository {
     
     public func updateUserNickname(nickname: String) async throws(UserError) -> String {
         do {
+            let request = DTO.Request.UpdateUserNickname(nickname: nickname)
+            
             let response: BaseResponse<DTO.Response.UpdateUserNickname> = try await userService.request(
-                UserEndpoint.checkNicknameDuplicate(nickname: nickname)
+                UserEndpoint.updateUserNickname(request: request)
             )
             
             guard let data = response.data else {

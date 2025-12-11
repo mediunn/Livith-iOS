@@ -11,11 +11,15 @@
 public extension DTO.Request {
     struct RequestLogout: Encodable {
         public let refreshToken: String
+        
+        public init(refreshToken: String) {
+            self.refreshToken = refreshToken
+        }
     }
 }
 
 public extension DTO.Response {
-    struct RequestLogout: Encodable {
+    struct RequestLogout: Decodable {
         public let message: String
     }
 }
