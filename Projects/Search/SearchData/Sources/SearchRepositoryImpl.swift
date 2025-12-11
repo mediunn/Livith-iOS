@@ -12,9 +12,19 @@ import LivithNetwork
 import SearchDomain
 
 public final class SearchRepositoryImpl {
-    private let service: NetworkService<SearchEndpoint> = .init()
-    private let entityMapper: SearchMapper = .init()
-    private let errorMapper: SearchErrorMapper = .init()
+    private let service: NetworkService<SearchEndpoint>
+    private let entityMapper: SearchMapper
+    private let errorMapper: SearchErrorMapper
+
+    public init(
+        service: NetworkService<SearchEndpoint> = .init(),
+        entityMapper: SearchMapper = .init(),
+        errorMapper: SearchErrorMapper = .init()
+    ) {
+        self.service = service
+        self.entityMapper = entityMapper
+        self.errorMapper = errorMapper
+    }
 }
 
 extension SearchRepositoryImpl: SearchRepository {

@@ -13,9 +13,19 @@ import UserDomain
 
 public final class UserRepositoryImpl {
     // TODO: 토큰 서비스 선언
-    private let userService: NetworkService<UserEndpoint> = .init()
-    private let logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil)
-    private let userErrorMapper: UserErrorMapper = .init()
+    private let userService: NetworkService<UserEndpoint>
+    private let logoutService: NetworkService<LogoutEndpoint>
+    private let userErrorMapper: UserErrorMapper
+
+    public init(
+        userService: NetworkService<UserEndpoint> = .init(),
+        logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil),
+        userErrorMapper: UserErrorMapper = .init()
+    ) {
+        self.userService = userService
+        self.logoutService = logoutService
+        self.userErrorMapper = userErrorMapper
+    }
 }
 
 extension UserRepositoryImpl: UserRepository {

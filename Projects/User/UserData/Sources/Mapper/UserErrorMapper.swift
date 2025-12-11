@@ -11,7 +11,9 @@ import Foundation
 import LivithNetwork
 import UserDomain
 
-struct UserErrorMapper {
+public struct UserErrorMapper {
+    public init() { }
+    
     func mapToUserError(_ networkError: NetworkError) -> UserError {
         switch networkError {
         case .badRequest(message: Constant.userNotFound):
