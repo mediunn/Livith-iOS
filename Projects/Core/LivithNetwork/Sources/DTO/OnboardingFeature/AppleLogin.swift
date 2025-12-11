@@ -1,36 +1,32 @@
 //
-//  AppleLogin.swift
-//  LoginData
+//  UpdateAppleLogin.swift
+//  network
 //
-//  Created by 김진웅 on 12/5/25.
+//  Created by Youjin Lee on 10/14/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
-import Foundation
+// MARK: - 34. 애플 로그인
 
-import LivithNetwork
-
-// MARK: - 34. iOS 애플 로그인
-
-extension DTO.Request {
+public extension DTO.Request {
     struct AppleLogin: Encodable {
         let identityToken: String
     }
 }
 
-extension DTO.Response {
+public extension DTO.Response {
     struct AppleLogin: Decodable {
-        let isNewUser: Bool
-        let accessToken: String?
-        let refreshToken: String?
-        let tempUser: TempUser?
+        public let isNewUser: Bool
+        public let accessToken: String?
+        public let refreshToken: String?
+        public let tempUser: TempUser?
         
         enum CodingKeys: String, CodingKey {
             case isNewUser, accessToken, refreshToken
             case tempUser = "tempUserData"
         }
         
-        init(from decoder: any Decoder) throws {
+        public init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: DTO.Response.AppleLogin.CodingKeys.self)
             
             isNewUser = try container.decode(Bool.self, forKey: .isNewUser)
@@ -48,11 +44,11 @@ extension DTO.Response {
     }
 }
 
-extension DTO.Response.AppleLogin {
+public extension DTO.Response.AppleLogin {
     struct TempUser: Decodable {
-        let provider: String
-        let providerID: String
-        let email: String
+        public let provider: String
+        public let providerID: String
+        public let email: String
         
         enum CodingKeys: String, CodingKey {
             case provider, email

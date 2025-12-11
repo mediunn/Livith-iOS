@@ -11,14 +11,12 @@ import Foundation
 import LivithNetwork
 import LoginDomain
 
-typealias OnboardingService = NetworkService<OnboardingEndpoint>
-
 final class OnboardingRepositoryImpl {
     private let service: OnboardingService
     private let errorMapper: OnboardingErrorMapper
     
     init(
-        service: OnboardingService = NetworkService(),
+        service: OnboardingService = OnboardingService(),
         errorMapper: OnboardingErrorMapper = OnboardingErrorMapper()
     ) {
         self.service = service
@@ -31,9 +29,7 @@ final class OnboardingRepositoryImpl {
 extension OnboardingRepositoryImpl: OnboardingRepository {
     func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) -> Bool {
         do {
-            let response: DTO.Response.CheckNicknameDuplicate = try await service.request(
-                OnboardingEndpoint.checkNicknameDuplicate(nickname: nickname)
-            )
+            let response: DTO.Response.CheckNicknameDuplicate = try await service.request(.checkNicknameDuplicate(nickname: nickname))
             
             return response.available
         } catch {
@@ -42,17 +38,15 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
     }
 
     func signup(marketingConsent: Bool, nickname: String, tempUser: TempUser) async throws(OnboardingError) {
-        let request = DTO.Request.CreateUser(
-            nickname: nickname,
-            marketingConsent: marketingConsent,
-            providerID: tempUser.providerID,
-            provider: "\(tempUser.provider)",
-            email: tempUser.email
-        )
-        
         do {
             let response: DTO.Response.CreateUser = try await service.request(
-                OnboardingEndpoint.signup(request: request)
+                .signup(
+                    nickname: nickname,
+                    marketingConsent: marketingConsent,
+                    providerID: tempUser.providerID,
+                    provider: "\(tempUser.provider)",
+                    email: tempUser.email
+                )
             )
             
             // TODO: 회원가입 후, 저장해야 할 정보

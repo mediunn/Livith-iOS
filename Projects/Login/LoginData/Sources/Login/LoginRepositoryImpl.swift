@@ -12,18 +12,16 @@ import Auth
 import LivithNetwork
 import LoginDomain
 
-typealias LoginService = NetworkService<LoginEndpoint>
-
 final class LoginRepositoryImpl {
     private let appleLoginService: AppleLoginService
     private let kakaoLoginService: KakaoLoginService
-    private let loginService: LoginService
+    private let loginService: OnboardingService
     private let errorMapper: LoginErrorMapper
     
     init(
         appleLoginService: AppleLoginService = .init(),
         kakaoLoginService: KakaoLoginService = .init(),
-        loginService: LoginService = .init(),
+        loginService: OnboardingService = .init(),
         errorMapper: LoginErrorMapper = .init()
     ) {
         self.appleLoginService = appleLoginService
@@ -59,8 +57,7 @@ private extension LoginRepositoryImpl {
     func performBackendLogin(with credential: AuthCredential, for provider: SocialLoginProvider) async throws -> LoginStatus {
         switch provider {
         case .apple:
-            let endpoint = LoginEndpoint.appleLogin(identityToken: credential.token)
-            let response: DTO.Response.AppleLogin = try await loginService.request(endpoint)
+            let response: DTO.Response.AppleLogin = try await loginService.request(.appleLogin(identityToken: credential.token))
             
             if response.isNewUser {
                 guard let tempUserData = response.tempUser else {
@@ -77,8 +74,7 @@ private extension LoginRepositoryImpl {
             }
             
         case .kakao:
-            let endpoint = LoginEndpoint.kakaoLogin(accessToken: credential.token)
-            let response: DTO.Response.KakaoLogin = try await loginService.request(endpoint)
+            let response: DTO.Response.KakaoLogin = try await loginService.request(.kakaoLogin(accessToken: credential.token))
             
             if response.isNewUser {
                 guard let tempUserData = response.tempUser else {
