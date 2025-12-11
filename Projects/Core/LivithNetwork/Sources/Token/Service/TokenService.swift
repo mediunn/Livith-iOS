@@ -8,16 +8,19 @@
 
 import Foundation
 
-public protocol TokenService {
+public protocol TokenService: Sendable {
     func getAccessToken() async throws(TokenError) -> String
-    func refreshTokens() async throws(TokenError) -> String
+    func getRefreshToken() async throws(TokenError) -> String
+    func refresh() async throws(TokenError)
     func removeTokens() async throws(TokenError)
-    var isRefreshTokenExpired: Bool { get }
+    func isRefreshTokenExpired() async -> Bool
 }
 
-public final class TokenServiceImpl: TokenService {
+public actor TokenServiceImpl: TokenService {
     private let storage: TokenStorage = .init()
     private let refresher: TokenRefresher = .init()
+    
+    private var refreshTask: Task<Void, Error>?
     
     public init() {}
     
@@ -26,37 +29,43 @@ public final class TokenServiceImpl: TokenService {
             let token = try storage.fetch()
             return token.accessToken
         } catch TokenError.refreshTokenExpired {
-            postReloginNotification()
+            handleRefreshTokenExpired()
             throw .refreshTokenExpired
         }
     }
-
-    public func refreshTokens() async throws(TokenError) -> String {
+    
+    public func getRefreshToken() async throws(TokenError) -> String {
         do {
             let token = try storage.fetch()
-            let response = try await refresher.refresh(with: token.refreshToken)
-            let newToken = Token(
-                accessToken: response.accessToken,
-                refreshToken: response.refreshToken,
-                refreshTokenIssuedAt: .now
-            )
-            try storage.save(newToken)
-            return newToken.accessToken
+            return token.refreshToken
         } catch TokenError.refreshTokenExpired {
-            postReloginNotification()
+            handleRefreshTokenExpired()
             throw .refreshTokenExpired
         }
     }
-
+    
+    public func refresh() async throws(TokenError) {
+        do {
+            try await performRefresh()
+        } catch TokenError.refreshTokenExpired {
+            handleRefreshTokenExpired()
+            throw .refreshTokenExpired
+        } catch let error as TokenError {
+            throw error
+        } catch {
+            throw TokenError.unknown
+        }
+    }
+    
     public func removeTokens() async throws(TokenError) {
         do {
-            try storage.delete()
+            try storage.remove()
         } catch {
             throw TokenError.deleteFailed
         }
     }
-
-    public var isRefreshTokenExpired: Bool {
+    
+    public func isRefreshTokenExpired() async -> Bool {
         (try? storage.fetch().refreshTokenIsExpired) ?? true
     }
 }
@@ -64,8 +73,39 @@ public final class TokenServiceImpl: TokenService {
 // MARK: - Helpers
 
 private extension TokenServiceImpl {
-    func postReloginNotification() {
-        NotificationCenter.default.post(name: .reloginRequired, object: nil)
+    func performRefresh() async throws {
+        if let existingTask = refreshTask {
+            try await existingTask.value
+        }
+        
+        let task = Task<Void, Error> {
+            let token = try self.storage.fetch()
+            let response = try await self.refresher.refresh(with: token.refreshToken)
+            
+            let newToken = Token(
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+                refreshTokenIssuedAt: .now
+            )
+            
+            try self.storage.save(newToken)
+        }
+        self.refreshTask = task
+        
+        defer { self.refreshTask = nil }
+        
+        try await task.value
+    }
+    
+    func handleRefreshTokenExpired() {
+        try? storage.remove()
+        notifyReloginRequired()
+    }
+    
+    func notifyReloginRequired() {
+        Task { @MainActor in
+            NotificationCenter.default.post(name: .reloginRequired, object: nil)
+        }
     }
 }
 
