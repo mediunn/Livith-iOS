@@ -13,4 +13,8 @@ public enum UserError: LocalizedError {
     case serverError
     case invalidResponse
     case unknown
+    
+    case userNotFound
+    case duplicateNickname
+    case nicknameTooLong
 }
