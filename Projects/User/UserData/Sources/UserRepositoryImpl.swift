@@ -70,7 +70,7 @@ extension UserRepositoryImpl: UserRepository {
                 UserEndpoint.deleteUser(request: request)
             )
             
-            guard let data = response.data else {
+            guard response.data != nil else {
                 throw UserError.unknown
             }
         } catch let error as UserError {
