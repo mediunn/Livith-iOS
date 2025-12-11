@@ -11,7 +11,9 @@ import Foundation
 import LivithNetwork
 import SearchDomain
 
-struct SearchErrorMapper {
+public struct SearchErrorMapper {
+    public init() { }
+    
     func mapToSearchError(_ networkError: NetworkError) -> SearchError {
         switch networkError {
         case .noData:
