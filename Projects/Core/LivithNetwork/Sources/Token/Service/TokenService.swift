@@ -85,7 +85,7 @@ private extension TokenServiceImpl {
             let newToken = Token(
                 accessToken: response.accessToken,
                 refreshToken: response.refreshToken,
-                refreshTokenIssuedAt: .now
+                refreshTokenIssuedAt: token.refreshTokenIssuedAt
             )
             
             try self.storage.save(newToken)
