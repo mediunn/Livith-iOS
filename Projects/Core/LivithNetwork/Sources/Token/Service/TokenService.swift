@@ -11,7 +11,7 @@ import Foundation
 public protocol TokenService: Sendable {
     func getAccessToken() async throws(TokenError) -> String
     func getRefreshToken() async throws(TokenError) -> String
-    func refresh() async throws(TokenError) -> String
+    func refresh() async throws(TokenError)
     func removeTokens() async throws(TokenError)
     func isRefreshTokenExpired() async -> Bool
 }
@@ -20,7 +20,7 @@ public actor TokenServiceImpl: TokenService {
     private let storage: TokenStorage = .init()
     private let refresher: TokenRefresher = .init()
     
-    private var refreshTask: Task<String, Error>?
+    private var refreshTask: Task<Void, Error>?
     
     public init() {}
     
@@ -44,9 +44,9 @@ public actor TokenServiceImpl: TokenService {
         }
     }
     
-    public func refresh() async throws(TokenError) -> String {
+    public func refresh() async throws(TokenError) {
         do {
-            return try await performRefresh()
+            try await performRefresh()
         } catch TokenError.refreshTokenExpired {
             handleRefreshTokenExpired()
             throw .refreshTokenExpired
@@ -73,12 +73,12 @@ public actor TokenServiceImpl: TokenService {
 // MARK: - Helpers
 
 private extension TokenServiceImpl {
-    func performRefresh() async throws -> String {
+    func performRefresh() async throws {
         if let existingTask = refreshTask {
-            return try await existingTask.value
+            try await existingTask.value
         }
         
-        let task = Task<String, Error> {
+        let task = Task<Void, Error> {
             let token = try self.storage.fetch()
             let response = try await self.refresher.refresh(with: token.refreshToken)
             
@@ -89,13 +89,12 @@ private extension TokenServiceImpl {
             )
             
             try self.storage.save(newToken)
-            return newToken.accessToken
         }
         self.refreshTask = task
         
         defer { self.refreshTask = nil }
         
-        return try await task.value
+        try await task.value
     }
     
     func handleRefreshTokenExpired() {
