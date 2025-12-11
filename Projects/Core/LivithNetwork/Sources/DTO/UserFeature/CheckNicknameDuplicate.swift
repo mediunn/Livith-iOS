@@ -10,10 +10,8 @@
 
 import Foundation
 
-import LivithNetwork
-
 public extension DTO.Response {
     struct CheckNicknameDuplicate: Decodable {
-        let available: Bool
+        public let available: Bool
     }
 }

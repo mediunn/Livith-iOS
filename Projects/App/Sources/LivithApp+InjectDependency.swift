@@ -11,13 +11,15 @@ import Foundation
 import DIContainer
 import SearchData
 import LoginData
+import UserData
 
 extension LivithApp {
     func registerDependency() {
         DIContainer.shared.register(
             assemblers: [
                 LoginAssembler(),
-                SearchAssembler()
+                SearchAssembler(),
+                UserAssembler()
             ]
         )
     }
