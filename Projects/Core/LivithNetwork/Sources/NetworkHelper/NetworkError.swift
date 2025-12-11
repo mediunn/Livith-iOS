@@ -68,7 +68,6 @@ extension NetworkError: LocalizedError {
             return "서버 응답이 유효하지 않습니다."
         case .noData:
             return "응답 데이터가 없습니다."
-
         case .badRequest(let message):
             return "잘못된 요청입니다 (400): \(message ?? "")"
         case .unauthorized(let message):
@@ -81,10 +80,8 @@ extension NetworkError: LocalizedError {
             return "서버 에러가 발생했습니다 (5xx): \(message ?? "")"
         case .clientError(let statusCode, let message):
             return "클라이언트 에러입니다 (\(statusCode)): \(message ?? "")"
-
         case .decodingFailed(let error):
             return "데이터 디코딩에 실패했습니다: \(error.localizedDescription)"
-            
         case .noConnection(let error):
             return "네트워크 연결을 찾을 수 없습니다: \(error.localizedDescription)"
         case .unknown(let error):
