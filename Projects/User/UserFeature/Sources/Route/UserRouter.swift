@@ -24,7 +24,7 @@ final class UserRouter: Routing, ObservableObject {
         case .user:
             return AnyView(UserView(nickname: "냐미"))
         case .updateProfile:
-            
+            return AnyView(NicknameUpdateView())
         case .updateNote:
             guard let url = URL(string: Constant.updateNoteURLString) else { }
             return AnyView(SafariView(url: url))
