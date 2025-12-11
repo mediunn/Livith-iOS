@@ -31,55 +31,37 @@ final class OnboardingRepositoryImpl {
 extension OnboardingRepositoryImpl: OnboardingRepository {
     func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) -> Bool {
         do {
-            let response: BaseResponse<DTO.Response.CheckNicknameDuplicate> = try await service.request(
+            let response: DTO.Response.CheckNicknameDuplicate = try await service.request(
                 OnboardingEndpoint.checkNicknameDuplicate(nickname: nickname)
             )
             
-            guard let data = response.data else {
-                throw OnboardingError.unknown
-            }
-            
-            return data.available
-            
-        } catch let error as OnboardingError {
-            throw error
-        } catch let error as NetworkError {
-            throw errorMapper.mapToOnboardingError(error)
+            return response.available
         } catch {
-            throw OnboardingError.unknown
+            throw errorMapper.mapToDomainError(error)
         }
     }
 
-    func signup(nickname: String) async throws(OnboardingError) {
-        // TODO: OAuth provider 정보를 받아올 수 있는 구조로 개선 필요
-        // 현재는 임시로 하드코딩된 값 사용
+    func signup(marketingConsent: Bool, nickname: String, tempUser: TempUser) async throws(OnboardingError) {
         let request = DTO.Request.CreateUser(
             nickname: nickname,
-            marketingConsent: false,
-            providerID: "",
-            provider: "",
-            email: nil
+            marketingConsent: marketingConsent,
+            providerID: tempUser.providerID,
+            provider: "\(tempUser.provider)",
+            email: tempUser.email
         )
         
         do {
-            let response: BaseResponse<DTO.Response.CreateUser> = try await service.request(
-                OnboardingEndpoint.signup(request: request, client: "mobile")
+            let response: DTO.Response.CreateUser = try await service.request(
+                OnboardingEndpoint.signup(request: request)
             )
             
-            if let error = response.error {
-                throw OnboardingError.signupFailed(reason: error)
-            }
+            // TODO: 회원가입 후, 저장해야 할 정보
+            // 1. 소셜 로그인 플랫폼
+            // 2. 응답 데이터의 User 데이터 ID를 키로 저장
+            // 3. 토큰 저장
             
-            // TODO: 토큰 저장 로직 추가 필요
-            // response.data?.accessToken
-            // response.data?.refreshToken
-            
-        } catch let error as OnboardingError {
-            throw error
-        } catch let error as NetworkError {
-            throw errorMapper.mapToOnboardingError(error)
         } catch {
-            throw OnboardingError.unknown
+            throw errorMapper.mapToDomainError(error)
         }
     }
 }

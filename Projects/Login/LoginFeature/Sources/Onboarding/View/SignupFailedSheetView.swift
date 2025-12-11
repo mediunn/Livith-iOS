@@ -11,7 +11,7 @@ import SwiftUI
 import DSKit
 
 struct SignupFailedSheetView: View {
-    @EnvironmentObject private var router: OnboardingRouter
+    @EnvironmentObject private var router: LoginRouter
     @State private var isVisible: Bool = false
     
     var body: some View {
@@ -42,9 +42,8 @@ struct SignupFailedSheetView: View {
                         }
                         
                         try? await Task.sleep(for: .seconds(0.4))
+                        router.popToRoot()
                         router.dismissFullScreen()
-                        
-                        // TODO: 로그인 화면으로 돌아가기
                     }
                 } label: {
                     Text(Literals.backButtonText)

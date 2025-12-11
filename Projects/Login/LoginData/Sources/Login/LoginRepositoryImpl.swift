@@ -34,7 +34,7 @@ final class LoginRepositoryImpl {
 }
 
 extension LoginRepositoryImpl: LoginRepository {
-    func login(for provider: SocialLoginProvider) async throws(LoginError) -> LoginResult {
+    func login(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus {
         do {
             let credential = try await getCredential(for: provider)
             return try await performBackendLogin(with: credential, for: provider)
@@ -56,18 +56,14 @@ private extension LoginRepositoryImpl {
         }
     }
     
-    func performBackendLogin(with credential: AuthCredential, for provider: SocialLoginProvider) async throws -> LoginResult {
+    func performBackendLogin(with credential: AuthCredential, for provider: SocialLoginProvider) async throws -> LoginStatus {
         switch provider {
         case .apple:
             let endpoint = LoginEndpoint.appleLogin(identityToken: credential.token)
-            let response: BaseResponse<DTO.Response.AppleLogin> = try await loginService.request(endpoint)
+            let response: DTO.Response.AppleLogin = try await loginService.request(endpoint)
             
-            guard let data = response.data else {
-                throw LoginError.noData
-            }
-            
-            if data.isNewUser {
-                guard let tempUserData = data.tempUser else {
+            if response.isNewUser {
+                guard let tempUserData = response.tempUser else {
                     throw LoginError.noData
                 }
                 let tempUser = TempUser(
@@ -82,14 +78,10 @@ private extension LoginRepositoryImpl {
             
         case .kakao:
             let endpoint = LoginEndpoint.kakaoLogin(accessToken: credential.token)
-            let response: BaseResponse<DTO.Response.KakaoLogin> = try await loginService.request(endpoint)
+            let response: DTO.Response.KakaoLogin = try await loginService.request(endpoint)
             
-            guard let data = response.data else {
-                throw LoginError.noData
-            }
-            
-            if data.isNewUser {
-                guard let tempUserData = data.tempUser else {
+            if response.isNewUser {
+                guard let tempUserData = response.tempUser else {
                     throw LoginError.noData
                 }
                 let tempUser = TempUser(

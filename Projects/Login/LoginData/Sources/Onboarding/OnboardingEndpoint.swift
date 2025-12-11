@@ -11,7 +11,7 @@ import Foundation
 import LivithNetwork
 
 enum OnboardingEndpoint {
-    case signup(request: DTO.Request.CreateUser, client: String)
+    case signup(request: DTO.Request.CreateUser)
     case checkNicknameDuplicate(nickname: String)
 }
 
@@ -36,8 +36,8 @@ extension OnboardingEndpoint: NetworkEndpoint {
     
     var query: [String: Any]? {
         switch self {
-        case .signup(_, let client):
-            return ["client": client]
+        case .signup:
+            return ["client": "mobile"]
         case .checkNicknameDuplicate(let nickname):
             return ["nickname": nickname]
         }
@@ -45,7 +45,7 @@ extension OnboardingEndpoint: NetworkEndpoint {
     
     var body: Encodable? {
         switch self {
-        case .signup(let request, _):
+        case .signup(let request):
             return request
         case .checkNicknameDuplicate:
             return nil

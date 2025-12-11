@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct TempUser {
+public struct TempUser: Hashable {
     public let provider: SocialLoginProvider
     public let providerID: String
     public let email: String?
