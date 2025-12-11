@@ -29,7 +29,7 @@ public actor TokenServiceImpl: TokenService {
             let token = try storage.fetch()
             return token.accessToken
         } catch TokenError.refreshTokenExpired {
-            notifyReloginRequired()
+            handleRefreshTokenExpired()
             throw .refreshTokenExpired
         }
     }
@@ -39,7 +39,7 @@ public actor TokenServiceImpl: TokenService {
             let token = try storage.fetch()
             return token.refreshToken
         } catch TokenError.refreshTokenExpired {
-            notifyReloginRequired()
+            handleRefreshTokenExpired()
             throw .refreshTokenExpired
         }
     }
@@ -48,7 +48,7 @@ public actor TokenServiceImpl: TokenService {
         do {
             return try await performRefresh()
         } catch TokenError.refreshTokenExpired {
-            notifyReloginRequired()
+            handleRefreshTokenExpired()
             throw .refreshTokenExpired
         } catch let error as TokenError {
             throw error
@@ -96,6 +96,11 @@ private extension TokenServiceImpl {
         defer { self.refreshTask = nil }
         
         return try await task.value
+    }
+    
+    func handleRefreshTokenExpired() {
+        try? storage.remove()
+        notifyReloginRequired()
     }
     
     func notifyReloginRequired() {
