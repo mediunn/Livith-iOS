@@ -17,7 +17,7 @@ struct TokenStorage {
     }
     
     func save(_ token: Token) throws(TokenError) {
-        try? delete()
+        try? remove()
         
         do {
             try add(key: .accessToken, value: token.accessToken)
@@ -49,7 +49,7 @@ struct TokenStorage {
         return token
     }
     
-    func delete() throws(TokenError) {
+    func remove() throws(TokenError) {
         let keysToDelete: [Keys] = [.accessToken, .refreshToken, .issuedAt]
         
         for key in keysToDelete {
