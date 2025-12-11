@@ -42,7 +42,7 @@ public final class NetworkService<EndPoint: NetworkEndpoint> {
 // MARK: - Request Method
 
 public extension NetworkService {
-    func request<T: Decodable>(_ endPoint: any NetworkEndpoint) async throws(NetworkError) -> T {
+    func request<T: Decodable>(_ endPoint: EndPoint) async throws(NetworkError) -> T {
         guard let endpoint = endPoint.path else {
             throw NetworkError.invalidURL
         }
