@@ -14,7 +14,7 @@ public protocol LocalKeyValueStorage {
     func remove(for key: String)
 }
 
-public struct UserDefaultsStorage {
+public struct UserDefaultsStorage: LocalKeyValueStorage {
     let defaults: UserDefaults
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
