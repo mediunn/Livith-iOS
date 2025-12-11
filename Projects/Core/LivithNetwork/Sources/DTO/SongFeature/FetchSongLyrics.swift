@@ -18,7 +18,7 @@ public extension DTO.Response {
         public let lyrics: [String]
         public let pronunciation: [String]
         public let translation: [String]
-        public let youtubeID: String
+        public let youtubeID: String?
 
         enum CodingKeys: String, CodingKey {
             case id

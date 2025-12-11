@@ -7,3 +7,19 @@
 //
 
 // MARK: - 34. 로그아웃
+
+public extension DTO.Request {
+    struct RequestLogout: Encodable {
+        public let refreshToken: String
+        
+        public init(refreshToken: String) {
+            self.refreshToken = refreshToken
+        }
+    }
+}
+
+public extension DTO.Response {
+    struct RequestLogout: Decodable {
+        public let message: String
+    }
+}

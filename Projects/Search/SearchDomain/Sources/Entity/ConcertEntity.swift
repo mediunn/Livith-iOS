@@ -18,10 +18,10 @@ public struct ConcertEntity: Hashable, Identifiable {
     public let endDate: String
     public let posterURL: URL
     public let venue: String
-    public let ticketingOffice: String
-    public let ticketingOfficeURL: URL
+    public let ticketingOffice: String?
+    public let ticketingOfficeURL: URL?
     public let introduction: String
-    public let label: String
+    public let label: String?
     
     public init(
         id: Int,
@@ -33,10 +33,10 @@ public struct ConcertEntity: Hashable, Identifiable {
         endDate: String,
         posterURL: URL,
         venue: String,
-        ticketSite: String,
-        ticketURL: URL,
+        ticketSite: String?,
+        ticketURL: URL?,
         introduction: String,
-        label: String
+        label: String?
     ) {
         self.id = id
         self.title = title

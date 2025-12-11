@@ -17,9 +17,9 @@ public extension DTO.Response {
         public let debutDate: String
         public let category: String
         public let detail: String
-        public let instagramURL: String
+        public let instagramURL: String?
         public let keywords: [String]
-        public let imageURL: String
+        public let imageURL: String?
 
         enum CodingKeys: String, CodingKey {
             case id
