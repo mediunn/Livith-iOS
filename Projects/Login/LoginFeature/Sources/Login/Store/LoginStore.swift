@@ -45,6 +45,7 @@ final class LoginStore: ObservableObject {
             case .success(let loginResult):
                 state.status = loginResult
             case .failure(let error):
+                // TODO: LoginError 중 forbidden 처리 -> 탈퇴 후 7일 이내 로그인 불가 알림
                 state.errorMessage = formatErrorMessage(from: error)
             }
         }
@@ -69,9 +70,9 @@ private extension LoginStore {
         guard let loginError = error as? LoginError else { return LoginError.unknown.errorDescription }
         
         switch loginError {
-        case .canceled:
+        case .canceled, .forbidden:
             return nil
-        case .noConnection, .serverError, .loginFailed:
+        case .noConnection, .serverError, .notFound:
             return loginError.errorDescription
         case .noData, .unknown:
             return LoginError.unknown.errorDescription

@@ -39,7 +39,7 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
 
     func signup(marketingConsent: Bool, nickname: String, tempUser: TempUser) async throws(OnboardingError) {
         do {
-            let response: DTO.Response.CreateUser = try await service.request(
+            let response: DTO.Response.Signup = try await service.request(
                 .signup(
                     nickname: nickname,
                     marketingConsent: marketingConsent,

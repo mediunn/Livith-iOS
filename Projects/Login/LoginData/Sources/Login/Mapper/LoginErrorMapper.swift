@@ -17,19 +17,18 @@ struct LoginErrorMapper {
         switch error {
         case .canceled: .canceled
         case .networkError: .noConnection
-        case .missingToken: .loginFailed
-        case .unknown: .unknown
+        case .missingToken, .unknown: .unknown
         }
     }
     
     func mapToDomainError(_ error: NetworkError) -> LoginError {
         switch error {
         case .noConnection: .noConnection
-        case .badRequest, .unauthorized, .forbidden: .loginFailed
+        case .forbidden: .forbidden
+        case .notFound: .notFound
         case .serverError: .serverError
         case .noData: .noData
-        case .invalidURL, .invalidRequest, .invalidResponse, .decodingFailed, .notFound,
-                .clientError, .unknown: .unknown
+        default: .unknown
         }
     }
 }
