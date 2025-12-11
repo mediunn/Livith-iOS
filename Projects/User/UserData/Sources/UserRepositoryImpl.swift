@@ -15,16 +15,14 @@ public final class UserRepositoryImpl {
     // TODO: 토큰 서비스 선언
     private let userService: NetworkService<UserEndpoint>
     private let logoutService: NetworkService<LogoutEndpoint>
-    private let userErrorMapper: UserErrorMapper
+    private let userErrorMapper: UserErrorMapper = .init()
 
     public init(
         userService: NetworkService<UserEndpoint> = .init(),
-        logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil),
-        userErrorMapper: UserErrorMapper = .init()
+        logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil)
     ) {
         self.userService = userService
         self.logoutService = logoutService
-        self.userErrorMapper = userErrorMapper
     }
 }
 
