@@ -10,4 +10,5 @@ import Foundation
 
 enum LocalStorageKeys {
     static let lastLoginPlatform = "lastLoginPlatform"
+    static let currentUser = "currentUser"
 }
