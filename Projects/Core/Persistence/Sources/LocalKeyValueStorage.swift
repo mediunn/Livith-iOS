@@ -15,7 +15,7 @@ public protocol LocalKeyValueStorage {
 }
 
 public struct UserDefaultsStorage: LocalKeyValueStorage {
-    let defaults: UserDefaults
+    private let defaults: UserDefaults
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
