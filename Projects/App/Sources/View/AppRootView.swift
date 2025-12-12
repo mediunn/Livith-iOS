@@ -24,7 +24,7 @@ struct AppRootView: View {
                 LivithMainTabView()
             }
         }
-        .transition(.move(edge: .trailing))
+        .transition(.opacity)
         .animation(.easeInOut(duration: 0.7), value: currentRoute)
     }
 }
