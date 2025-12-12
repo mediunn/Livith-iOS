@@ -23,7 +23,8 @@ public extension DTO.Response {
         enum CodingKeys: String, CodingKey {
             case id
             case interestConcertID = "interestConcertId"
-            case provider, providerID, email, nickname, marketingConsent
+            case providerID = "providerId"
+            case provider, email, nickname, marketingConsent
         }
     }
 }
