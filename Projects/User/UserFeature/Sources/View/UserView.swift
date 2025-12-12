@@ -13,10 +13,13 @@ import DSKit
 public struct UserView: View {
     
     // MARK: - Property
-
-    @State private var isShowingUpdateNote = false
-    @State private var isShowingTerms = false
+    
     private let nickname: String
+
+    @State private var path = NavigationPath()
+    @State private var isShowingTerms = false
+    @State private var isShowingUpdateNote = false
+    @State private var isShowingFeedbackForm = false
     
     // MARK: - LifeCycle
     
@@ -27,47 +30,63 @@ public struct UserView: View {
     // MARK: - Body
 
     public var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .center) {
-                titleText
-                Spacer()
-                editButton
-            }
-            .padding(.top, 168)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 20)
-            
-            divideLine
-                .padding(.bottom, 20)
-            
-            feedbackButton
-                .frame(height: 84)
+        NavigationStack(path: $path) {
+            VStack(spacing: 0) {
+                HStack(alignment: .center) {
+                    titleText
+                    Spacer()
+                    editButton
+                }
+                .padding(.top, 168)
                 .padding(.horizontal, 16)
-                .padding(.bottom, 24)
-            
-            InfoListView(title: "버전정보", type: .value("2.0.0"))
-                .padding(.bottom, 12)
-            
-            InfoListView(title: "업데이트 노트", type: .navigation, action: { showUpdateNote() })
-                .padding(.bottom, 12)
-            
-            InfoListView(title: "이용약관", type: .navigation, action: { showTerms() })
-                .padding(.bottom, 12)
-            
-            InfoListView(title: "로그아웃", type: .action, action: { logout() })
-                .padding(.bottom, 12)
-            
-            InfoListView(title: "회원탈퇴", type: .action, action: { deleteAccount() })
-                .padding(.bottom, 34)
+                .padding(.bottom, 20)
 
+                divideLine
+                    .padding(.bottom, 20)
+
+                feedbackButton
+                    .frame(height: 84)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
+
+                InfoListView(title: "버전정보", type: .value("2.0.0"))
+                    .padding(.bottom, 12)
+
+                InfoListView(title: "업데이트 노트", type: .navigation, action: { showUpdateNote() })
+                    .padding(.bottom, 12)
+
+                InfoListView(title: "이용약관", type: .navigation, action: { showTerms() })
+                    .padding(.bottom, 12)
+
+                InfoListView(title: "로그아웃", type: .action, action: { logout() })
+                    .padding(.bottom, 12)
+
+                InfoListView(title: "회원탈퇴", type: .action, action: { deleteAccount() })
+                    .padding(.bottom, 34)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(backgroundGradient)
+            .navigationDestination(for: String.self) { destination in
+                switch destination {
+                case "nicknameUpdate":
+                    NicknameUpdateView(store: NicknameUpdateStore())
+                        .navigationBarBackButtonHidden()
+                case "deleteUser":
+                    DeleteUserView(store: DeleteUserStore())
+                        .navigationBarBackButtonHidden()
+                default:
+                    EmptyView()
+                }
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(backgroundGradient)
         .sheet(isPresented: $isShowingUpdateNote) {
             SafariView(url: URL(string: Constant.updateNoteURLString)!)
         }
         .sheet(isPresented: $isShowingTerms) {
             SafariView(url: URL(string: Constant.termsURLString)!)
+        }
+        .sheet(isPresented: $isShowingFeedbackForm) {
+            SafariView(url: URL(string: Constant.feedbackFormURLString)!)
         }
     }
 }
@@ -139,11 +158,11 @@ private extension UserView {
 
 private extension UserView {
     func showEditView() {
-        
+        path.append("nicknameUpdate")
     }
     
     func showFeedbackForm() {
-        // TODO: 폼 화면으로 이동
+        isShowingFeedbackForm = true
     }
     
     func showUpdateNote() {
@@ -170,6 +189,7 @@ private extension UserView {
         static let versionString: String = "2.0.0"
         static let updateNoteURLString: String = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0"
         static let termsURLString: String = "https://youz2me.notion.site/Livith-v-25-11-18-1d402dd0e5fc800dab7fc177f325eade"
+        static let feedbackFormURLString: String = "https://docs.google.com/forms/d/e/1FAIpQLSe-d5MhQrwsRRrk9isYiYVw1afI7a60Xm0IHbxmmAHe8AUiMA/viewform"
     }
 }
 

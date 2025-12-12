@@ -11,10 +11,20 @@ import SwiftUI
 import DSKit
 
 struct NicknameUpdateView: View {
-    @StateObject private var store = NicknameUpdateStore()
+    
+    // MARK: - Property
+
+    private let maxNicknameLength = 10
+    
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isNicknameFocused: Bool
-    private let maxNicknameLength = 10
+    @ObservedObject private var store = NicknameUpdateStore()
+    
+    // MARK: - LifeCycle
+    
+    init(store: NicknameUpdateStore) {
+        self.store = store
+    }
     
     var body: some View {
         ZStack {

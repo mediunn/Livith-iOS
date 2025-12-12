@@ -14,12 +14,18 @@ struct DeleteUserView: View {
 
     // MARK: - Property
 
-    @StateObject private var store = DeleteUserStore()
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isTextFieldFocused: Bool
+    @ObservedObject private var store = DeleteUserStore()
+    
+    // MARK: - LifeCycle
+    
+    init(store: DeleteUserStore = DeleteUserStore()) {
+        self.store = store
+    }
 
     // MARK: - Body
-
+    
     public var body: some View {
         ZStack {
             Color.livithColor(.black100)
