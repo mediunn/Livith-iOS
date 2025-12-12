@@ -74,4 +74,13 @@ extension OnboardingEndpoint: NetworkEndpoint {
             return nil
         }
     }
+
+    public var requiresInterceptor: Bool {
+        switch self {
+        case .fetchUserInfo:
+            return true
+        default:
+            return false
+        }
+    }
 }

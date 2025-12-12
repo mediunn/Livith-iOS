@@ -13,7 +13,7 @@ import Alamofire
 public final class AuthenticationInterceptor: RequestInterceptor {
     private let tokenService: TokenService
     
-    public init(tokenService: TokenService) {
+    public init(tokenService: TokenService = TokenServiceImpl()) {
         self.tokenService = tokenService
     }
     
