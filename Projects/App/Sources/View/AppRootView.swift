@@ -9,6 +9,7 @@
 import SwiftUI
 
 import LoginFeature
+import LivithNetwork
 
 struct AppRootView: View {
     @State private var currentRoute: AppRoute = .login
@@ -25,6 +26,9 @@ struct AppRootView: View {
             }
         }
         .transition(.opacity)
-        .animation(.easeInOut(duration: 0.7), value: currentRoute)
+        .animation(.easeInOut(duration: 0.4), value: currentRoute)
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { _ in
+            currentRoute = .login
+        }
     }
 }

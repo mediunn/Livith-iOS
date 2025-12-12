@@ -121,6 +121,6 @@ private extension TokenServiceImpl {
 
 // MARK: - Notification.Name Extension
 
-fileprivate extension Notification.Name {
+public extension Notification.Name {
     static let reloginRequired = Notification.Name("reloginRequired")
 }
