@@ -25,6 +25,6 @@ public final class LoginUseCaseImpl: LoginUseCase {
     }
 
     public func lastLoginPlatform() async throws(LoginError) -> SocialLoginProvider {
-        return try await repository.lastLoginPlatform()
+        return try await repository.fetchLastLoginPlatform()
     }
 }

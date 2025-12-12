@@ -48,7 +48,7 @@ extension LoginRepositoryImpl: LoginRepository {
         }
     }
     
-    func lastLoginPlatform() async throws(LoginError) -> SocialLoginProvider {
+    func fetchLastLoginPlatform() async throws(LoginError) -> SocialLoginProvider {
         do {
             let value: String = try localStorage.fetch(for: LocalStorageKeys.lastLoginPlatform)
             switch value {
@@ -93,17 +93,11 @@ private extension LoginRepositoryImpl {
                 )
                 return .newUser(tempUser: tempUser)
             } else {
-                guard let accessToken = response.accessToken,
-                      let refreshToken = response.refreshToken 
-                else {
-                    throw LoginError.noData
-                }
-                
-                try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
-                try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
-                let userInfo: DTO.Response.FetchUserInfo = try await performFetchUserInfo()
-                try localStorage.save(userInfo, for: LocalStorageKeys.currentUser)
-                return .existingUser
+                return try await finalizeExistingUser(
+                    accessToken: response.accessToken,
+                    refreshToken: response.refreshToken,
+                    provider: provider
+                )
             }
             
         case .kakao:
@@ -120,22 +114,32 @@ private extension LoginRepositoryImpl {
                 )
                 return .newUser(tempUser: tempUser)
             } else {
-                guard let accessToken = response.accessToken,
-                      let refreshToken = response.refreshToken 
-                else {
-                    throw LoginError.noData
-                }
-                
-                try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
-                try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
-                let userInfo: DTO.Response.FetchUserInfo = try await performFetchUserInfo()
-                try localStorage.save(userInfo, for: LocalStorageKeys.currentUser)
-                return .existingUser
+                return try await finalizeExistingUser(
+                    accessToken: response.accessToken,
+                    refreshToken: response.refreshToken,
+                    provider: provider
+                )
             }
         }
     }
+    
+    func fetchAndStoreCurrentUser() async throws {
+        let userInfo: DTO.Response.FetchUserInfo = try await loginService.request(.fetchUserInfo)
+        try localStorage.save(userInfo, for: LocalStorageKeys.currentUser)
+    }
+    
+    func finalizeExistingUser(
+        accessToken: String?,
+        refreshToken: String?,
+        provider: SocialLoginProvider
+    ) async throws -> LoginStatus {
+        guard let accessToken, let refreshToken else {
+            throw LoginError.noData
+        }
 
-    func performFetchUserInfo() async throws -> DTO.Response.FetchUserInfo {
-        return try await loginService.request(.fetchUserInfo)
+        try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
+        try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
+        try await fetchAndStoreCurrentUser()
+        return .existingUser
     }
 }
