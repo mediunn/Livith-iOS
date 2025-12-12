@@ -16,15 +16,18 @@ final class OnboardingRepositoryImpl {
     private let service: OnboardingService
     private let errorMapper: OnboardingErrorMapper
     private let localStorage: LocalKeyValueStorage
+    private let tokenService: TokenService
     
     init(
         service: OnboardingService = OnboardingService(),
         errorMapper: OnboardingErrorMapper = OnboardingErrorMapper(),
-        localStorage: LocalKeyValueStorage = UserDefaultsStorage()
+        localStorage: LocalKeyValueStorage = UserDefaultsStorage(),
+        tokenService: TokenService = TokenServiceImpl()
     ) {
         self.service = service
         self.errorMapper = errorMapper
         self.localStorage = localStorage
+        self.tokenService = tokenService
     }
 }
 
@@ -56,13 +59,16 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
             // TODO: 회원가입 후, 저장해야 할 정보
             // 1. 소셜 로그인 플랫폼
             // - LocalKeyValueStorage에 tempUser.provider 저장
-            try localStorage.save("\(tempUser.provider)", for: LocalStorageKey.recentLoginPlatform)
+            try localStorage.save("\(tempUser.provider)", for: LocalStorageKeys.lastLoginPlatform)
 
             // 2. 응답 데이터의 User 데이터 ID를 키로 저장
             // response.user
             
             // 3. 토큰 저장
-            
+            try await tokenService.saveToken(
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken
+            )
         } catch {
             throw errorMapper.mapToDomainError(error)
         }

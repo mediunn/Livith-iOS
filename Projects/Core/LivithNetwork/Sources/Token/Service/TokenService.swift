@@ -11,8 +11,9 @@ import Foundation
 public protocol TokenService: Sendable {
     func getAccessToken() async throws(TokenError) -> String
     func getRefreshToken() async throws(TokenError) -> String
+    func saveToken(accessToken: String, refreshToken: String) async throws(TokenError)
     func refresh() async throws(TokenError)
-    func removeTokens() async throws(TokenError)
+    func removeToken() async throws(TokenError)
     func isRefreshTokenExpired() async -> Bool
 }
 
@@ -44,6 +45,15 @@ public actor TokenServiceImpl: TokenService {
         }
     }
     
+    public func saveToken(accessToken: String, refreshToken: String) async throws(TokenError) {
+        do {
+            let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: Date())
+            try storage.save(token)
+        } catch {
+            throw TokenError.saveFailed
+        }
+    }
+
     public func refresh() async throws(TokenError) {
         do {
             try await performRefresh()
@@ -57,7 +67,7 @@ public actor TokenServiceImpl: TokenService {
         }
     }
     
-    public func removeTokens() async throws(TokenError) {
+    public func removeToken() async throws(TokenError) {
         do {
             try storage.remove()
         } catch {

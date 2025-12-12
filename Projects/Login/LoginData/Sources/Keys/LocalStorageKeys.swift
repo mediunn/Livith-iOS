@@ -1,5 +1,5 @@
 //
-//  LocalStorageKey.swift
+//  LocalStorageKeys.swift
 //  LoginData
 //
 //  Created by 김진웅 on 12/11/25.
@@ -8,6 +8,6 @@
 
 import Foundation
 
-enum LocalStorageKey {
-    static let recentLoginPlatform = "recentLoginPlatform"
+enum LocalStorageKeys {
+    static let lastLoginPlatform = "lastLoginPlatform"
 }
