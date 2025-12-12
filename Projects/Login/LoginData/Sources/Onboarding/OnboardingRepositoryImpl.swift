@@ -56,7 +56,7 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
                 )
             )
             
-            try localStorage.save("\(tempUser.provider)", for: LocalStorageKeys.lastLoginPlatform)
+            try? localStorage.save("\(tempUser.provider)", for: LocalStorageKeys.lastLoginPlatform)
 
             try localStorage.save(response.user, for: LocalStorageKeys.currentUser)
 

@@ -19,19 +19,22 @@ final class LoginRepositoryImpl {
     private let loginService: OnboardingService
     private let errorMapper: LoginErrorMapper
     private let localStorage: LocalKeyValueStorage
+    private let tokenService: TokenService
     
     init(
         appleLoginService: AppleLoginService = .init(),
         kakaoLoginService: KakaoLoginService = .init(),
         loginService: OnboardingService = .init(),
         errorMapper: LoginErrorMapper = .init(),
-        localStorage: LocalKeyValueStorage = UserDefaultsStorage()
+        localStorage: LocalKeyValueStorage = UserDefaultsStorage(),
+        tokenService: TokenService = TokenServiceImpl()
     ) {
         self.appleLoginService = appleLoginService
         self.kakaoLoginService = kakaoLoginService
         self.loginService = loginService
         self.errorMapper = errorMapper
         self.localStorage = localStorage
+        self.tokenService = tokenService
     }
 }
 
@@ -41,7 +44,7 @@ extension LoginRepositoryImpl: LoginRepository {
             let credential = try await getCredential(for: provider)
             return try await performBackendLogin(with: credential, for: provider)
         } catch {
-            throw mapToDomainError(from: error)
+            throw errorMapper.mapToDomainError(from: error)
         }
     }
     
@@ -90,7 +93,16 @@ private extension LoginRepositoryImpl {
                 )
                 return .newUser(tempUser: tempUser)
             } else {
+                guard let accessToken = response.accessToken,
+                      let refreshToken = response.refreshToken 
+                else {
+                    throw LoginError.noData
+                }
+                
+                try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
                 try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
+                let userInfo: DTO.Response.FetchUserInfo = try await performFetchUserInfo()
+                try localStorage.save(userInfo, for: LocalStorageKeys.currentUser)
                 return .existingUser
             }
             
@@ -108,10 +120,22 @@ private extension LoginRepositoryImpl {
                 )
                 return .newUser(tempUser: tempUser)
             } else {
+                guard let accessToken = response.accessToken,
+                      let refreshToken = response.refreshToken 
+                else {
+                    throw LoginError.noData
+                }
+                
+                try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
                 try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
+                let userInfo: DTO.Response.FetchUserInfo = try await performFetchUserInfo()
+                try localStorage.save(userInfo, for: LocalStorageKeys.currentUser)
                 return .existingUser
             }
         }
     }
+
+    func performFetchUserInfo() async throws -> DTO.Response.FetchUserInfo {
+        return try await loginService.request(.fetchUserInfo)
     }
 }
