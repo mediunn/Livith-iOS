@@ -51,7 +51,7 @@ struct LoginView: View {
     private func handleLoginSuccess(_ status: LoginStatus) {
         switch status {
         case .existingUser:
-            break
+            loginRouter.completeAuthentication()
         case .newUser(let tempUser):
             loginRouter.push(.terms(tempUser))
         }

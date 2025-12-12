@@ -19,6 +19,7 @@ final class LoginRouter: ObservableObject, Routing {
     @Published var path: NavigationPath = NavigationPath()
     @Published var sheet: Route?
     @Published var fullScreenCover: Route?
+    @Published var authenticationCompleted: Bool = false
     
     private var tempUser: TempUser?
     
@@ -43,5 +44,9 @@ final class LoginRouter: ObservableObject, Routing {
         case .signupFailed:
             return AnyView(SignupFailedSheetView())
         }
+    }
+    
+    func completeAuthentication() {
+        authenticationCompleted = true
     }
 }

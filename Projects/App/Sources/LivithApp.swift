@@ -1,8 +1,5 @@
 import SwiftUI
 
-import DSKit
-import LoginFeature
-
 import KakaoSDKCommon
 import KakaoSDKAuth
 
@@ -19,7 +16,7 @@ struct LivithApp: App {
 
     var body: some Scene {
         WindowGroup {
-            LoginRootView()
+            AppRootView()
                 .onOpenURL { url in
                     openKakaoLoginURL(url)
                 }
