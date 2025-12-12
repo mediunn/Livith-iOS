@@ -90,6 +90,7 @@ private extension LoginRepositoryImpl {
                 )
                 return .newUser(tempUser: tempUser)
             } else {
+                try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
                 return .existingUser
             }
             
@@ -107,6 +108,7 @@ private extension LoginRepositoryImpl {
                 )
                 return .newUser(tempUser: tempUser)
             } else {
+                try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
                 return .existingUser
             }
         }
