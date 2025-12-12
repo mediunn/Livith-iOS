@@ -80,7 +80,7 @@ private extension LoginView {
     
     var loginButtons: some View {
         VStack(spacing: 20) {
-            CalloutChipView(text: Literals.greetingMessage, targetText: "모든 서비스 이용")
+            CalloutChipView(text: store.state.calloutMessage.text, targetText: store.state.calloutMessage.targetText)
                 .frame(width: 272, height: 36)
             
             VStack(spacing: 12) {
@@ -115,9 +115,6 @@ private extension LoginView {
     enum Literals {
         static let kakaoLoginTitle = "카카오로 계속하기"
         static let appleLoginTitle = "Apple로 계속하기"
-        static let greetingMessage = "회원가입하고 모든 서비스 이용해보세요!"
-        static let kakaoLoginMessage = "카카오로 최근에 로그인 했어요"
-        static let appleLoginMessage = "Apple로 최근에 로그인 했어요"
         static let errorAlertTitle = "알림"
         static let confirmButtonTitle = "확인"
     }

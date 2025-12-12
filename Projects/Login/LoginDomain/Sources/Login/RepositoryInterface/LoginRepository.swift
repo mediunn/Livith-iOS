@@ -10,4 +10,5 @@ import Foundation
 
 public protocol LoginRepository {
     func login(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus
+    func lastLoginPlatform() async throws(LoginError) -> SocialLoginProvider
 }

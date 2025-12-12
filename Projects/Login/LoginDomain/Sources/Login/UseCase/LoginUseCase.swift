@@ -10,6 +10,7 @@ import Foundation
 
 public protocol LoginUseCase {
     func execute(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus
+    func lastLoginPlatform() async throws(LoginError) -> SocialLoginProvider
 }
 
 public final class LoginUseCaseImpl: LoginUseCase {
@@ -21,5 +22,9 @@ public final class LoginUseCaseImpl: LoginUseCase {
     
     public func execute(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus {
         return try await repository.login(for: provider)
+    }
+
+    public func lastLoginPlatform() async throws(LoginError) -> SocialLoginProvider {
+        return try await repository.lastLoginPlatform()
     }
 }
