@@ -8,8 +8,4 @@
 
 import Foundation
 
-public protocol Routable: Hashable, Identifiable, RawRepresentable {}
-
-public extension Routable where RawValue == String {
-    var id: String { rawValue }
-}
+public protocol Routable: Hashable, Identifiable {}
