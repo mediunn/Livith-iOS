@@ -12,7 +12,7 @@ import DSKit
 
 struct NicknameUpdateView: View {
     @StateObject private var store = NicknameUpdateStore()
-    @EnvironmentObject private var router: UserRouter
+    @Environment(\.dismiss) private var dismiss
     @FocusState private var isNicknameFocused: Bool
     private let maxNicknameLength = 10
     
@@ -42,7 +42,7 @@ struct NicknameUpdateView: View {
                 
                 Spacer()
                 
-                signupButton
+                updateButton
                     .padding(.bottom, 50)
             }
             .padding(.horizontal, 16)
@@ -50,7 +50,7 @@ struct NicknameUpdateView: View {
         .ignoresSafeArea(.all, edges: .bottom)
         .onChange(of: store.state.isSucceed) { oldValue, newValue in
             if newValue {
-                // TODO: 홈 화면으로 이동
+                dismiss()
             }
         }
     }
@@ -61,17 +61,17 @@ struct NicknameUpdateView: View {
 private extension NicknameUpdateView {
     var navigationBar: some View {
         HStack {
-            Button(action: {
-                router.pop()
-            }) {
+            Button {
+                dismiss()
+            } label: {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))
             }
-            
+
             Text(Literals.navigationTitle)
                 .notosans(.body1Semibold)
                 .foregroundColor(.livithColor(.white100))
-            
+
             Spacer()
         }
     }
@@ -173,15 +173,15 @@ private extension NicknameUpdateView {
             .foregroundColor(statusMessageColor)
     }
     
-    var signupButton: some View {
+    var updateButton: some View {
         Button {
-            store.send(.signup)
+            store.send(.submitNickname)
         } label: {
             HStack(spacing: 8) {
-                Text(Literals.signupButtonText)
+                Text(Literals.updateButtonText)
                     .notosans(.body2Medium)
-                    .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
-                if case .loading = store.state.signupState {
+                    .foregroundColor(isUpdateButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
+                if case .checking = store.state.nicknameValidationState {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.black100)))
                 }
@@ -189,10 +189,10 @@ private extension NicknameUpdateView {
             .padding()
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(isSignupButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
+            .background(isUpdateButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
             .cornerRadius(8)
         }
-        .disabled(!isSignupButtonEnabled || isSignupLoading)
+        .disabled(!isUpdateButtonEnabled || isUpdateLoading)
     }
 }
 
@@ -235,12 +235,12 @@ private extension NicknameUpdateView {
         }
     }
     
-    var isSignupButtonEnabled: Bool {
+    var isUpdateButtonEnabled: Bool {
         store.state.nicknameValidationState == .available
     }
     
-    var isSignupLoading: Bool {
-        store.state.signupState == .loading
+    var isUpdateLoading: Bool {
+        store.state.nicknameValidationState == .checking
     }
     
     var nicknameBinding: Binding<String> {
@@ -257,11 +257,11 @@ private extension NicknameUpdateView {
 
 private extension NicknameUpdateView {
     enum Literals {
-        static let navigationTitle = "회원가입"
+        static let navigationTitle = "닉네임 수정"
         static let title = "리이빗에서 사용할\n닉네임을 설정해 주세요"
         static let placeholder = "예시) 홍길동"
         static let checkDuplicate = "중복확인"
         static let checkCompleted = "확인완료"
-        static let signupButtonText = "가입 완료"
+        static let updateButtonText = "닉네임 변경"
     }
 }

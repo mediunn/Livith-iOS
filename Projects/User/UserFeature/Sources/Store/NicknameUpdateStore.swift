@@ -1,6 +1,6 @@
 //
 //  NicknameUpdateStore.swift
-//  LoginFeature
+//  UserFeature
 //
 //  Created by Youjin Lee on 12/9/25.
 //  Copyright © 2025 Livith. All rights reserved.
@@ -30,25 +30,38 @@ struct NicknameUpdateState {
 enum NicknameUpdateIntent {
     case updateNickname(String)
     case checkNicknameDuplicate
+    case submitNickname
     case _setNicknameValidationState(NicknameValidationState)
+    case _setUpdateResult(Result<Void, UserError>)
 }
 
 final class NicknameUpdateStore: ObservableObject {
     @Published private(set) var state = NicknameUpdateState()
-    @Injected private var repository: SearchRepository
+    @Injected private var repository: UserRepository
     
     func send(_ intent: NicknameUpdateIntent) {
         switch intent {
         case .updateNickname(let nickname):
             state.nickname = nickname
             validateNicknameFormat()
-            
+
         case .checkNicknameDuplicate:
             state.nicknameValidationState = .checking
             checkNicknameDuplicate()
-            
+
+        case .submitNickname:
+            submitNickname()
+
         case ._setNicknameValidationState(let validationState):
             state.nicknameValidationState = validationState
+
+        case ._setUpdateResult(let result):
+            switch result {
+            case .success:
+                state.isSucceed = true
+            case .failure:
+                state.isSucceed = false
+            }
         }
     }
 }
@@ -61,35 +74,34 @@ private extension NicknameUpdateStore {
             send(._setNicknameValidationState(.idle))
             return
         }
-        
-        Task {
-            do {
-                try onboardingUseCase.validateNicknameFormat(state.nickname)
-                await MainActor.run { send(._setNicknameValidationState(.valid)) }
-            } catch {
-                await MainActor.run { send(._setNicknameValidationState(.invalid)) }
-            }
+
+        let pattern = /^[a-zA-Z0-9가-힣]{1,10}$/
+        guard state.nickname.wholeMatch(of: pattern) != nil else {
+            send(._setNicknameValidationState(.invalid))
+            return
         }
+
+        send(._setNicknameValidationState(.valid))
     }
     
     func checkNicknameDuplicate() {
         Task {
             do {
-                try await onboardingUseCase.checkNicknameDuplicate(state.nickname)
+                _ = try await repository.checkNicknameDuplicate(nickname: state.nickname)
                 await MainActor.run { send(._setNicknameValidationState(.available)) }
             } catch {
                 await MainActor.run { send(._setNicknameValidationState(.duplicate)) }
             }
         }
     }
-    
-    func signup() {
+
+    func submitNickname() {
         Task {
             do {
-                try await onboardingUseCase.signup(nickname: state.nickname)
-                await MainActor.run { send(._signupResult(.success(()))) }
+                _ = try await repository.updateUserNickname(nickname: state.nickname)
+                await MainActor.run { send(._setUpdateResult(.success(()))) }
             } catch let error as UserError {
-                await MainActor.run { send(._signupResult(.failure(error))) }
+                await MainActor.run { send(._setUpdateResult(.failure(error))) }
             }
         }
     }
