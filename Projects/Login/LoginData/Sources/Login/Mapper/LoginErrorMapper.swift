@@ -13,7 +13,21 @@ import LivithNetwork
 import LoginDomain
 
 struct LoginErrorMapper {
-    func mapToDomainError(_ error: AuthError) -> LoginError {
+    func mapToDomainError(from error: Error) -> LoginError {
+        if let loginError = error as? LoginError {
+            return loginError
+        }
+        if let authError = error as? AuthError {
+            return mapToDomainError(authError)
+        }
+        if let networkError = error as? NetworkError {
+            return mapToDomainError(networkError)
+        }
+
+        return .unknown
+    }
+
+    private func mapToDomainError(_ error: AuthError) -> LoginError {
         switch error {
         case .canceled: .canceled
         case .networkError: .noConnection
@@ -21,7 +35,7 @@ struct LoginErrorMapper {
         }
     }
     
-    func mapToDomainError(_ error: NetworkError) -> LoginError {
+    private func mapToDomainError(_ error: NetworkError) -> LoginError {
         switch error {
         case .noConnection: .noConnection
         case .forbidden: .forbidden

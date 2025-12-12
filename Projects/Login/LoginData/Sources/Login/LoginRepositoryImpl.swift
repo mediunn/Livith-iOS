@@ -113,17 +113,5 @@ private extension LoginRepositoryImpl {
             }
         }
     }
-    
-    func mapToDomainError(from error: Error) -> LoginError {
-        if let loginError = error as? LoginError {
-            return loginError
-        }
-        if let authError = error as? AuthError {
-            return errorMapper.mapToDomainError(authError)
-        }
-        if let networkError = error as? NetworkError {
-            return errorMapper.mapToDomainError(networkError)
-        }
-        return .unknown
     }
 }
