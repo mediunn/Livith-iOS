@@ -46,8 +46,7 @@ public struct LivithMainTabView: View {
     }
 
     // MARK: - Property
-
-    @StateObject private var searchStore = SearchStore()
+    
     @State private var selectedTab: Tab = .home
     
     // MARK: - LifeCycle
@@ -63,7 +62,7 @@ public struct LivithMainTabView: View {
                 case .home:
                     HomeView()
                 case .search:
-                    SearchView(store: searchStore)
+                    SearchView(store: SearchStore())
                 case .my:
                     UserView(nickname: "유짐이")
                 }
