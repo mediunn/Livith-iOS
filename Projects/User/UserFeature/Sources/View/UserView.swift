@@ -13,9 +13,10 @@ import DSKit
 public struct UserView: View {
     
     // MARK: - Property
-    
+
+    @State private var isShowingUpdateNote = false
+    @State private var isShowingTerms = false
     private let nickname: String
-    
     
     // MARK: - LifeCycle
     
@@ -27,8 +28,9 @@ public struct UserView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 68) {
+            HStack(alignment: .center) {
                 titleText
+                Spacer()
                 editButton
             }
             .padding(.top, 168)
@@ -57,9 +59,16 @@ public struct UserView: View {
             
             InfoListView(title: "회원탈퇴", type: .action, action: { deleteAccount() })
                 .padding(.bottom, 34)
+
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(backgroundGradient.ignoresSafeArea())
+        .background(backgroundGradient)
+        .sheet(isPresented: $isShowingUpdateNote) {
+            SafariView(url: URL(string: Constant.updateNoteURLString)!)
+        }
+        .sheet(isPresented: $isShowingTerms) {
+            SafariView(url: URL(string: Constant.termsURLString)!)
+        }
     }
 }
 
@@ -79,6 +88,7 @@ private extension UserView {
                 Color.livithColor(.black100)
             }
         }
+        .ignoresSafeArea()
     }
     
     var titleText: some View {
@@ -90,8 +100,10 @@ private extension UserView {
         )
         .notosans(.headMedium)
         .foregroundStyle(Color.livithColor(.black30))
+        .lineLimit(nil)
+        .fixedSize(horizontal: false, vertical: true)
     }
-    
+
     var editButton: some View {
         Button {
             showEditView()
@@ -99,7 +111,7 @@ private extension UserView {
             Text("닉네임 수정")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
-                .padding(.vertical, 8)
+                .padding(.vertical, 6)
                 .padding(.horizontal, 12)
         }
         .background(Color.livithColor(.black80))
@@ -127,7 +139,7 @@ private extension UserView {
 
 private extension UserView {
     func showEditView() {
-        // TODO: 닉네임 수정 화면으로 이동
+        
     }
     
     func showFeedbackForm() {
@@ -135,11 +147,11 @@ private extension UserView {
     }
     
     func showUpdateNote() {
-        
+        isShowingUpdateNote = true
     }
-    
+
     func showTerms() {
-        
+        isShowingTerms = true
     }
     
     func logout() {
@@ -156,6 +168,8 @@ private extension UserView {
 private extension UserView {
     enum Constant {
         static let versionString: String = "2.0.0"
+        static let updateNoteURLString: String = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0"
+        static let termsURLString: String = "https://youz2me.notion.site/Livith-v-25-11-18-1d402dd0e5fc800dab7fc177f325eade"
     }
 }
 
