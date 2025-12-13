@@ -12,7 +12,7 @@ import Security
 struct TokenStorage {
     private let serviceID: String
     
-    init(serviceID: String = Bundle.main.bundleIdentifier ?? "com.youz2me.livith.network") {
+    init(serviceID: String = "com.youz2me.livith.network") {
         self.serviceID = serviceID
     }
     
@@ -95,7 +95,7 @@ private extension TokenStorage {
     
     func fetch(key: Keys) throws(TokenError) -> String {
         var query = keychainQuery(for: key)
-        query[kSecReturnData as String] = true
+        query[kSecReturnData as String] = kCFBooleanTrue
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         
         var result: AnyObject?
