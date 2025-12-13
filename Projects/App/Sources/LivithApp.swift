@@ -5,6 +5,7 @@ import KakaoSDKAuth
 
 @main
 struct LivithApp: App {
+    @State private var isLaunchScreenVisible = true
     
     // MARK: - LifeCycle
 
@@ -16,10 +17,19 @@ struct LivithApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppRootView()
-                .onOpenURL { url in
-                    openKakaoLoginURL(url)
-                }
+            if isLaunchScreenVisible {
+                LaunchScreenView()
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            withAnimation { isLaunchScreenVisible = false }
+                        }
+                    }
+            } else {
+                AppRootView()
+                    .onOpenURL { url in
+                        openKakaoLoginURL(url)
+                    }
+            }
         }
     }
 }
