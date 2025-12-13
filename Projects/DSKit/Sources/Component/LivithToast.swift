@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-public enum ToastType {
+public enum LivithToastType {
     case success
     case failure
 
@@ -26,12 +26,12 @@ public struct LivithToast: View {
 
     // MARK: - Property
 
-    private let type: ToastType
+    private let type: LivithToastType
     private let message: String
 
     // MARK: - LifeCycle
 
-    public init(type: ToastType, message: String) {
+    public init(type: LivithToastType, message: String) {
         self.type = type
         self.message = message
     }
@@ -48,7 +48,7 @@ public struct LivithToast: View {
                 .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .lineLimit(2)
-            
+
             Spacer()
         }
         .padding(.leading, 20)
@@ -56,6 +56,56 @@ public struct LivithToast: View {
         .frame(width: 343)
         .background(Color.livithColor(.black80))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - Toast ViewModifier
+
+private struct LivithToastModifier: ViewModifier {
+    @Binding var isPresented: Bool
+    let type: LivithToastType
+    let message: String
+    let duration: TimeInterval
+    let topPadding: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .top) {
+                if isPresented {
+                    LivithToast(type: type, message: message)
+                        .padding(.top, topPadding)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .onAppear {
+                            Task {
+                                try? await Task.sleep(for: .seconds(duration))
+                                await MainActor.run {
+                                    withAnimation { isPresented = false }
+                                }
+                            }
+                        }
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: isPresented)
+    }
+}
+
+// MARK: - View Extension
+
+public extension View {
+    func livithToast(
+        isPresented: Binding<Bool>,
+        type: LivithToastType,
+        message: String,
+        duration: TimeInterval = 2,
+        topPadding: CGFloat = 60
+    ) -> some View {
+        modifier(LivithToastModifier(
+            isPresented: isPresented,
+            type: type,
+            message: message,
+            duration: duration,
+            topPadding: topPadding
+        ))
     }
 }
 

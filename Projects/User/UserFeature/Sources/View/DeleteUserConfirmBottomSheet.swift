@@ -59,7 +59,7 @@ private extension DeleteUserConfirmBottomSheet {
         Rectangle()
             .fill(Color.livithColor(.black80))
             .frame(width: 60, height: 6)
-            .cornerRadius(3)
+            .clipShape(RoundedRectangle(cornerRadius: 3))
             .frame(maxWidth: .infinity)
     }
 

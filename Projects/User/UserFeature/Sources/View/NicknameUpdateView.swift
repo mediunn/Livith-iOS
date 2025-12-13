@@ -16,17 +16,22 @@ struct NicknameUpdateView: View {
 
     private let maxNicknameLength = 10
 
-    @Environment(\.dismiss) private var dismiss
     @FocusState private var isNicknameFocused: Bool
     @State private var showFailureToast: Bool = false
     @ObservedObject private var store = NicknameUpdateStore()
 
+    var onDismiss: (() -> Void)?
     var onSuccess: (() -> Void)?
-    
+
     // MARK: - LifeCycle
 
-    init(store: NicknameUpdateStore, onSuccess: (() -> Void)? = nil) {
+    init(
+        store: NicknameUpdateStore,
+        onDismiss: (() -> Void)? = nil,
+        onSuccess: (() -> Void)? = nil
+    ) {
         self.store = store
+        self.onDismiss = onDismiss
         self.onSuccess = onSuccess
     }
     
@@ -40,9 +45,6 @@ struct NicknameUpdateView: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 navigationBar
-                    .padding(.top, 20)
-                
-                stepIndicator
                     .padding(.top, 20)
                 
                 title
@@ -62,26 +64,17 @@ struct NicknameUpdateView: View {
             .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
-        .overlay(alignment: .top) {
-            if showFailureToast {
-                LivithToast(type: .failure, message: Literals.toastFailure)
-                    .padding(.top, 60)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            withAnimation { showFailureToast = false }
-                        }
-                    }
-            }
-        }
-        .animation(.easeInOut(duration: 0.3), value: showFailureToast)
+        .livithToast(
+            isPresented: $showFailureToast,
+            type: .failure,
+            message: Literals.toastFailure
+        )
         .onChange(of: store.state.updateResult) { _, result in
             switch result {
             case .idle:
                 withAnimation { showFailureToast = false }
             case .success:
                 onSuccess?()
-                dismiss()
             case .failure:
                 withAnimation { showFailureToast = true }
             }
@@ -95,7 +88,7 @@ private extension NicknameUpdateView {
     var navigationBar: some View {
         HStack {
             Button {
-                dismiss()
+                onDismiss?()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))
@@ -177,7 +170,7 @@ private extension NicknameUpdateView {
         }
         .padding()
         .background(Color.livithColor(.black90))
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color.livithColor(.black50), lineWidth: isNicknameFocused ? 1 : 0)
@@ -195,7 +188,7 @@ private extension NicknameUpdateView {
                 .padding()
                 .frame(minWidth: 80)
                 .background(Color.livithColor(.black80))
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .disabled(!isDuplicateButtonEnabled)
     }
@@ -223,7 +216,7 @@ private extension NicknameUpdateView {
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .background(isUpdateButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
-            .cornerRadius(8)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .disabled(!isUpdateButtonEnabled || isUpdateLoading)
     }

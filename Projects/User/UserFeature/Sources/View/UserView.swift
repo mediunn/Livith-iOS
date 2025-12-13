@@ -35,18 +35,13 @@ public struct UserView: View {
         }
     }
 
-    enum ToastType {
-        case none
-        case nicknameUpdateSuccess
-    }
-
     // MARK: - Property
 
     private let nickname: String
 
     @State private var path = NavigationPath()
     @State private var overlayType: OverlayType = .none
-    @State private var toastType: ToastType = .none
+    @State private var showSuccessToast: Bool = false
 
     @Binding private var isTabBarHidden: Bool
     
@@ -101,34 +96,28 @@ public struct UserView: View {
                 case .nicknameUpdate:
                     NicknameUpdateView(
                         store: NicknameUpdateStore(),
+                        onDismiss: { path.removeLast() },
                         onSuccess: {
-                            withAnimation { toastType = .nicknameUpdateSuccess }
+                            path.removeLast()
+                            withAnimation { showSuccessToast = true }
                         }
                     )
                     .navigationBarBackButtonHidden()
                 case .deleteUser:
-                    DeleteUserView(store: DeleteUserStore())
-                        .navigationBarBackButtonHidden()
+                    DeleteUserView(
+                        store: DeleteUserStore(),
+                        onDismiss: { path.removeLast() }
+                    )
+                    .navigationBarBackButtonHidden()
                 }
             }
-            .overlay(alignment: .top) {
-                if toastType != .none {
-                    toastView
-                        .padding(.top, 60)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                withAnimation { toastType = .none }
-                            }
-                        }
-                }
-            }
-            .animation(.easeInOut(duration: 0.3), value: toastType)
+            .livithToast(
+                isPresented: $showSuccessToast,
+                type: .success,
+                message: Literals.toastSuccess
+            )
         }
-        .sheet(isPresented: Binding(
-            get: { overlayType.sheetURL != nil },
-            set: { if !$0 { overlayType = .none } }
-        )) {
+        .sheet(isPresented: isSheetPresented) {
             if let url = overlayType.sheetURL {
                 SafariView(url: url)
             }
@@ -137,8 +126,10 @@ public struct UserView: View {
             logoutConfirmDialog
         }
         .animation(.easeInOut(duration: 0.3), value: overlayType)
-        .onAppear {
-            isTabBarHidden = false
+        .onChange(of: path) { _, newPath in
+            Task { @MainActor in
+                isTabBarHidden = !newPath.isEmpty
+            }
         }
     }
 }
@@ -147,7 +138,7 @@ public struct UserView: View {
 
 private extension UserView {
     var backgroundGradient: some View {
-        GeometryReader { geo in
+        GeometryReader { _ in
             VStack(spacing: 0) {
                 LinearGradient(
                     colors: [Color.init(hex: "2F3745"), Color.init(hex: "14171B")],
@@ -206,16 +197,6 @@ private extension UserView {
     }
 
     @ViewBuilder
-    var toastView: some View {
-        switch toastType {
-        case .none:
-            EmptyView()
-        case .nicknameUpdateSuccess:
-            LivithToast(type: .success, message: Literals.toastSuccess)
-        }
-    }
-
-    @ViewBuilder
     var logoutConfirmDialog: some View {
         if overlayType == .logout {
             LivithConfirmDialog(
@@ -231,6 +212,17 @@ private extension UserView {
                 }
             )
         }
+    }
+}
+
+// MARK: - Helper
+
+private extension UserView {
+    var isSheetPresented: Binding<Bool> {
+        Binding(
+            get: { overlayType.sheetURL != nil },
+            set: { if !$0 { overlayType = .none } }
+        )
     }
 }
 
@@ -260,11 +252,11 @@ private extension UserView {
     func performLogout() {
         // TODO: 로그아웃 처리
     }
-    
+
     func deleteAccount() {
-        isTabBarHidden = true
         path.append(Path.deleteUser)
     }
+
 }
 
 // MARK: - Constants

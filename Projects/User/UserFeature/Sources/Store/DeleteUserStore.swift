@@ -18,20 +18,24 @@ enum DeleteUserReason: String, CaseIterable {
     case other = "기타"
 }
 
+enum DeleteUserResult: Equatable {
+    case idle
+    case success
+    case failure(String)
+}
+
 struct DeleteUserState {
     var selectedReasons: Set<DeleteUserReason> = []
     var otherReasonText: String = ""
     var isLoading: Bool = false
-    var isSucceed: Bool = false
-    var errorMessage: String? = nil
+    var withdrawResult: DeleteUserResult = .idle
 }
 
 enum DeleteUserIntent {
     case toggleReason(DeleteUserReason)
     case updateOtherReasonText(String)
     case withdraw
-    case _setLoading(Bool)
-    case _setResult(Result<Void, Error>)
+    case _setWithdrawResult(DeleteUserResult)
 }
 
 final class DeleteUserStore: ObservableObject {
@@ -54,19 +58,12 @@ final class DeleteUserStore: ObservableObject {
             }
 
         case .withdraw:
+            state.withdrawResult = .idle
             withdraw()
 
-        case ._setLoading(let isLoading):
-            state.isLoading = isLoading
-
-        case ._setResult(let result):
+        case ._setWithdrawResult(let result):
             state.isLoading = false
-            switch result {
-            case .success:
-                state.isSucceed = true
-            case .failure(let error):
-                state.errorMessage = error.localizedDescription
-            }
+            state.withdrawResult = result
         }
     }
 
@@ -92,10 +89,16 @@ private extension DeleteUserStore {
         state.isLoading = true
 
         Task {
-            // TODO: 실제 탈퇴 API 호출
-            try? await Task.sleep(for: .seconds(1))
-            await MainActor.run {
-                send(._setResult(.success(())))
+            do {
+                // TODO: 실제 탈퇴 API 호출
+                try await Task.sleep(for: .seconds(1))
+                await MainActor.run {
+                    send(._setWithdrawResult(.success))
+                }
+            } catch {
+                await MainActor.run {
+                    send(._setWithdrawResult(.failure(error.localizedDescription)))
+                }
             }
         }
     }

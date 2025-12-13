@@ -14,20 +14,20 @@ struct DeleteUserView: View {
 
     // MARK: - Property
 
-    @Environment(\.dismiss) private var dismiss
-    
     @State private var keyboardHeight: CGFloat = 0
-    
     @State private var isConfirmed: Bool = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var showConfirmSheet: Bool = false
-    
+
     @ObservedObject private var store = DeleteUserStore()
-    
+
+    var onDismiss: (() -> Void)?
+
     // MARK: - LifeCycle
-    
-    init(store: DeleteUserStore = DeleteUserStore()) {
+
+    init(store: DeleteUserStore = DeleteUserStore(), onDismiss: (() -> Void)? = nil) {
         self.store = store
+        self.onDismiss = onDismiss
     }
 
     // MARK: - Body
@@ -59,7 +59,8 @@ struct DeleteUserView: View {
                     }
                     .onChange(of: isTextFieldFocused) { _, isFocused in
                         if isFocused {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            Task {
+                                try? await Task.sleep(for: .milliseconds(300))
                                 withAnimation {
                                     proxy.scrollTo(ScrollID.confirmButton, anchor: .bottom)
                                 }
@@ -81,9 +82,16 @@ struct DeleteUserView: View {
                     isConfirmed = false
                 }
             }
-            .onChange(of: store.state.isSucceed) { _, newValue in
-                if newValue {
+            .onChange(of: store.state.withdrawResult) { _, result in
+                switch result {
+                case .idle:
+                    break
+                case .success:
                     // TODO: 로그인 화면으로 이동
+                    break
+                case .failure:
+                    // TODO: 에러 토스트 표시
+                    break
                 }
             }
             .overlay {
@@ -140,7 +148,7 @@ private extension DeleteUserView {
     var navigationBar: some View {
         HStack {
             Button {
-                dismiss()
+                onDismiss?()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))
