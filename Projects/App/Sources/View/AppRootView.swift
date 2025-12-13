@@ -12,23 +12,46 @@ import LoginFeature
 import LivithNetwork
 
 struct AppRootView: View {
-    @State private var currentRoute: AppRoute = .login
+    @State private var currentRoute: AppRoute?
+    
+    private let tokenService: TokenService
+    private let initialCheckID: UUID = UUID()
+    
+    init(tokenService: TokenService = TokenServiceImpl()) {
+        self.tokenService = tokenService
+    }
     
     var body: some View {
         Group {
-            switch currentRoute {
-            case .login:
-                LoginRootView {
-                    currentRoute = .main
+            if let route = currentRoute {
+                switch route {
+                case .login:
+                    LoginRootView {
+                        currentRoute = .main
+                    }
+                case .main:
+                    LivithMainTabView()
                 }
-            case .main:
-                LivithMainTabView()
+            } else {
+                Color.clear
             }
         }
         .transition(.opacity)
         .animation(.easeInOut(duration: 0.4), value: currentRoute)
+        .task(id: initialCheckID) {
+            await checkInitialRoute()
+        }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { _ in
             currentRoute = .login
         }
+    }
+}
+
+// MARK: - Helpers
+
+private extension AppRootView {
+    func checkInitialRoute() async {
+        let isExpired = await tokenService.isRefreshTokenExpired()
+        currentRoute = isExpired ? .login : .main
     }
 }

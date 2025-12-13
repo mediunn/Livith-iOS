@@ -17,18 +17,23 @@ struct LivithApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if isLaunchScreenVisible {
-                LaunchScreenView()
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            withAnimation { isLaunchScreenVisible = false }
-                        }
-                    }
-            } else {
+            ZStack {
                 AppRootView()
                     .onOpenURL { url in
                         openKakaoLoginURL(url)
                     }
+
+                if isLaunchScreenVisible {
+                    LaunchScreenView()
+                        .transition(.opacity)
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                withAnimation(.easeOut(duration: 0.5)) {
+                                    isLaunchScreenVisible = false
+                                }
+                            }
+                        }
+                }
             }
         }
     }
