@@ -37,6 +37,19 @@ public struct LivithConfirmDialog: View {
     // MARK: - Body
 
     public var body: some View {
+        ZStack {
+            Color(hex: "14171B", opacity: 0.9)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    onCancel()
+                }
+
+            dialogContent
+                .padding(.horizontal, 24)
+        }
+    }
+
+    private var dialogContent: some View {
         VStack(alignment: .center, spacing: 20) {
             VStack(alignment: .center, spacing: 10) {
                 Image.livithIcon(.cautionFill)
@@ -47,7 +60,7 @@ public struct LivithConfirmDialog: View {
                     .notosans(.body2Medium)
                     .foregroundStyle(Color(hex: "363636"))
             }
-            
+
             HStack(spacing: 12) {
                 confirmButton
                 cancelButton
@@ -88,17 +101,11 @@ private extension LivithConfirmDialog {
 }
 
 #Preview {
-    ZStack {
-        Color.livithColor(.black100)
-            .ignoresSafeArea()
-
-        LivithConfirmDialog(
-            message: "정말 로그아웃 하시겠어요?",
-            confirmTitle: "로그아웃 할래요",
-            cancelTitle: "취소할래요",
-            onConfirm: { },
-            onCancel: { }
-        )
-        .padding(.horizontal, 24)
-    }
+    LivithConfirmDialog(
+        message: "정말 로그아웃 하시겠어요?",
+        confirmTitle: "로그아웃 할래요",
+        cancelTitle: "취소할래요",
+        onConfirm: { },
+        onCancel: { }
+    )
 }
