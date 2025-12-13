@@ -11,16 +11,41 @@ import SwiftUI
 import DSKit
 
 public struct UserView: View {
-    
+
+    // MARK: - Enum
+
+    enum SheetType: Identifiable {
+        case terms
+        case updateNote
+        case feedbackForm
+
+        var id: Self { self }
+
+        var url: URL {
+            switch self {
+            case .terms:
+                return URL(string: Constant.termsURLString)!
+            case .updateNote:
+                return URL(string: Constant.updateNoteURLString)!
+            case .feedbackForm:
+                return URL(string: Constant.feedbackFormURLString)!
+            }
+        }
+    }
+
+    enum ToastType {
+        case none
+        case nicknameUpdateSuccess
+    }
+
     // MARK: - Property
-    
+
     private let nickname: String
-    
+
     @State private var path = NavigationPath()
-    @State private var isShowingTerms = false
-    @State private var isShowingUpdateNote = false
-    @State private var isShowingFeedbackForm = false
-    
+    @State private var activeSheet: SheetType?
+    @State private var toastType: ToastType = .none
+
     @Binding private var isTabBarHidden: Bool
     
     // MARK: - LifeCycle
@@ -72,22 +97,34 @@ public struct UserView: View {
             .navigationDestination(for: Path.self) { destination in
                 switch destination {
                 case .nicknameUpdate:
-                    NicknameUpdateView(store: NicknameUpdateStore())
-                        .navigationBarBackButtonHidden()
+                    NicknameUpdateView(
+                        store: NicknameUpdateStore(),
+                        onSuccess: {
+                            withAnimation { toastType = .nicknameUpdateSuccess }
+                        }
+                    )
+                    .navigationBarBackButtonHidden()
                 case .deleteUser:
                     DeleteUserView(store: DeleteUserStore())
                         .navigationBarBackButtonHidden()
                 }
             }
+            .overlay(alignment: .top) {
+                if toastType != .none {
+                    toastView
+                        .padding(.top, 60)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation { toastType = .none }
+                            }
+                        }
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: toastType)
         }
-        .sheet(isPresented: $isShowingUpdateNote) {
-            SafariView(url: URL(string: Constant.updateNoteURLString)!)
-        }
-        .sheet(isPresented: $isShowingTerms) {
-            SafariView(url: URL(string: Constant.termsURLString)!)
-        }
-        .sheet(isPresented: $isShowingFeedbackForm) {
-            SafariView(url: URL(string: Constant.feedbackFormURLString)!)
+        .sheet(item: $activeSheet) { sheet in
+            SafariView(url: sheet.url)
         }
         .onAppear {
             isTabBarHidden = false
@@ -156,6 +193,16 @@ private extension UserView {
                 .scaledToFill()
         }
     }
+
+    @ViewBuilder
+    var toastView: some View {
+        switch toastType {
+        case .none:
+            EmptyView()
+        case .nicknameUpdateSuccess:
+            LivithToast(type: .success, message: Literals.toastSuccess)
+        }
+    }
 }
 
 // MARK: - Helper Method
@@ -164,23 +211,23 @@ private extension UserView {
     func showEditView() {
         path.append(Path.nicknameUpdate)
     }
-    
+
     func showFeedbackForm() {
-        isShowingFeedbackForm = true
+        activeSheet = .feedbackForm
     }
-    
+
     func showUpdateNote() {
-        isShowingUpdateNote = true
+        activeSheet = .updateNote
     }
 
     func showTerms() {
-        isShowingTerms = true
+        activeSheet = .terms
     }
-    
+
     func logout() {
-        
+
     }
-    
+
     func deleteAccount() {
         isTabBarHidden = true
         path.append(Path.deleteUser)
@@ -210,5 +257,6 @@ private extension UserView {
         static let terms = "이용약관"
         static let logout = "로그아웃"
         static let deleteAccount = "회원탈퇴"
+        static let toastSuccess = "닉네임이 수정되었어요"
     }
 }
