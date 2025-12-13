@@ -48,6 +48,7 @@ public struct LivithMainTabView: View {
     // MARK: - Property
     
     @State private var selectedTab: Tab = .home
+    @State private var isTabBarHidden: Bool = false
     
     // MARK: - LifeCycle
 
@@ -64,12 +65,12 @@ public struct LivithMainTabView: View {
                 case .search:
                     SearchView(store: SearchStore())
                 case .my:
-                    UserView(nickname: "유짐이")
+                    UserView(nickname: "유짐이", isTabBarHidden: $isTabBarHidden)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            customTabBar
+            if !isTabBarHidden { customTabBar }
         }
         .ignoresSafeArea(edges: .bottom)
     }
