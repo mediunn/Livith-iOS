@@ -48,6 +48,8 @@ public struct LivithToast: View {
                 .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .lineLimit(2)
+            
+            Spacer()
         }
         .padding(.leading, 20)
         .padding(.vertical, 12)
