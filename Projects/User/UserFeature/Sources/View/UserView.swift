@@ -14,14 +14,14 @@ public struct UserView: View {
 
     // MARK: - Enum
 
-    enum SheetType: Identifiable {
+    enum OverlayType: Equatable {
+        case none
         case terms
         case updateNote
         case feedbackForm
+        case logout
 
-        var id: Self { self }
-
-        var url: URL {
+        var sheetURL: URL? {
             switch self {
             case .terms:
                 return URL(string: Constant.termsURLString)!
@@ -29,6 +29,8 @@ public struct UserView: View {
                 return URL(string: Constant.updateNoteURLString)!
             case .feedbackForm:
                 return URL(string: Constant.feedbackFormURLString)!
+            default:
+                return nil
             }
         }
     }
@@ -43,7 +45,7 @@ public struct UserView: View {
     private let nickname: String
 
     @State private var path = NavigationPath()
-    @State private var activeSheet: SheetType?
+    @State private var overlayType: OverlayType = .none
     @State private var toastType: ToastType = .none
 
     @Binding private var isTabBarHidden: Bool
@@ -123,9 +125,18 @@ public struct UserView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: toastType)
         }
-        .sheet(item: $activeSheet) { sheet in
-            SafariView(url: sheet.url)
+        .sheet(isPresented: Binding(
+            get: { overlayType.sheetURL != nil },
+            set: { if !$0 { overlayType = .none } }
+        )) {
+            if let url = overlayType.sheetURL {
+                SafariView(url: url)
+            }
         }
+        .overlay {
+            logoutConfirmDialog
+        }
+        .animation(.easeInOut(duration: 0.3), value: overlayType)
         .onAppear {
             isTabBarHidden = false
         }
@@ -203,6 +214,24 @@ private extension UserView {
             LivithToast(type: .success, message: Literals.toastSuccess)
         }
     }
+
+    @ViewBuilder
+    var logoutConfirmDialog: some View {
+        if overlayType == .logout {
+            LivithConfirmDialog(
+                message: Literals.logoutAlertMessage,
+                confirmTitle: Literals.logoutAlertConfirm,
+                cancelTitle: Literals.logoutAlertCancel,
+                onConfirm: {
+                    overlayType = .none
+                    performLogout()
+                },
+                onCancel: {
+                    overlayType = .none
+                }
+            )
+        }
+    }
 }
 
 // MARK: - Helper Method
@@ -213,21 +242,25 @@ private extension UserView {
     }
 
     func showFeedbackForm() {
-        activeSheet = .feedbackForm
+        overlayType = .feedbackForm
     }
 
     func showUpdateNote() {
-        activeSheet = .updateNote
+        overlayType = .updateNote
     }
 
     func showTerms() {
-        activeSheet = .terms
+        overlayType = .terms
     }
 
     func logout() {
-
+        overlayType = .logout
     }
 
+    func performLogout() {
+        // TODO: 로그아웃 처리
+    }
+    
     func deleteAccount() {
         isTabBarHidden = true
         path.append(Path.deleteUser)
@@ -258,5 +291,8 @@ private extension UserView {
         static let logout = "로그아웃"
         static let deleteAccount = "회원탈퇴"
         static let toastSuccess = "닉네임이 수정되었어요"
+        static let logoutAlertMessage = "정말 로그아웃 하시겠어요?"
+        static let logoutAlertCancel = "취소할래요"
+        static let logoutAlertConfirm = "로그아웃 할래요"
     }
 }
