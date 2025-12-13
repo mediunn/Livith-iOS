@@ -56,6 +56,7 @@ final class NicknameUpdateStore: ObservableObject {
             checkNicknameDuplicate()
 
         case .submitNickname:
+            state.updateResult = .idle
             submitNickname()
 
         case ._setNicknameValidationState(let validationState):

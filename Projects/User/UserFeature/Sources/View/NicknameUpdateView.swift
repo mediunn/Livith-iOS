@@ -78,7 +78,7 @@ struct NicknameUpdateView: View {
         .onChange(of: store.state.updateResult) { _, result in
             switch result {
             case .idle:
-                break
+                withAnimation { showFailureToast = false }
             case .success:
                 onSuccess?()
                 dismiss()
@@ -291,7 +291,7 @@ private extension NicknameUpdateView {
 private extension NicknameUpdateView {
     enum Literals {
         static let navigationTitle = "닉네임 수정"
-        static let title = "리이빗에서 사용할\n닉네임을 설정해 주세요"
+        static let title = "라이빗에서 사용할\n닉네임을 설정해 주세요"
         static let placeholder = "예시) 홍길동"
         static let checkDuplicate = "중복확인"
         static let checkCompleted = "확인완료"
