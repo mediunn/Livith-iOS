@@ -15,16 +15,19 @@ public struct UserView: View {
     // MARK: - Property
     
     private let nickname: String
-
+    
     @State private var path = NavigationPath()
     @State private var isShowingTerms = false
     @State private var isShowingUpdateNote = false
     @State private var isShowingFeedbackForm = false
     
+    @Binding private var isTabBarHidden: Bool
+    
     // MARK: - LifeCycle
     
-    public init(nickname: String) {
+    public init(nickname: String, isTabBarHidden: Binding<Bool>) {
         self.nickname = nickname
+        self._isTabBarHidden = isTabBarHidden
     }
     
     // MARK: - Body
@@ -66,16 +69,14 @@ public struct UserView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(backgroundGradient)
-            .navigationDestination(for: String.self) { destination in
+            .navigationDestination(for: Path.self) { destination in
                 switch destination {
-                case "nicknameUpdate":
+                case .nicknameUpdate:
                     NicknameUpdateView(store: NicknameUpdateStore())
                         .navigationBarBackButtonHidden()
-                case "deleteUser":
+                case .deleteUser:
                     DeleteUserView(store: DeleteUserStore())
                         .navigationBarBackButtonHidden()
-                default:
-                    EmptyView()
                 }
             }
         }
@@ -87,6 +88,9 @@ public struct UserView: View {
         }
         .sheet(isPresented: $isShowingFeedbackForm) {
             SafariView(url: URL(string: Constant.feedbackFormURLString)!)
+        }
+        .onAppear {
+            isTabBarHidden = false
         }
     }
 }
@@ -158,7 +162,7 @@ private extension UserView {
 
 private extension UserView {
     func showEditView() {
-        path.append("nicknameUpdate")
+        path.append(Path.nicknameUpdate)
     }
     
     func showFeedbackForm() {
@@ -178,21 +182,23 @@ private extension UserView {
     }
     
     func deleteAccount() {
-        
+        isTabBarHidden = true
+        path.append(Path.deleteUser)
     }
 }
 
 // MARK: - Constants
 
 private extension UserView {
+    enum Path: Hashable {
+        case nicknameUpdate
+        case deleteUser
+    }
+    
     enum Constant {
         static let versionString: String = "2.0.0"
         static let updateNoteURLString: String = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0"
         static let termsURLString: String = "https://youz2me.notion.site/Livith-v-25-11-18-1d402dd0e5fc800dab7fc177f325eade"
         static let feedbackFormURLString: String = "https://docs.google.com/forms/d/e/1FAIpQLSe-d5MhQrwsRRrk9isYiYVw1afI7a60Xm0IHbxmmAHe8AUiMA/viewform"
     }
-}
-
-#Preview {
-    UserView(nickname: "유지미")
 }
