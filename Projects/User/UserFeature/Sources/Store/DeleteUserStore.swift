@@ -11,23 +11,23 @@ import Foundation
 import DIContainer
 import UserDomain
 
-enum DeleteReason: String, CaseIterable {
+enum DeleteUserReason: String, CaseIterable {
     case lackOfInfo = "원하는 정보가 부족하거나 없어요"
     case rarelyUsed = "서비스를 자주 이용하지 않아요"
     case inconvenient = "서비스 오류로 이용이 불편해요"
     case other = "기타"
 }
 
-struct WithdrawalState {
-    var selectedReasons: Set<DeleteReason> = []
+struct DeleteUserState {
+    var selectedReasons: Set<DeleteUserReason> = []
     var otherReasonText: String = ""
     var isLoading: Bool = false
     var isSucceed: Bool = false
     var errorMessage: String? = nil
 }
 
-enum WithdrawalIntent {
-    case toggleReason(DeleteReason)
+enum DeleteUserIntent {
+    case toggleReason(DeleteUserReason)
     case updateOtherReasonText(String)
     case withdraw
     case _setLoading(Bool)
@@ -35,11 +35,11 @@ enum WithdrawalIntent {
 }
 
 final class DeleteUserStore: ObservableObject {
-    @Published private(set) var state = WithdrawalState()
+    @Published private(set) var state = DeleteUserState()
 
     private let maxOtherReasonLength = 200
 
-    func send(_ intent: WithdrawalIntent) {
+    func send(_ intent: DeleteUserIntent) {
         switch intent {
         case .toggleReason(let reason):
             if state.selectedReasons.contains(reason) {

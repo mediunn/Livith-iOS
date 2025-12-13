@@ -152,11 +152,11 @@ private extension DeleteUserView {
 
     var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("정말 탈퇴하시겠어요?")
+            Text(Literals.title)
                 .notosans(.body1Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
 
-            Text("탈퇴 이유를 알려주시면,\n서비스 개선에 반영해 더 좋은 서비스로 찾아뵐게요")
+            Text(Literals.subtitle)
                 .notosans(.body4Regular)
                 .foregroundStyle(Color.livithColor(.black50))
         }
@@ -164,13 +164,13 @@ private extension DeleteUserView {
 
     var reasonList: some View {
         VStack(spacing: 10) {
-            ForEach(DeleteReason.allCases, id: \.self) { reason in
+            ForEach(DeleteUserReason.allCases, id: \.self) { reason in
                 reasonRow(reason)
             }
         }
     }
 
-    func reasonRow(_ reason: DeleteReason) -> some View {
+    func reasonRow(_ reason: DeleteUserReason) -> some View {
         let isSelected = store.state.selectedReasons.contains(reason)
         let isOther = reason == .other
         let showTextField = isOther && isSelected
@@ -213,7 +213,7 @@ private extension DeleteUserView {
         ZStack(alignment: .bottomTrailing) {
             ZStack(alignment: .topLeading) {
                 if store.state.otherReasonText.isEmpty {
-                    Text("10자 이상의 사유를 작성해주세요")
+                    Text(Literals.textFieldPlaceholder)
                         .notosans(.body3Medium)
                         .foregroundStyle(Color.livithColor(.black50))
                         .padding(.top, 8)
@@ -252,7 +252,7 @@ private extension DeleteUserView {
             showConfirmSheet = true
         } label: {
             HStack(spacing: 8) {
-                Text("탈퇴하기")
+                Text(Literals.confirmButtonText)
                     .notosans(.body2Medium)
                     .foregroundStyle(
                         store.isConfirmButtonEnabled
@@ -279,6 +279,13 @@ private extension DeleteUserView {
 private extension DeleteUserView {
     enum ScrollID {
         static let confirmButton = "confirmButton"
+    }
+
+    enum Literals {
+        static let title = "정말 탈퇴하시겠어요?"
+        static let subtitle = "탈퇴 이유를 알려주시면,\n서비스 개선에 반영해 더 좋은 서비스로 찾아뵐게요"
+        static let textFieldPlaceholder = "10자 이상의 사유를 작성해주세요"
+        static let confirmButtonText = "탈퇴하기"
     }
 }
 
