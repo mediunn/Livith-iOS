@@ -21,10 +21,16 @@ enum NicknameValidationState {
     case duplicate
 }
 
+enum NicknameUpdateResult {
+    case idle
+    case success
+    case failure
+}
+
 struct NicknameUpdateState {
     var nickname: String = ""
     var nicknameValidationState: NicknameValidationState = .idle
-    var isSucceed: Bool = false
+    var updateResult: NicknameUpdateResult = .idle
 }
 
 enum NicknameUpdateIntent {
@@ -32,7 +38,7 @@ enum NicknameUpdateIntent {
     case checkNicknameDuplicate
     case submitNickname
     case _setNicknameValidationState(NicknameValidationState)
-    case _setUpdateResult(Result<Void, UserError>)
+    case _setUpdateResult(NicknameUpdateResult)
 }
 
 final class NicknameUpdateStore: ObservableObject {
@@ -56,12 +62,7 @@ final class NicknameUpdateStore: ObservableObject {
             state.nicknameValidationState = validationState
 
         case ._setUpdateResult(let result):
-            switch result {
-            case .success:
-                state.isSucceed = true
-            case .failure:
-                state.isSucceed = false
-            }
+            state.updateResult = result
         }
     }
 }
@@ -99,9 +100,9 @@ private extension NicknameUpdateStore {
         Task {
             do {
                 _ = try await repository.updateUserNickname(nickname: state.nickname)
-                await MainActor.run { send(._setUpdateResult(.success(()))) }
-            } catch let error as UserError {
-                await MainActor.run { send(._setUpdateResult(.failure(error))) }
+                await MainActor.run { send(._setUpdateResult(.success)) }
+            } catch {
+                await MainActor.run { send(._setUpdateResult(.failure)) }
             }
         }
     }
