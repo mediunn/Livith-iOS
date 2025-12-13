@@ -220,17 +220,17 @@ private extension NicknameUpdateView {
     var statusMessage: String {
         switch store.state.nicknameValidationState {
         case .idle:
-            return "10자리 이내 문자/숫자로 입력 가능해요"
+            return Literals.statusIdle
         case .valid:
             return ""
         case .invalid:
-            return "닉네임 형식이 올바르지 않아요"
+            return Literals.statusInvalid
         case .checking:
             return ""
         case .available:
-            return "사용할 수 있는 닉네임이에요!"
+            return Literals.statusAvailable
         case .duplicate:
-            return "이미 존재하는 닉네임이에요"
+            return Literals.statusDuplicate
         }
     }
     
@@ -273,5 +273,9 @@ private extension NicknameUpdateView {
         static let checkDuplicate = "중복확인"
         static let checkCompleted = "확인완료"
         static let updateButtonText = "닉네임 변경"
+        static let statusIdle = "10자리 이내 문자/숫자로 입력 가능해요"
+        static let statusInvalid = "닉네임 형식이 올바르지 않아요"
+        static let statusAvailable = "사용할 수 있는 닉네임이에요!"
+        static let statusDuplicate = "이미 존재하는 닉네임이에요"
     }
 }
