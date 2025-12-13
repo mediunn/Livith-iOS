@@ -76,6 +76,9 @@ Tuist/.build
 .github/instructions/
 .github/copilot-instructions.md
 
+### VSCode ###
+.vscode/
+
 ### GEMINI ###
 .gemini/
 
