@@ -52,19 +52,19 @@ public struct UserView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 24)
 
-                InfoListView(title: "버전정보", type: .value("2.0.0"))
+                InfoListView(title: Literals.versionInfo, type: .value(Constant.versionString))
                     .padding(.bottom, 12)
 
-                InfoListView(title: "업데이트 노트", type: .navigation, action: { showUpdateNote() })
+                InfoListView(title: Literals.updateNote, type: .navigation, action: { showUpdateNote() })
                     .padding(.bottom, 12)
 
-                InfoListView(title: "이용약관", type: .navigation, action: { showTerms() })
+                InfoListView(title: Literals.terms, type: .navigation, action: { showTerms() })
                     .padding(.bottom, 12)
 
-                InfoListView(title: "로그아웃", type: .action, action: { logout() })
+                InfoListView(title: Literals.logout, type: .action, action: { logout() })
                     .padding(.bottom, 12)
 
-                InfoListView(title: "회원탈퇴", type: .action, action: { deleteAccount() })
+                InfoListView(title: Literals.deleteAccount, type: .action, action: { deleteAccount() })
                     .padding(.bottom, 34)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -116,7 +116,7 @@ private extension UserView {
     
     var titleText: some View {
         Text.init(
-            "\(nickname)님, 반가워요!\n공연 준비 시작해볼까요?",
+            String(format: Literals.titleFormat, nickname),
             highlighting: "\(nickname)",
             color: .livithColor(.white100),
             font: .notosans(.headSemibold)
@@ -131,7 +131,7 @@ private extension UserView {
         Button {
             showEditView()
         } label: {
-            Text("닉네임 수정")
+            Text(Literals.editNickname)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
                 .padding(.vertical, 6)
@@ -194,11 +194,21 @@ private extension UserView {
         case nicknameUpdate
         case deleteUser
     }
-    
+
     enum Constant {
         static let versionString: String = "2.0.0"
         static let updateNoteURLString: String = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0"
         static let termsURLString: String = "https://youz2me.notion.site/Livith-v-25-11-18-1d402dd0e5fc800dab7fc177f325eade"
         static let feedbackFormURLString: String = "https://docs.google.com/forms/d/e/1FAIpQLSe-d5MhQrwsRRrk9isYiYVw1afI7a60Xm0IHbxmmAHe8AUiMA/viewform"
+    }
+
+    enum Literals {
+        static let titleFormat = "%@님, 반가워요!\n공연 준비 시작해볼까요?"
+        static let editNickname = "닉네임 수정"
+        static let versionInfo = "버전정보"
+        static let updateNote = "업데이트 노트"
+        static let terms = "이용약관"
+        static let logout = "로그아웃"
+        static let deleteAccount = "회원탈퇴"
     }
 }
