@@ -25,16 +25,14 @@ struct LivithApp: App {
 
                 if isLaunchScreenVisible {
                     LaunchScreenView()
-                        .transition(.opacity)
                         .onAppear {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                withAnimation(.easeOut(duration: 0.5)) {
-                                    isLaunchScreenVisible = false
-                                }
+                                isLaunchScreenVisible = false
                             }
                         }
                 }
             }
+            .animation(.easeInOut(duration: 0.5), value: isLaunchScreenVisible)
         }
     }
 }

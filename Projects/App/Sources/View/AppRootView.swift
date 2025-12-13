@@ -36,8 +36,7 @@ struct AppRootView: View {
                 Color.clear
             }
         }
-        .transition(.opacity)
-        .animation(.easeInOut(duration: 0.4), value: currentRoute)
+        .animation(.easeInOut(duration: 0.5), value: currentRoute)
         .task(id: initialCheckID) {
             await checkInitialRoute()
         }
