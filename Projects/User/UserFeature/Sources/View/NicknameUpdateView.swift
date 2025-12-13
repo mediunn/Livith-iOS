@@ -15,15 +15,19 @@ struct NicknameUpdateView: View {
     // MARK: - Property
 
     private let maxNicknameLength = 10
-    
+
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isNicknameFocused: Bool
+    @State private var showFailureToast: Bool = false
     @ObservedObject private var store = NicknameUpdateStore()
+
+    var onSuccess: (() -> Void)?
     
     // MARK: - LifeCycle
-    
-    init(store: NicknameUpdateStore) {
+
+    init(store: NicknameUpdateStore, onSuccess: (() -> Void)? = nil) {
         self.store = store
+        self.onSuccess = onSuccess
     }
     
     var body: some View {
@@ -58,9 +62,28 @@ struct NicknameUpdateView: View {
             .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
-        .onChange(of: store.state.isSucceed) { oldValue, newValue in
-            if newValue {
+        .overlay(alignment: .top) {
+            if showFailureToast {
+                LivithToast(type: .failure, message: Literals.toastFailure)
+                    .padding(.top, 60)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation { showFailureToast = false }
+                        }
+                    }
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: showFailureToast)
+        .onChange(of: store.state.updateResult) { _, result in
+            switch result {
+            case .idle:
+                break
+            case .success:
+                onSuccess?()
                 dismiss()
+            case .failure:
+                withAnimation { showFailureToast = true }
             }
         }
     }
@@ -277,5 +300,6 @@ private extension NicknameUpdateView {
         static let statusInvalid = "닉네임 형식이 올바르지 않아요"
         static let statusAvailable = "사용할 수 있는 닉네임이에요!"
         static let statusDuplicate = "이미 존재하는 닉네임이에요"
+        static let toastFailure = "닉네임 변경에 실패했어요"
     }
 }
