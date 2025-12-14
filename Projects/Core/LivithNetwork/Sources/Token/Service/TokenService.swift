@@ -47,7 +47,7 @@ public actor TokenServiceImpl: TokenService {
     
     public func saveToken(accessToken: String, refreshToken: String) async throws(TokenError) {
         do {
-            let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: Date())
+            let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: .now)
             try storage.save(token)
         } catch {
             throw TokenError.saveFailed
@@ -95,7 +95,7 @@ private extension TokenServiceImpl {
             let newToken = Token(
                 accessToken: response.accessToken,
                 refreshToken: response.refreshToken,
-                refreshTokenIssuedAt: token.refreshTokenIssuedAt
+                refreshTokenIssuedAt: .now
             )
             
             try self.storage.save(newToken)

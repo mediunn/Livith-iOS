@@ -136,7 +136,6 @@ private extension LoginRepositoryImpl {
         guard let accessToken, let refreshToken else {
             throw LoginError.noData
         }
-
         try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
         try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
         try await fetchAndStoreCurrentUser()

@@ -8,13 +8,13 @@ struct LivithApp: App {
     @State private var isLaunchScreenVisible = true
     
     // MARK: - LifeCycle
-
+    
     init() {
         registerDependency()
         
         initializeKakaoSDK()
     }
-
+    
     var body: some Scene {
         WindowGroup {
             ZStack {
@@ -22,7 +22,7 @@ struct LivithApp: App {
                     .onOpenURL { url in
                         openKakaoLoginURL(url)
                     }
-
+                
                 if isLaunchScreenVisible {
                     LaunchScreenView()
                         .onAppear {

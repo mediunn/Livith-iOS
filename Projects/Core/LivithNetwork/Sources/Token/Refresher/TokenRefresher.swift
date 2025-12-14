@@ -40,8 +40,12 @@ struct TokenRefresher {
                 }
             }
             
-            let responseData = try decoder.decode(DTO.Response.UpdateToken.self, from: data)
-            return responseData
+            let result = try decoder.decode(BaseResponse<DTO.Response.UpdateToken>.self, from: data)
+            
+            guard let data = result.data else {
+                throw TokenError.noData
+            }
+            return data
         } catch let error as TokenError {
             throw error
         } catch {
@@ -55,7 +59,6 @@ struct TokenRefresher {
             resolvingAgainstBaseURL: false
         )
         components?.queryItems = [URLQueryItem(name: Literals.clientQueryKey, value: Literals.clientQueryValue)]
-        
         guard let url = components?.url else {
             throw TokenError.unknown
         }

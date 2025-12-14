@@ -50,7 +50,11 @@ struct AppRootView: View {
 
 private extension AppRootView {
     func checkInitialRoute() async {
-        let isExpired = await tokenService.isRefreshTokenExpired()
-        currentRoute = isExpired ? .login : .main
+        do {
+            try await tokenService.refresh()
+            currentRoute = .main
+        } catch {
+            currentRoute = .login
+        }
     }
 }
