@@ -54,6 +54,7 @@ private extension AppRootView {
             try await tokenService.refresh()
             currentRoute = .main
         } catch {
+            print(">>> [\(#line): \(#function)] - \(error)")
             currentRoute = .login
         }
     }

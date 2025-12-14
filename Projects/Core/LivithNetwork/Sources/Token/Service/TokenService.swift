@@ -90,6 +90,7 @@ private extension TokenServiceImpl {
         
         let task = Task<Void, Error> {
             let token = try self.storage.fetch()
+            print(">>> 토큰이 키체인에 있다. [\(#file) \(#line)] - \(token)")
             let response = try await self.refresher.refresh(with: token.refreshToken)
             
             let newToken = Token(

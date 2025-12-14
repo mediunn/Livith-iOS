@@ -12,7 +12,7 @@ import Security
 struct TokenStorage {
     private let serviceID: String
     
-    init(serviceID: String = "com.youz2me.livith.network") {
+    init(serviceID: String = Bundle.main.bundleIdentifier ?? "com.youz2me.livith.network") {
         self.serviceID = serviceID
     }
     
