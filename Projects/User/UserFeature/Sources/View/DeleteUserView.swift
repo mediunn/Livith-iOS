@@ -19,14 +19,14 @@ struct DeleteUserView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var showConfirmSheet: Bool = false
 
-    @ObservedObject private var store = DeleteUserStore()
+    @ObservedObject private var store: DeleteUserStore
 
     var onDismiss: (() -> Void)?
 
     // MARK: - LifeCycle
 
-    init(store: DeleteUserStore = DeleteUserStore(), onDismiss: (() -> Void)? = nil) {
-        self.store = store
+    init(store: DeleteUserStore, onDismiss: (() -> Void)? = nil) {
+        self._store = ObservedObject(wrappedValue: store)
         self.onDismiss = onDismiss
     }
 

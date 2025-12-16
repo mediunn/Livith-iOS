@@ -18,7 +18,7 @@ struct NicknameUpdateView: View {
 
     @FocusState private var isNicknameFocused: Bool
     @State private var showFailureToast: Bool = false
-    @ObservedObject private var store = NicknameUpdateStore()
+    @ObservedObject private var store: NicknameUpdateStore
 
     var onDismiss: (() -> Void)?
     var onSuccess: (() -> Void)?
@@ -30,7 +30,7 @@ struct NicknameUpdateView: View {
         onDismiss: (() -> Void)? = nil,
         onSuccess: (() -> Void)? = nil
     ) {
-        self.store = store
+        self._store = ObservedObject(wrappedValue: store)
         self.onDismiss = onDismiss
         self.onSuccess = onSuccess
     }
