@@ -14,28 +14,31 @@ public final class NetworkService<EndPoint: NetworkEndpoint> {
     private let session: Session
     private let responseHandler: ResponseHandlerProtocol
     private let errorMapper: ErrorMapperProtocol
+    private let authInterceptor: RequestInterceptor?
 
     public init(
         session: Session,
+        authInterceptor: RequestInterceptor? = AuthenticationInterceptor(),
         responseHandler: ResponseHandlerProtocol = ResponseHandler(),
         errorMapper: ErrorMapperProtocol = ErrorMapper()
     ) {
         self.session = session
         self.responseHandler = responseHandler
         self.errorMapper = errorMapper
+        self.authInterceptor = authInterceptor
     }
 
     public convenience init(
-        interceptor: RequestInterceptor? = nil,
+        interceptor: RequestInterceptor? = AuthenticationInterceptor(),
         eventMonitors: [EventMonitor] = [LoggingMonitor.init()],
         configuration: URLSessionConfiguration = .default
     ) {
         let session = Session(
             configuration: configuration,
-            interceptor: interceptor,
+            interceptor: nil,
             eventMonitors: eventMonitors
         )
-        self.init(session: session)
+        self.init(session: session, authInterceptor: interceptor)
     }
 }
 
@@ -57,7 +60,8 @@ public extension NetworkService {
                 method: endPoint.method,
                 parameters: body,
                 encoder: JSONParameterEncoder.default,
-                headers: endPoint.headers
+                headers: endPoint.headers,
+                interceptor: interceptor(for: endPoint)
             )
         case (_, let query?):
             let encoding = URLEncoding(arrayEncoding: .noBrackets)
@@ -66,13 +70,15 @@ public extension NetworkService {
                 method: endPoint.method,
                 parameters: query,
                 encoding: encoding,
-                headers: endPoint.headers
+                headers: endPoint.headers,
+                interceptor: interceptor(for: endPoint)
             )
         default:
             dataRequest = session.request(
                 url,
                 method: endPoint.method,
-                headers: endPoint.headers
+                headers: endPoint.headers,
+                interceptor: interceptor(for: endPoint)
             )
         }
 
@@ -96,6 +102,10 @@ public extension NetworkService {
 // MARK: - Response Handling Extension
 
 private extension NetworkService {
+    func interceptor(for endPoint: EndPoint) -> RequestInterceptor? {
+        endPoint.requiresInterceptor ? authInterceptor : nil
+    }
+
     func handleResponse<T: Decodable>(data: Data, response: HTTPURLResponse) async throws(NetworkError) -> T {
         return try await responseHandler.handle(data: data, response: response)
     }

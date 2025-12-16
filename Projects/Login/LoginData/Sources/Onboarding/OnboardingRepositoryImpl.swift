@@ -10,19 +10,24 @@ import Foundation
 
 import LivithNetwork
 import LoginDomain
-
-typealias OnboardingService = NetworkService<OnboardingEndpoint>
+import Persistence
 
 final class OnboardingRepositoryImpl {
     private let service: OnboardingService
     private let errorMapper: OnboardingErrorMapper
+    private let localStorage: LocalKeyValueStorage
+    private let tokenService: TokenService
     
     init(
-        service: OnboardingService = NetworkService(),
-        errorMapper: OnboardingErrorMapper = OnboardingErrorMapper()
+        service: OnboardingService = OnboardingService(),
+        errorMapper: OnboardingErrorMapper = OnboardingErrorMapper(),
+        localStorage: LocalKeyValueStorage = UserDefaultsStorage(),
+        tokenService: TokenService = TokenServiceImpl()
     ) {
         self.service = service
         self.errorMapper = errorMapper
+        self.localStorage = localStorage
+        self.tokenService = tokenService
     }
 }
 
@@ -31,55 +36,36 @@ final class OnboardingRepositoryImpl {
 extension OnboardingRepositoryImpl: OnboardingRepository {
     func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) -> Bool {
         do {
-            let response: BaseResponse<DTO.Response.CheckNicknameDuplicate> = try await service.request(
-                OnboardingEndpoint.checkNicknameDuplicate(nickname: nickname)
-            )
+            let response: DTO.Response.CheckNicknameDuplicate = try await service.request(.checkNicknameDuplicate(nickname: nickname))
             
-            guard let data = response.data else {
-                throw OnboardingError.unknown
-            }
-            
-            return data.available
-            
-        } catch let error as OnboardingError {
-            throw error
-        } catch let error as NetworkError {
-            throw errorMapper.mapToOnboardingError(error)
+            return response.available
         } catch {
-            throw OnboardingError.unknown
+            throw errorMapper.mapToDomainError(error)
         }
     }
 
-    func signup(nickname: String) async throws(OnboardingError) {
-        // TODO: OAuth provider 정보를 받아올 수 있는 구조로 개선 필요
-        // 현재는 임시로 하드코딩된 값 사용
-        let request = DTO.Request.CreateUser(
-            nickname: nickname,
-            marketingConsent: false,
-            providerID: "",
-            provider: "",
-            email: nil
-        )
-        
+    func signup(marketingConsent: Bool, nickname: String, tempUser: TempUser) async throws(OnboardingError) {
         do {
-            let response: BaseResponse<DTO.Response.CreateUser> = try await service.request(
-                OnboardingEndpoint.signup(request: request, client: "mobile")
+            let response: DTO.Response.Signup = try await service.request(
+                .signup(
+                    nickname: nickname,
+                    marketingConsent: marketingConsent,
+                    providerID: tempUser.providerID,
+                    provider: "\(tempUser.provider)",
+                    email: tempUser.email
+                )
             )
             
-            if let error = response.error {
-                throw OnboardingError.signupFailed(reason: error)
-            }
-            
-            // TODO: 토큰 저장 로직 추가 필요
-            // response.data?.accessToken
-            // response.data?.refreshToken
-            
-        } catch let error as OnboardingError {
-            throw error
-        } catch let error as NetworkError {
-            throw errorMapper.mapToOnboardingError(error)
+            try? localStorage.save("\(tempUser.provider)", for: LocalStorageKeys.lastLoginPlatform)
+
+            try localStorage.save(response.user, for: LocalStorageKeys.currentUser)
+
+            try await tokenService.saveToken(
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken
+            )
         } catch {
-            throw OnboardingError.unknown
+            throw errorMapper.mapToDomainError(error)
         }
     }
 }

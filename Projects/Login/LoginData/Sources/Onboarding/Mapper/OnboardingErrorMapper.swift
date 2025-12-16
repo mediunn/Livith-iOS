@@ -10,49 +10,31 @@ import Foundation
 
 import LivithNetwork
 import LoginDomain
+import Persistence
 
 struct OnboardingErrorMapper {
-    func mapToOnboardingError(_ networkError: NetworkError) -> OnboardingError {
-        switch networkError {
-        case .badRequest(let message):
-            guard let message = message else {
-                return .unknown
-            }
-            
-            if message == Literals.duplicateNicknameMessage {
-                return .nicknameDuplicated
-            }
-            
-            if message == Literals.invalidNicknameLengthMessage {
-                return .invalidNicknameFormat
-            }
-            
+    func mapToDomainError(_ error: Error) -> OnboardingError {
+        if let networkError = error as? NetworkError {
+            return mapToDomainError(networkError)
+        }
+
+        if let storageError = error as? StorageError {
             return .unknown
-            
-        case .notFound(let message):
-            if message == Literals.userNotFoundMessage {
-                return .unknown
-            }
-            return .unknown
+        }
         
+        return .unknown
+    }
+
+    private func mapToDomainError(_ error: NetworkError) -> OnboardingError {
+        switch error {
+        case .serverError:
+            return .serverError
         case .noConnection:
-            return .networkError
-            
-        case .invalidResponse, .noData:
-            return .networkError
-        
+            return .noConnection
+        case .badRequest:
+            return .invalidNicknameFormat
         default:
             return .unknown
         }
-    }
-}
-
-// MARK: - Literals
-
-private extension OnboardingErrorMapper {
-    enum Literals {
-        static let duplicateNicknameMessage = "이미 존재하는 닉네임이에요."
-        static let invalidNicknameLengthMessage = "nickname must be shorter than or equal to 10 characters"
-        static let userNotFoundMessage = "해당 유저가 존재하지 않습니다."
     }
 }

@@ -10,5 +10,5 @@ import Foundation
 
 public protocol OnboardingRepository {
     func checkNicknameDuplicate(_ nickname: String) async throws(OnboardingError) -> Bool
-    func signup(nickname: String) async throws(OnboardingError)
+    func signup(marketingConsent: Bool, nickname: String, tempUser: TempUser) async throws(OnboardingError)
 }

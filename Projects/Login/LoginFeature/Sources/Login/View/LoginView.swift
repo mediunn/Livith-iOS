@@ -9,8 +9,12 @@
 import SwiftUI
 
 import DSKit
+import LoginDomain
 
 struct LoginView: View {
+    @StateObject private var store = LoginStore()
+    @EnvironmentObject private var loginRouter: LoginRouter
+    
     var body: some View {
         ZStack {
             Color.livithColor(.black100)
@@ -23,6 +27,33 @@ struct LoginView: View {
                 
                 loginButtons
             }
+        }
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .alert(
+            Literals.errorAlertTitle,
+            isPresented: .constant(store.state.errorMessage != nil),
+            presenting: store.state.errorMessage
+        ) { _ in
+            Button(Literals.confirmButtonTitle) {
+                store.send(.onAppear)
+            }
+        } message: { errorMessage in
+            Text(errorMessage)
+        }
+        .onChange(of: store.state.status) { oldValue, newValue in
+            guard let loginStatus = newValue else { return }
+            handleLoginSuccess(loginStatus)
+        }
+    }
+    
+    private func handleLoginSuccess(_ status: LoginStatus) {
+        switch status {
+        case .existingUser:
+            loginRouter.completeAuthentication()
+        case .newUser(let tempUser):
+            loginRouter.push(.terms(tempUser))
         }
     }
 }
@@ -49,7 +80,7 @@ private extension LoginView {
     
     var loginButtons: some View {
         VStack(spacing: 20) {
-            CalloutChipView(text: Literals.greetingMessage, targetText: "모든 서비스 이용")
+            CalloutChipView(text: store.state.calloutMessage.text, targetText: store.state.calloutMessage.targetText)
                 .frame(width: 272, height: 36)
             
             VStack(spacing: 12) {
@@ -59,8 +90,7 @@ private extension LoginView {
                     textColor: Color(hex: "#14171b"),
                     icon: Image.livithIcon(.kakao)
                 ) {
-
-                    // TODO: 카카오 로그인 버튼 액션 구현
+                    store.send(.kakaoLogin)
                 }
                 
                 LoginButton(
@@ -69,9 +99,7 @@ private extension LoginView {
                     textColor: Color(hex: "#f2f4f6"),
                     icon: Image.livithIcon(.apple)
                 ) {
-                    
-                    // TODO: Apple 로그인 버튼 액션 구현
-                    
+                    store.send(.appleLogin)
                 }
             }
         }
@@ -81,26 +109,14 @@ private extension LoginView {
     }
 }
 
-// MARK: - Helpers
-
-private extension LoginView {
-    var window: UIWindow? {
-        UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first?.windows
-            .first(where: { $0.isKeyWindow })
-    }
-}
-
 // MARK: - Literals
 
 private extension LoginView {
     enum Literals {
         static let kakaoLoginTitle = "카카오로 계속하기"
         static let appleLoginTitle = "Apple로 계속하기"
-        static let greetingMessage = "회원가입하고 모든 서비스 이용해보세요!"
-        static let kakaoLoginMessage = "카카오로 최근에 로그인 했어요"
-        static let appleLoginMessage = "Apple로 최근에 로그인 했어요"
+        static let errorAlertTitle = "알림"
+        static let confirmButtonTitle = "확인"
     }
 }
 

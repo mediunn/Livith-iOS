@@ -12,7 +12,7 @@ import DSKit
 
 struct TermsView: View {
     @StateObject private var store = TermsStore()
-    @EnvironmentObject private var router: OnboardingRouter
+    @EnvironmentObject private var router: LoginRouter
     @Environment(\.openURL) private var openURL
     
     var body: some View {
@@ -53,9 +53,7 @@ private extension TermsView {
     var navigationBar: some View {
         HStack {
             Button {
-                
-                // TODO: 로그인 화면으로 이동
-                
+                router.pop()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))
@@ -133,6 +131,7 @@ private extension TermsView {
             Spacer()
             
             Button {
+                // TODO: 약관 URL 웹뷰 시트로 열기
                 guard let url = URL(string: Literals.termsURLString) else { return }
                 openURL(url)
             } label: {
@@ -160,7 +159,7 @@ private extension TermsView {
     
     var nextButton: some View {
         Button {
-            router.push(.nickname)
+            router.push(.nickname(store.state.isMarketingAgreed))
         } label: {
             Text(Literals.nextButtonText)
                 .notosans(.body2Medium)

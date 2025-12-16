@@ -1,5 +1,5 @@
 //
-//  NicknameValidationState.swift
+//  NicknameValidationStatus.swift
 //  LoginFeature
 //
 //  Created by 김진웅 on 11/10/25.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum NicknameValidationState {
+enum NicknameValidationStatus {
     case idle
     case valid
     case invalid
