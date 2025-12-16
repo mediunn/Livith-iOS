@@ -14,7 +14,7 @@ import LoginDomain
 import DSKit
 
 @MainActor
-final class LoginRouter: ObservableObject, Routing {
+final class LoginRouter: Router {
     typealias Route = LoginRoute
     
     @Published var path: NavigationPath = NavigationPath()

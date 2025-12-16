@@ -11,7 +11,7 @@ import Foundation
 import Routing
 import LoginDomain
 
-enum LoginRoute: Routable {
+enum LoginRoute: Route {
     case login
     case terms(TempUser)
     case nickname(Bool)
