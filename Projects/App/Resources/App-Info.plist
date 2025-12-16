@@ -47,5 +47,16 @@
 	</array>
 	<key>NATIVE_APP_KEY</key>
 	<string>$(NATIVE_APP_KEY)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakao$(NATIVE_APP_KEY)</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
