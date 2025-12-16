@@ -40,7 +40,7 @@ private extension KakaoLoginService {
         let completion = self.handleLoginResult(continuation: continuation)
         
         if KakaoUserAPI.isKakaoTalkLoginAvailable() {
-            KakaoUserAPI.shared.loginWithKakao(completion: completion)
+            KakaoUserAPI.shared.loginWithKakaoTalk(completion: completion)
         } else {
             KakaoUserAPI.shared.loginWithKakaoAccount(completion: completion)
         }

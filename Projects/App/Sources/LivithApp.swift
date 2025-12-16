@@ -18,6 +18,9 @@ struct LivithApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView()
+                .onOpenURL { url in
+                    openKakaoLoginURL(url)
+                }
         }
     }
 }
