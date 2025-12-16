@@ -120,6 +120,7 @@ public struct UserView: View {
         .sheet(isPresented: isSheetPresented) {
             if let url = overlayType.sheetURL {
                 SafariView(url: url)
+                    .ignoresSafeArea(edges: .bottom)
             }
         }
         .overlay {

@@ -16,6 +16,7 @@ enum LoginRoute: Routable {
     case terms(TempUser)
     case nickname(Bool)
     case signupFailed
+    case safari(URL)
     
     var id: String {
         switch self {
@@ -23,6 +24,7 @@ enum LoginRoute: Routable {
         case .terms: "terms"
         case .nickname: "nickname"
         case .signupFailed: "signupFailed"
+        case .safari: "safari"
         }
     }
 }

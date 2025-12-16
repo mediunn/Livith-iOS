@@ -11,6 +11,7 @@ import SwiftUI
 
 import Routing
 import LoginDomain
+import DSKit
 
 @MainActor
 final class LoginRouter: ObservableObject, Routing {
@@ -43,6 +44,14 @@ final class LoginRouter: ObservableObject, Routing {
             
         case .signupFailed:
             return AnyView(SignupFailedSheetView())
+            
+        case .safari(let url):
+            let safariView = SafariView(url: url) { [weak self] in
+                self?.dismissSheet()
+            }
+            .ignoresSafeArea()
+            
+            return AnyView(safariView)
         }
     }
     
