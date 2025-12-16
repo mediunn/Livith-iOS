@@ -18,7 +18,8 @@ let project = Project.make(
                 .login(.loginDomain),
                 .core(.diContainer),
                 .core(.livithNetwork),
-                .core(.auth)
+                .core(.auth),
+                .core(.persistence)
             ]
         ),
         .make(

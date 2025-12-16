@@ -67,8 +67,7 @@ struct NicknameSettingView: View {
         .onChange(of: store.state.signupStatus) { oldValue, newValue in
             switch newValue {
             case .success:
-                // TODO: 홈 화면으로 이동
-                break
+                router.completeAuthentication()
                 
             case .failure:
                 router.fullScreenCover(.signupFailed)

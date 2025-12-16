@@ -1,0 +1,14 @@
+//
+//  LocalStorageKeys.swift
+//  LoginData
+//
+//  Created by 김진웅 on 12/11/25.
+//  Copyright © 2025 Livith. All rights reserved.
+//
+
+import Foundation
+
+enum LocalStorageKeys {
+    static let lastLoginPlatform = "lastLoginPlatform"
+    static let currentUser = "currentUser"
+}

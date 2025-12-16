@@ -19,10 +19,12 @@ public protocol NetworkEndpoint {
     var headers: HTTPHeaders? { get }
     var query: [String: Any]? { get }
     var body: Encodable? { get }
+    var requiresInterceptor: Bool { get }
 }
 
 public extension NetworkEndpoint {
     var headers: HTTPHeaders? { .none }
     var query: [String: Any]? { .none }
     var body: Encodable? { .none }
+    var requiresInterceptor: Bool { true }
 }

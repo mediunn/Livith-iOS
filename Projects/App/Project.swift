@@ -19,7 +19,6 @@ let project = Project.make(
             infoPlist: .file(path: "Resources/App-Info.plist"),
             entitlements: .file(path: "Resources/Livith-iOS.entitlements"),
             dependencies: [
-                .dsKit(),
                 .login(.loginData),
                 .login(.loginFeature),
                 .home(.homeFeature),
@@ -28,7 +27,6 @@ let project = Project.make(
                 .search(.searchData),
                 .user(.userFeature),
                 .user(.userData),
-                .core(.diContainer)
             ]
         )
     ],

@@ -14,7 +14,11 @@ import Routing
 public struct LoginRootView: View {
     @StateObject private var router = LoginRouter()
     
-    public init() {}
+    private let onAuthenticationComplete: () -> Void
+    
+    public init(onAuthenticationComplete: @escaping () -> Void = {}) {
+        self.onAuthenticationComplete = onAuthenticationComplete
+    }
     
     public var body: some View {
         NavigationStack(path: $router.path) {
@@ -28,5 +32,10 @@ public struct LoginRootView: View {
             router.view(to: route, with: .fullScreen)
         }
         .environmentObject(router)
+        .onChange(of: router.authenticationCompleted) { completed in
+            if completed {
+                onAuthenticationComplete()
+            }
+        }
     }
 }

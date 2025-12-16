@@ -58,7 +58,7 @@ final class NicknameSettingStore: ObservableObject {
         case .confirmAlert:
             state.errorMessage = nil
             state.signupStatus = .idle
-        
+            
         case ._validationResult(let result):
             switch result {
             case .success:
@@ -74,7 +74,7 @@ final class NicknameSettingStore: ObservableObject {
                 
             case .failure(let error):
                 let onboardingError = error as? OnboardingError
-
+                
                 if onboardingError == .nicknameDuplicated {
                     state.nicknameValidationStatus = .duplicate
                 } else {
@@ -91,7 +91,7 @@ final class NicknameSettingStore: ObservableObject {
             case .failure(let error):
                 let onboardingError = error as? OnboardingError
                 let isRecoverableError = onboardingError == .invalidNicknameFormat || onboardingError == .nicknameDuplicated
-
+                
                 if isRecoverableError {
                     state.errorMessage = formatErrorMessage(error)
                 } else {
@@ -135,7 +135,11 @@ private extension NicknameSettingStore {
     func performSignup() {
         Task {
             do {
-                try await onboardingUseCase.signup(nickname: state.nickname)
+                try await onboardingUseCase.signup(
+                    marketingConsent: marketingConsent,
+                    nickname: state.nickname,
+                    tempUser: tempUser
+                )
                 await MainActor.run { send(._signupResult(.success(()))) }
             } catch {
                 await MainActor.run { send(._signupResult(.failure(error))) }

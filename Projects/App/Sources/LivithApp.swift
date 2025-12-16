@@ -1,28 +1,23 @@
 import SwiftUI
 
-import DSKit
-import LoginFeature
-
 import KakaoSDKCommon
 import KakaoSDKAuth
 
 @main
 struct LivithApp: App {
+    @State private var isLaunchScreenVisible = true
     
     // MARK: - LifeCycle
-
+    
     init() {
         registerDependency()
         
         initializeKakaoSDK()
     }
-
+    
     var body: some Scene {
         WindowGroup {
-            LoginRootView()
-                .onOpenURL { url in
-                    openKakaoLoginURL(url)
-                }
+            AppRootView()
         }
     }
 }

@@ -11,8 +11,9 @@ import Foundation
 public protocol TokenService: Sendable {
     func getAccessToken() async throws(TokenError) -> String
     func getRefreshToken() async throws(TokenError) -> String
+    func saveToken(accessToken: String, refreshToken: String) async throws(TokenError)
     func refresh() async throws(TokenError)
-    func removeTokens() async throws(TokenError)
+    func removeToken() async throws(TokenError)
     func isRefreshTokenExpired() async -> Bool
 }
 
@@ -44,6 +45,15 @@ public actor TokenServiceImpl: TokenService {
         }
     }
     
+    public func saveToken(accessToken: String, refreshToken: String) async throws(TokenError) {
+        do {
+            let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: .now)
+            try storage.save(token)
+        } catch {
+            throw TokenError.saveFailed
+        }
+    }
+
     public func refresh() async throws(TokenError) {
         do {
             try await performRefresh()
@@ -57,7 +67,7 @@ public actor TokenServiceImpl: TokenService {
         }
     }
     
-    public func removeTokens() async throws(TokenError) {
+    public func removeToken() async throws(TokenError) {
         do {
             try storage.remove()
         } catch {
@@ -80,6 +90,7 @@ private extension TokenServiceImpl {
         
         let task = Task<Void, Error> {
             let token = try self.storage.fetch()
+            print(">>> 토큰이 키체인에 있다. [\(#file) \(#line)] - \(token)")
             let response = try await self.refresher.refresh(with: token.refreshToken)
             
             let newToken = Token(
@@ -111,6 +122,6 @@ private extension TokenServiceImpl {
 
 // MARK: - Notification.Name Extension
 
-fileprivate extension Notification.Name {
+public extension Notification.Name {
     static let reloginRequired = Notification.Name("reloginRequired")
 }

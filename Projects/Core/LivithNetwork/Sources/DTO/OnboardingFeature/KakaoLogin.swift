@@ -1,36 +1,32 @@
 //
-//  KakaoLogin.swift
-//  LoginData
+//  RequestKakaoLogin.swift
+//  network
 //
-//  Created by 김진웅 on 12/5/25.
+//  Created by Youjin Lee on 10/14/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
-import Foundation
-
-import LivithNetwork
-
 // MARK: - 28. iOS 카카오 로그인
 
-extension DTO.Request {
+public extension DTO.Request {
     struct KakaoLogin: Encodable {
         let accessToken: String
     }
 }
 
-extension DTO.Response {
+public extension DTO.Response {
     struct KakaoLogin: Decodable {
-        let isNewUser: Bool
-        let accessToken: String?
-        let refreshToken: String?
-        let tempUser: TempUser?
+        public let isNewUser: Bool
+        public let accessToken: String?
+        public let refreshToken: String?
+        public let tempUser: TempUser?
         
         enum CodingKeys: String, CodingKey {
             case isNewUser, accessToken, refreshToken
             case tempUser = "tempUserData"
         }
         
-        init(from decoder: any Decoder) throws {
+        public init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: DTO.Response.KakaoLogin.CodingKeys.self)
             
             isNewUser = try container.decode(Bool.self, forKey: .isNewUser)
@@ -48,10 +44,10 @@ extension DTO.Response {
     }
 }
 
-extension DTO.Response.KakaoLogin {
+public extension DTO.Response.KakaoLogin {
     struct TempUser: Decodable {
-        let providerID: String
-        let provider: String
+        public let providerID: String
+        public let provider: String
         
         enum CodingKeys: String, CodingKey {
             case providerID = "providerId"

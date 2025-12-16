@@ -16,10 +16,12 @@ enum LoginIntent {
     case kakaoLogin
     case appleLogin
     case _loginResult(Result<LoginStatus, Error>)
+    case _setLastLoginPlatform(SocialLoginProvider?)
 }
 
 struct LoginState {
     var status: LoginStatus?
+    var lastLoginPlatform: SocialLoginProvider?
     var errorMessage: String?
 }
 
@@ -33,6 +35,7 @@ final class LoginStore: ObservableObject {
         case .onAppear:
             state.status = nil
             state.errorMessage = nil
+            performFetchLastLoginPlatform()
             
         case .kakaoLogin:
             performLogin(for: .kakao)
@@ -45,8 +48,12 @@ final class LoginStore: ObservableObject {
             case .success(let loginResult):
                 state.status = loginResult
             case .failure(let error):
+                // TODO: LoginError 중 forbidden 처리 -> 탈퇴 후 7일 이내 로그인 불가 알림
                 state.errorMessage = formatErrorMessage(from: error)
             }
+            
+        case ._setLastLoginPlatform(let value):
+            state.lastLoginPlatform = value
         }
     }
 }
@@ -64,17 +71,41 @@ private extension LoginStore {
             }
         }
     }
+
+    func performFetchLastLoginPlatform() {
+        Task {
+            let platform = try? await useCase.lastLoginPlatform()
+            await MainActor.run { send(._setLastLoginPlatform(platform)) }
+        }
+    }
     
     func formatErrorMessage(from error: Error) -> String? {
         guard let loginError = error as? LoginError else { return LoginError.unknown.errorDescription }
         
         switch loginError {
-        case .canceled:
+        case .canceled, .forbidden:
             return nil
-        case .noConnection, .serverError, .loginFailed:
+        case .noConnection, .serverError, .notFound:
             return loginError.errorDescription
         case .noData, .unknown:
             return LoginError.unknown.errorDescription
+        }
+    }
+}
+
+// MARK: - LoginState Extension
+
+extension LoginState {
+    typealias CalloutMessage = (text: String, targetText: String)
+    
+    var calloutMessage: CalloutMessage {
+        switch lastLoginPlatform {
+        case .apple:
+            return ("Apple로 최근에 로그인 했어요", "Apple")
+        case .kakao:
+            return ("카카오로 최근에 로그인 했어요", "카카오")
+        case .none:
+            return ("회원가입하고 모든 서비스 이용해보세요!", "모든 서비스 이용")
         }
     }
 }
