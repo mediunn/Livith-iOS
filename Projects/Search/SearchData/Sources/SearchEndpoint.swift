@@ -13,6 +13,8 @@ import Alamofire
 import LivithNetwork
 import SearchDomain
 
+public typealias SearchService = NetworkService<SearchEndpoint>
+
 public enum SearchEndpoint {
     case fetchFilterSearchResult(
         genre: [SearchDomain.ConcertGenre],

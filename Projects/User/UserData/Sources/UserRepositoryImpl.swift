@@ -29,22 +29,13 @@ public final class UserRepositoryImpl {
 extension UserRepositoryImpl: UserRepository {
     public func checkNicknameDuplicate(nickname: String) async throws(UserError) -> Bool {
         do {
-            let response: BaseResponse<DTO.Response.CheckNicknameDuplicate> = try await userService.request(
+            let response: DTO.Response.CheckNicknameDuplicate = try await userService.request(
                 UserEndpoint.checkNicknameDuplicate(nickname: nickname)
             )
             
-            guard let data = response.data else {
-                throw UserError.unknown
-            }
-            
-            return data.available
-            
-        } catch let error as UserError {
-            throw error
-        } catch let error as NetworkError {
+            return response.available
+        } catch let error{
             throw userErrorMapper.mapToUserError(error)
-        } catch {
-            throw UserError.unknown
         }
     }
     
@@ -52,21 +43,13 @@ extension UserRepositoryImpl: UserRepository {
         do {
             let request = DTO.Request.UpdateUserNickname(nickname: nickname)
             
-            let response: BaseResponse<DTO.Response.UpdateUserNickname> = try await userService.request(
+            let response: DTO.Response.UpdateUserNickname = try await userService.request(
                 UserEndpoint.updateUserNickname(request: request)
             )
             
-            guard let data = response.data else {
-                throw UserError.unknown
-            }
-            
-            return data.nickname
-        } catch let error as UserError {
-            throw error
-        } catch let error as NetworkError {
+            return response.nickname
+        } catch let error {
             throw userErrorMapper.mapToUserError(error)
-        } catch {
-            throw UserError.unknown
         }
     }
     
@@ -74,19 +57,11 @@ extension UserRepositoryImpl: UserRepository {
         do {
             let request = DTO.Request.DeleteUser(reason: reason)
             
-            let response: BaseResponse<DTO.Response.DeleteUser> = try await userService.request(
+            let _: DTO.Response.DeleteUser = try await userService.request(
                 UserEndpoint.deleteUser(request: request)
             )
-            
-            guard response.data != nil else {
-                throw UserError.unknown
-            }
-        } catch let error as UserError {
-            throw error
-        } catch let error as NetworkError {
+        } catch let error {
             throw userErrorMapper.mapToUserError(error)
-        } catch {
-            throw UserError.unknown
         }
     }
     

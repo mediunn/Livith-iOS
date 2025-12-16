@@ -1,4 +1,4 @@
-.PHONY: module module-delete module-rollback generate clean
+.PHONY: module module-delete module-rollback generate clean sync-dskit
 
 # 모듈 생성
 module:
@@ -19,3 +19,7 @@ generate:
 # Tuist clean
 clean:
 	@tuist clean
+
+# DSKit 에셋 동기화
+sync-dskit:
+	@./Scripts/sync-dskit.sh
