@@ -82,7 +82,7 @@ struct DeleteUserView: View {
                     isConfirmed = false
                 }
             }
-            .onChange(of: store.state.withdrawResult) { _, result in
+            .onChange(of: store.state.deleteUserResult) { _, result in
                 switch result {
                 case .idle:
                     break
@@ -126,7 +126,7 @@ private extension DeleteUserView {
                     },
                     onConfirm: {
                         showConfirmSheet = false
-                        store.send(.withdraw)
+                        store.send(.deleteUser)
                     }
                 )
             }
@@ -298,5 +298,5 @@ private extension DeleteUserView {
 }
 
 #Preview {
-    DeleteUserView()
+    DeleteUserView(store: DeleteUserStore())
 }

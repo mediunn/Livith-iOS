@@ -28,14 +28,14 @@ struct DeleteUserState {
     var selectedReasons: Set<DeleteUserReason> = []
     var otherReasonText: String = ""
     var isLoading: Bool = false
-    var withdrawResult: DeleteUserResult = .idle
+    var deleteUserResult: DeleteUserResult = .idle
 }
 
 enum DeleteUserIntent {
     case toggleReason(DeleteUserReason)
     case updateOtherReasonText(String)
-    case withdraw
-    case _setWithdrawResult(DeleteUserResult)
+    case deleteUser
+    case _setDeleteUserResult(DeleteUserResult)
 }
 
 final class DeleteUserStore: ObservableObject {
@@ -57,13 +57,13 @@ final class DeleteUserStore: ObservableObject {
                 state.otherReasonText = text
             }
 
-        case .withdraw:
-            state.withdrawResult = .idle
-            withdraw()
+        case .deleteUser:
+            state.deleteUserResult = .idle
+            performDeleteUser()
 
-        case ._setWithdrawResult(let result):
+        case ._setDeleteUserResult(let result):
             state.isLoading = false
-            state.withdrawResult = result
+            state.deleteUserResult = result
         }
     }
 
@@ -85,7 +85,7 @@ final class DeleteUserStore: ObservableObject {
 // MARK: - Helper
 
 private extension DeleteUserStore {
-    func withdraw() {
+    func performDeleteUser() {
         state.isLoading = true
 
         Task {
@@ -93,11 +93,11 @@ private extension DeleteUserStore {
                 // TODO: 실제 탈퇴 API 호출
                 try await Task.sleep(for: .seconds(1))
                 await MainActor.run {
-                    send(._setWithdrawResult(.success))
+                    send(._setDeleteUserResult(.success))
                 }
             } catch {
                 await MainActor.run {
-                    send(._setWithdrawResult(.failure(error.localizedDescription)))
+                    send(._setDeleteUserResult(.failure(error.localizedDescription)))
                 }
             }
         }
