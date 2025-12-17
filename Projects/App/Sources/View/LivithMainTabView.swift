@@ -57,7 +57,7 @@ public struct LivithMainTabView: View {
     // MARK: - Body
 
     public var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             Group {
                 switch selectedTab {
                 case .home:
@@ -70,8 +70,13 @@ public struct LivithMainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            if !isTabBarHidden { customTabBar }
+            if !isTabBarHidden {
+                customTabBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(1)
+            }
         }
+        .animation(.easeInOut(duration: 0.3), value: isTabBarHidden)
         .ignoresSafeArea(edges: .bottom)
     }
 }

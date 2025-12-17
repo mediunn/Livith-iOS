@@ -28,6 +28,9 @@ public struct LoginRootView: View {
                         .navigationBarHidden(true)
                 }
         }
+        .sheet(item: $router.sheet) { route in
+            router.view(to: route, with: .sheet)
+        }
         .fullScreenCover(item: $router.fullScreenCover) { route in
             router.view(to: route, with: .fullScreen)
         }

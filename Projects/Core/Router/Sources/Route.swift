@@ -1,5 +1,5 @@
 //
-//  Routable.swift
+//  Route.swift
 //  core
 //
 //  Created by 김진웅 on 10/12/25.
@@ -8,4 +8,4 @@
 
 import Foundation
 
-public protocol Routable: Hashable, Identifiable {}
+public protocol Route: Hashable, Identifiable {}

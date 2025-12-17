@@ -131,9 +131,8 @@ private extension TermsView {
             Spacer()
             
             Button {
-                // TODO: 약관 URL 웹뷰 시트로 열기
                 guard let url = URL(string: Literals.termsURLString) else { return }
-                openURL(url)
+                router.sheet(.safari(url))
             } label: {
                 Text(Literals.moreButtonText)
                     .notosans(.caption2Semibold)

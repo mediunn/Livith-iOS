@@ -1,5 +1,5 @@
 //
-//  Routing.swift
+//  Router.swift
 //  core
 //
 //  Created by 김진웅 on 10/12/25.
@@ -9,29 +9,29 @@
 import SwiftUI
 
 @MainActor
-public protocol Routing: AnyObject {
-    associatedtype Route: Routable
+public protocol Router: ObservableObject {
+    associatedtype R: Route
     
     var path: NavigationPath { get set }
-    var sheet: Route? { get set }
-    var fullScreenCover: Route? { get set }
+    var sheet: R? { get set }
+    var fullScreenCover: R? { get set }
     
     @ViewBuilder
-    func view(to route: Route, with style: PresentationStyle) -> AnyView
+    func view(to route: R, with style: PresentationStyle) -> AnyView
 }
 
-public extension Routing {
-    func push(_ page: Route...) {
+public extension Router {
+    func push(_ page: R...) {
         page.forEach {
             path.append($0)
         }
     }
     
-    func sheet(_ sheet: Route) {
+    func sheet(_ sheet: R) {
         self.sheet = sheet
     }
     
-    func fullScreenCover(_ fullScreenCover: Route) {
+    func fullScreenCover(_ fullScreenCover: R) {
         self.fullScreenCover = fullScreenCover
     }
     

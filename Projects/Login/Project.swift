@@ -32,7 +32,7 @@ let project = Project.make(
             dependencies: [
                 .login(.loginDomain),
                 .dsKit(),
-                .core(.routing),
+                .core(.router),
                 .core(.diContainer)
             ]
         )

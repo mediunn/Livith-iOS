@@ -33,7 +33,7 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.routing),
+            target: .core(.router),
             product: .framework
         ),
         .make(

@@ -87,7 +87,7 @@ public struct UserView: View {
                     .padding(.bottom, 12)
 
                 InfoListView(title: Literals.deleteAccount, type: .action, action: { deleteAccount() })
-                    .padding(.bottom, 34)
+                    .padding(.bottom, 50)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(backgroundGradient)
@@ -120,6 +120,7 @@ public struct UserView: View {
         .sheet(isPresented: isSheetPresented) {
             if let url = overlayType.sheetURL {
                 SafariView(url: url)
+                    .ignoresSafeArea(edges: .bottom)
             }
         }
         .overlay {
