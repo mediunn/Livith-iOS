@@ -9,7 +9,7 @@
 import Foundation
 import SwiftUI
 
-import Routing
+import Router
 
 public struct LoginRootView: View {
     @StateObject private var router = LoginRouter()

@@ -9,7 +9,7 @@
 import Foundation
 import SwiftUI
 
-import Routing
+import Router
 import LoginDomain
 import DSKit
 
