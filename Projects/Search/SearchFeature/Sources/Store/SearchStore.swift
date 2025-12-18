@@ -49,16 +49,14 @@ public enum SearchIntent {
     case _setConcertList([SearchDomain.ConcertEntity])
 }
 
-public final class SearchStore: ObservableObject {
+final class SearchStore: ObservableObject {
     private var searchTask: Task<Void, Never>?
     private var fetchTask: Task<Void, Never>?
     @Published private(set) var state = SearchState()
     @Injected private var repository: SearchRepository
 
-    public init() {}
-
     @MainActor
-    public func send(_ intent: SearchIntent) {
+    func send(_ intent: SearchIntent) {
         switch intent {
         case .viewDidLoad:
             fetchFilterSearchResult()

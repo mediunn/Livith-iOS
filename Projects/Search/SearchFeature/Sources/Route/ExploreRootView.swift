@@ -9,8 +9,15 @@
 import SwiftUI
 
 import Router
+
 public struct ExploreRootView: View {
     @StateObject private var router: ExploreRouter = ExploreRouter()
+
+    @Binding private var isTabBarHidden: Bool
+
+    public init(isTabBarHidden: Binding<Bool>) {
+        self._isTabBarHidden = isTabBarHidden
+    }
     
     public var body: some View {
         NavigationStack(path: $router.path) {
@@ -27,5 +34,8 @@ public struct ExploreRootView: View {
             router.view(to: route, with: .fullScreen)
         }
         .environmentObject(router)
+        .onChange(of: router.path) { oldValue, newValue in
+            isTabBarHidden = !newValue.isEmpty
+        }
     }
 }
