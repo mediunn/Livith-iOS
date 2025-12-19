@@ -8,7 +8,7 @@
 
 import Foundation
 
-import Routing
+import Router
 import LoginDomain
 
 enum LoginRoute: Route {

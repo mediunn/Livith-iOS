@@ -12,7 +12,7 @@ import SwiftUI
 import DSKit
 import SearchDomain
 
-public struct SearchView: View {
+struct SearchView: View {
 
     // MARK: - Property
 
@@ -24,7 +24,7 @@ public struct SearchView: View {
 
     // MARK: - Initializer
 
-    public init(store: SearchStore) {
+    init(store: SearchStore) {
         self.store = store
         
         store.send(.viewDidLoad)

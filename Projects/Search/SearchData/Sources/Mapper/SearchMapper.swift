@@ -15,13 +15,13 @@ public class SearchMapper {
     public init() { }
     
     func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResultEntity {
-        let concerts = response.data.compactMap { concert -> ConcertEntity? in
+        let concerts = response.data.compactMap { concert -> Concert? in
             guard let status = ConcertStatus(rawValue: concert.status),
                   let posterURL = URL(string: concert.posterURL) else {
                 return nil
             }
 
-            return ConcertEntity(
+            return Concert(
                 id: concert.id,
                 title: concert.title,
                 artist: concert.artist,

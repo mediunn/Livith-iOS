@@ -29,7 +29,7 @@ public struct SearchState {
 
     public var selectedGenreList: [SearchDomain.ConcertGenre] = []
     public var selectedStatusList: [SearchDomain.ConcertStatus] = []
-    public var searchedConcertList: [SearchDomain.ConcertEntity] = []
+    public var searchedConcertList: [SearchDomain.Concert] = []
 
     public init() {}
 }
@@ -46,19 +46,17 @@ public enum SearchIntent {
     
     case _setConcertActive(Bool)
     case _setErrorMessage(String)
-    case _setConcertList([SearchDomain.ConcertEntity])
+    case _setConcertList([SearchDomain.Concert])
 }
 
-public final class SearchStore: ObservableObject {
+final class SearchStore: ObservableObject {
     private var searchTask: Task<Void, Never>?
     private var fetchTask: Task<Void, Never>?
     @Published private(set) var state = SearchState()
     @Injected private var repository: SearchRepository
 
-    public init() {}
-
     @MainActor
-    public func send(_ intent: SearchIntent) {
+    func send(_ intent: SearchIntent) {
         switch intent {
         case .viewDidLoad:
             fetchFilterSearchResult()
