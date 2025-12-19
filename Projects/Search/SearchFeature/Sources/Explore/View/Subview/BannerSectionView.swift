@@ -29,7 +29,6 @@ struct BannerSectionView: View {
 				}
 			}
 			.tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-			.frame(height: 365)
 
 			BannerPageIndicator(
 				currentPage: currentPage,

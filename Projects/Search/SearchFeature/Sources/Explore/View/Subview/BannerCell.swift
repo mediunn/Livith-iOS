@@ -30,7 +30,7 @@ struct BannerCell: View {
                     .padding(.top, 12)
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 60)
+            .padding(.bottom, 52)
         }
     }
 }
@@ -44,9 +44,7 @@ private extension BannerCell {
                     case .empty:
                         Color.livithColor(.black80)
                     case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
+                        image.resizable()
                     case .failure:
                         Color.livithColor(.black80)
                     @unknown default:
@@ -104,7 +102,7 @@ private extension BannerCell {
     let description = "SwiftUI를 더 효과적으로 활용할 수 있는 다섯 가지 유용한 팁을 소개합니다."
     
     BannerCell(
-        imageURL: nil,
+        imageURL: url,
         category: category,
         title: title, 
         description: description
