@@ -15,7 +15,6 @@ struct ExploreSearchButton: View {
     
     var body: some View {
         Button {
-            // TODO: 검색 뷰로 이동
             onTap()
         } label: {
             HStack {
