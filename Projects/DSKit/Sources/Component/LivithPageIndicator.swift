@@ -1,20 +1,23 @@
 //
-//  BannerPageIndicator.swift
-//  SearchFeature
+//  LivithPageIndicator.swift
+//  DSKit
 //
-//  Created by 김진웅 on 12/19/25.
+//  Created by 김진웅 on 12/20/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
 import SwiftUI
 
-import DSKit
-
-struct BannerPageIndicator: View {
-    let currentPage: Int
-    let pageCount: Int
+public struct LivithPageIndicator: View {
+    private let currentPage: Int
+    private let pageCount: Int
     
-    var body: some View {
+    public init(currentPage: Int, pageCount: Int) {
+        self.currentPage = currentPage
+        self.pageCount = pageCount
+    }
+    
+    public var body: some View {
         HStack(spacing: 8) {
             ForEach(0..<pageCount, id: \.self) { index in
                 if index == currentPage {
@@ -33,9 +36,9 @@ struct BannerPageIndicator: View {
 
 #Preview {
     VStack(spacing: 20) {
-        BannerPageIndicator(currentPage: 0, pageCount: 5)
-        BannerPageIndicator(currentPage: 2, pageCount: 5)
-        BannerPageIndicator(currentPage: 4, pageCount: 5)
+        LivithPageIndicator(currentPage: 0, pageCount: 5)
+        LivithPageIndicator(currentPage: 2, pageCount: 5)
+        LivithPageIndicator(currentPage: 4, pageCount: 5)
     }
     .padding()
     .background(Color.black)

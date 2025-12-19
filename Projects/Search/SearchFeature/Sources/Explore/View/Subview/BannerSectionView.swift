@@ -29,12 +29,12 @@ struct BannerSectionView: View {
 				}
 			}
 			.tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-
-			BannerPageIndicator(
-				currentPage: currentPage,
-				pageCount: banners.count
-			)
-			.padding(.bottom, 16)
+            
+            LivithPageIndicator(
+                currentPage: currentPage,
+                pageCount: banners.count
+            )
+            .padding(.bottom, 16)
 		}
 	}
 }
