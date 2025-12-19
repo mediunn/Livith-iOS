@@ -29,7 +29,7 @@ struct ExploreView: View {
                 }).zIndex(2)
                 
                 ScrollView(showsIndicators: false) {
-                    bannerView
+                    BannerSectionView(currentPage: $currentPage, banners: banners)
 
                     ForEach(concertSections, id: \.id) { section in
                         ConcertSectionView(
@@ -51,32 +51,6 @@ struct ExploreView: View {
 }
 
 // MARK: - UIComponents
-
-private extension ExploreView {
-    var bannerView: some View {
-        ZStack(alignment: .bottom) {
-            TabView(selection: $currentPage) {
-                ForEach(Array(banners.enumerated()), id: \.element.id) { index, banner in
-                    BannerCell(
-                        imageURL: banner.imageURL,
-                        category: banner.category,
-                        title: banner.title,
-                        description: banner.description
-                    )
-                    .tag(index)
-                }
-            }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .frame(height: 365)
-            
-            BannerPageIndicator(
-                currentPage: currentPage,
-                pageCount: banners.count
-            )
-            .padding(.bottom, 16)
-        }
-    }
-}
 
 #Preview {
     ExploreView()
