@@ -41,17 +41,13 @@ private extension BannerCell {
             if let url = imageURL {
                 AsyncImage(url: url) { phase in
                     switch phase {
-                    case .empty:
-                        Color.livithColor(.black80)
                     case .success(let image):
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .clipped()
                             .frame(height: 365)
-                    case .failure:
-                        Color.livithColor(.black80)
-                    @unknown default:
+                    default:
                         Color.livithColor(.black80)
                     }
                 }
