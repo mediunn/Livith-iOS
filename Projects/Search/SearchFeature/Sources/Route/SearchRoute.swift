@@ -1,5 +1,5 @@
 //
-//  ExploreRoute.swift
+//  SearchRoute.swift
 //  SearchFeature
 //
 //  Created by 김진웅 on 12/18/25.
@@ -10,7 +10,7 @@ import Foundation
 
 import Router
 
-enum ExploreRoute: Route {
+enum SearchRoute: Route {
     case explore
     case search
 

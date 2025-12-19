@@ -63,7 +63,7 @@ public struct LivithMainTabView: View {
                 case .home:
                     HomeView()
                 case .search:
-                    ExploreRootView(isTabBarHidden: $isTabBarHidden)
+                    SearchRootView(isTabBarHidden: $isTabBarHidden)
                 case .my:
                     UserView(nickname: "유짐이", isTabBarHidden: $isTabBarHidden)
                 }

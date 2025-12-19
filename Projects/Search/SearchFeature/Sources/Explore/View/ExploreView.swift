@@ -12,7 +12,7 @@ import DSKit
 import SearchDomain
 
 struct ExploreView: View {
-    @EnvironmentObject private var router: ExploreRouter
+    @EnvironmentObject private var router: SearchRouter
     @State private var currentPage: Int = 0
     @State private var banners: [Banner] = Banner.mocks
     @State private var concertSections: [ConcertSection] = ConcertSection.mocks

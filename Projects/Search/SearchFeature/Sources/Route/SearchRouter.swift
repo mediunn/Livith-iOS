@@ -1,5 +1,5 @@
 //
-//  ExploreRouter.swift
+//  SearchRouter.swift
 //  SearchFeature
 //
 //  Created by 김진웅 on 12/18/25.
@@ -11,14 +11,14 @@ import SwiftUI
 import Router
 
 @MainActor
-final class ExploreRouter: Router {
-    typealias R = ExploreRoute
+final class SearchRouter: Router {
+    typealias R = SearchRoute
     
     @Published var path = NavigationPath()
     @Published var sheet: R?
     @Published var fullScreenCover: R?
     
-    func view(to route: ExploreRoute, with style: PresentationStyle) -> AnyView {
+    func view(to route: SearchRoute, with style: PresentationStyle) -> AnyView {
         switch route {
         case .explore:
             return AnyView(

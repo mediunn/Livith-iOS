@@ -1,5 +1,5 @@
 //
-//  ExploreRootView.swift
+//  SearchRootView.swift
 //  SearchFeature
 //
 //  Created by 김진웅 on 12/18/25.
@@ -10,8 +10,8 @@ import SwiftUI
 
 import Router
 
-public struct ExploreRootView: View {
-    @StateObject private var router: ExploreRouter = ExploreRouter()
+public struct SearchRootView: View {
+    @StateObject private var router: SearchRouter = SearchRouter()
 
     @Binding private var isTabBarHidden: Bool
 
@@ -22,7 +22,7 @@ public struct ExploreRootView: View {
     public var body: some View {
         NavigationStack(path: $router.path) {
             router.view(to: .explore, with: .push)
-                .navigationDestination(for: ExploreRoute.self) { route in
+                .navigationDestination(for: SearchRoute.self) { route in
                     router.view(to: route, with: .push)
                         .navigationBarHidden(true)
                 }
