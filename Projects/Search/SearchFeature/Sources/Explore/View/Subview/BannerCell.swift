@@ -58,14 +58,7 @@ private extension BannerCell {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
         .overlay {
-            LinearGradient(
-                stops: [
-                    Gradient.Stop(color: Color(red: 0.08, green: 0.09, blue: 0.11), location: 0.00),
-                    Gradient.Stop(color: Color(red: 0.08, green: 0.09, blue: 0.11).opacity(0), location: 1.00),
-                ],
-                startPoint: UnitPoint(x: 0.5, y: 1),
-                endPoint: UnitPoint(x: 0.5, y: 0)
-            )
+            BackgroundGradient()
         }
     }
     
