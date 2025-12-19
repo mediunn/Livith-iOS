@@ -9,26 +9,42 @@
 import SwiftUI
 
 import DSKit
+import SearchDomain
 
 struct ExploreView: View {
     @EnvironmentObject private var router: ExploreRouter
     @State private var currentPage: Int = 0
     @State private var banners: [Banner] = Banner.mocks
+    @State private var concertSections: [ConcertSection] = ConcertSection.mocks
     
     var body: some View {
         VStack {
             ExploreLogoView()
             
             ZStack(alignment: .top) {
-                ExploreSearchButton()
-                    .zIndex(2)
+                ExploreSearchButton(onTap: {
+                    
+                    // TODO: Router를 이용한 검색 화면 이동
+                    
+                }).zIndex(2)
                 
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     bannerView
+
+                    ForEach(concertSections, id: \.id) { section in
+                        ConcertSectionView(
+                            concertSection: section,
+                            onConcertTap: { concert in
+                                
+                                // TODO: Router를 이용한 콘서트 상세 화면 이동 + Concert 전달
+                                
+                            }
+                        )
+                        .padding(.top, 36)
+                        .padding(.leading, 16)
+                    }
                 }
             }
-            
-            Spacer()
         }
         .background(Color.livithColor(.black100))
     }

@@ -11,12 +11,12 @@ import SwiftUI
 import DSKit
 
 struct ExploreSearchButton: View {
-    @EnvironmentObject private var router: ExploreRouter
+    let onTap: () -> ()
     
     var body: some View {
         Button {
             // TODO: 검색 뷰로 이동
-//                router.push(.search)
+            onTap()
         } label: {
             HStack {
                 Text("찾고 있는 콘서트나 가수를 검색하세요")
@@ -43,6 +43,6 @@ struct ExploreSearchButton: View {
 }
 
 #Preview {
-    ExploreSearchButton()
+    ExploreSearchButton(onTap: { print("버튼이 눌렸다.") })
         .background(Color.livithColor(.black100))
 }
