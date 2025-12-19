@@ -125,7 +125,7 @@ private extension ExploreView {
     
     enum Constants {
         static let bannerHeight: CGFloat = 365
-        static let emptySpaceHeight: CGFloat = 120
+        static let emptySpaceHeight: CGFloat = 170
     }
 }
 
