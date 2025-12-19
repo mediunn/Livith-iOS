@@ -9,12 +9,12 @@
 import Foundation
 
 public struct SearchResultEntity {
-    public let concerts: [ConcertEntity]
+    public let concerts: [Concert]
     public let cursor: (value: String, id: Int)?
     public let totalCount: Int
 
     public init(
-        concerts: [ConcertEntity],
+        concerts: [Concert],
         cursor: (value: String, id: Int)?,
         totalCount: Int
     ) {

@@ -29,7 +29,7 @@ public struct SearchState {
 
     public var selectedGenreList: [SearchDomain.ConcertGenre] = []
     public var selectedStatusList: [SearchDomain.ConcertStatus] = []
-    public var searchedConcertList: [SearchDomain.ConcertEntity] = []
+    public var searchedConcertList: [SearchDomain.Concert] = []
 
     public init() {}
 }
@@ -46,7 +46,7 @@ public enum SearchIntent {
     
     case _setConcertActive(Bool)
     case _setErrorMessage(String)
-    case _setConcertList([SearchDomain.ConcertEntity])
+    case _setConcertList([SearchDomain.Concert])
 }
 
 final class SearchStore: ObservableObject {

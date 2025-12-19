@@ -14,8 +14,8 @@ extension ConcertSection {
     static var mocks: [Self] {
         let poster = URL(string: "https://fastly.picsum.photos/id/1074/108/158.jpg?hmac=Sn9-gBGPLl-20dRH7ZZ35sZOsAtEISWmitPKGuXkXQo")!
 
-        let popular: [ConcertEntity] = [
-            ConcertEntity(
+        let popular: [Concert] = [
+            Concert(
                 id: 101,
                 title: "IU H.E.R. Encore",
                 artist: "아이유",
@@ -30,7 +30,7 @@ extension ConcertSection {
                 introduction: "아이유 연말 앙코르 콘서트",
                 label: "HOT"
             ),
-            ConcertEntity(
+            Concert(
                 id: 102,
                 title: "BLACKPINK WORLD TOUR [BORN PINK]",
                 artist: "블랙핑크",
@@ -45,7 +45,7 @@ extension ConcertSection {
                 introduction: "블랙핑크 월드투어 서울 스페셜",
                 label: "추천"
             ),
-            ConcertEntity(
+            Concert(
                 id: 103,
                 title: "SEVENTEEN TOUR ‘FOLLOW’",
                 artist: "세븐틴",
@@ -60,7 +60,7 @@ extension ConcertSection {
                 introduction: "세븐틴 투어 서울",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 104,
                 title: "NCT NATION : To The World",
                 artist: "NCT",
@@ -75,7 +75,7 @@ extension ConcertSection {
                 introduction: "NCT 합동 콘서트",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 105,
                 title: "BTS MAP OF THE SOUL",
                 artist: "방탄소년단",
@@ -90,7 +90,7 @@ extension ConcertSection {
                 introduction: "BTS 월드투어 서울",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 106,
                 title: "Stray Kids 2nd Tour",
                 artist: "스트레이 키즈",
@@ -105,7 +105,7 @@ extension ConcertSection {
                 introduction: "스트레이 키즈 월드투어",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 107,
                 title: "TWICE 4th World Tour",
                 artist: "트와이스",
@@ -122,8 +122,8 @@ extension ConcertSection {
             )
         ]
 
-        let latest: [ConcertEntity] = [
-            ConcertEntity(
+        let latest: [Concert] = [
+            Concert(
                 id: 201,
                 title: "NewJeans Fan Concert",
                 artist: "뉴진스",
@@ -138,7 +138,7 @@ extension ConcertSection {
                 introduction: "뉴진스 팬 콘서트",
                 label: "NEW"
             ),
-            ConcertEntity(
+            Concert(
                 id: 202,
                 title: "AKMU CONCERT [HAPPENING]",
                 artist: "악동뮤지션",
@@ -153,7 +153,7 @@ extension ConcertSection {
                 introduction: "AKMU 겨울 콘서트",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 203,
                 title: "MeloMance Winter Tour",
                 artist: "멜로망스",
@@ -168,7 +168,7 @@ extension ConcertSection {
                 introduction: "감성 발라드 겨울 투어",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 204,
                 title: "ATEEZ Live in Seoul",
                 artist: "에이티즈",
@@ -183,7 +183,7 @@ extension ConcertSection {
                 introduction: "에이티즈 연말 콘서트",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 205,
                 title: "ITZY SHOWCASE",
                 artist: "있지",
@@ -198,7 +198,7 @@ extension ConcertSection {
                 introduction: "있지 단독 공연",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 206,
                 title: "GOT7 Fan Meeting",
                 artist: "GOT7",
@@ -213,7 +213,7 @@ extension ConcertSection {
                 introduction: "GOT7 팬미팅",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 207,
                 title: "Jannabi Winter Concert",
                 artist: "잔나비",
@@ -230,8 +230,8 @@ extension ConcertSection {
             )
         ]
 
-        let recommended: [ConcertEntity] = [
-            ConcertEntity(
+        let recommended: [Concert] = [
+            Concert(
                 id: 301,
                 title: "Ed Sheeran +",
                 artist: "Ed Sheeran",
@@ -246,7 +246,7 @@ extension ConcertSection {
                 introduction: "에드 쉬런 내한 공연",
                 label: "추천"
             ),
-            ConcertEntity(
+            Concert(
                 id: 302,
                 title: "Coldplay Music of the Spheres",
                 artist: "Coldplay",
@@ -261,7 +261,7 @@ extension ConcertSection {
                 introduction: "콜드플레이 내한 콘서트",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 303,
                 title: "ADELE: Weekends With Adele",
                 artist: "Adele",
@@ -276,7 +276,7 @@ extension ConcertSection {
                 introduction: "아델 단독 내한 공연",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 304,
                 title: "Bruno Mars Live",
                 artist: "Bruno Mars",
@@ -291,7 +291,7 @@ extension ConcertSection {
                 introduction: "브루노 마스 라이브 콘서트",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 305,
                 title: "Lana Del Rey Intimate",
                 artist: "Lana Del Rey",
@@ -306,7 +306,7 @@ extension ConcertSection {
                 introduction: "라나 델 레이 단독 공연",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 306,
                 title: "Dua Lipa Future Nostalgia",
                 artist: "Dua Lipa",
@@ -321,7 +321,7 @@ extension ConcertSection {
                 introduction: "듀아 리파 내한 공연",
                 label: nil
             ),
-            ConcertEntity(
+            Concert(
                 id: 307,
                 title: "John Legend Night",
                 artist: "John Legend",

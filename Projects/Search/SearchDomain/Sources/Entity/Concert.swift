@@ -1,5 +1,5 @@
 //
-//  ConcertEntity.swift
+//  Concert.swift
 //  search
 //
 //  Created by Youjin Lee on 10/27/25.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ConcertEntity: Hashable, Identifiable {
+public struct Concert: Hashable, Identifiable {
     public let id: Int
     public let title: String
     public let artist: String

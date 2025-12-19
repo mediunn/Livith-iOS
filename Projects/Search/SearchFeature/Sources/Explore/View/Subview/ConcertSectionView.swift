@@ -13,7 +13,7 @@ import SearchDomain
 
 struct ConcertSectionView: View {
     let concertSection: ConcertSection
-    let onConcertTap: ((ConcertEntity) -> Void)
+    let onConcertTap: ((Concert) -> Void)
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
