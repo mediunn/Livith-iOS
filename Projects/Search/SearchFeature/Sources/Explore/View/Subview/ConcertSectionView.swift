@@ -41,8 +41,3 @@ struct ConcertSectionView: View {
         }
     }
 }
-
-#Preview {
-    ConcertSectionView(concertSection: .mocks.first!, onConcertTap: { _ in })
-        .background(Color.livithColor(.black100))
-}

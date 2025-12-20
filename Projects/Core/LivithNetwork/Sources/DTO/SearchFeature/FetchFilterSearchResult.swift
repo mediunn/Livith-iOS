@@ -10,8 +10,6 @@
 
 import Foundation
 
-import LivithNetwork
-
 public extension DTO.Response {
     struct FetchFilterSearchResult: Decodable {
         public let data: [FilteredConcert]

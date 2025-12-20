@@ -9,6 +9,8 @@
 import Foundation
 
 public protocol SearchRepository {
+    func fetchBanners() async throws(SearchError) -> [Banner]
+    func fetchSections() async throws(SearchError) -> [ConcertSection]
     func fetchFilterSearchResult(
         genre: [ConcertGenre],
         sort: SearchSort?,
@@ -16,6 +18,6 @@ public protocol SearchRepository {
         keyword: String?,
         cursor: String?,
         size: Int?
-    ) async throws -> SearchResultEntity
-    func fetchRecommendedSearchResult(keyword: String) async throws -> [String]
+    ) async throws(SearchError) -> SearchResultEntity
+    func fetchRecommendedSearchResult(keyword: String) async throws(SearchError) -> [String]
 }
