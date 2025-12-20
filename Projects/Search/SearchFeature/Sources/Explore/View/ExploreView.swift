@@ -33,12 +33,29 @@ struct ExploreView: View {
             }
         }
         .background(Color.livithColor(.black100))
+        .alert(
+            "알림",
+            isPresented: .constant(store.state.errorMessage != nil),
+            presenting: store.state.errorMessage
+        ) { _ in
+            Button("확인") {
+                store.send(.onAlertConfirm)
+            }
+        } message: { errorMessage in
+            Text(errorMessage)
+        }
     }
 }
 
 // MARK: - UI Components
 
 private extension ExploreView {
+    var loadingIndicator: some View {
+        ProgressView()
+            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+            .scaleEffect(1.2)
+    }
+    
     var searchButton: some View {
         ExploreSearchButton(onTap: {
             // TODO: Router를 이용한 검색 화면 이동
@@ -48,6 +65,11 @@ private extension ExploreView {
     var scrollContent: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
+                if store.state.isLoading {
+                    loadingIndicator
+                        .padding(.vertical, 20)
+                }
+                
                 bannerView
                 
                 ForEach(store.state.concertSections, id: \.id) { section in

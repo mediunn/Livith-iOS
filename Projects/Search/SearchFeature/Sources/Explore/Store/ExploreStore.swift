@@ -14,7 +14,7 @@ import DIContainer
 enum ExploreIntent {
     case onRefresh
     case setCurrentPage(Int)
-    case setLoading(Bool)
+    case onAlertConfirm
     case _fetchBannersResult(Result<[Banner], Error>)
     case _fetchSectionsResult(Result<[ConcertSection], Error>)
 } 
@@ -32,6 +32,8 @@ final class ExploreStore: ObservableObject {
     
     @Injected private var repository: SearchRepository
 
+    private var fetchTask: Task<Void, Never>? = nil
+
     init() {
         fetchAll()
     }
@@ -47,27 +49,28 @@ final class ExploreStore: ObservableObject {
             state.errorMessage = nil
             
             fetchAll()
+        
         case .setCurrentPage(let page):
             state.currentPage = page
-
-        case .setLoading(let loading):
-            state.isLoading = loading
+            
+        case .onAlertConfirm:
+            state.errorMessage = nil
             
         case ._fetchBannersResult(let result):
+            state.isLoading = false
             switch result {
             case let .success(banners):
                 state.banners = banners
             case .failure(let error):
-                state.isLoading = false
                 state.errorMessage = errorMessage(from: error)
             }
             
         case ._fetchSectionsResult(let result):
+            state.isLoading = false
             switch result {
             case .success(let success):
                 state.concertSections = success
             case .failure(let error):
-                state.isLoading = false
                 state.errorMessage = errorMessage(from: error)
             }
         }
@@ -78,9 +81,9 @@ final class ExploreStore: ObservableObject {
 
 private extension ExploreStore {
     func fetchAll() {
-        Task {
-            await send(.setLoading(true))
+        fetchTask?.cancel()
 
+        fetchTask = Task {
             async let bannersTask = repository.fetchBanners()
             async let sectionsTask = repository.fetchSections()
 
@@ -88,7 +91,7 @@ private extension ExploreStore {
                 let banners = try await bannersTask
                 await send(._fetchBannersResult(.success(banners)))
             } catch is CancellationError {
-                await send(.setLoading(false))
+                return
             } catch {
                 await send(._fetchBannersResult(.failure(error)))
             }
@@ -97,7 +100,7 @@ private extension ExploreStore {
                 let sections = try await sectionsTask
                 await send(._fetchSectionsResult(.success(sections)))
             } catch is CancellationError {
-                await send(.setLoading(false))
+                return
             } catch {
                 await send(._fetchSectionsResult(.failure(error)))
             }
