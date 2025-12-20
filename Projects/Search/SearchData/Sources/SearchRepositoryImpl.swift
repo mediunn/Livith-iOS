@@ -11,21 +11,35 @@ import Foundation
 import LivithNetwork
 import SearchDomain
 
-public final class SearchRepositoryImpl {
+public struct SearchRepositoryImpl {
     private let service: SearchNetworkService
-    private let entityMapper: SearchMapper
+    private let entityMapper: SearchMapper = .init()
     private let errorMapper: SearchErrorMapper = .init()
 
-    public init(
-        service: SearchNetworkService = .init(),
-        entityMapper: SearchMapper = .init()
-    ) {
+    public init(service: SearchNetworkService = .init()) {
         self.service = service
-        self.entityMapper = entityMapper
     }
 }
 
 extension SearchRepositoryImpl: SearchRepository {
+    public func fetchBanners() async throws(SearchError) -> [Banner] {
+        do {
+            let response: DTO.Response.Banners = try await service.request(.fetchBanners)
+            return entityMapper.toDomain(from: response)
+        } catch {
+            throw errorMapper.mapToSearchError(error)
+        }
+    }
+    
+    public func fetchSections() async throws(SearchError) -> [ConcertSection] {
+        do {
+            let response: DTO.Response.Sections = try await service.request(.fetchSections)
+            return entityMapper.toDomain(from: response)
+        } catch {
+            throw errorMapper.mapToSearchError(error)
+        }
+    }
+    
     public func fetchFilterSearchResult(
         genre: [SearchDomain.ConcertGenre],
         sort: SearchDomain.SearchSort?,
@@ -33,7 +47,7 @@ extension SearchRepositoryImpl: SearchRepository {
         keyword: String?,
         cursor: String?,
         size: Int?
-    ) async throws -> SearchDomain.SearchResultEntity {
+    ) async throws(SearchError) -> SearchDomain.SearchResultEntity {
         do {
             let response: DTO.Response.FetchFilterSearchResult = try await service.request(
                 .fetchFilterSearchResult(
@@ -52,7 +66,7 @@ extension SearchRepositoryImpl: SearchRepository {
         }
     }
 
-    public func fetchRecommendedSearchResult(keyword: String) async throws -> [String] {
+    public func fetchRecommendedSearchResult(keyword: String) async throws(SearchError) -> [String] {
         do {
             let response: DTO.Response.FetchRecommendKeywordList = try await service.request(
                 .fetchRecommendedSearchResult(letter: keyword)
