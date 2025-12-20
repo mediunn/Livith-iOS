@@ -14,16 +14,10 @@ public extension DTO.Response {
     typealias Sections = [Section]
 
     struct Section: Decodable {
+        public typealias Concert = DTO.Response.FetchFilterSearchResult.FilteredConcert
+        
         public let id: Int
         public let sectionTitle: String
         public let concerts: [Concert]
-    }
-}
-
-public extension DTO.Response.Section {
-    struct Concert: Decodable {
-        
-        // TODO: Section에서 사용되는 콘서트 DTO 구현하기
-        
     }
 }
