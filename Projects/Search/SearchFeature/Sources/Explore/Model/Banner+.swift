@@ -8,13 +8,7 @@
 
 import Foundation
 
-struct Banner: Hashable, Identifiable {
-    let id: Int
-    let title: String
-    let description: String
-    let category: String
-    let imageURL: URL?
-}
+import SearchDomain
 
 extension Banner {
     static var mocks: [Self] {
@@ -57,4 +51,3 @@ extension Banner {
         ]
     }
 }
-
