@@ -1,5 +1,5 @@
 //
-//  FetchBannerList.swift
+//  Banners.swift
 //  network
 //
 //  Created by Youjin Lee on 10/14/25.
@@ -11,7 +11,7 @@
 import Foundation
 
 public extension DTO.Response {
-    typealias FetchBannerList = [Banner]
+    typealias Banners = [Banner]
 
     struct Banner: Decodable {
         public let id: Int

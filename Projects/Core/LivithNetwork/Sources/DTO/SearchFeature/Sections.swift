@@ -1,5 +1,5 @@
 //
-//  FetchSearchSectionList.swift
+//  Sections.swift
 //  network
 //
 //  Created by Youjin Lee on 10/14/25.
@@ -11,11 +11,19 @@
 import Foundation
 
 public extension DTO.Response {
-    typealias FetchSearchSectionList = [SearchSection]
+    typealias Sections = [Section]
 
-    struct SearchSection: Decodable {
+    struct Section: Decodable {
         public let id: Int
         public let sectionTitle: String
         public let concerts: [Concert]
+    }
+}
+
+public extension DTO.Response.Section {
+    struct Concert: Decodable {
+        
+        // TODO: Section에서 사용되는 콘서트 DTO 구현하기
+        
     }
 }

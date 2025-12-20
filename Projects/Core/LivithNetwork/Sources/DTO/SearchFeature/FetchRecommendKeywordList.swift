@@ -10,8 +10,6 @@
 
 import Foundation
 
-import LivithNetwork
-
 public extension DTO.Response {
     typealias FetchRecommendKeywordList = [String]
 }
