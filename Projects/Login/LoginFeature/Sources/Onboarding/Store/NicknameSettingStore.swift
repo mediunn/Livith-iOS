@@ -78,7 +78,7 @@ final class NicknameSettingStore: ObservableObject {
                     state.nicknameValidationStatus = .duplicate
                 } else {
                     state.nicknameValidationStatus = .valid
-                    state.errorMessage = formatErrorMessage(error)
+                    state.errorMessage = getErrorMessage(from: error)
                 }
             }
             
@@ -92,7 +92,7 @@ final class NicknameSettingStore: ObservableObject {
                 let isRecoverableError = onboardingError == .invalidNicknameFormat || onboardingError == .nicknameDuplicated
                 
                 if isRecoverableError {
-                    state.errorMessage = formatErrorMessage(error)
+                    state.errorMessage = getErrorMessage(from: error)
                 } else {
                     state.signupStatus = .failure
                 }
@@ -146,10 +146,11 @@ private extension NicknameSettingStore {
         }
     }
     
-    func formatErrorMessage(_ error: Error) -> String {
+    func getErrorMessage(from error: Error) -> String {
+        let unknownMessage = OnboardingError.unknown.errorDescription ?? ""
         guard let onboardingError = error as? OnboardingError else {
-            return OnboardingError.unknown.errorDescription
+            return unknownMessage
         }
-        return onboardingError.errorDescription
+        return onboardingError.errorDescription ?? unknownMessage
     }
 }

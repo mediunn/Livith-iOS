@@ -53,7 +53,7 @@ final class LoginStore: ObservableObject {
                 state.status = loginResult
             case .failure(let error):
                 // TODO: LoginError 중 forbidden 처리 -> 탈퇴 후 7일 이내 로그인 불가 알림
-                state.errorMessage = formatErrorMessage(from: error)
+                state.errorMessage = getErrorMessage(from: error)
             }
             
         case ._setLastLoginPlatform(let value):
@@ -83,16 +83,17 @@ private extension LoginStore {
         }
     }
     
-    func formatErrorMessage(from error: Error) -> String {
-        guard let loginError = error as? LoginError else { return LoginError.unknown.errorDescription }
-        
+    func getErrorMessage(from error: Error) -> String {
+        let unknownMessage = LoginError.unknown.errorDescription ?? ""
+        guard let loginError = error as? LoginError else { return unknownMessage }
+
         switch loginError {
         case .canceled, .forbidden:
             return ""
         case .noConnection, .serverError, .notFound:
-            return loginError.errorDescription
+            return loginError.errorDescription ?? unknownMessage
         case .noData, .unknown:
-            return LoginError.unknown.errorDescription
+            return unknownMessage
         }
     }
 }

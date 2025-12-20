@@ -108,15 +108,16 @@ private extension ExploreStore {
     }
 
     func getErrorMessage(from error: Error) -> String {
+        let unknownMessage = SearchError.unknown.errorDescription ?? ""
         guard let searchError = error as? SearchError else {
-            return SearchError.unknown.errorDescription
+            return unknownMessage
         }
 
         switch searchError {
         case .networkError, .serverError:
-            return searchError.errorDescription
+            return searchError.errorDescription ?? unknownMessage
         case .noSearchResult, .invalidResponse, .unknown:
-            return SearchError.unknown.errorDescription
+            return unknownMessage
         }
     }
 }
