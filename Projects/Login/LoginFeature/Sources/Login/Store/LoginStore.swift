@@ -15,6 +15,7 @@ enum LoginIntent {
     case onAppear
     case kakaoLogin
     case appleLogin
+    case setErrorMessage(String)
     case _loginResult(Result<LoginStatus, Error>)
     case _setLastLoginPlatform(SocialLoginProvider?)
 }
@@ -22,7 +23,7 @@ enum LoginIntent {
 struct LoginState {
     var status: LoginStatus?
     var lastLoginPlatform: SocialLoginProvider?
-    var errorMessage: String?
+    var errorMessage: String = ""
 }
 
 final class LoginStore: ObservableObject {
@@ -30,11 +31,12 @@ final class LoginStore: ObservableObject {
     
     @Injected private var useCase: LoginUseCase
     
+    @MainActor
     func send(_ intent: LoginIntent) {
         switch intent {
         case .onAppear:
             state.status = nil
-            state.errorMessage = nil
+            state.errorMessage = ""
             performFetchLastLoginPlatform()
             
         case .kakaoLogin:
@@ -43,13 +45,16 @@ final class LoginStore: ObservableObject {
         case .appleLogin:
             performLogin(for: .apple)
             
+        case .setErrorMessage(let message):
+            state.errorMessage = message
+            
         case ._loginResult(let result):
             switch result {
             case .success(let loginResult):
                 state.status = loginResult
             case .failure(let error):
                 // TODO: LoginError 중 forbidden 처리 -> 탈퇴 후 7일 이내 로그인 불가 알림
-                state.errorMessage = formatErrorMessage(from: error)
+                state.errorMessage = getErrorMessage(from: error)
             }
             
         case ._setLastLoginPlatform(let value):
@@ -65,9 +70,9 @@ private extension LoginStore {
         Task {
             do {
                 let loginResult = try await useCase.execute(for: socialProvider)
-                await MainActor.run { send(._loginResult(.success(loginResult))) }
+                await send(._loginResult(.success(loginResult)))
             } catch {
-                await MainActor.run { send(._loginResult(.failure(error))) }
+                await send(._loginResult(.failure(error)))
             }
         }
     }
@@ -75,20 +80,21 @@ private extension LoginStore {
     func performFetchLastLoginPlatform() {
         Task {
             let platform = try? await useCase.lastLoginPlatform()
-            await MainActor.run { send(._setLastLoginPlatform(platform)) }
+            await send(._setLastLoginPlatform(platform))
         }
     }
     
-    func formatErrorMessage(from error: Error) -> String? {
-        guard let loginError = error as? LoginError else { return LoginError.unknown.errorDescription }
-        
+    func getErrorMessage(from error: Error) -> String {
+        let unknownMessage = LoginError.unknown.errorDescription ?? ""
+        guard let loginError = error as? LoginError else { return unknownMessage }
+
         switch loginError {
         case .canceled, .forbidden:
-            return nil
+            return ""
         case .noConnection, .serverError, .notFound:
-            return loginError.errorDescription
+            return loginError.errorDescription ?? unknownMessage
         case .noData, .unknown:
-            return LoginError.unknown.errorDescription
+            return unknownMessage
         }
     }
 }

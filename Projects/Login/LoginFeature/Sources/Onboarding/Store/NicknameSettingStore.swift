@@ -15,14 +15,14 @@ struct NicknameSettingState {
     var nickname: String = ""
     var nicknameValidationStatus: NicknameValidationStatus = .idle
     var signupStatus: SignupStatus = .idle
-    var errorMessage: String?
+    var errorMessage: String = ""
 }
 
 enum NicknameSettingIntent {
     case updateNickname(String)
     case checkNicknameDuplicate
     case signup
-    case confirmAlert
+    case setErrorMessage(String)
     case _validationResult(Result<Void, Error>)
     case _duplicateCheckResult(Result<Void, Error>)
     case _signupResult(Result<Void, Error>)
@@ -41,6 +41,7 @@ final class NicknameSettingStore: ObservableObject {
         self.tempUser = tempUser
     }
     
+    @MainActor
     func send(_ intent: NicknameSettingIntent) {
         switch intent {
         case .updateNickname(let nickname):
@@ -55,9 +56,8 @@ final class NicknameSettingStore: ObservableObject {
             state.signupStatus = .loading
             performSignup()
             
-        case .confirmAlert:
-            state.errorMessage = nil
-            state.signupStatus = .idle
+        case .setErrorMessage(let message):
+            state.errorMessage = message
             
         case ._validationResult(let result):
             switch result {
@@ -79,7 +79,7 @@ final class NicknameSettingStore: ObservableObject {
                     state.nicknameValidationStatus = .duplicate
                 } else {
                     state.nicknameValidationStatus = .valid
-                    state.errorMessage = formatErrorMessage(error)
+                    state.errorMessage = getErrorMessage(from: error)
                 }
             }
             
@@ -93,7 +93,7 @@ final class NicknameSettingStore: ObservableObject {
                 let isRecoverableError = onboardingError == .invalidNicknameFormat || onboardingError == .nicknameDuplicated
                 
                 if isRecoverableError {
-                    state.errorMessage = formatErrorMessage(error)
+                    state.errorMessage = getErrorMessage(from: error)
                 } else {
                     state.signupStatus = .failure
                 }
@@ -114,9 +114,9 @@ private extension NicknameSettingStore {
         Task {
             do {
                 try onboardingUseCase.validateNicknameFormat(state.nickname)
-                await MainActor.run { send(._validationResult(.success(()))) }
+                await send(._validationResult(.success(())))
             } catch {
-                await MainActor.run { send(._validationResult(.failure(error))) }
+                await send(._validationResult(.failure(error)))
             }
         }
     }
@@ -125,9 +125,9 @@ private extension NicknameSettingStore {
         Task {
             do {
                 try await onboardingUseCase.checkNicknameDuplicate(state.nickname)
-                await MainActor.run { send(._duplicateCheckResult(.success(()))) }
+                await send(._duplicateCheckResult(.success(())))
             } catch {
-                await MainActor.run { send(._duplicateCheckResult(.failure(error))) }
+                await send(._duplicateCheckResult(.failure(error)))
             }
         }
     }
@@ -140,17 +140,18 @@ private extension NicknameSettingStore {
                     nickname: state.nickname,
                     tempUser: tempUser
                 )
-                await MainActor.run { send(._signupResult(.success(()))) }
+                await send(._signupResult(.success(())))
             } catch {
-                await MainActor.run { send(._signupResult(.failure(error))) }
+                await send(._signupResult(.failure(error)))
             }
         }
     }
     
-    func formatErrorMessage(_ error: Error) -> String? {
+    func getErrorMessage(from error: Error) -> String {
+        let unknownMessage = OnboardingError.unknown.errorDescription ?? ""
         guard let onboardingError = error as? OnboardingError else {
-            return OnboardingError.unknown.errorDescription
+            return unknownMessage
         }
-        return onboardingError.errorDescription
+        return onboardingError.errorDescription ?? unknownMessage
     }
 }

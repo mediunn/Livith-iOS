@@ -14,7 +14,7 @@ import DIContainer
 enum ExploreIntent {
     case onRefresh
     case setCurrentPage(Int)
-    case onAlertConfirm
+    case setErrorMessage(String)
     case _fetchBannersResult(Result<[Banner], Error>)
     case _fetchSectionsResult(Result<[ConcertSection], Error>)
 } 
@@ -24,7 +24,7 @@ struct ExploreState {
     var banners: [Banner] = []
     var concertSections: [ConcertSection] = []
     var isLoading: Bool = false
-    var errorMessage: String? = nil
+    var errorMessage: String = ""
 }
 
 final class ExploreStore: ObservableObject {
@@ -46,15 +46,15 @@ final class ExploreStore: ObservableObject {
             state.banners = []
             state.concertSections = []
             state.isLoading = true
-            state.errorMessage = nil
+            state.errorMessage = ""
             
             performFetchExploreData()
         
         case .setCurrentPage(let page):
             state.currentPage = page
             
-        case .onAlertConfirm:
-            state.errorMessage = nil
+        case .setErrorMessage(let message):
+            state.errorMessage = message
             
         case ._fetchBannersResult(let result):
             state.isLoading = false
@@ -107,16 +107,17 @@ private extension ExploreStore {
         }
     }
 
-    func getErrorMessage(from error: Error) -> String? {
+    func getErrorMessage(from error: Error) -> String {
+        let unknownMessage = SearchError.unknown.errorDescription ?? ""
         guard let searchError = error as? SearchError else {
-            return SearchError.unknown.errorDescription
+            return unknownMessage
         }
 
         switch searchError {
         case .networkError, .serverError:
-            return searchError.errorDescription
+            return searchError.errorDescription ?? unknownMessage
         case .noSearchResult, .invalidResponse, .unknown:
-            return SearchError.unknown.errorDescription
+            return unknownMessage
         }
     }
 }
