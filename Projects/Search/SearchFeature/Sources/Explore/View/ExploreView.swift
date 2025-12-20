@@ -35,11 +35,11 @@ struct ExploreView: View {
         .background(Color.livithColor(.black100))
         .livithToast(
             isPresented: Binding(
-                get: { store.state.errorMessage != nil },
-                set: { _ in store.send(.setErrorMessage(nil)) }
+                get: { !store.state.errorMessage.isEmpty },
+                set: { _ in store.send(.setErrorMessage("")) }
             ),
             type: .failure,
-            message: store.state.errorMessage ?? "",
+            message: store.state.errorMessage,
             duration: 2
         )
     }

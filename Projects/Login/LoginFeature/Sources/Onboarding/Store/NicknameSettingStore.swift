@@ -15,14 +15,14 @@ struct NicknameSettingState {
     var nickname: String = ""
     var nicknameValidationStatus: NicknameValidationStatus = .idle
     var signupStatus: SignupStatus = .idle
-    var errorMessage: String?
+    var errorMessage: String = ""
 }
 
 enum NicknameSettingIntent {
     case updateNickname(String)
     case checkNicknameDuplicate
     case signup
-    case confirmAlert
+    case setErrorMessage(String)
     case _validationResult(Result<Void, Error>)
     case _duplicateCheckResult(Result<Void, Error>)
     case _signupResult(Result<Void, Error>)
@@ -55,9 +55,8 @@ final class NicknameSettingStore: ObservableObject {
             state.signupStatus = .loading
             performSignup()
             
-        case .confirmAlert:
-            state.errorMessage = nil
-            state.signupStatus = .idle
+        case .setErrorMessage(let message):
+            state.errorMessage = message
             
         case ._validationResult(let result):
             switch result {
@@ -147,7 +146,7 @@ private extension NicknameSettingStore {
         }
     }
     
-    func formatErrorMessage(_ error: Error) -> String? {
+    func formatErrorMessage(_ error: Error) -> String {
         guard let onboardingError = error as? OnboardingError else {
             return OnboardingError.unknown.errorDescription
         }

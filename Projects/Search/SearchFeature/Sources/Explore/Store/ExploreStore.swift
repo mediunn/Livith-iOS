@@ -14,7 +14,7 @@ import DIContainer
 enum ExploreIntent {
     case onRefresh
     case setCurrentPage(Int)
-    case setErrorMessage(String?)
+    case setErrorMessage(String)
     case _fetchBannersResult(Result<[Banner], Error>)
     case _fetchSectionsResult(Result<[ConcertSection], Error>)
 } 
@@ -24,7 +24,7 @@ struct ExploreState {
     var banners: [Banner] = []
     var concertSections: [ConcertSection] = []
     var isLoading: Bool = false
-    var errorMessage: String? = nil
+    var errorMessage: String = ""
 }
 
 final class ExploreStore: ObservableObject {
@@ -46,7 +46,7 @@ final class ExploreStore: ObservableObject {
             state.banners = []
             state.concertSections = []
             state.isLoading = true
-            state.errorMessage = nil
+            state.errorMessage = ""
             
             performFetchExploreData()
         
@@ -107,7 +107,7 @@ private extension ExploreStore {
         }
     }
 
-    func getErrorMessage(from error: Error) -> String? {
+    func getErrorMessage(from error: Error) -> String {
         guard let searchError = error as? SearchError else {
             return SearchError.unknown.errorDescription
         }

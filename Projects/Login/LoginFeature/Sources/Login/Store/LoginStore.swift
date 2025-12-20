@@ -15,6 +15,7 @@ enum LoginIntent {
     case onAppear
     case kakaoLogin
     case appleLogin
+    case setErrorMessage(String)
     case _loginResult(Result<LoginStatus, Error>)
     case _setLastLoginPlatform(SocialLoginProvider?)
 }
@@ -22,7 +23,7 @@ enum LoginIntent {
 struct LoginState {
     var status: LoginStatus?
     var lastLoginPlatform: SocialLoginProvider?
-    var errorMessage: String?
+    var errorMessage: String = ""
 }
 
 final class LoginStore: ObservableObject {
@@ -34,7 +35,7 @@ final class LoginStore: ObservableObject {
         switch intent {
         case .onAppear:
             state.status = nil
-            state.errorMessage = nil
+            state.errorMessage = ""
             performFetchLastLoginPlatform()
             
         case .kakaoLogin:
@@ -42,6 +43,9 @@ final class LoginStore: ObservableObject {
             
         case .appleLogin:
             performLogin(for: .apple)
+            
+        case .setErrorMessage(let message):
+            state.errorMessage = message
             
         case ._loginResult(let result):
             switch result {
@@ -79,12 +83,12 @@ private extension LoginStore {
         }
     }
     
-    func formatErrorMessage(from error: Error) -> String? {
+    func formatErrorMessage(from error: Error) -> String {
         guard let loginError = error as? LoginError else { return LoginError.unknown.errorDescription }
         
         switch loginError {
         case .canceled, .forbidden:
-            return nil
+            return ""
         case .noConnection, .serverError, .notFound:
             return loginError.errorDescription
         case .noData, .unknown:

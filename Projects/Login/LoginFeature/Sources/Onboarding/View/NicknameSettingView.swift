@@ -52,17 +52,15 @@ struct NicknameSettingView: View {
             }
             .padding(.horizontal, 16)
         }
-        .alert(
-            Literals.errorAlertTitle,
-            isPresented: .constant(store.state.errorMessage != nil),
-            presenting: store.state.errorMessage
-        ) { _ in
-            Button(Literals.confirmButtonTitle) {
-                store.send(.confirmAlert)
-            }
-        } message: { errorMessage in
-            Text(errorMessage)
-        }
+        .livithToast(
+            isPresented: Binding(
+                get: { !store.state.errorMessage.isEmpty },
+                set: { _ in store.send(.setErrorMessage("")) }
+            ),
+            type: .failure,
+            message: store.state.errorMessage,
+            duration: 2
+        )
         .ignoresSafeArea(.all, edges: .bottom)
         .onChange(of: store.state.signupStatus) { oldValue, newValue in
             switch newValue {

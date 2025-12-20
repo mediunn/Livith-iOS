@@ -31,17 +31,15 @@ struct LoginView: View {
         .onAppear {
             store.send(.onAppear)
         }
-        .alert(
-            Literals.errorAlertTitle,
-            isPresented: .constant(store.state.errorMessage != nil),
-            presenting: store.state.errorMessage
-        ) { _ in
-            Button(Literals.confirmButtonTitle) {
-                store.send(.onAppear)
-            }
-        } message: { errorMessage in
-            Text(errorMessage)
-        }
+        .livithToast(
+            isPresented: Binding(
+                get: { !store.state.errorMessage.isEmpty },
+                set: { _ in store.send(.setErrorMessage("")) }
+            ),
+            type: .failure,
+            message: store.state.errorMessage,
+            duration: 2
+        )
         .onChange(of: store.state.status) { oldValue, newValue in
             guard let loginStatus = newValue else { return }
             handleLoginSuccess(loginStatus)
