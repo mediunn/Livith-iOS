@@ -41,6 +41,7 @@ final class NicknameSettingStore: ObservableObject {
         self.tempUser = tempUser
     }
     
+    @MainActor
     func send(_ intent: NicknameSettingIntent) {
         switch intent {
         case .updateNickname(let nickname):
@@ -113,9 +114,9 @@ private extension NicknameSettingStore {
         Task {
             do {
                 try onboardingUseCase.validateNicknameFormat(state.nickname)
-                await MainActor.run { send(._validationResult(.success(()))) }
+                await send(._validationResult(.success(())))
             } catch {
-                await MainActor.run { send(._validationResult(.failure(error))) }
+                await send(._validationResult(.failure(error)))
             }
         }
     }
@@ -124,9 +125,9 @@ private extension NicknameSettingStore {
         Task {
             do {
                 try await onboardingUseCase.checkNicknameDuplicate(state.nickname)
-                await MainActor.run { send(._duplicateCheckResult(.success(()))) }
+                await send(._duplicateCheckResult(.success(())))
             } catch {
-                await MainActor.run { send(._duplicateCheckResult(.failure(error))) }
+                await send(._duplicateCheckResult(.failure(error)))
             }
         }
     }
@@ -139,9 +140,9 @@ private extension NicknameSettingStore {
                     nickname: state.nickname,
                     tempUser: tempUser
                 )
-                await MainActor.run { send(._signupResult(.success(()))) }
+                await send(._signupResult(.success(())))
             } catch {
-                await MainActor.run { send(._signupResult(.failure(error))) }
+                await send(._signupResult(.failure(error)))
             }
         }
     }

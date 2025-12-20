@@ -31,6 +31,7 @@ final class LoginStore: ObservableObject {
     
     @Injected private var useCase: LoginUseCase
     
+    @MainActor
     func send(_ intent: LoginIntent) {
         switch intent {
         case .onAppear:
@@ -69,9 +70,9 @@ private extension LoginStore {
         Task {
             do {
                 let loginResult = try await useCase.execute(for: socialProvider)
-                await MainActor.run { send(._loginResult(.success(loginResult))) }
+                await send(._loginResult(.success(loginResult)))
             } catch {
-                await MainActor.run { send(._loginResult(.failure(error))) }
+                await send(._loginResult(.failure(error)))
             }
         }
     }
@@ -79,7 +80,7 @@ private extension LoginStore {
     func performFetchLastLoginPlatform() {
         Task {
             let platform = try? await useCase.lastLoginPlatform()
-            await MainActor.run { send(._setLastLoginPlatform(platform)) }
+            await send(._setLastLoginPlatform(platform))
         }
     }
     
