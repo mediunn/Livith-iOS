@@ -33,17 +33,15 @@ struct ExploreView: View {
             }
         }
         .background(Color.livithColor(.black100))
-        .alert(
-            "알림",
-            isPresented: .constant(store.state.errorMessage != nil),
-            presenting: store.state.errorMessage
-        ) { _ in
-            Button("확인") {
-                store.send(.onAlertConfirm)
-            }
-        } message: { errorMessage in
-            Text(errorMessage)
-        }
+        .livithToast(
+            isPresented: Binding(
+                get: { store.state.errorMessage != nil },
+                set: { _ in store.send(.setErrorMessage(nil)) }
+            ),
+            type: .failure,
+            message: store.state.errorMessage ?? "",
+            duration: 2
+        )
     }
 }
 

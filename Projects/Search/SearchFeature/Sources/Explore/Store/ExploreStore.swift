@@ -14,7 +14,7 @@ import DIContainer
 enum ExploreIntent {
     case onRefresh
     case setCurrentPage(Int)
-    case onAlertConfirm
+    case setErrorMessage(String?)
     case _fetchBannersResult(Result<[Banner], Error>)
     case _fetchSectionsResult(Result<[ConcertSection], Error>)
 } 
@@ -53,8 +53,8 @@ final class ExploreStore: ObservableObject {
         case .setCurrentPage(let page):
             state.currentPage = page
             
-        case .onAlertConfirm:
-            state.errorMessage = nil
+        case .setErrorMessage(let message):
+            state.errorMessage = message
             
         case ._fetchBannersResult(let result):
             state.isLoading = false
