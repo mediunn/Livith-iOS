@@ -35,7 +35,7 @@ final class ExploreStore: ObservableObject {
     private var fetchTask: Task<Void, Never>? = nil
 
     init() {
-        fetchAll()
+        performFetchExploreData()
     }
     
     @MainActor
@@ -48,7 +48,7 @@ final class ExploreStore: ObservableObject {
             state.isLoading = true
             state.errorMessage = nil
             
-            fetchAll()
+            performFetchExploreData()
         
         case .setCurrentPage(let page):
             state.currentPage = page
@@ -62,7 +62,7 @@ final class ExploreStore: ObservableObject {
             case let .success(banners):
                 state.banners = banners
             case .failure(let error):
-                state.errorMessage = errorMessage(from: error)
+                state.errorMessage = getErrorMessage(from: error)
             }
             
         case ._fetchSectionsResult(let result):
@@ -71,7 +71,7 @@ final class ExploreStore: ObservableObject {
             case .success(let success):
                 state.concertSections = success
             case .failure(let error):
-                state.errorMessage = errorMessage(from: error)
+                state.errorMessage = getErrorMessage(from: error)
             }
         }
     }
@@ -80,7 +80,7 @@ final class ExploreStore: ObservableObject {
 // MARK: - Helpers
 
 private extension ExploreStore {
-    func fetchAll() {
+    func performFetchExploreData() {
         fetchTask?.cancel()
 
         fetchTask = Task {
@@ -107,7 +107,7 @@ private extension ExploreStore {
         }
     }
 
-    func errorMessage(from error: Error) -> String? {
+    func getErrorMessage(from error: Error) -> String? {
         guard let searchError = error as? SearchError else {
             return SearchError.unknown.errorDescription
         }
