@@ -43,7 +43,7 @@ struct SearchMapper {
         )
     }
     
-    func toDomain(from response: DTO.Response.Banners) -> [Banner] {
+    func toDomain(from response: DTO.Response.FetchBannerList) -> [Banner] {
         response.map { banner in
             Banner(
                 id: banner.id,
@@ -55,7 +55,7 @@ struct SearchMapper {
         }
     }
     
-    func toDomain(from response: DTO.Response.Sections) -> [ConcertSection] {
+    func toDomain(from response: DTO.Response.FetchSectionList) -> [ConcertSection] {
         response.map { section in
             let concerts = section.concerts.compactMap { concert -> Concert? in
                 guard let status = ConcertStatus(rawValue: concert.status),

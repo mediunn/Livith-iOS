@@ -8,7 +8,7 @@
 
 import Foundation
 
-public typealias SearchNetworkService = NetworkService<SearchEndpoint>
+public typealias SearchService = NetworkService<SearchEndpoint>
 
 public enum SearchEndpoint {
     case fetchSections

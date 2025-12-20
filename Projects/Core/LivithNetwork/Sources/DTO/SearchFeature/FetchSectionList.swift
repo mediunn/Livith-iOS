@@ -1,5 +1,5 @@
 //
-//  Sections.swift
+//  FetchSectionList.swift
 //  network
 //
 //  Created by Youjin Lee on 10/14/25.
@@ -11,7 +11,7 @@
 import Foundation
 
 public extension DTO.Response {
-    typealias Sections = [Section]
+    typealias FetchSectionList = [Section]
 
     struct Section: Decodable {
         public typealias Concert = DTO.Response.FetchFilterSearchResult.FilteredConcert

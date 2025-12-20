@@ -12,11 +12,11 @@ import LivithNetwork
 import SearchDomain
 
 public struct SearchRepositoryImpl {
-    private let service: SearchNetworkService
+    private let service: SearchService
     private let entityMapper: SearchMapper = .init()
     private let errorMapper: SearchErrorMapper = .init()
 
-    public init(service: SearchNetworkService = .init()) {
+    public init(service: SearchService = .init()) {
         self.service = service
     }
 }
@@ -24,7 +24,7 @@ public struct SearchRepositoryImpl {
 extension SearchRepositoryImpl: SearchRepository {
     public func fetchBanners() async throws(SearchError) -> [Banner] {
         do {
-            let response: DTO.Response.Banners = try await service.request(.fetchBanners)
+            let response: DTO.Response.FetchBannerList = try await service.request(.fetchBanners)
             return entityMapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToSearchError(error)
@@ -33,7 +33,7 @@ extension SearchRepositoryImpl: SearchRepository {
     
     public func fetchSections() async throws(SearchError) -> [ConcertSection] {
         do {
-            let response: DTO.Response.Sections = try await service.request(.fetchSections)
+            let response: DTO.Response.FetchSectionList = try await service.request(.fetchSections)
             return entityMapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToSearchError(error)
