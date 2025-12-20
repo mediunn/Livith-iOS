@@ -12,12 +12,12 @@ import LivithNetwork
 import SearchDomain
 
 public final class SearchRepositoryImpl {
-    private let service: SearchService
+    private let service: SearchNetworkService
     private let entityMapper: SearchMapper
     private let errorMapper: SearchErrorMapper = .init()
 
     public init(
-        service: SearchService = .init(),
+        service: SearchNetworkService = .init(),
         entityMapper: SearchMapper = .init()
     ) {
         self.service = service
@@ -35,15 +35,16 @@ extension SearchRepositoryImpl: SearchRepository {
         size: Int?
     ) async throws -> SearchDomain.SearchResultEntity {
         do {
-            let endpoint = SearchEndpoint.fetchFilterSearchResult(
-                genre: genre,
-                sort: sort,
-                status: status,
-                keyword: keyword,
-                cursor: cursor,
-                size: size
+            let response: DTO.Response.FetchFilterSearchResult = try await service.request(
+                .fetchFilterSearchResult(
+                    genre: genre.map(\.rawValue),
+                    sort: sort.map(\.rawValue),
+                    status: status.map(\.rawValue),
+                    keyword: keyword,
+                    cursor: cursor,
+                    size: size
+                )
             )
-            let response: DTO.Response.FetchFilterSearchResult = try await service.request(endpoint)
 
             return entityMapper.toDomain(from: response)
         } catch let error {
@@ -53,8 +54,9 @@ extension SearchRepositoryImpl: SearchRepository {
 
     public func fetchRecommendedSearchResult(keyword: String) async throws -> [String] {
         do {
-            let endpoint = SearchEndpoint.fetchRecommendedSearchResult(letter: keyword)
-            let response: DTO.Response.FetchRecommendKeywordList = try await service.request(endpoint)
+            let response: DTO.Response.FetchRecommendKeywordList = try await service.request(
+                .fetchRecommendedSearchResult(letter: keyword)
+            )
 
             return response
         } catch let error {
