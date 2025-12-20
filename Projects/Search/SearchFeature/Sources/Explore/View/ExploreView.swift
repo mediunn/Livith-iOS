@@ -13,11 +13,8 @@ import SearchDomain
 
 struct ExploreView: View {
     @EnvironmentObject private var router: SearchRouter
-    @State private var currentPage: Int = 0
-    @State private var banners: [Banner] = Banner.mocks
-    @State private var concertSections: [ConcertSection] = ConcertSection.mocks
+    @StateObject private var store: ExploreStore = ExploreStore()
     @State private var scrollOffset: CGFloat = 0
-    @State private var isRefreshing: Bool = false
     
     var body: some View {
         VStack {
@@ -53,7 +50,7 @@ private extension ExploreView {
             VStack(spacing: 0) {
                 bannerView
                 
-                ForEach(concertSections, id: \.id) { section in
+                ForEach(store.state.concertSections, id: \.id) { section in
                     concertSectionRow(for: section)
                         .padding(.top, 36)
                         .padding(.leading, 16)
@@ -64,22 +61,26 @@ private extension ExploreView {
         }
         .coordinateSpace(name: Literals.scrollCoordinateName)
         .refreshable {
-            await refreshContent()
-            
-            // TODO: 데이터 다시 받아오기
+            store.send(.onRefresh)
         }
     }
     
     var bannerView: some View {
-        BannerSectionView(currentPage: $currentPage, banners: banners)
-            .frame(height: Constants.bannerHeight)
-            .background(
-                GeometryReader { proxy in
-                    Color.clear.onChange(of: proxy.frame(in: .named(Literals.scrollCoordinateName)).minY) {
-                        scrollOffset = -proxy.frame(in: .named(Literals.scrollCoordinateName)).minY
-                    }
+        BannerSectionView(
+            currentPage: Binding(
+                get: { store.state.currentPage },
+                set: { store.send(.setCurrentPage($0)) }
+            ),
+            banners: store.state.banners
+        )
+        .frame(height: Constants.bannerHeight)
+        .background(
+            GeometryReader { proxy in
+                Color.clear.onChange(of: proxy.frame(in: .named(Literals.scrollCoordinateName)).minY) {
+                    scrollOffset = -proxy.frame(in: .named(Literals.scrollCoordinateName)).minY
                 }
-            )
+            }
+        )
     }
     
     func concertSectionRow(for section: ConcertSection) -> some View {
@@ -89,18 +90,6 @@ private extension ExploreView {
                 // TODO: Router를 이용한 콘서트 상세 화면 이동 + Concert 전달
             }
         )
-    }
-    
-    private func refreshContent() async {
-        isRefreshing = true
-        
-        try? await Task.sleep(for: .milliseconds(100000))
-        
-        banners = Banner.mocks
-        concertSections = ConcertSection.mocks
-        currentPage = 0
-        
-        isRefreshing = false
     }
 }
 
@@ -127,8 +116,4 @@ private extension ExploreView {
         static let bannerHeight: CGFloat = 365
         static let emptySpaceHeight: CGFloat = 210
     }
-}
-
-#Preview {
-    ExploreView()
 }
