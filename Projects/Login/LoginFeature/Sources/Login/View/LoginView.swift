@@ -13,7 +13,7 @@ import LoginDomain
 
 struct LoginView: View {
     @StateObject private var store = LoginStore()
-    @EnvironmentObject private var loginRouter: LoginRouter
+    @EnvironmentObject private var router: LoginRouter
     
     var body: some View {
         ZStack {
@@ -46,11 +46,11 @@ struct LoginView: View {
     private func handleLoginSuccess(_ status: LoginStatus) {
         switch status {
         case .existingUser:
-            loginRouter.completeAuthentication()
+            router.completeLogin()
         case .newUser(let tempUser):
-            loginRouter.push(.terms(tempUser))
+            router.push(.terms(tempUser))
         case .forbidden:
-            loginRouter.fullScreenCover(.loginForbidden)
+            router.fullScreenCover(.loginForbidden)
         }
     }
 }

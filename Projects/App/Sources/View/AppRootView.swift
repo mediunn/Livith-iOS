@@ -50,7 +50,13 @@ private extension AppRootView {
                     withAnimation(.easeInOut(duration: Constants.animationDuration)) {
                         currentRoute = .main
                     }
+                } onSignupCompleted: { nickname in
+                    withAnimation(.easeInOut(duration: Constants.animationDuration)) {
+                        currentRoute = .main
+                    }
+                    // TODO: 닉네임을 바탕으로 환영 UI 띄우도록 도모
                 }
+
             case .main:
                 LivithMainTabView()
             }

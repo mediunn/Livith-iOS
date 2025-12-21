@@ -20,7 +20,17 @@ final class LoginRouter: Router {
     @Published var path: NavigationPath = NavigationPath()
     @Published var sheet: Route?
     @Published var fullScreenCover: Route?
-    @Published var authenticationCompleted: Bool = false
+    
+    private let onLoginCompleted: () -> Void
+    private let onSignupCompleted: (String) -> Void
+
+    init(
+        onLoginCompleted: @escaping () -> Void = {},
+        onSignupCompleted: @escaping (String) -> Void = { _ in }
+    ) {
+        self.onLoginCompleted = onLoginCompleted
+        self.onSignupCompleted = onSignupCompleted
+    }
     
     private var tempUser: TempUser?
     
@@ -73,8 +83,12 @@ final class LoginRouter: Router {
             return AnyView(safariView)
         }
     }
-    
-    func completeAuthentication() {
-        authenticationCompleted = true
+
+    func completeLogin() {
+        onLoginCompleted()
+    }
+
+    func completeSignup(nickname: String) {
+        onSignupCompleted(nickname)
     }
 }
