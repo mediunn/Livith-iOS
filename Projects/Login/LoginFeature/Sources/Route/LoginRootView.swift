@@ -12,12 +12,18 @@ import SwiftUI
 import Router
 
 public struct LoginRootView: View {
-    @StateObject private var router = LoginRouter()
-    
-    private let onAuthenticationComplete: () -> Void
-    
-    public init(onAuthenticationComplete: @escaping () -> Void = {}) {
-        self.onAuthenticationComplete = onAuthenticationComplete
+    @StateObject private var router: LoginRouter
+
+    public init(
+        onLoginCompleted: @escaping () -> Void,
+        onSignupCompleted: @escaping (String) -> Void
+    ) {
+        _router = StateObject(
+            wrappedValue: LoginRouter(
+                onLoginCompleted: onLoginCompleted,
+                onSignupCompleted: onSignupCompleted
+            )
+        )
     }
     
     public var body: some View {
@@ -35,10 +41,5 @@ public struct LoginRootView: View {
             router.view(to: route, with: .fullScreen)
         }
         .environmentObject(router)
-        .onChange(of: router.authenticationCompleted) { completed in
-            if completed {
-                onAuthenticationComplete()
-            }
-        }
     }
 }

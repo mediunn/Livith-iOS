@@ -65,7 +65,7 @@ struct NicknameSettingView: View {
         .onChange(of: store.state.signupStatus) { oldValue, newValue in
             switch newValue {
             case .success:
-                router.completeAuthentication()
+                router.completeSignup(nickname: store.state.nickname)
                 
             case .failure:
                 router.fullScreenCover(.signupFailed)

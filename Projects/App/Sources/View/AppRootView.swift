@@ -15,6 +15,7 @@ import Persistence
 struct AppRootView: View {
     @State private var currentRoute: AppRoute?
     @State private var isLaunchScreenVisible: Bool = true
+    @State private var welcomeNickname: String?
     
     private let localKeyValueStorage: LocalKeyValueStorage
     
@@ -26,9 +27,11 @@ struct AppRootView: View {
         ZStack {
             contentView()
             splashOverlay()
+            welcomeSheetOverlay()
         }
         .animation(.easeInOut(duration: Constants.animationDuration), value: isLaunchScreenVisible)
         .animation(.easeInOut(duration: Constants.animationDuration), value: currentRoute)
+        .animation(.easeInOut(duration: Constants.animationDuration), value: welcomeNickname)
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { _ in
             currentRoute = .login
         }
@@ -50,7 +53,10 @@ private extension AppRootView {
                     withAnimation(.easeInOut(duration: Constants.animationDuration)) {
                         currentRoute = .main
                     }
+                } onSignupCompleted: { nickname in
+                    handleSignupCompleted(nickname: nickname)
                 }
+
             case .main:
                 LivithMainTabView()
             }
@@ -67,7 +73,27 @@ private extension AppRootView {
                 .zIndex(1)
         }
     }
+
+    @ViewBuilder
+    func welcomeSheetOverlay() -> some View {
+        if let nickname = welcomeNickname {
+            WelcomeSheetView(nickname: nickname) {
+                withAnimation(.easeInOut(duration: Constants.animationDuration)) {
+                    welcomeNickname = nil
+                }
+            }
+            .transition(.opacity)
+            .zIndex(2)
+        }
+    }
     
+    func handleSignupCompleted(nickname: String) {
+        withAnimation(.easeInOut(duration: Constants.animationDuration)) {
+            currentRoute = .main
+        }
+        welcomeNickname = nickname
+    }
+
     func handleOnAppear() {
         checkInitialRoute()
 
