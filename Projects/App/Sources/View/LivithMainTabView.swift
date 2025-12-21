@@ -58,15 +58,18 @@ public struct LivithMainTabView: View {
 
     public var body: some View {
         ZStack(alignment: .bottom) {
-            Group {
-                switch selectedTab {
-                case .home:
-                    HomeView()
-                case .search:
-                    SearchRootView(isTabBarHidden: $isTabBarHidden)
-                case .my:
-                    UserView(nickname: "유짐이", isTabBarHidden: $isTabBarHidden)
-                }
+            TabView(selection: $selectedTab) {
+                HomeView()
+                    .tag(Tab.home)
+                    .toolbar(.hidden, for: .tabBar)
+                
+                SearchRootView(isTabBarHidden: $isTabBarHidden)
+                    .tag(Tab.search)
+                    .toolbar(.hidden, for: .tabBar)
+                
+                UserView(nickname: "유지미", isTabBarHidden: $isTabBarHidden)
+                    .tag(Tab.my)
+                    .toolbar(.hidden, for: .tabBar)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -77,6 +80,7 @@ public struct LivithMainTabView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: isTabBarHidden)
+        .animation(.easeInOut(duration: 0.3), value: selectedTab)
         .ignoresSafeArea(edges: .bottom)
     }
 }
