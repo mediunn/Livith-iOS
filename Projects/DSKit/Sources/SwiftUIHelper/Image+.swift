@@ -154,6 +154,8 @@ public extension Image {
     enum LivithImage {
         case livithLogo, livithEmpty
         case splash, feedback
+        case polygon
+        case welcome
         
         public var image: Image {
             switch self {
@@ -165,6 +167,10 @@ public extension Image {
                 DSKitAsset.ImageAssets.imageSplash.swiftUIImage
             case .feedback:
                 DSKitAsset.ImageAssets.btnFeedback.swiftUIImage
+            case .polygon:
+                DSKitAsset.ImageAssets.imagePolygon.swiftUIImage
+            case .welcome:
+                DSKitAsset.ImageAssets.imageWelcome.swiftUIImage
             }
         }
     }
