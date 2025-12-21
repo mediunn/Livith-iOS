@@ -28,9 +28,6 @@ struct LoginView: View {
                 loginButtons
             }
         }
-        .onAppear {
-            store.send(.onAppear)
-        }
         .livithToast(
             isPresented: Binding(
                 get: { !store.state.errorMessage.isEmpty },
@@ -52,6 +49,8 @@ struct LoginView: View {
             loginRouter.completeAuthentication()
         case .newUser(let tempUser):
             loginRouter.push(.terms(tempUser))
+        case .forbidden:
+            loginRouter.fullScreenCover(.loginForbidden)
         }
     }
 }
