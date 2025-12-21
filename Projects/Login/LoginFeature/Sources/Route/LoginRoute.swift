@@ -13,6 +13,7 @@ import LoginDomain
 
 enum LoginRoute: Route {
     case login
+    case loginForbidden
     case terms(TempUser)
     case nickname(Bool)
     case signupFailed
@@ -21,6 +22,7 @@ enum LoginRoute: Route {
     var id: String {
         switch self {
         case .login: "login"
+        case .loginForbidden: "loginForbidden"
         case .terms: "terms"
         case .nickname: "nickname"
         case .signupFailed: "signupFailed"

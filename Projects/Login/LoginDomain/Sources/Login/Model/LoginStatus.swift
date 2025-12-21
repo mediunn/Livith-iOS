@@ -11,4 +11,5 @@ import Foundation
 public enum LoginStatus: Equatable {
     case existingUser
     case newUser(tempUser: TempUser)
+    case forbidden
 }

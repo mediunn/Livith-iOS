@@ -21,7 +21,11 @@ public final class LoginUseCaseImpl: LoginUseCase {
     }
     
     public func execute(for provider: SocialLoginProvider) async throws(LoginError) -> LoginStatus {
-        return try await repository.login(for: provider)
+        do {
+            return try await repository.login(for: provider)
+        } catch .forbidden {
+            return .forbidden
+        }
     }
 
     public func lastLoginPlatform() async throws(LoginError) -> SocialLoginProvider {

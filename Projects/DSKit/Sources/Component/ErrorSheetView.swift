@@ -9,14 +9,25 @@
 import SwiftUI
 
 public struct ErrorSheetView: View {
+    public typealias ConfirmAction = () -> ()
+    
     private let title: String
     private let message: String
+    private let confirmTitle: String
+    private let onConfirm: ConfirmAction?
     
     @State private var isVisible: Bool = false
     
-    public init(title: String, message: String) {
+    public init(
+        title: String,
+        message: String,
+        confirmTitle: String = "확인",
+        onConfirm: ConfirmAction? = nil
+    ) {
         self.title = title
         self.message = message
+        self.confirmTitle = confirmTitle
+        self.onConfirm = onConfirm
     }
     
     public var body: some View {
@@ -47,9 +58,13 @@ public struct ErrorSheetView: View {
                         }
                         
                         try? await Task.sleep(for: .seconds(0.4))
+                        
+                        if let onConfirm {
+                            onConfirm()
+                        }
                     }
                 } label: {
-                    Text("확인")
+                    Text(confirmTitle)
                         .notosans(.body2Medium)
                         .foregroundColor(.livithColor(.black100))
                         .frame(maxWidth: .infinity)
@@ -74,5 +89,14 @@ public struct ErrorSheetView: View {
                 }
             }
         }
+    }
+}
+
+#Preview {
+    ErrorSheetView(
+        title: "탈퇴 후 7일이 지나지 않았어요",
+        message: "7일이 지난 후 다시 시도해주세요"
+    ) {
+        print("버튼이 눌렸다.")
     }
 }

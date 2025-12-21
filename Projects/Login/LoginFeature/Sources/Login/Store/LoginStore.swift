@@ -12,7 +12,6 @@ import DIContainer
 import LoginDomain
 
 enum LoginIntent {
-    case onAppear
     case kakaoLogin
     case appleLogin
     case setErrorMessage(String)
@@ -31,18 +30,21 @@ final class LoginStore: ObservableObject {
     
     @Injected private var useCase: LoginUseCase
     
+    init() {
+        performFetchLastLoginPlatform()
+    }
+
     @MainActor
     func send(_ intent: LoginIntent) {
         switch intent {
-        case .onAppear:
+        case .kakaoLogin:
             state.status = nil
             state.errorMessage = ""
-            performFetchLastLoginPlatform()
-            
-        case .kakaoLogin:
             performLogin(for: .kakao)
             
         case .appleLogin:
+            state.status = nil
+            state.errorMessage = ""
             performLogin(for: .apple)
             
         case .setErrorMessage(let message):
@@ -53,7 +55,6 @@ final class LoginStore: ObservableObject {
             case .success(let loginResult):
                 state.status = loginResult
             case .failure(let error):
-                // TODO: LoginError 중 forbidden 처리 -> 탈퇴 후 7일 이내 로그인 불가 알림
                 state.errorMessage = getErrorMessage(from: error)
             }
             
