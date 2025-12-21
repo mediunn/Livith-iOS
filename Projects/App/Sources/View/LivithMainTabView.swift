@@ -58,21 +58,18 @@ public struct LivithMainTabView: View {
 
     public var body: some View {
         ZStack(alignment: .bottom) {
-            ZStack {
+            TabView(selection: $selectedTab) {
                 HomeView()
-                    .opacity(selectedTab == .home ? 1 : 0)
-                    .allowsHitTesting(selectedTab == .home)
-                    .transition(.opacity)
+                    .tag(Tab.home)
+                    .toolbar(.hidden, for: .tabBar)
                 
                 SearchRootView(isTabBarHidden: $isTabBarHidden)
-                    .opacity(selectedTab == .search ? 1 : 0)
-                    .allowsHitTesting(selectedTab == .search)
-                    .transition(.opacity)
+                    .tag(Tab.search)
+                    .toolbar(.hidden, for: .tabBar)
                 
-                UserView(nickname: "유짐이", isTabBarHidden: $isTabBarHidden)
-                    .opacity(selectedTab == .my ? 1 : 0)
-                    .allowsHitTesting(selectedTab == .my)
-                    .transition(.opacity)
+                UserView(nickname: "유지미", isTabBarHidden: $isTabBarHidden)
+                    .tag(Tab.my)
+                    .toolbar(.hidden, for: .tabBar)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
