@@ -21,11 +21,11 @@ final class LoginRouter: Router {
     @Published var sheet: Route?
     @Published var fullScreenCover: Route?
     
-    private let onLoginCompleted: () -> Void
+    private let onLoginCompleted: (String) -> Void
     private let onSignupCompleted: (String) -> Void
 
     init(
-        onLoginCompleted: @escaping () -> Void = {},
+        onLoginCompleted: @escaping (String) -> Void = { _ in },
         onSignupCompleted: @escaping (String) -> Void = { _ in }
     ) {
         self.onLoginCompleted = onLoginCompleted
@@ -84,8 +84,8 @@ final class LoginRouter: Router {
         }
     }
 
-    func completeLogin() {
-        onLoginCompleted()
+    func completeLogin(nickname: String) {
+        onLoginCompleted(nickname)
     }
 
     func completeSignup(nickname: String) {

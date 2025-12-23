@@ -15,7 +15,7 @@ public struct LoginRootView: View {
     @StateObject private var router: LoginRouter
 
     public init(
-        onLoginCompleted: @escaping () -> Void,
+        onLoginCompleted: @escaping (String) -> Void,
         onSignupCompleted: @escaping (String) -> Void
     ) {
         _router = StateObject(
