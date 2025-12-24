@@ -22,7 +22,7 @@ final class HomeRouter: Router {
     func view(to route: HomeRoute, with style: PresentationStyle) -> AnyView {
         switch route {
         case .home:
-            AnyView(EmptyView())
+            AnyView(HomeView())
         }
     }
 }

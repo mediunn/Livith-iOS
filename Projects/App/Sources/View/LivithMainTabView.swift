@@ -59,7 +59,7 @@ public struct LivithMainTabView: View {
     public var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                HomeView()
+                HomeRootView()
                     .tag(Tab.home)
                     .toolbar(.hidden, for: .tabBar)
                 

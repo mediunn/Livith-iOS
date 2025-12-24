@@ -8,15 +8,8 @@
 
 import SwiftUI
 
-public struct HomeView: View {
-    
-    // MARK: - LifeCycle
-
-    public init() { }
-    
-    // MARK: - Body
-
-    public var body: some View {
+struct HomeView: View {
+    var body: some View {
         Text("Hello, World!")
     }
 }
