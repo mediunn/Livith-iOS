@@ -34,7 +34,7 @@ struct AppRootView: View {
         .animation(.easeInOut(duration: Constants.animationDuration), value: currentRoute)
         .animation(.easeInOut(duration: Constants.animationDuration), value: isWelcomeSheetVisible)
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { _ in
-            currentRoute = .login
+            transition(to: .login)
         }
         .onAppear {
             handleOnAppear()
@@ -87,18 +87,11 @@ private extension AppRootView {
     }
     
     func handleLoginCompleted(nickname: String) {
-        withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-            currentRoute = .main
-        }
-        self.nickname = nickname
+        transition(to: .main, nickname: nickname)
     }
     
     func handleSignupCompleted(nickname: String) {
-        withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-            currentRoute = .main
-        }
-        self.nickname = nickname
-        isWelcomeSheetVisible = true
+        transition(to: .main, nickname: nickname, showWelcome: true)
     }
 
     func handleOnAppear() {
@@ -118,6 +111,18 @@ private extension AppRootView {
             currentRoute = .main
         } catch {
             currentRoute = .login
+        }
+    }
+
+    func transition(to route: AppRoute, nickname: String? = nil, showWelcome: Bool = false) {
+        withAnimation(.easeInOut(duration: Constants.animationDuration)) {
+            currentRoute = route
+
+            if let nickname = nickname {
+                self.nickname = nickname
+            }
+
+            isWelcomeSheetVisible = showWelcome
         }
     }
 }
