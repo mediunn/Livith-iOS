@@ -17,8 +17,8 @@ struct ExploreView: View {
     @State private var scrollOffset: CGFloat = 0
     
     var body: some View {
-        VStack {
-            ExploreLogoView()
+        VStack(spacing: .zero) {
+            LivithLogoHeaderView()
             
             ZStack(alignment: .top) {
                 searchButton
