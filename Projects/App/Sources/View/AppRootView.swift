@@ -57,7 +57,7 @@ private extension AppRootView {
                 }
 
             case .main:
-                LivithMainTabView()
+                LivithMainTabView(nickname: $nickname)
             }
         } else {
             Color.clear
