@@ -83,6 +83,11 @@ private extension ExploreView {
         .refreshable {
             store.send(.onRefresh)
         }
+        .overlay {
+            if store.state.banners.isEmpty && store.state.concertSections.isEmpty && !store.state.isLoading {
+                ExploreEmptyView()
+            }
+        }
     }
     
     var bannerView: some View {
