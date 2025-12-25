@@ -12,7 +12,7 @@ public struct ConcertSetlist: Identifiable, Hashable {
     public let id: Int
     public let title: String
     public let imageURL: String?
-    public let type: String
+    public let type: SetlistType
     public let startDate: String
     public let endDate: String
     public let status: String?

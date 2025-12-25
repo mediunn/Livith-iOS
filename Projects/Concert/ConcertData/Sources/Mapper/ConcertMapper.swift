@@ -89,7 +89,7 @@ struct ConcertMapper {
                 id: setlist.id,
                 title: setlist.title,
                 imageURL: setlist.imageURL,
-                type: setlist.type,
+                type: SetlistType(rawValue: setlist.type) ?? .none,
                 startDate: setlist.startDate,
                 endDate: setlist.endDate,
                 status: setlist.status,
