@@ -153,4 +153,43 @@ struct ConcertMapper {
             createdAt: response.createdAt
         )
     }
+
+    // MARK: - Setlist Detail
+
+    func toDomain(from response: DTO.Response.FetchConcertSetlist) -> ConcertSetlist? {
+        let formatter = ISO8601DateFormatter()
+
+        guard let startDate = formatter.date(from: response.startDate),
+              let endDate = formatter.date(from: response.endDate),
+              let type = ConcertStatus(rawValue: response.type) else {
+            return nil
+        }
+
+        let status = response.status.flatMap { SetlistType(rawValue: $0) } ?? .none
+
+        return ConcertSetlist(
+            id: response.id,
+            title: response.title,
+            imageURL: response.imageURL,
+            type: type,
+            startDate: startDate,
+            endDate: endDate,
+            status: status,
+            venue: response.venue,
+            artist: response.artist
+        )
+    }
+
+    // MARK: - Setlist Song
+
+    func toDomain(from response: DTO.Response.FetchSetlistSongList) -> [SetlistSong] {
+        response.map { song in
+            SetlistSong(
+                id: song.id,
+                title: song.title,
+                artist: song.artist,
+                orderIndex: song.orderIndex
+            )
+        }
+    }
 }
