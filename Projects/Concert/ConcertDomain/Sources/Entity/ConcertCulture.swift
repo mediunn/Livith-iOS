@@ -13,4 +13,16 @@ public struct ConcertCulture: Hashable, Identifiable {
     public let concertID: Int
     public let title: String
     public let content: String
+
+    public init(
+        id: Int,
+        concertID: Int,
+        title: String,
+        content: String
+    ) {
+        self.id = id
+        self.concertID = concertID
+        self.title = title
+        self.content = content
+    }
 }

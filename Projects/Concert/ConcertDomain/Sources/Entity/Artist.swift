@@ -8,8 +8,6 @@
 
 import Foundation
 
-import ConcertDomain
-
 public struct Artist: Codable, Equatable {
     public let id: Int
     public let name: String
@@ -19,4 +17,24 @@ public struct Artist: Codable, Equatable {
     public let detail: String
     public let keywords: [String]
     public let instagramURL: String?
+
+    public init(
+        id: Int,
+        name: String,
+        debutYear: String,
+        category: String,
+        imageURL: String?,
+        detail: String,
+        keywords: [String],
+        instagramURL: String?
+    ) {
+        self.id = id
+        self.name = name
+        self.debutYear = debutYear
+        self.category = category
+        self.imageURL = imageURL
+        self.detail = detail
+        self.keywords = keywords
+        self.instagramURL = instagramURL
+    }
 }

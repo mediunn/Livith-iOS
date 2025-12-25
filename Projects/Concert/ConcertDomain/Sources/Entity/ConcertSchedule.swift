@@ -8,11 +8,21 @@
 
 import Foundation
 
-import ConcertDomain
-
-struct ConcertSchedule: Identifiable, Hashable {
+public struct ConcertSchedule: Identifiable, Hashable {
     public let id: Int
     public let category: String
     public let scheduledAt: Date
     public let type: ScheduleType
+
+    public init(
+        id: Int,
+        category: String,
+        scheduledAt: Date,
+        type: ScheduleType
+    ) {
+        self.id = id
+        self.category = category
+        self.scheduledAt = scheduledAt
+        self.type = type
+    }
 }

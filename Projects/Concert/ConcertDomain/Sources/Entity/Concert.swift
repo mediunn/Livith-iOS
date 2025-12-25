@@ -8,8 +8,6 @@
 
 import Foundation
 
-import ConcertDomain
-
 public struct Concert: Hashable, Identifiable {
     public let id: Int
     public let title: String

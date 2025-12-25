@@ -15,4 +15,20 @@ public struct ConcertComment: Identifiable, Hashable {
     public let concertID: Int
     public let content: String
     public let createdAt: String
+
+    public init(
+        id: Int,
+        userID: Int,
+        nickname: String,
+        concertID: Int,
+        content: String,
+        createdAt: String
+    ) {
+        self.id = id
+        self.userID = userID
+        self.nickname = nickname
+        self.concertID = concertID
+        self.content = content
+        self.createdAt = createdAt
+    }
 }

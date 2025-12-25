@@ -13,4 +13,16 @@ public struct ConcertMerchandise: Identifiable, Hashable {
     public let name: String
     public let price: String?
     public let imageURL: String?
+
+    public init(
+        id: Int,
+        name: String,
+        price: String?,
+        imageURL: String?
+    ) {
+        self.id = id
+        self.name = name
+        self.price = price
+        self.imageURL = imageURL
+    }
 }

@@ -17,9 +17,9 @@ public enum SetlistType: String, CaseIterable {
 public extension SetlistType {
     init?(rawValue: String) {
         switch rawValue.uppercased() {
-        case "EXPECTED":
+        case "예상":
             self = .expected
-        case "RECENT":
+        case "최근":
             self = .recent
         default:
             self = .none

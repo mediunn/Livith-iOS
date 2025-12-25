@@ -1,5 +1,5 @@
 //
-//  EmptyResponse.swift
+//  EmptyResponse .swift
 //  network
 //
 //  Created by Youjin Lee on 10/12/25.
@@ -8,4 +8,6 @@
 
 import Foundation
 
-public struct EmptyResponse: Decodable {}
+public extension DTO.Response {
+    struct EmptyResponse: Decodable {}
+}

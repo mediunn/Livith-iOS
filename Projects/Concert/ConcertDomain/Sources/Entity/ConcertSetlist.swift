@@ -18,4 +18,26 @@ public struct ConcertSetlist: Identifiable, Hashable {
     public let status: SetlistType
     public let venue: String
     public let artist: String
+
+    public init(
+        id: Int,
+        title: String,
+        imageURL: String?,
+        type: ConcertStatus,
+        startDate: Date,
+        endDate: Date,
+        status: SetlistType,
+        venue: String,
+        artist: String
+    ) {
+        self.id = id
+        self.title = title
+        self.imageURL = imageURL
+        self.type = type
+        self.startDate = startDate
+        self.endDate = endDate
+        self.status = status
+        self.venue = venue
+        self.artist = artist
+    }
 }
