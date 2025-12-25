@@ -12,10 +12,10 @@ public struct ConcertSetlist: Identifiable, Hashable {
     public let id: Int
     public let title: String
     public let imageURL: String?
-    public let type: SetlistType
-    public let startDate: String
-    public let endDate: String
-    public let status: String?
+    public let type: ConcertStatus
+    public let startDate: Date
+    public let endDate: Date
+    public let status: SetlistType?
     public let venue: String
     public let artist: String
 }

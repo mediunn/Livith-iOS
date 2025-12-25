@@ -84,15 +84,24 @@ struct ConcertMapper {
     // MARK: - Setlist
 
     func toDomain(from response: DTO.Response.FetchConcertSetlistList) -> [ConcertSetlist] {
-        response.map { setlist in
-            ConcertSetlist(
+        let formatter = ISO8601DateFormatter()
+
+        return response.compactMap { setlist in
+            guard let startDate = formatter.date(from: setlist.startDate),
+                  let endDate = formatter.date(from: setlist.endDate) else {
+                return nil
+            }
+
+            let status: SetlistType? = setlist.status.flatMap { SetlistType(rawValue: $0) }
+
+            return ConcertSetlist(
                 id: setlist.id,
                 title: setlist.title,
                 imageURL: setlist.imageURL,
                 type: SetlistType(rawValue: setlist.type) ?? .none,
-                startDate: setlist.startDate,
-                endDate: setlist.endDate,
-                status: setlist.status,
+                startDate: startDate,
+                endDate: endDate,
+                status: status,
                 venue: setlist.venue,
                 artist: setlist.artist
             )
