@@ -1,5 +1,5 @@
 //
-//  Comment.swift
+//  ConcertComment.swift
 //  Concert
 //
 //  Created by Youjin Lee on 12/25/25.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Comment: Identifiable, Hashable {
+public struct ConcertComment: Identifiable, Hashable {
     public let id: Int
     public let userID: Int
     public let nickname: String

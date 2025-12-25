@@ -1,5 +1,5 @@
 //
-//  SetlistSong.swift
+//  ConcertCulture.swift
 //  Concert
 //
 //  Created by Youjin Lee on 12/27/25.
@@ -8,9 +8,9 @@
 
 import Foundation
 
-public struct SetlistSong: Identifiable, Hashable {
+public struct ConcertCulture: Hashable, Identifiable {
     public let id: Int
+    public let concertID: Int
     public let title: String
-    public let artist: String
-    public let orderIndex: Int
+    public let content: String
 }
