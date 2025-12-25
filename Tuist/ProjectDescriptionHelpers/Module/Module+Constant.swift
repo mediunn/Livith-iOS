@@ -59,6 +59,15 @@ public enum HomeModule: String {
     case homeFeature = "HomeFeature"
 }
 
+
+// MARK: - Concert Module
+
+public enum ConcertModule: String {
+    case concertData = "ConcertData"
+    case concertDomain = "ConcertDomain"
+    case concertFeature = "ConcertFeature"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {

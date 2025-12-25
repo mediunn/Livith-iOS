@@ -37,4 +37,8 @@ extension TargetDependency {
     public static func home(_ module: HomeModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.home.path)
     }
+
+    public static func concert(_ module: ConcertModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.concert.path)
+    }
 }
