@@ -88,17 +88,18 @@ struct ConcertMapper {
 
         return response.compactMap { setlist in
             guard let startDate = formatter.date(from: setlist.startDate),
-                  let endDate = formatter.date(from: setlist.endDate) else {
+                  let endDate = formatter.date(from: setlist.endDate),
+                  let type = ConcertStatus(rawValue: setlist.type) else {
                 return nil
             }
 
-            let status: SetlistType? = setlist.status.flatMap { SetlistType(rawValue: $0) }
+            let status = setlist.status.flatMap { SetlistType(rawValue: $0) } ?? .none
 
             return ConcertSetlist(
                 id: setlist.id,
                 title: setlist.title,
                 imageURL: setlist.imageURL,
-                type: SetlistType(rawValue: setlist.type) ?? .none,
+                type: type,
                 startDate: startDate,
                 endDate: endDate,
                 status: status,

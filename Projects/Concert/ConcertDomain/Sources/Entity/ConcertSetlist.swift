@@ -15,7 +15,7 @@ public struct ConcertSetlist: Identifiable, Hashable {
     public let type: ConcertStatus
     public let startDate: Date
     public let endDate: Date
-    public let status: SetlistType?
+    public let status: SetlistType
     public let venue: String
     public let artist: String
 }
