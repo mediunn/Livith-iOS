@@ -26,37 +26,22 @@ extension SetlistEndpoint: NetworkEndpoint {
     }
 
     public var query: [String: Any]? {
-        switch self {
-        case .fetchConcertSetlist, .fetchSetlistSongList:
-            return nil
-        }
+        return nil
     }
 
     public var method: HTTPMethod {
-        switch self {
-        case .fetchConcertSetlist, .fetchSetlistSongList:
-            return .get
-        }
+        return .get
     }
 
     public var headers: HTTPHeaders? {
-        switch self {
-        case .fetchConcertSetlist, .fetchSetlistSongList:
-            return nil
-        }
+        return nil
     }
 
     public var body: Encodable? {
-        switch self {
-        case .fetchConcertSetlist, .fetchSetlistSongList:
-            return nil
-        }
+        return nil
     }
 
     public var requiresInterceptor: Bool {
-        switch self {
-        case .fetchConcertSetlist, .fetchSetlistSongList:
-            return false
-        }
+        return false
     }
 }
