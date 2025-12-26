@@ -23,7 +23,7 @@ struct ConcertSectionView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
-                    ForEach(concertSection.concerts) { concert in
+                    ForEach(concertSection.concertList) { concert in
                         ConcertDetailCard(
                             posterURL: concert.posterURL,
                             title: concert.title,

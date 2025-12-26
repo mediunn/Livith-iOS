@@ -11,11 +11,11 @@ import Foundation
 public struct ConcertSection: Hashable, Identifiable {
     public let id: Int
     public let title: String
-    public let concerts: [Concert]
+    public let concertList: [Concert]
     
     public init(id: Int, title: String, concerts: [Concert]) {
         self.id = id
         self.title = title
-        self.concerts = concerts
+        self.concertList = concerts
     }
 }
