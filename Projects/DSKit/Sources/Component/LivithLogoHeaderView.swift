@@ -1,17 +1,17 @@
 //
-//  ExploreLogoView.swift
-//  SearchFeature
+//  LivithLogoHeaderView.swift
+//  DSKit
 //
-//  Created by 김진웅 on 12/18/25.
+//  Created by 김진웅 on 12/24/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
 import SwiftUI
 
-import DSKit
-
-struct ExploreLogoView: View {
-    var body: some View {
+public struct LivithLogoHeaderView: View {
+    public init() {}
+    
+    public var body: some View {
         HStack {
             Image.livithImage(.livithLogo)
                 .resizable()
@@ -26,6 +26,11 @@ struct ExploreLogoView: View {
 }
 
 #Preview {
-    ExploreLogoView()
-        .background(Color.livithColor(.black100))
+    VStack {
+        LivithLogoHeaderView()
+            .background(Color.livithColor(.black100))
+        
+        LivithLogoHeaderView()
+            .background(Color.livithColor(.black90))
+    }
 }

@@ -1,15 +1,15 @@
 //
 //  ConcertSectionView.swift
-//  SearchFeature
+//  HomeFeature
 //
-//  Created by 김진웅 on 12/19/25.
+//  Created by 김진웅 on 12/26/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
 import SwiftUI
 
 import DSKit
-import SearchDomain
+import HomeDomain
 
 struct ConcertSectionView: View {
     let concertSection: ConcertSection
@@ -20,7 +20,7 @@ struct ConcertSectionView: View {
             Text(concertSection.title)
                 .notosans(.body1Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
-                
+            
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
                     ForEach(concertSection.concertList) { concert in
@@ -37,6 +37,7 @@ struct ConcertSectionView: View {
                         }
                     }
                 }
+                .padding(.trailing, 16)
             }
         }
     }

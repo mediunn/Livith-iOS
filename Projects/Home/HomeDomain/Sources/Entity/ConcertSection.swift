@@ -1,8 +1,8 @@
 //
 //  ConcertSection.swift
-//  SearchDomain
+//  HomeDomain
 //
-//  Created by 김진웅 on 12/19/25.
+//  Created by 김진웅 on 12/26/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
