@@ -15,7 +15,8 @@ import Persistence
 struct AppRootView: View {
     @State private var currentRoute: AppRoute?
     @State private var isLaunchScreenVisible: Bool = true
-    @State private var welcomeNickname: String?
+    @State private var nickname: String = ""
+    @State private var isWelcomeSheetVisible: Bool = false
     
     private let localKeyValueStorage: LocalKeyValueStorage
     
@@ -31,9 +32,9 @@ struct AppRootView: View {
         }
         .animation(.easeInOut(duration: Constants.animationDuration), value: isLaunchScreenVisible)
         .animation(.easeInOut(duration: Constants.animationDuration), value: currentRoute)
-        .animation(.easeInOut(duration: Constants.animationDuration), value: welcomeNickname)
+        .animation(.easeInOut(duration: Constants.animationDuration), value: isWelcomeSheetVisible)
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { _ in
-            currentRoute = .login
+            transition(to: .login)
         }
         .onAppear {
             handleOnAppear()
@@ -49,16 +50,14 @@ private extension AppRootView {
         if let route = currentRoute {
             switch route {
             case .login:
-                LoginRootView {
-                    withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-                        currentRoute = .main
-                    }
+                LoginRootView { nickname in
+                    handleLoginCompleted(nickname: nickname)
                 } onSignupCompleted: { nickname in
                     handleSignupCompleted(nickname: nickname)
                 }
 
             case .main:
-                LivithMainTabView()
+                LivithMainTabView(nickname: $nickname)
             }
         } else {
             Color.clear
@@ -76,10 +75,10 @@ private extension AppRootView {
 
     @ViewBuilder
     func welcomeSheetOverlay() -> some View {
-        if let nickname = welcomeNickname {
+        if isWelcomeSheetVisible {
             WelcomeSheetView(nickname: nickname) {
                 withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-                    welcomeNickname = nil
+                    isWelcomeSheetVisible = false
                 }
             }
             .transition(.opacity)
@@ -87,11 +86,12 @@ private extension AppRootView {
         }
     }
     
+    func handleLoginCompleted(nickname: String) {
+        transition(to: .main, nickname: nickname)
+    }
+    
     func handleSignupCompleted(nickname: String) {
-        withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-            currentRoute = .main
-        }
-        welcomeNickname = nickname
+        transition(to: .main, nickname: nickname, showWelcome: true)
     }
 
     func handleOnAppear() {
@@ -106,10 +106,23 @@ private extension AppRootView {
 
     func checkInitialRoute() {
         do {
-            let _: DTO.Response.FetchUserInfo = try localKeyValueStorage.fetch(for: "currentUser")
+            let user: DTO.Response.FetchUserInfo = try localKeyValueStorage.fetch(for: "currentUser")
+            self.nickname = user.nickname
             currentRoute = .main
         } catch {
             currentRoute = .login
+        }
+    }
+
+    func transition(to route: AppRoute, nickname: String? = nil, showWelcome: Bool = false) {
+        withAnimation(.easeInOut(duration: Constants.animationDuration)) {
+            currentRoute = route
+
+            if let nickname = nickname {
+                self.nickname = nickname
+            }
+
+            isWelcomeSheetVisible = showWelcome
         }
     }
 }

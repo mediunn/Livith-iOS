@@ -13,7 +13,7 @@ import HomeFeature
 import UserFeature
 import SearchFeature
 
-public struct LivithMainTabView: View {
+struct LivithMainTabView: View {
 
     // MARK: - Enum
 
@@ -47,16 +47,19 @@ public struct LivithMainTabView: View {
 
     // MARK: - Property
     
+    @Binding private var nickname: String
     @State private var selectedTab: Tab = .home
     @State private var isTabBarHidden: Bool = false
     
     // MARK: - LifeCycle
 
-    public init() { }
+    init(nickname: Binding<String>) {
+        self._nickname = nickname
+    }
 
     // MARK: - Body
 
-    public var body: some View {
+    var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
                 HomeRootView()
@@ -67,7 +70,7 @@ public struct LivithMainTabView: View {
                     .tag(Tab.search)
                     .toolbar(.hidden, for: .tabBar)
                 
-                UserView(nickname: "유지미", isTabBarHidden: $isTabBarHidden)
+                UserView(nickname: $nickname, isTabBarHidden: $isTabBarHidden)
                     .tag(Tab.my)
                     .toolbar(.hidden, for: .tabBar)
             }

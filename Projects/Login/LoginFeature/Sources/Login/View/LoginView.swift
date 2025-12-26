@@ -45,8 +45,8 @@ struct LoginView: View {
     
     private func handleLoginSuccess(_ status: LoginStatus) {
         switch status {
-        case .existingUser:
-            router.completeLogin()
+        case .existingUser(let nickname):
+            router.completeLogin(nickname: nickname)
         case .newUser(let tempUser):
             router.push(.terms(tempUser))
         case .forbidden:
