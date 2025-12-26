@@ -12,7 +12,7 @@ import DSKit
 
 struct TermsView: View {
     @StateObject private var store = TermsStore()
-    @Environment(LoginCoordinator.self) private var coordinator
+    @Environment(\.loginCoordinator) private var coordinator
     @Environment(\.openURL) private var openURL
     
     var body: some View {
@@ -53,7 +53,7 @@ private extension TermsView {
     var navigationBar: some View {
         HStack {
             Button {
-                coordinator.pop()
+                coordinator?.pop()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))
@@ -132,7 +132,7 @@ private extension TermsView {
             
             Button {
                 guard let url = URL(string: Literals.termsURLString) else { return }
-                coordinator.present(to: .safari(url))
+                coordinator?.present(to: .safari(url))
             } label: {
                 Text(Literals.moreButtonText)
                     .notosans(.caption2Semibold)
@@ -158,7 +158,7 @@ private extension TermsView {
     
     var nextButton: some View {
         Button {
-            coordinator.push(to: .nickname(store.state.isMarketingAgreed))
+            coordinator?.push(to: .nickname(store.state.isMarketingAgreed))
         } label: {
             Text(Literals.nextButtonText)
                 .notosans(.body2Medium)

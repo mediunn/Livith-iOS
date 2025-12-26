@@ -16,7 +16,7 @@ struct SearchView: View {
 
     // MARK: - Property
 
-    @Environment(SearchCoordinator.self) private var coordinator
+    @Environment(\.searchCoordinator) private var coordinator
     @ObservedObject private var store: SearchStore
 
     @State private var showError: Bool = false
@@ -105,7 +105,7 @@ private extension SearchView {
                 set: { store.send(.updateSearchMessage($0)) }
             ),
             onBack: {
-                coordinator.pop()
+                coordinator?.pop()
             },
             onChange: {
                 if isCompleteKorean() { performSearch() }

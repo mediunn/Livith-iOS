@@ -11,13 +11,13 @@ import SwiftUI
 import DSKit
 
 struct InterestTempView: View {
-    @Environment(HomeCoordinator.self) var coordinator
+    @Environment(\.homeCoordinator) var coordinator
     
     var body: some View {
         VStack(spacing: .zero) {
             HStack {
                 Button(action: {
-                    coordinator.pop()
+                    coordinator?.pop()
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
@@ -55,6 +55,6 @@ struct InterestTempView: View {
 #Preview {
     let nickname = Binding.constant("유지미")
     let coordinator = HomeCoordinator(nickname: nickname)
-    return InterestTempView()
-        .environment(coordinator)
+    InterestTempView()
+        .environment(\.homeCoordinator, coordinator)
 }

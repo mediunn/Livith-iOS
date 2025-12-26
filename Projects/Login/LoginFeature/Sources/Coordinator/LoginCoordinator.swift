@@ -12,7 +12,6 @@ import UIKit
 import DSKit
 import LoginDomain
 
-@Observable
 final class LoginCoordinator: Coordinator {
     typealias R = LoginRoute
     
@@ -41,7 +40,7 @@ final class LoginCoordinator: Coordinator {
     func buildViewController(for route: LoginRoute) -> UIViewController {
         switch route {
         case .login:
-            return UIHostingController(rootView: LoginView().environment(self))
+            return UIHostingController(rootView: LoginView().environment(\.loginCoordinator, self))
             
         case .loginForbidden:
             return UIHostingController(
@@ -55,7 +54,7 @@ final class LoginCoordinator: Coordinator {
             
         case .terms(let tempUser):
             self.tempUser = tempUser
-            return UIHostingController(rootView: TermsView().environment(self))
+            return UIHostingController(rootView: TermsView().environment(\.loginCoordinator, self))
             
         case .nickname(let marketingConsent):
             guard let tempUser = tempUser else {
@@ -63,7 +62,7 @@ final class LoginCoordinator: Coordinator {
             }
 
             let store = NicknameSettingStore(marketingConsent: marketingConsent, tempUser: tempUser)
-            return UIHostingController(rootView: NicknameSettingView(store: store).environment(self))
+            return UIHostingController(rootView: NicknameSettingView(store: store).environment(\.loginCoordinator, self))
             
         case .signupFailed:
             return UIHostingController(

@@ -11,7 +11,6 @@ import UIKit
 
 import DSKit
 
-@Observable
 final class SearchCoordinator: Coordinator {
     typealias R = SearchRoute
     
@@ -30,9 +29,9 @@ final class SearchCoordinator: Coordinator {
     func buildViewController(for route: SearchRoute) -> UIViewController {
         switch route {
         case .explore:
-            return UIHostingController(rootView: ExploreView().environment(self))
+            return UIHostingController(rootView: ExploreView().environment(\.searchCoordinator, self))
         case .search:
-            return UIHostingController(rootView: SearchView(store: .init()).environment(self))
+            return UIHostingController(rootView: SearchView(store: .init()).environment(\.searchCoordinator, self))
         }
     }
 }

@@ -7,11 +7,9 @@
 //
 
 import SwiftUI
-import Observation
 
 import DSKit
 
-@Observable
 final class HomeCoordinator: Coordinator {
     typealias R = HomeRoute
     
@@ -22,6 +20,7 @@ final class HomeCoordinator: Coordinator {
     init(nickname: Binding<String>) {
         self.navigationController = UINavigationController()
         self.nickname = nickname
+        
         self.navigationController.setNavigationBarHidden(true, animated: false)
     }
 
@@ -32,10 +31,10 @@ final class HomeCoordinator: Coordinator {
     func buildViewController(for route: R) -> UIViewController {
         switch route {
         case .home:
-            return UIHostingController(rootView: HomeView(nickname: nickname).environment(self))
+            return UIHostingController(rootView: HomeView(nickname: nickname).environment(\.homeCoordinator, self))
 
         case .interest:
-            return UIHostingController(rootView: InterestTempView().environment(self))
+            return UIHostingController(rootView: InterestTempView().environment(\.homeCoordinator, self))
         }
     }
 }
