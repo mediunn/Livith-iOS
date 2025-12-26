@@ -33,15 +33,6 @@ struct ExploreView: View {
             }
         }
         .background(Color.livithColor(.black100))
-        .livithToast(
-            isPresented: Binding(
-                get: { !store.state.errorMessage.isEmpty },
-                set: { _ in store.send(.setErrorMessage("")) }
-            ),
-            type: .failure,
-            message: store.state.errorMessage,
-            duration: 2
-        )
     }
 }
 
@@ -82,6 +73,11 @@ private extension ExploreView {
         .coordinateSpace(name: Literals.scrollCoordinateName)
         .refreshable {
             store.send(.onRefresh)
+        }
+        .overlay {
+            if store.state.banners.isEmpty && store.state.concertSections.isEmpty && !store.state.isLoading {
+                ExploreEmptyView(message: store.state.errorMessage)
+            }
         }
     }
     
