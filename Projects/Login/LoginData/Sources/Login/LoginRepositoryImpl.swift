@@ -123,9 +123,10 @@ private extension LoginRepositoryImpl {
         }
     }
     
-    func fetchAndStoreCurrentUser() async throws {
+    func fetchAndStoreCurrentUser() async throws -> String {
         let userInfo: DTO.Response.FetchUserInfo = try await loginService.request(.fetchUserInfo)
         try localStorage.save(userInfo, for: LocalStorageKeys.currentUser)
+        return userInfo.nickname
     }
     
     func finalizeExistingUser(
@@ -138,7 +139,7 @@ private extension LoginRepositoryImpl {
         }
         try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
         try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
-        try await fetchAndStoreCurrentUser()
-        return .existingUser
+        let nickname = try await fetchAndStoreCurrentUser()
+        return .existingUser(nickname: nickname)
     }
 }

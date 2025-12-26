@@ -37,7 +37,7 @@ public struct UserView: View {
 
     // MARK: - Property
 
-    private let nickname: String
+    @Binding private var nickname: String
 
     @State private var path = NavigationPath()
     @State private var overlayType: OverlayType = .none
@@ -47,8 +47,8 @@ public struct UserView: View {
     
     // MARK: - LifeCycle
     
-    public init(nickname: String, isTabBarHidden: Binding<Bool>) {
-        self.nickname = nickname
+    public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
+        self._nickname = nickname
         self._isTabBarHidden = isTabBarHidden
     }
     
