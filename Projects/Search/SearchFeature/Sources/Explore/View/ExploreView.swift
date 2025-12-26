@@ -12,7 +12,7 @@ import DSKit
 import SearchDomain
 
 struct ExploreView: View {
-    @EnvironmentObject private var router: SearchRouter
+    @Environment(SearchCoordinator.self) private var coordinator
     @StateObject private var store: ExploreStore = ExploreStore()
     @State private var scrollOffset: CGFloat = 0
     
@@ -21,7 +21,7 @@ struct ExploreView: View {
             LivithLogoHeaderView()
             
             ZStack(alignment: .top) {
-                ExploreSearchButton(onTap: { router.push(.search) })
+                ExploreSearchButton(onTap: { coordinator.push(to: .search) })
                     .zIndex(2)
                     .background(
                         scrollOffset > Constants.bannerHeight - 60

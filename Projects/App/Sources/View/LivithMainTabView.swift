@@ -66,7 +66,7 @@ struct LivithMainTabView: View {
                     .tag(Tab.home)
                     .toolbar(.hidden, for: .tabBar)
                 
-                SearchRootView(isTabBarHidden: $isTabBarHidden)
+                SearchContentView(isTabBarHidden: $isTabBarHidden)
                     .tag(Tab.search)
                     .toolbar(.hidden, for: .tabBar)
                 
