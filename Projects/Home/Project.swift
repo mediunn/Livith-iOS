@@ -28,8 +28,7 @@ let project = Project.make(
                 .home(.homeDomain),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency),
-                .core(.router)
+                .core(.livithConcurrency)
             ]
         )
     ]
