@@ -14,19 +14,23 @@ public struct SearchBarView: View {
 
     @Binding var input: String
     @FocusState private var isFocused: Bool
-    var onChange: () -> Void
-    var onClear: () -> Void
-    var onSubmit: () -> Void
+    
+    private let onBack: () -> Void
+    private let onChange: () -> Void
+    private let onClear: () -> Void
+    private let onSubmit: () -> Void
 
     // MARK: - LifeCycle
     
     public init(
         input: Binding<String>,
+        onBack: @escaping () -> Void,
         onChange: @escaping () -> Void,
         onClear: @escaping () -> Void,
         onSubmit: @escaping () -> Void
     ) {
         self._input = input
+        self.onBack = onBack
         self.onChange = onChange
         self.onClear = onClear
         self.onSubmit = onSubmit
@@ -50,7 +54,7 @@ private extension SearchBarView {
     @ViewBuilder
     func backButton() -> some View {
         Button (action: {
-            // TODO: 화면 전환 구현
+            onBack()
         }) {
             Image.livithIcon(.backLineDefault)
                 .resizable()
