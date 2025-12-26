@@ -26,7 +26,7 @@ final class HomeCoordinator: Coordinator {
     }
 
     func start() {
-        push(to: .home)
+        push(to: .home, animated: false)
     }
     
     func buildViewController(for route: R) -> UIViewController {
