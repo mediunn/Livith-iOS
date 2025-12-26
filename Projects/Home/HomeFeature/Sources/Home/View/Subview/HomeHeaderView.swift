@@ -15,14 +15,18 @@ struct HomeHeaderView: View {
     let action: () -> Void
     
     var body: some View {
-        HStack(spacing: 0) {
-            Text("\(nickname)님,\n기다리는\n콘서트가 있나요?")
-                .notosans(.headSemibold)
-                .foregroundStyle(.livithColor(.white100))
-                .padding(.leading, 16)
-                .padding(.top, 32)
+        HStack(spacing: .zero) {
+            VStack(spacing: .zero) {
+                Spacer()
+                
+                Text("\(nickname)님,\n기다리는\n콘서트가 있나요?")
+                    .notosans(.headSemibold)
+                    .foregroundStyle(.livithColor(.white100))
+                    .padding(.leading, 16)
+                    .padding(.bottom, 28)
+            }
             
-            Spacer(minLength: 44)
+            Spacer()
             
             InterestedConcertSettingButton(action: action)
                 .padding(.trailing, 16)

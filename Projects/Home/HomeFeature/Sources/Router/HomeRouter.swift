@@ -19,10 +19,16 @@ final class HomeRouter: Router {
     var sheet: HomeRoute?
     var fullScreenCover: HomeRoute?
     
+    private let nickname: Binding<String>
+    
+    init(nickname: Binding<String>) {
+        self.nickname = nickname
+    }
+    
     func view(to route: HomeRoute, with style: PresentationStyle) -> AnyView {
         switch route {
         case .home:
-            AnyView(HomeView(nickname: "웅진김"))
+            AnyView(HomeView(nickname: nickname))
         }
     }
 }

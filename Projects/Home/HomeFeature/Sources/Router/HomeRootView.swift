@@ -11,9 +11,11 @@ import SwiftUI
 import Router
 
 public struct HomeRootView: View {
-    @State private var router: HomeRouter = .init()
+    @State private var router: HomeRouter
     
-    public init() {}
+    public init(nickname: Binding<String>) {
+        _router = State(initialValue: HomeRouter(nickname: nickname))
+    }
     
     public var body: some View {
         NavigationStack(path: $router.path) {
