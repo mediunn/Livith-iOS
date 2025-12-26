@@ -21,7 +21,7 @@ struct ExploreView: View {
             LivithLogoHeaderView()
             
             ZStack(alignment: .top) {
-                searchButton
+                ExploreSearchButton(onTap: { router.push(.search) })
                     .zIndex(2)
                     .background(
                         scrollOffset > Constants.bannerHeight - 60
@@ -43,12 +43,6 @@ private extension ExploreView {
         ProgressView()
             .progressViewStyle(CircularProgressViewStyle(tint: .white))
             .scaleEffect(1.2)
-    }
-    
-    var searchButton: some View {
-        ExploreSearchButton(onTap: {
-            // TODO: Router를 이용한 검색 화면 이동
-        })
     }
     
     var scrollContent: some View {

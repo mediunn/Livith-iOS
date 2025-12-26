@@ -16,6 +16,7 @@ struct SearchView: View {
 
     // MARK: - Property
 
+    @EnvironmentObject private var router: SearchRouter
     @ObservedObject private var store: SearchStore
 
     @State private var showError: Bool = false
@@ -103,6 +104,9 @@ private extension SearchView {
                 get: { store.state.searchMessage },
                 set: { store.send(.updateSearchMessage($0)) }
             ),
+            onBack: {
+                router.pop()
+            },
             onChange: {
                 if isCompleteKorean() { performSearch() }
             },
