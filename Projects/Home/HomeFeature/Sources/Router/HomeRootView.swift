@@ -29,6 +29,6 @@ public struct HomeRootView: View {
         .fullScreenCover(item: $router.fullScreenCover) { route in
             router.view(to: route, with: .fullScreen)
         }
-        .environmentObject(router)
+        .environment(router)
     }
 }
