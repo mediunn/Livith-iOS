@@ -12,7 +12,7 @@ import DSKit
 import HomeDomain
 
 struct HomeView: View {
-    @Environment(HomeRouter.self) var router
+    @Environment(HomeCoordinator.self) var coordinator
     
     @Binding var nickname: String
 
@@ -28,6 +28,7 @@ struct HomeView: View {
                         nickname: nickname,
                         action: {
                             // TODO: 관심 콘서트 설정 화면으로 이동
+                            coordinator.push(to: .interest)
                         }
                     )
                     
@@ -70,7 +71,7 @@ private extension HomeView {
 
 #Preview {
     let nickname = Binding.constant("유지미")
-    let router = HomeRouter(nickname: nickname)
+    let coordinator = HomeCoordinator(nickname: nickname)
     return HomeView(nickname: nickname)
-        .environment(router)
+        .environment(coordinator)
 }
