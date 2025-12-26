@@ -13,7 +13,7 @@ import LoginDomain
 
 struct LoginView: View {
     @StateObject private var store = LoginStore()
-    @EnvironmentObject private var router: LoginRouter
+    @Environment(LoginCoordinator.self) private var coordinator
     
     var body: some View {
         ZStack {
@@ -46,11 +46,11 @@ struct LoginView: View {
     private func handleLoginSuccess(_ status: LoginStatus) {
         switch status {
         case .existingUser(let nickname):
-            router.completeLogin(nickname: nickname)
+            coordinator.completeLogin(with: nickname)
         case .newUser(let tempUser):
-            router.push(.terms(tempUser))
+            coordinator.push(to: .terms(tempUser))
         case .forbidden:
-            router.fullScreenCover(.loginForbidden)
+            coordinator.present(to: .loginForbidden, presentationStyle: .fullScreen, transitionStyle: .crossDissolve)
         }
     }
 }
