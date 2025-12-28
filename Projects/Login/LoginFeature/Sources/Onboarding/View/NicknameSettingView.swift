@@ -13,7 +13,7 @@ import LoginDomain
 
 struct NicknameSettingView: View {
     @ObservedObject var store: NicknameSettingStore
-    @EnvironmentObject private var router: LoginRouter
+    @Environment(\.loginCoordinator) private var coordinator
     @FocusState private var isNicknameFocused: Bool
     private let maxNicknameLength = 10
     
@@ -62,13 +62,19 @@ struct NicknameSettingView: View {
             duration: 2
         )
         .ignoresSafeArea(.all, edges: .bottom)
-        .onChange(of: store.state.signupStatus) { oldValue, newValue in
+        .onChange(of: store.state.signupStatus) {
+            oldValue,
+            newValue in
             switch newValue {
             case .success:
-                router.completeSignup(nickname: store.state.nickname)
+                coordinator?.completeSignup(with: store.state.nickname)
                 
             case .failure:
-                router.fullScreenCover(.signupFailed)
+                coordinator?.present(
+                    to: .signupFailed,
+                    presentationStyle: .overFullScreen,
+                    transitionStyle: .crossDissolve
+                )
                 
             default:
                 break
@@ -83,7 +89,7 @@ private extension NicknameSettingView {
     var navigationBar: some View {
         HStack {
             Button(action: {
-                router.pop()
+                coordinator?.pop()
             }) {
                 Image.livithIcon(.backLineDefault)
                     .foregroundColor(.livithColor(.white100))

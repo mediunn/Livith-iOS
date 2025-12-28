@@ -50,11 +50,14 @@ private extension AppRootView {
         if let route = currentRoute {
             switch route {
             case .login:
-                LoginRootView { nickname in
-                    handleLoginCompleted(nickname: nickname)
-                } onSignupCompleted: { nickname in
-                    handleSignupCompleted(nickname: nickname)
-                }
+                LoginContentView(
+                    onLoginCompleted: { nickname in
+                        handleLoginCompleted(nickname: nickname)
+                    },
+                    onSignupCompleted: { nickname in
+                        handleSignupCompleted(nickname: nickname)
+                    }
+                )
 
             case .main:
                 LivithMainTabView(nickname: $nickname)

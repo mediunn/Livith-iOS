@@ -32,7 +32,6 @@ let project = Project.make(
             dependencies: [
                 .login(.loginDomain),
                 .dsKit(),
-                .core(.router),
                 .core(.diContainer)
             ]
         )

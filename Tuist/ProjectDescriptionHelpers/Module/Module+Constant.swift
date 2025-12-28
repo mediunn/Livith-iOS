@@ -12,7 +12,6 @@ import ProjectDescription
 public enum CoreModule: String {
     case diContainer = "DIContainer"
     case performanceMonitor = "PerformanceMonitor"
-    case router = "Router"
     case persistence = "Persistence"
     case livithNetwork = "LivithNetwork"
     case livithConcurrency = "LivithConcurrency"

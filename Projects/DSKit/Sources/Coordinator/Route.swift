@@ -1,11 +1,11 @@
 //
 //  Route.swift
-//  core
+//  DSKit
 //
-//  Created by 김진웅 on 10/12/25.
+//  Created by 김진웅 on 12/27/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
 import Foundation
 
-public protocol Route: Hashable, Identifiable {}
+public protocol Route: Hashable {}
