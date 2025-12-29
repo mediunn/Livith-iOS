@@ -81,6 +81,18 @@ struct ConcertRepositoryTests {
         #expect(result.id > 0)
     }
 
+    @Test("셋리스트 목록 조회")
+    func test_셋리스트목록조회_실제API_셋리스트목록반환() async throws {
+        // Given
+        let concertID = 1549
+
+        // When
+        let result = try await repository.fetchConcertSetlistList(concertID: concertID)
+
+        // Then
+        #expect(result.isEmpty == false)
+    }
+
     // MARK: - Error Tests
 
     @Test("존재하지 않는 콘서트 조회 시 에러 발생")
