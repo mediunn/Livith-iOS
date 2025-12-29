@@ -11,6 +11,7 @@ import SwiftUI
 public extension Image {
     enum LivithIcon {
         case apple
+        case badge
         case backLineDefault, backLinePressed
         case calendarLine
         case cautionFill
@@ -45,6 +46,8 @@ public extension Image {
             switch self {
             case .apple:
                 DSKitAsset.ImageAssets.icnApple.swiftUIImage
+            case .badge:
+                DSKitAsset.ImageAssets.icnBadge.swiftUIImage
             case .backLineDefault:
                 DSKitAsset.ImageAssets.icnBackLineDefault.swiftUIImage
             case .backLinePressed:
