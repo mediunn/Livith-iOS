@@ -21,7 +21,7 @@ public struct ConcertDetailState {
 }
 
 public enum ConcertDetailIntent {
-    case viewDidLoad(concertID: Int)
+    case onAppear(concertID: Int)
     case favoriteButtonTapped
 
     case _setConcert(Concert)
@@ -48,7 +48,7 @@ public final class ConcertDetailStore: ObservableObject {
     @MainActor
     public func send(_ intent: ConcertDetailIntent) {
         switch intent {
-        case .viewDidLoad(let concertID):
+        case .onAppear(let concertID):
             fetchConcertDetail(concertID: concertID)
         case .favoriteButtonTapped:
             // TODO: 관심 콘서트 설정 기능 구현

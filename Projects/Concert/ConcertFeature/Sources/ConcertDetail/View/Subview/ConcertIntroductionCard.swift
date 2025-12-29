@@ -27,17 +27,16 @@ struct ConcertIntroductionCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("한 줄 소개")
-                .notosans(.caption1Semibold)
+                .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.black50))
 
             Text(introduction)
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
-                .lineSpacing(4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Color.livithColor(.black90))
+        .padding(20)
+        .background(Color.livithColor(.black80))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }

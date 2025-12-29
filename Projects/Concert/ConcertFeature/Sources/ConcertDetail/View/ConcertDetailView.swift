@@ -8,30 +8,33 @@
 
 import SwiftUI
 
-import DSKit
 import Kingfisher
+
 import ConcertDomain
+import DSKit
 
 public struct ConcertDetailView: View {
 
     // MARK: - Property
-
-    @ObservedObject private var store: ConcertDetailStore
+    
     private let concertID: Int
-    private let onBack: () -> Void
+    private let onDismiss: () -> Void
+
+    @State private var isPosterLoaded: Bool = false
+    @ObservedObject private var store: ConcertDetailStore
 
     // MARK: - Initializer
 
     public init(
-        store: ConcertDetailStore,
+        store: ConcertDetailStore = ConcertDetailStore(),
         concertID: Int,
-        onBack: @escaping () -> Void
+        onDismiss: @escaping () -> Void
     ) {
         self.store = store
         self.concertID = concertID
-        self.onBack = onBack
+        self.onDismiss = onDismiss
 
-        store.send(.viewDidLoad(concertID: concertID))
+        store.send(.onAppear(concertID: concertID))
     }
 
     // MARK: - Body
@@ -41,10 +44,11 @@ public struct ConcertDetailView: View {
             navigationBar
 
             ScrollView {
-                VStack(spacing: 0) {
+                ZStack {
                     posterSection
+                        .padding(.bottom, 120)
+                    
                     concertInfoSection
-                    introductionSection
                 }
             }
         }
@@ -56,26 +60,26 @@ public struct ConcertDetailView: View {
 
 private extension ConcertDetailView {
     var navigationBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             Button {
-                onBack()
+                onDismiss()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .resizable()
-                    .frame(width: 24, height: 24)
+                    .frame(width: 38, height: 38)
             }
-            .padding(.leading, 16)
 
             Text(store.state.concert?.title ?? "")
-                .notosans(.body2Semibold)
+                .notosans(.body1Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .lineLimit(1)
                 .truncationMode(.tail)
-                .padding(.leading, 12)
-
+             
             Spacer()
+                
         }
-        .frame(height: 56)
+        .padding(.horizontal, 16)
+        .frame(height: 66)
         .background(Color.livithColor(.black100))
     }
 }
@@ -87,54 +91,46 @@ private extension ConcertDetailView {
         ZStack(alignment: .topTrailing) {
             posterImage
 
-            favoriteButton
-                .padding(.top, 16)
-                .padding(.trailing, 16)
+            FavoriteButton {
+                store.send(.favoriteButtonTapped)
+            }
+            .padding(.top, 16)
+            .padding(.trailing, 16)
         }
     }
 
     var posterImage: some View {
-        GeometryReader { geometry in
+        Group {
             if let posterURL = store.state.concert?.posterURL {
                 KFImage(posterURL)
+                    .onSuccess { _ in isPosterLoaded = true }
+                    .onFailure { _ in isPosterLoaded = false }
+                    .placeholder { Image.livithImage(.concertCardEmpty) }
                     .resizable()
                     .scaledToFill()
-                    .frame(width: geometry.size.width, height: 400)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 340)
                     .clipped()
                     .overlay {
-                        LinearGradient(
-                            colors: [
-                                Color.clear,
-                                Color.livithColor(.black100).opacity(0.8),
-                                Color.livithColor(.black100)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
+                        if isPosterLoaded {
+                            LinearGradient(
+                                colors: [
+                                    Color.clear,
+                                    Color.livithColor(.black100).opacity(0.8),
+                                    Color.livithColor(.black100)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        }
                     }
             } else {
-                Rectangle()
-                    .fill(Color.livithColor(.black90))
-                    .frame(width: geometry.size.width, height: 400)
-            }
-        }
-        .frame(height: 400)
-    }
-
-    var favoriteButton: some View {
-        Button {
-            store.send(.favoriteButtonTapped)
-        } label: {
-            HStack(spacing: 4) {
-                Image.livithIcon(.plusLineSmall)
+                Image.livithImage(.concertCardEmpty)
                     .resizable()
-                    .renderingMode(.template)
-                    .frame(width: 16, height: 16)
-
-                Text("관심 콘서트 설정하기")
-                    .notosans(.caption1Semibold)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 340)
             }
-            .foregroundStyle(Color.livithColor(.white100))
         }
     }
 }
@@ -146,23 +142,22 @@ private extension ConcertDetailView {
         VStack(alignment: .leading, spacing: 0) {
             if let label = store.state.concert?.label, !label.isEmpty {
                 PopularBadge(text: label)
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 10)
             }
 
             concertTitle
-                .padding(.bottom, 8)
+                .padding(.bottom, 10)
 
             artistName
-                .padding(.bottom, 16)
+                .padding(.bottom, 10)
 
             dateInfo
-                .padding(.bottom, 8)
+                .padding(.bottom, 4)
 
             venueInfo
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
-        .padding(.top, -80)
     }
 
     var concertTitle: some View {
@@ -173,17 +168,15 @@ private extension ConcertDetailView {
 
     var artistName: some View {
         Text(store.state.concert?.artist ?? "")
-            .notosans(.body3Medium)
-            .foregroundStyle(Color.livithColor(.black50))
+            .notosans(.body2Medium)
+            .foregroundStyle(Color.livithColor(.black30))
     }
 
     var dateInfo: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             Image.livithIcon(.calendarLine)
                 .resizable()
-                .renderingMode(.template)
-                .frame(width: 20, height: 20)
-                .foregroundStyle(Color.livithColor(.black50))
+                .frame(width: 24, height: 24)
 
             Text(formatDateRange())
                 .notosans(.body4Medium)
@@ -192,33 +185,14 @@ private extension ConcertDetailView {
     }
 
     var venueInfo: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             Image.livithIcon(.locationLine)
                 .resizable()
-                .renderingMode(.template)
-                .frame(width: 20, height: 20)
-                .foregroundStyle(Color.livithColor(.black50))
+                .frame(width: 24, height: 24)
 
             Text(store.state.concert?.venue ?? "")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
-        }
-    }
-}
-
-// MARK: - Introduction Section
-
-private extension ConcertDetailView {
-    var introductionSection: some View {
-        VStack(spacing: 0) {
-            if let introduction = store.state.concert?.introduction, !introduction.isEmpty {
-                ConcertIntroductionCard(introduction: introduction)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 32)
-            }
-
-            Spacer()
-                .frame(height: 100)
         }
     }
 }
@@ -229,16 +203,25 @@ private extension ConcertDetailView {
     func formatDateRange() -> String {
         guard let concert = store.state.concert else { return "" }
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
+        let calendar = Calendar.current
+        let startYear = calendar.component(.year, from: concert.startDate)
+        let endYear = calendar.component(.year, from: concert.endDate)
 
-        let startDateString = formatter.string(from: concert.startDate)
-        let endDateString = formatter.string(from: concert.endDate)
+        let fullFormatter = DateFormatter()
+        fullFormatter.dateFormat = "yyyy.MM.dd"
+
+        let startDateString = fullFormatter.string(from: concert.startDate)
+        let endDateString = fullFormatter.string(from: concert.endDate)
 
         if startDateString == endDateString {
             return startDateString
+        } else if startYear == endYear {
+            let shortFormatter = DateFormatter()
+            shortFormatter.dateFormat = "MM.dd"
+            let endShortString = shortFormatter.string(from: concert.endDate)
+            return "\(startDateString)~\(endShortString)"
         } else {
-            return "\(startDateString) ~\(endDateString)"
+            return "\(startDateString)~\(endDateString)"
         }
     }
 }
@@ -247,6 +230,6 @@ private extension ConcertDetailView {
     ConcertDetailView(
         store: ConcertDetailStore(),
         concertID: 1,
-        onBack: {}
+        onDismiss: {}
     )
 }

@@ -155,13 +155,16 @@ public extension Image {
     }
     
     enum LivithImage {
+        case concertCardEmpty
         case livithLogo, livithEmpty
         case splash, feedback
         case polygon
         case welcome
-        
+
         public var image: Image {
             switch self {
+            case .concertCardEmpty:
+                DSKitAsset.ImageAssets.imageConcertCardEmpty.swiftUIImage
             case .livithLogo:
                 DSKitAsset.ImageAssets.imageLivithLogo.swiftUIImage
             case .livithEmpty:
