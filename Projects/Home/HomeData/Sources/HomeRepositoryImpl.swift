@@ -12,11 +12,11 @@ import HomeDomain
 import LivithNetwork
 
 struct HomeRepositoryImpl {
-    private let homeService: HomeAPIService
+    private let homeService: HomeService
     private let mapper: HomeMapper = .init()
     private let errorMapper: HomeErrorMapper = .init()
     
-    init(homeService: HomeAPIService) {
+    init(homeService: HomeService) {
         self.homeService = homeService
     }
 }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public typealias HomeAPIService = NetworkService<HomeEndpoint>
+public typealias HomeService = NetworkService<HomeEndpoint>
 
 public enum HomeEndpoint {
     case fetchSectionList
