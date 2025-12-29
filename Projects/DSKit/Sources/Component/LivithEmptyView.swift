@@ -9,7 +9,7 @@
 import SwiftUI
 
 public struct LivithEmptyView: View {
-    private var text: String
+    private let text: String
     
     public init(text: String) {
         self.text = text
@@ -25,9 +25,15 @@ public struct LivithEmptyView: View {
                 .frame(width: 50, height: 40)
             
             Text(text)
-                .padding(.top, 16)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.black80))
+                .multilineTextAlignment(.center)
+                .padding(.top, 16)
+                .padding(.horizontal, 20)
         }
     }
+}
+
+#Preview {
+    LivithEmptyView(text: "안녕하세요")
 }

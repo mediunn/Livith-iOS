@@ -18,7 +18,9 @@ public extension DTO.Response {
         public let sectionTitle: String
         public let concerts: [Concert]
     }
+}
 
+public extension DTO.Response.HomeSection {
     struct Concert: Decodable {
         public let id: Int
         public let code: String
@@ -38,7 +40,7 @@ public extension DTO.Response {
         public let label: String?
         public let sortedIndex: Int
         public let daysLeft: Int
-
+        
         enum CodingKeys: String, CodingKey {
             case id
             case code

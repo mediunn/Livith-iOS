@@ -39,20 +39,9 @@ struct ExploreView: View {
 // MARK: - UI Components
 
 private extension ExploreView {
-    var loadingIndicator: some View {
-        ProgressView()
-            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-            .scaleEffect(1.2)
-    }
-    
     var scrollContent: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                if store.state.isLoading {
-                    loadingIndicator
-                        .padding(.vertical, 20)
-                }
-                
+            VStack(spacing: 0) {                
                 bannerView
                 
                 ForEach(store.state.concertSections, id: \.id) { section in
@@ -70,7 +59,8 @@ private extension ExploreView {
         }
         .overlay {
             if store.state.banners.isEmpty && store.state.concertSections.isEmpty && !store.state.isLoading {
-                ExploreEmptyView(message: store.state.errorMessage)
+                let message = store.state.errorMessage.isEmpty ? "탐색할 콘텐츠가 없습니다." : store.state.errorMessage
+                LivithEmptyView(text: message)
             }
         }
     }
