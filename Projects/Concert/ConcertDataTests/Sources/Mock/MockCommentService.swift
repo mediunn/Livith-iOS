@@ -10,15 +10,11 @@ import Foundation
 
 @testable import LivithNetwork
 
-final class MockCommentService: NetworkService<CommentEndpoint> {
+final class MockCommentService: CommentServiceProtocol {
     var mockResponse: Any?
     var mockError: Error?
 
-    init() {
-        super.init(interceptor: nil, eventMonitors: [])
-    }
-
-    override func request<T: Decodable>(_ endPoint: CommentEndpoint) async throws(NetworkError) -> T {
+    func request<T: Decodable>(_ endPoint: CommentEndpoint) async throws(NetworkError) -> T {
         if let error = mockError as? NetworkError {
             throw error
         }

@@ -10,15 +10,11 @@ import Foundation
 
 @testable import LivithNetwork
 
-final class MockSetlistService: NetworkService<SetlistEndpoint> {
+final class MockSetlistService: SetlistServiceProtocol {
     var mockResponse: Any?
     var mockError: Error?
 
-    init() {
-        super.init(interceptor: nil, eventMonitors: [])
-    }
-
-    override func request<T: Decodable>(_ endPoint: SetlistEndpoint) async throws(NetworkError) -> T {
+    func request<T: Decodable>(_ endPoint: SetlistEndpoint) async throws(NetworkError) -> T {
         if let error = mockError as? NetworkError {
             throw error
         }

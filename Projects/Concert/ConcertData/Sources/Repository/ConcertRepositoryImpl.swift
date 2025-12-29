@@ -12,11 +12,11 @@ import ConcertDomain
 import LivithNetwork
 
 public struct ConcertRepositoryImpl {
-    private let service: ConcertService
+    private let service: any ConcertServiceProtocol
     private let entityMapper: ConcertMapper = .init()
     private let errorMapper: ConcertErrorMapper = .init()
 
-    public init(service: ConcertService = .init()) {
+    public init(service: any ConcertServiceProtocol = ConcertService()) {
         self.service = service
     }
 }
