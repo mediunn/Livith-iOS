@@ -30,6 +30,15 @@ let project = Project.make(
                 .core(.diContainer),
                 .core(.livithConcurrency)
             ]
+        ),
+        .make(
+            target: .concert(.concertDataTests),
+            product: .unitTests,
+            dependencies: [
+                .concert(.concertData),
+                .concert(.concertDomain),
+                .core(.livithNetwork)
+            ]
         )
     ]
 )

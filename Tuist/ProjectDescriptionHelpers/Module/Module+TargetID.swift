@@ -67,7 +67,12 @@ public enum TargetID {
         case .dsKit:
             return ["Resources/**"]
         case .app:
-            return ["Resources/**"]
+            return [
+                .glob(pattern: "Resources/**", excluding: [
+                    "Resources/App-Info.plist",
+                    "Resources/Livith-iOS.entitlements"
+                ])
+            ]
         default:
             return nil
         }
