@@ -14,7 +14,6 @@ public enum ConcertEndpoint {
     case fetchConcertInfo(concertID: Int)
     case fetchConcertSchedule(concertID: Int)
     case fetchConcertCultureList(concertID: Int)
-    case fetchConcertKeyInfoList(concertID: Int)
     case fetchConcertMerchandiseList(concertID: Int)
     case fetchConcertSetlistList(concertID: Int)
     case fetchConcertArtistInfo(concertID: Int)
@@ -29,8 +28,6 @@ extension ConcertEndpoint: NetworkEndpoint {
             return "/api/v4/concerts/\(concertID)/schedule"
         case .fetchConcertCultureList(let concertID):
             return "/api/v4/concerts/\(concertID)/cultures"
-        case .fetchConcertKeyInfoList(let concertID):
-            return "/api/v4/concerts/\(concertID)/info"
         case .fetchConcertMerchandiseList(let concertID):
             return "/api/v4/concerts/\(concertID)/mds"
         case .fetchConcertSetlistList(let concertID):
