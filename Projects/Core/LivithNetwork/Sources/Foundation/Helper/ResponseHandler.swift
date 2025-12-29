@@ -23,7 +23,7 @@ public final class ResponseHandler: ResponseHandlerProtocol {
         let statusCode = response.statusCode
 
         guard (200..<300).contains(statusCode) else {
-            let errorMessage = try? decoder.decode(BaseResponse<EmptyResponse>.self, from: data).message
+            let errorMessage = try? decoder.decode(BaseResponse<DTO.Response.EmptyResponse>.self, from: data).message
             throw NetworkError.from(statusCode: statusCode, message: errorMessage)
         }
         

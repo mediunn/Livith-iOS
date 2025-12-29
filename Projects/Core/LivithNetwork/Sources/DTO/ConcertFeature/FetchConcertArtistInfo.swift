@@ -14,7 +14,7 @@ public extension DTO.Response {
     struct FetchConcertArtistInfo: Decodable {
         public let id: Int
         public let artist: String
-        public let debutDate: String
+        public let debutYear: String
         public let category: String
         public let detail: String
         public let instagramURL: String?
@@ -24,7 +24,7 @@ public extension DTO.Response {
         enum CodingKeys: String, CodingKey {
             case id
             case artist
-            case debutDate
+            case debutYear = "debutDate"
             case category
             case detail
             case instagramURL = "instagramUrl"

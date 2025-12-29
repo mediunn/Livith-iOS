@@ -1,5 +1,5 @@
 //
-//  FetchConcertMDList.swift
+//  FetchConcertMerchandiseList.swift
 //  network
 //
 //  Created by Youjin Lee on 10/14/25.
@@ -11,9 +11,9 @@
 import Foundation
 
 public extension DTO.Response {
-    typealias FetchConcertMDList = [ConcertMD]
+    typealias FetchConcertMerchandiseList = [ConcertMerchandise]
 
-    struct ConcertMD: Decodable {
+    struct ConcertMerchandise: Decodable {
         public let id: Int
         public let name: String
         public let price: String?
