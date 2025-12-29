@@ -62,7 +62,7 @@ extension HomeRepositoryImpl: HomeRepository {
 
     func deleteInterestedConcert() async throws(HomeError) {
         do {
-            let _: EmptyResponse = try await homeService.request(.deleteInterestedConcert)
+            let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)
