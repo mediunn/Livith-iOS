@@ -41,7 +41,10 @@ public struct ConcertDetailView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            navigationBar
+            ConcertNavigationBar(
+                title: store.state.concert?.title ?? "",
+                onBack: onDismiss
+            )
 
             ScrollView {
                 ZStack {
@@ -51,38 +54,11 @@ public struct ConcertDetailView: View {
                     
                     concertInfoSection
                         .padding(.top, 120)
+                        .padding(.bottom, 30)
                 }
             }
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
-    }
-}
-
-// MARK: - Navigation Bar
-
-private extension ConcertDetailView {
-    var navigationBar: some View {
-        HStack(spacing: 4) {
-            Button {
-                onDismiss()
-            } label: {
-                Image.livithIcon(.backLineDefault)
-                    .resizable()
-                    .frame(width: 38, height: 38)
-            }
-
-            Text(store.state.concert?.title ?? "")
-                .notosans(.body1Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .lineLimit(1)
-                .truncationMode(.tail)
-             
-            Spacer()
-                
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 66)
-        .background(Color.livithColor(.black100))
     }
 }
 
@@ -117,14 +93,10 @@ private extension ConcertDetailView {
                     .clipped()
                     .overlay {
                         if isPosterLoaded {
-                            LinearGradient(
-                                colors: [
-                                    Color.clear,
-                                    Color.livithColor(.black100).opacity(0.8),
-                                    Color.livithColor(.black100)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
+                            BackgroundGradient(
+                                baseColor: .livithColor(.black100),
+                                startPoint: .bottom,
+                                endPoint: .top
                             )
                         }
                     }
@@ -180,7 +152,7 @@ private extension ConcertDetailView {
                 .resizable()
                 .frame(width: 24, height: 24)
 
-            Text(formatDateRange())
+            Text(store.state.formattedDateRange)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
         }
@@ -195,35 +167,6 @@ private extension ConcertDetailView {
             Text(store.state.concert?.venue ?? "")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
-        }
-    }
-}
-
-// MARK: - Helper Methods
-
-private extension ConcertDetailView {
-    func formatDateRange() -> String {
-        guard let concert = store.state.concert else { return "" }
-
-        let calendar = Calendar.current
-        let startYear = calendar.component(.year, from: concert.startDate)
-        let endYear = calendar.component(.year, from: concert.endDate)
-
-        let fullFormatter = DateFormatter()
-        fullFormatter.dateFormat = "yyyy.MM.dd"
-
-        let startDateString = fullFormatter.string(from: concert.startDate)
-        let endDateString = fullFormatter.string(from: concert.endDate)
-
-        if startDateString == endDateString {
-            return startDateString
-        } else if startYear == endYear {
-            let shortFormatter = DateFormatter()
-            shortFormatter.dateFormat = "MM.dd"
-            let endShortString = shortFormatter.string(from: concert.endDate)
-            return "\(startDateString)~\(endShortString)"
-        } else {
-            return "\(startDateString)~\(endDateString)"
         }
     }
 }
