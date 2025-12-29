@@ -16,10 +16,14 @@ import Foundation
 struct CommentRepositoryTests {
     let repository = CommentRepositoryImpl()
 
+    init() {
+        TestTokenHelper.setupToken()
+    }
+
     @Test("댓글 목록 조회")
     func test_댓글목록조회_실제API_댓글목록반환() async throws {
         // Given
-        let concertID = 1
+        let concertID = 1549
 
         // When
         let result = try await repository.fetchConcertComments(concertID: concertID, cursor: nil, size: nil)
