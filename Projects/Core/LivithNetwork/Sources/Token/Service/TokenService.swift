@@ -29,9 +29,10 @@ public actor TokenServiceImpl: TokenService {
         do {
             let token = try storage.fetch()
             return token.accessToken
-        } catch TokenError.refreshTokenExpired {
-            handleRefreshTokenExpired()
-            throw .refreshTokenExpired
+        } catch {
+            try await refresh()
+            let token = try storage.fetch()
+            return token.accessToken
         }
     }
     
@@ -39,40 +40,28 @@ public actor TokenServiceImpl: TokenService {
         do {
             let token = try storage.fetch()
             return token.refreshToken
-        } catch TokenError.refreshTokenExpired {
+        } catch {
             handleRefreshTokenExpired()
-            throw .refreshTokenExpired
+            throw error
         }
     }
     
     public func saveToken(accessToken: String, refreshToken: String) async throws(TokenError) {
-        do {
-            let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: .now)
-            try storage.save(token)
-        } catch {
-            throw TokenError.saveFailed
-        }
+        let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: .now)
+        try storage.save(token)
     }
 
     public func refresh() async throws(TokenError) {
         do {
             try await performRefresh()
-        } catch TokenError.refreshTokenExpired {
-            handleRefreshTokenExpired()
-            throw .refreshTokenExpired
-        } catch let error as TokenError {
-            throw error
         } catch {
-            throw TokenError.unknown
+            handleRefreshTokenExpired()
+            throw error as? TokenError ?? TokenError.unknown
         }
     }
     
     public func removeToken() async throws(TokenError) {
-        do {
-            try storage.remove()
-        } catch {
-            throw TokenError.deleteFailed
-        }
+        try storage.remove()
     }
     
     public func isRefreshTokenExpired() async -> Bool {
@@ -90,7 +79,6 @@ private extension TokenServiceImpl {
         
         let task = Task<Void, Error> {
             let token = try self.storage.fetch()
-            print(">>> 토큰이 키체인에 있다. [\(#file) \(#line)] - \(token)")
             let response = try await self.refresher.refresh(with: token.refreshToken)
             
             let newToken = Token(
@@ -109,6 +97,7 @@ private extension TokenServiceImpl {
     }
     
     func handleRefreshTokenExpired() {
+        print("[TokenService] 🟡 handleRefreshTokenExpired() - 토큰 삭제 및 재로그인 알림 전송")
         try? storage.remove()
         notifyReloginRequired()
     }
