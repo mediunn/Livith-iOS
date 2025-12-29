@@ -12,39 +12,44 @@ import DSKit
 import HomeDomain
 
 struct HomeNoInterestView: View {
-    @Environment(\.homeCoordinator) var coordinator
     @Binding var nickname: String
+    @Environment(\.homeCoordinator) private var coordinator
     @StateObject private var store: HomeNoInterestStore = .init()
-    
+
     var body: some View {
         VStack(spacing: .zero) {
             LivithLogoHeaderView()
-            
+
             ScrollView {
                 VStack(spacing: .zero) {                    
                     HomeHeaderView(
                         nickname: nickname,
-                        action: {
-                            coordinator?.push(to: .interest)
-                        }
+                        action: { coordinator?.push(to: .interest) }
                     )
-                    
+
+                    if !store.state.isLoading && store.state.sectionList.isEmpty {
+                        LivithEmptyView(text: emptyMessage)
+                            .frame(minHeight: Constants.emptyStateMinHeight)
+                    }
+
                     ForEach(store.state.sectionList, id: \.id) { section in
                         concertSectionRow(for: section)
                             .padding(.top, 28)
                             .padding(.leading, 16)
                     }
-                    
+
                     Spacer(minLength: Constants.emptySpaceHeight)
                 }
                 .background(.livithColor(.black100))
             }
-            .refreshable {
-                store.send(.onRefresh)
-            }
+            .refreshable { store.send(.onRefresh) }
             .ignoresSafeArea(edges: .bottom)
         }
         .background(.livithColor(.black90))
+    }
+
+    private var emptyMessage: String {
+        store.state.errorMessage.isEmpty ? "콘텐츠가 없습니다." : store.state.errorMessage
     }
 }
 
@@ -66,5 +71,6 @@ private extension HomeNoInterestView {
 private extension HomeNoInterestView {
     enum Constants {
         static let emptySpaceHeight: CGFloat = 210
+        static let emptyStateMinHeight: CGFloat = 428
     }
 }
