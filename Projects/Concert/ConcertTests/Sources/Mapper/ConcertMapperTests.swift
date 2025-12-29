@@ -49,6 +49,8 @@ struct ConcertMapperTests {
         #expect(result?.artist == "아티스트")
         #expect(result?.status == .ongoing)
         #expect(result?.venue == "올림픽공원")
+        #expect(result?.startDate != nil)
+        #expect(result?.endDate != nil)
     }
 
     @Test("잘못된 상태값으로 콘서트 매핑 실패")
@@ -61,6 +63,33 @@ struct ConcertMapperTests {
             startDate: "2025-01-01",
             endDate: "2025-01-02",
             status: "INVALID_STATUS",
+            posterURL: "https://example.com/poster.jpg",
+            artist: "아티스트",
+            daysLeft: 10,
+            ticketSite: nil,
+            ticketURL: nil,
+            venue: "올림픽공원",
+            introduction: "콘서트 소개",
+            label: nil
+        )
+
+        // When
+        let result = mapper.toDomain(from: response)
+
+        // Then
+        #expect(result == nil)
+    }
+
+    @Test("잘못된 날짜 형식으로 콘서트 매핑 실패")
+    func test_콘서트정보매핑_잘못된날짜_nil반환() {
+        // Given
+        let response = DTO.Response.FetchConcertInfo(
+            id: 1,
+            code: "CONCERT001",
+            title: "2025 콘서트",
+            startDate: "invalid-date",
+            endDate: "2025-01-02",
+            status: "ONGOING",
             posterURL: "https://example.com/poster.jpg",
             artist: "아티스트",
             daysLeft: 10,
