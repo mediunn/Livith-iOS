@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol HomeRepository {
-    func fetchSectionList() async throws(HomeError) -> [ConcertSection]
+    func fetchSectionList() async throws(HomeError) -> HomeSectionList
     func fetchInterestedConcert() async throws(HomeError) -> Concert?
     @discardableResult
     func updateInterestedConcert(id: Int) async throws(HomeError) -> Concert

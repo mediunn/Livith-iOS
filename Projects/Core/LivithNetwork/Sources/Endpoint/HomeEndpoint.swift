@@ -23,11 +23,11 @@ extension HomeEndpoint: NetworkEndpoint {
         case .fetchSectionList:
             return "/api/v4/home/sections"
         case .fetchInterestedConcert:
-            return "/api/v4/home/interested-concert"
+            return "/api/v4/users/interest-concert"
         case .updateInterestedConcert:
-            return "/api/v4/home/interested-concert"
+            return "/api/v4/users/interest-concert"
         case .deleteInterestedConcert:
-            return "/api/v4/home/interested-concert"
+            return "/api/v4/users/interest-concert"
         }
     }
     

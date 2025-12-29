@@ -2,75 +2,43 @@
 //  HomeView.swift
 //  HomeFeature
 //
-//  Created by Youjin Lee on 12/3/25.
+//  Created by 김진웅 on 12/29/25.
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
 import SwiftUI
 
 import DSKit
-import HomeDomain
 
 struct HomeView: View {
-    @Environment(\.homeCoordinator) var coordinator
-    
-    @Binding var nickname: String
+    @StateObject private var store: HomeStore = .init()
 
-    @State private var sections: [ConcertSection] = ConcertSection.mockSections
+    private let nickname: Binding<String>
+
+    init(nickname: Binding<String>) {
+        self.nickname = nickname
+    }
     
     var body: some View {
-        VStack(spacing: .zero) {
-            LivithLogoHeaderView()
-            
-            ScrollView {
-                VStack(spacing: .zero) {
-                    HomeHeaderView(
-                        nickname: nickname,
-                        action: {
-                            coordinator?.push(to: .interest)
-                        }
-                    )
-                    
-                    ForEach(sections, id: \.id) { section in
-                        concertSectionRow(for: section)
-                            .padding(.top, 28)
-                            .padding(.leading, 16)
-                    }
-                    
-                    Spacer(minLength: Constants.emptySpaceHeight)
-                }
-                .background(.livithColor(.black100))
+        Group {
+            switch store.state.mode {
+            case .noInterestedConcert:
+                DefaultHomeView(nickname: nickname)
+            case .hasInterestedConcert(let concert):
+                EmptyView()
             }
-            .ignoresSafeArea(edges: .bottom)
         }
-        .background(.livithColor(.black90))
-    }
-}
-
-// MARK: - Helper
-
-private extension HomeView {
-    func concertSectionRow(for section: ConcertSection) -> some View {
-        ConcertSectionView(
-            concertSection: section,
-            onConcertTap: { concert in
-                // TODO: Router를 이용한 콘서트 상세 화면 이동 + Concert 전달
-            }
+        .livithToast(
+            isPresented: Binding(
+                get: { !store.state.errorMessage.isEmpty },
+                set: { _ in store.send(.onToastDisappear) }
+            ),
+            type: .failure,
+            message: store.state.errorMessage,
+            duration: 2
         )
+        .onAppear {
+            store.send(.onAppear)
+        }
     }
-}
-
-// MARK: - Constants
-
-private extension HomeView {
-    enum Constants {
-        static let emptySpaceHeight: CGFloat = 210
-    }
-}
-
-#Preview {
-    let nickname = Binding.constant("유지미")
-    let coordinator = HomeCoordinator(nickname: nickname)
-    HomeView(nickname: nickname)
-        .environment(\.homeCoordinator, coordinator)
 }

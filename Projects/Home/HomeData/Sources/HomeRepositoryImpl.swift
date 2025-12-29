@@ -22,7 +22,7 @@ struct HomeRepositoryImpl {
 }
 
 extension HomeRepositoryImpl: HomeRepository {
-    func fetchSectionList() async throws(HomeError) -> [ConcertSection] {
+    func fetchSectionList() async throws(HomeError) -> HomeSectionList {
         do {
             let response: DTO.Response.FetchHomeSectionList = try await homeService.request(.fetchSectionList)
             return mapper.toDomain(from: response)
@@ -36,6 +36,8 @@ extension HomeRepositoryImpl: HomeRepository {
         do {
             let response: DTO.Response.FetchUserInterestConcert = try await homeService.request(.fetchInterestedConcert)
             return mapper.toDomain(from: response)
+        } catch NetworkError.decodingFailed {
+            return nil
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)
