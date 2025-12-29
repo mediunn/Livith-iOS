@@ -20,7 +20,7 @@ struct ConcertMapperTests {
     // MARK: - Concert Info Tests
 
     @Test("콘서트 정보 매핑 성공")
-    func testFetchConcertInfoMapping() {
+    func test_콘서트정보매핑_유효한응답_콘서트반환() {
         // Given
         let response = DTO.Response.FetchConcertInfo(
             id: 1,
@@ -52,7 +52,7 @@ struct ConcertMapperTests {
     }
 
     @Test("잘못된 상태값으로 콘서트 매핑 실패")
-    func testFetchConcertInfoMappingWithInvalidStatus() {
+    func test_콘서트정보매핑_잘못된상태값_nil반환() {
         // Given
         let response = DTO.Response.FetchConcertInfo(
             id: 1,
@@ -81,7 +81,7 @@ struct ConcertMapperTests {
     // MARK: - Schedule Tests
 
     @Test("콘서트 일정 목록 매핑")
-    func testFetchConcertScheduleMapping() {
+    func test_콘서트일정매핑_유효한응답_일정목록반환() {
         // Given
         let response: DTO.Response.FetchConcertSchedule = [
             DTO.Response.ConcertSchedule(id: 1, category: "공연", scheduledAt: "2025-01-01T18:00:00Z", type: "DAY1"),
@@ -99,7 +99,7 @@ struct ConcertMapperTests {
     }
 
     @Test("잘못된 날짜 형식으로 일정 매핑 실패")
-    func testFetchConcertScheduleMappingWithInvalidDate() {
+    func test_콘서트일정매핑_잘못된날짜_빈목록반환() {
         // Given
         let response: DTO.Response.FetchConcertSchedule = [
             DTO.Response.ConcertSchedule(id: 1, category: "공연", scheduledAt: "invalid-date", type: "DAY1")
@@ -115,7 +115,7 @@ struct ConcertMapperTests {
     // MARK: - Culture List Tests
 
     @Test("콘서트 문화 목록 매핑")
-    func testFetchConcertCultureListMapping() {
+    func test_콘서트문화매핑_유효한응답_문화목록반환() {
         // Given
         let response: DTO.Response.FetchConcertCultureList = [
             DTO.Response.ConcertCulture(id: 1, concertID: 1, content: "응원봉 사용", title: "응원 문화"),
@@ -134,7 +134,7 @@ struct ConcertMapperTests {
     // MARK: - Merchandise List Tests
 
     @Test("MD 목록 매핑")
-    func testFetchConcertMerchandiseListMapping() {
+    func test_MD목록매핑_유효한응답_MD목록반환() {
         // Given
         let response: DTO.Response.FetchConcertMerchandiseList = [
             DTO.Response.ConcertMerchandise(id: 1, name: "포토카드", price: "5000", imageURL: "https://example.com/md1.jpg"),
@@ -154,7 +154,7 @@ struct ConcertMapperTests {
     // MARK: - Artist Tests
 
     @Test("아티스트 정보 매핑")
-    func testFetchConcertArtistInfoMapping() {
+    func test_아티스트정보매핑_유효한응답_아티스트반환() {
         // Given
         let response = DTO.Response.FetchConcertArtistInfo(
             id: 1,

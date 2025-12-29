@@ -20,7 +20,7 @@ struct CommentMapperTests {
     // MARK: - Comment List Tests
 
     @Test("댓글 목록 매핑")
-    func testFetchConcertCommentListMapping() {
+    func test_댓글목록매핑_유효한응답_댓글목록반환() {
         // Given
         let response = DTO.Response.FetchConcertCommentList(
             data: [
@@ -48,7 +48,7 @@ struct CommentMapperTests {
     }
 
     @Test("댓글 목록 커서가 nil일 때 매핑")
-    func testFetchConcertCommentListMappingWithNilCursor() {
+    func test_댓글목록매핑_nil커서_nil커서반환() {
         // Given
         let response = DTO.Response.FetchConcertCommentList(
             data: [],
@@ -68,7 +68,7 @@ struct CommentMapperTests {
     // MARK: - Create Comment Tests
 
     @Test("댓글 생성 매핑")
-    func testCreateConcertCommentMapping() {
+    func test_댓글생성매핑_유효한응답_댓글반환() {
         // Given
         let response = DTO.Response.CreateConcertComment(
             id: 1,

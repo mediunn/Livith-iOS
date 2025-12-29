@@ -20,7 +20,7 @@ struct SetlistMapperTests {
     // MARK: - Setlist List Tests
 
     @Test("셋리스트 목록 매핑")
-    func testFetchConcertSetlistListMapping() {
+    func test_셋리스트목록매핑_유효한응답_셋리스트목록반환() {
         // Given
         let response: DTO.Response.FetchConcertSetlistList = [
             DTO.Response.ConcertSetlist(
@@ -48,7 +48,7 @@ struct SetlistMapperTests {
     }
 
     @Test("셋리스트 status가 nil일 때 none으로 매핑")
-    func testFetchConcertSetlistListMappingWithNilStatus() {
+    func test_셋리스트목록매핑_nil상태값_none반환() {
         // Given
         let response: DTO.Response.FetchConcertSetlistList = [
             DTO.Response.ConcertSetlist(
@@ -73,7 +73,7 @@ struct SetlistMapperTests {
     }
 
     @Test("잘못된 타입으로 셋리스트 매핑 실패")
-    func testFetchConcertSetlistListMappingWithInvalidType() {
+    func test_셋리스트목록매핑_잘못된타입_빈목록반환() {
         // Given
         let response: DTO.Response.FetchConcertSetlistList = [
             DTO.Response.ConcertSetlist(
@@ -99,7 +99,7 @@ struct SetlistMapperTests {
     // MARK: - Setlist Detail Tests
 
     @Test("셋리스트 상세 매핑")
-    func testFetchConcertSetlistDetailMapping() {
+    func test_셋리스트상세매핑_유효한응답_셋리스트반환() {
         // Given
         let response = DTO.Response.FetchConcertSetlist(
             id: 1,
@@ -124,7 +124,7 @@ struct SetlistMapperTests {
     }
 
     @Test("잘못된 날짜로 셋리스트 상세 매핑 실패")
-    func testFetchConcertSetlistDetailMappingWithInvalidDate() {
+    func test_셋리스트상세매핑_잘못된날짜_nil반환() {
         // Given
         let response = DTO.Response.FetchConcertSetlist(
             id: 1,
@@ -148,7 +148,7 @@ struct SetlistMapperTests {
     // MARK: - Setlist Song Tests
 
     @Test("셋리스트 곡 목록 매핑")
-    func testFetchSetlistSongListMapping() {
+    func test_셋리스트곡목록매핑_유효한응답_곡목록반환() {
         // Given
         let response: DTO.Response.FetchSetlistSongList = [
             DTO.Response.SetlistSong(id: 1, title: "곡1", artist: "아티스트", orderIndex: 1),
