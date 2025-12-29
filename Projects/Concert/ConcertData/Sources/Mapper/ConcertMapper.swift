@@ -32,7 +32,7 @@ struct ConcertMapper {
             posterURL: posterURL,
             venue: response.venue,
             ticketSite: response.ticketSite,
-            ticketURL: URL(string: response.ticketURL ?? ""),
+            ticketURL: response.ticketURL.flatMap { URL(string: $0) },
             introduction: response.introduction,
             label: response.label
         )
