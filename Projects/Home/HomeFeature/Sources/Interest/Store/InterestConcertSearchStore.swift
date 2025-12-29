@@ -18,6 +18,7 @@ enum InterestConcertSearchIntent {
 
 struct InterestConcertSearchState {
     var searchText: String = ""
+    var recommendKeywordList: [String] = ["아이유", "아이즈원", "아이브"]
 }
 
 final class InterestConcertSearchStore: ObservableObject {

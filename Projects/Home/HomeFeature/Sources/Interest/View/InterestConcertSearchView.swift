@@ -29,10 +29,11 @@ struct InterestConcertSearchView: View {
                     .padding(.top, 12)
                     .padding(.horizontal, 16)
                 
-                Spacer()
+                scrollView
+                    .padding(.top, 20)
+                    .padding(.horizontal, 16)
             }
         }
-        .background(.livithColor(.black100))
         .ignoresSafeArea(edges: .bottom)
     }
 }
@@ -72,9 +73,11 @@ private extension InterestConcertSearchView {
                     .focused($isTextFieldFocused)
                     .onSubmit { isTextFieldFocused = false }
                 
-                if !store.state.searchText.isEmpty, isTextFieldFocused { deleteButton }
-                
-                if store.state.searchText.isEmpty { searchButton }
+                if isWriting {
+                    deleteButton
+                } else {
+                    searchButton
+                }
             }
             .frame(height: Constants.textFieldHeight)
             .padding(.horizontal, 12)
@@ -115,6 +118,31 @@ private extension InterestConcertSearchView {
                 .frame(width: Constants.iconSize, height: Constants.iconSize)
         }
     }
+
+    var scrollView: some View {
+        ScrollView(showsIndicators: false) {
+            if isWriting {
+                recommendKeywordListView
+            }
+        }
+        .ignoresSafeArea(edges: .bottom)
+    }
+    
+    var recommendKeywordListView: some View {
+        HStack {
+            RecommendKeywordListView(
+                searchText: store.state.searchText,
+                keywordList: store.state.recommendKeywordList,
+                onTap: { keyword in
+                    store.send(.updateText(keyword))
+                    store.send(.onSearch)
+                    isTextFieldFocused = false
+                }
+            )
+            
+            Spacer()
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -126,6 +154,8 @@ private extension InterestConcertSearchView {
             set: { store.send(.updateText($0)) }
         )
     }
+    
+    var isWriting: Bool { isTextFieldFocused && !store.state.searchText.isEmpty }
 }
 
 // MARK: - Literals & Constants
