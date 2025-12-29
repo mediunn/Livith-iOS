@@ -23,7 +23,7 @@ struct HomeView: View {
         Group {
             switch store.state.mode {
             case .noInterestedConcert:
-                DefaultHomeView(nickname: nickname)
+                HomeNoInterestView(nickname: nickname)
             case .hasInterestedConcert(let concert):
                 EmptyView()
             }

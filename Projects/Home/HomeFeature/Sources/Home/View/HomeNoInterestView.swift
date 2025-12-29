@@ -1,5 +1,5 @@
 //
-//  DefaultHomeView.swift
+//  HomeNoInterestView.swift
 //  HomeFeature
 //
 //  Created by Youjin Lee on 12/3/25.
@@ -11,19 +11,17 @@ import SwiftUI
 import DSKit
 import HomeDomain
 
-struct DefaultHomeView: View {
+struct HomeNoInterestView: View {
     @Environment(\.homeCoordinator) var coordinator
-    
     @Binding var nickname: String
-
-    @State private var sections: [ConcertSection] = ConcertSection.mockSections
+    @StateObject private var store: HomeNoInterestStore = .init()
     
     var body: some View {
         VStack(spacing: .zero) {
             LivithLogoHeaderView()
             
             ScrollView {
-                VStack(spacing: .zero) {
+                VStack(spacing: .zero) {                    
                     HomeHeaderView(
                         nickname: nickname,
                         action: {
@@ -31,7 +29,7 @@ struct DefaultHomeView: View {
                         }
                     )
                     
-                    ForEach(sections, id: \.id) { section in
+                    ForEach(store.state.sectionList, id: \.id) { section in
                         concertSectionRow(for: section)
                             .padding(.top, 28)
                             .padding(.leading, 16)
@@ -41,6 +39,9 @@ struct DefaultHomeView: View {
                 }
                 .background(.livithColor(.black100))
             }
+            .refreshable {
+                store.send(.onRefresh)
+            }
             .ignoresSafeArea(edges: .bottom)
         }
         .background(.livithColor(.black90))
@@ -49,7 +50,7 @@ struct DefaultHomeView: View {
 
 // MARK: - Helper
 
-private extension DefaultHomeView {
+private extension HomeNoInterestView {
     func concertSectionRow(for section: ConcertSection) -> some View {
         ConcertSectionView(
             concertSection: section,
@@ -62,7 +63,7 @@ private extension DefaultHomeView {
 
 // MARK: - Constants
 
-private extension DefaultHomeView {
+private extension HomeNoInterestView {
     enum Constants {
         static let emptySpaceHeight: CGFloat = 210
     }
