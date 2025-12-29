@@ -32,7 +32,7 @@ let project = Project.make(
             ]
         ),
         .make(
-            target: .concert(.concertDataTests),
+            target: .concert(.concertTests),
             product: .unitTests,
             dependencies: [
                 .concert(.concertData),

@@ -66,7 +66,7 @@ public enum ConcertModule: String {
     case concertData = "ConcertData"
     case concertDomain = "ConcertDomain"
     case concertFeature = "ConcertFeature"
-    case concertDataTests = "ConcertDataTests"
+    case concertTests = "ConcertTests"
 }
 
 // MARK: - External Dependency
