@@ -29,7 +29,7 @@ extension CommentRepositoryImpl: CommentRepository {
     ) async throws(ConcertError) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int) {
         do {
             let response: DTO.Response.FetchConcertCommentList = try await service.request(
-                .fetchConcertComments(concertID: concertID, cursor: cursor, size: size)
+                .fetchConcertCommentList(concertID: concertID, cursor: cursor, size: size)
             )
             return entityMapper.toDomain(from: response)
         } catch {
