@@ -9,31 +9,13 @@
 import Foundation
 
 public enum SetlistType: String, CaseIterable {
-    case expected
-    case recent
-    case none
+    case expected = "예상"
+    case recent = "최근"
+    case none = ""
 }
 
 public extension SetlistType {
-    init?(rawValue: String) {
-        switch rawValue.uppercased() {
-        case "예상":
-            self = .expected
-        case "최근":
-            self = .recent
-        default:
-            self = .none
-        }
-    }
-
     var displayText: String {
-        switch self {
-        case .expected:
-            return "예상"
-        case .recent:
-            return "최근"
-        case .none:
-            return ""
-        }
+        return rawValue
     }
 }

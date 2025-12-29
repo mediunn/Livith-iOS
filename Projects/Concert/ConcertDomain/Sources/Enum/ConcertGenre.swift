@@ -1,6 +1,6 @@
 //
 //  ConcertGenre.swift
-//  search
+//  ConcertDomain
 //
 //  Created by Youjin Lee on 10/27/25.
 //  Copyright © 2025 Livith. All rights reserved.
@@ -9,50 +9,31 @@
 import Foundation
 
 public enum ConcertGenre: String, CaseIterable {
-    case jpop
-    case rockMetal
-    case rapHiphop
-    case classicJazz
-    case acoustic
-    case electronic
-    case all
+    case jpop = "JPOP"
+    case rockMetal = "ROCK_METAL"
+    case rapHiphop = "RAP_HIPHOP"
+    case classicJazz = "CLASSIC_JAZZ"
+    case acoustic = "ACOUSTIC"
+    case electronic = "ELECTRONIC"
+    case all = "ALL"
 }
 
 public extension ConcertGenre {
-    var rawValue: String {
-        switch self {
-        case .jpop:
-            return "JPOP"
-        case .rockMetal:
-            return "ROCK_METAL"
-        case .rapHiphop:
-            return "RAP_HIPHOP"
-        case .classicJazz:
-            return "CLASSIC_JAZZ"
-        case .acoustic:
-            return "ACOUSTIC"
-        case .electronic:
-            return "ELECTRONIC"
-        case .all:
-            return "ALL"
-        }
-    }
-    
     var genreText: String {
         switch self {
         case .jpop:
             return "J-POP"
         case .rockMetal:
             return "락/메탈"
-        case .rapHiphop: 
+        case .rapHiphop:
             return "랩/힙합"
-        case .classicJazz: 
+        case .classicJazz:
             return "클래식/재즈"
-        case .acoustic: 
+        case .acoustic:
             return "어쿠스틱"
-        case .electronic: 
+        case .electronic:
             return "일렉트로닉"
-        case .all: 
+        case .all:
             return "전체"
         }
     }
