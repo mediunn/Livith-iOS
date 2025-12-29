@@ -14,6 +14,7 @@ import LivithConcurrency
 
 public struct ConcertDetailState {
     public var concert: Concert?
+    public var formattedDateRange: String = ""
     public var errorMessage: String = ""
     public var isLoading: Bool = false
 
@@ -82,8 +83,8 @@ private extension ConcertDetailStore {
                 artist: "호시노 겐",
                 status: .upcoming,
                 daysLeft: 30,
-                startDate: createDate(year: 2025, month: 9, day: 13),
-                endDate: createDate(year: 2025, month: 9, day: 14),
+                startDate: Date(),
+                endDate: Date(),
                 posterURL: URL(string: "https://example.com/poster.jpg")!,
                 venue: "올림픽공원 올림픽홀",
                 ticketSite: nil,
@@ -93,15 +94,32 @@ private extension ConcertDetailStore {
             )
 
             state.concert = mockConcert
+            state.formattedDateRange = formatDateRange(from: mockConcert)
             state.isLoading = false
         }
     }
 
-    func createDate(year: Int, month: Int, day: Int) -> Date {
-        var components = DateComponents()
-        components.year = year
-        components.month = month
-        components.day = day
-        return Calendar.current.date(from: components) ?? Date()
+    func formatDateRange(from concert: Concert) -> String {
+        let calendar = Calendar.current
+        let startYear = calendar.component(.year, from: concert.startDate)
+        let endYear = calendar.component(.year, from: concert.endDate)
+
+        let fullFormatter = DateFormatter()
+        fullFormatter.dateFormat = "yyyy.MM.dd"
+
+        let startDateString = fullFormatter.string(from: concert.startDate)
+        let endDateString = fullFormatter.string(from: concert.endDate)
+
+        if startDateString == endDateString {
+            return startDateString
+        } else if startYear == endYear {
+            let shortFormatter = DateFormatter()
+            shortFormatter.dateFormat = "MM.dd"
+            let endShortString = shortFormatter.string(from: concert.endDate)
+            return "\(startDateString)~\(endShortString)"
+        } else {
+            return "\(startDateString)~\(endDateString)"
+        }
     }
+
 }
