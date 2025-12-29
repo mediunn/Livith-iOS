@@ -14,7 +14,8 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .home(.homeDomain),
-                .core(.livithNetwork)
+                .core(.livithNetwork),
+                .core(.diContainer)
             ]
         ),
         .make(

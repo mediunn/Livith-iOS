@@ -12,7 +12,7 @@ import Foundation
 
 public extension DTO.Request {
     struct UpdateUserInterestConcert: Encodable {
-        public let concertID: String
+        public let concertID: Int
 
         enum CodingKeys: String, CodingKey {
             case concertID = "concertId"
