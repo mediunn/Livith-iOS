@@ -80,4 +80,39 @@ struct ConcertRepositoryTests {
         // Then
         #expect(result.id > 0)
     }
+
+    // MARK: - Error Tests
+
+    @Test("존재하지 않는 콘서트 조회 시 에러 발생")
+    func test_콘서트정보조회_존재하지않는ID_에러반환() async {
+        // Given
+        let invalidConcertID = -1
+
+        // When & Then
+        await #expect(throws: ConcertError.self) {
+            try await repository.fetchConcertInfo(concertID: invalidConcertID)
+        }
+    }
+
+    @Test("존재하지 않는 콘서트 일정 조회 시 에러 발생")
+    func test_콘서트일정조회_존재하지않는ID_에러반환() async {
+        // Given
+        let invalidConcertID = -1
+
+        // When & Then
+        await #expect(throws: ConcertError.self) {
+            try await repository.fetchConcertSchedule(concertID: invalidConcertID)
+        }
+    }
+
+    @Test("존재하지 않는 콘서트 아티스트 조회 시 에러 발생")
+    func test_아티스트정보조회_존재하지않는ID_에러반환() async {
+        // Given
+        let invalidConcertID = -1
+
+        // When & Then
+        await #expect(throws: ConcertError.self) {
+            try await repository.fetchConcertArtistInfo(concertID: invalidConcertID)
+        }
+    }
 }

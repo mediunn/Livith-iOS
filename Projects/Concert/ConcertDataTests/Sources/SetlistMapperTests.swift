@@ -108,7 +108,7 @@ struct SetlistMapperTests {
             type: "ONGOING",
             startDate: "2025-01-01T18:00:00Z",
             endDate: "2025-01-01T21:00:00Z",
-            status: "recent",
+            status: "최근",
             venue: "올림픽공원",
             artist: "아티스트"
         )

@@ -32,4 +32,17 @@ struct CommentRepositoryTests {
         // Then
         #expect(result.totalCount >= 0)
     }
+
+    // MARK: - Error Tests
+
+    @Test("존재하지 않는 콘서트 댓글 조회 시 에러 발생")
+    func test_댓글목록조회_존재하지않는ID_에러반환() async {
+        // Given
+        let invalidConcertID = -1
+
+        // When & Then
+        await #expect(throws: ConcertError.self) {
+            try await repository.fetchConcertComments(concertID: invalidConcertID, cursor: nil, size: nil)
+        }
+    }
 }
