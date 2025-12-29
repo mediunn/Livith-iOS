@@ -1,6 +1,6 @@
 //
-//  EmptyResponse .swift
-//  network
+//  EmptyResponse.swift
+//  LivithNetwork
 //
 //  Created by Youjin Lee on 10/12/25.
 //  Copyright © 2025 Livith. All rights reserved.
