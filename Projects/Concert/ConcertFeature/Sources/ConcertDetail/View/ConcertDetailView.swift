@@ -46,9 +46,11 @@ public struct ConcertDetailView: View {
             ScrollView {
                 ZStack {
                     posterSection
-                        .padding(.bottom, 120)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 340)
                     
                     concertInfoSection
+                        .padding(.top, 120)
                 }
             }
         }
@@ -105,11 +107,13 @@ private extension ConcertDetailView {
                 KFImage(posterURL)
                     .onSuccess { _ in isPosterLoaded = true }
                     .onFailure { _ in isPosterLoaded = false }
-                    .placeholder { Image.livithImage(.concertCardEmpty) }
+                    .placeholder {
+                        Image.livithImage(.concertCardEmpty)
+                            .resizable()
+                            .scaledToFill()
+                    }
                     .resizable()
                     .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 340)
                     .clipped()
                     .overlay {
                         if isPosterLoaded {
@@ -127,9 +131,7 @@ private extension ConcertDetailView {
             } else {
                 Image.livithImage(.concertCardEmpty)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 340)
+                    .scaledToFill()
             }
         }
     }
