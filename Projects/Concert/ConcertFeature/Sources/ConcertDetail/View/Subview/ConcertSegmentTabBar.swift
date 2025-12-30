@@ -23,17 +23,14 @@ struct ConcertSegmentTabBar: View {
     // MARK: - Body
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
-                    ForEach(ConcertDetailTab.allCases, id: \.self) { tab in
-                        tabButton(for: tab)
-                            .id(tab)
-                    }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 0) {
+                ForEach(ConcertDetailTab.allCases, id: \.self) { tab in
+                    tabButton(for: tab)
                 }
             }
-            .animation(.easeInOut, value: selectedTab)
         }
+        .animation(.easeInOut, value: selectedTab)
         .frame(height: 48)
         .background(Color.livithColor(.black100))
     }
@@ -53,16 +50,10 @@ private extension ConcertSegmentTabBar {
 
                 tabLabel(for: tab, isSelected: isSelected)
 
-                if isSelected {
-                    Rectangle()
-                        .fill(Color.livithColor(.white100))
-                        .frame(height: 3)
-                        .matchedGeometryEffect(id: "underline", in: tabNamespace)
-                } else {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: 2)
-                }
+                Rectangle()
+                    .fill(isSelected ? Color.livithColor(.white100) : Color.clear)
+                    .frame(height: 3)
+                    .matchedGeometryEffect(id: "underline", in: tabNamespace)
             }
         }
     }
