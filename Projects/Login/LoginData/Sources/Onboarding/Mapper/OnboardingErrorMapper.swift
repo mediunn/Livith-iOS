@@ -18,7 +18,7 @@ struct OnboardingErrorMapper {
             return mapToDomainError(networkError)
         }
 
-        if let storageError = error as? StorageError {
+        if error is StorageError {
             return .unknown
         }
         

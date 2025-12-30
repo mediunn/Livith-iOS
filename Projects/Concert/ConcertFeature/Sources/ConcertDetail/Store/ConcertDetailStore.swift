@@ -12,18 +12,37 @@ import ConcertDomain
 import DIContainer
 import LivithConcurrency
 
+public enum ConcertDetailTab: Int, CaseIterable {
+    case artistDetail
+    case concertInfo
+    case setlist
+    case community
+
+    var title: String {
+        switch self {
+        case .artistDetail: return "아티스트 상세"
+        case .concertInfo: return "콘서트 상세"
+        case .setlist: return "셋리스트"
+        case .community: return "소통·댓글"
+        }
+    }
+}
+
 public struct ConcertDetailState {
     public var concert: Concert?
-    public var formattedDateRange: String = ""
-    public var errorMessage: String = ""
+    public var communityCount: Int = 0
     public var isLoading: Bool = false
-
+    public var errorMessage: String = ""
+    public var formattedDateRange: String = ""
+    public var selectedTab: ConcertDetailTab = .artistDetail
+    
     public init() {}
 }
 
 public enum ConcertDetailIntent {
     case onAppear(concertID: Int)
     case favoriteButtonTapped
+    case tabSelected(ConcertDetailTab)
 
     case _setConcert(Concert, formattedDateRange: String)
     case _setLoading(Bool)
@@ -53,6 +72,8 @@ public final class ConcertDetailStore: ObservableObject {
         case .favoriteButtonTapped:
             // TODO: 관심 콘서트 설정 기능 구현
             break
+        case .tabSelected(let tab):
+            state.selectedTab = tab
         case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
             state.formattedDateRange = formattedDateRange

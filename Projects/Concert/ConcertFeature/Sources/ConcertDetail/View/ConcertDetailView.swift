@@ -45,20 +45,70 @@ public struct ConcertDetailView: View {
             )
 
             ScrollView {
-                ZStack {
-                    posterSection
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 340)
-                    
-                    concertInfoSection
-                        .padding(.top, 120)
-                        .padding(.bottom, 30)
+                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    headerSection
+
+                    Section {
+                        tabContentView
+                    } header: {
+                        segmentTabBar
+                    }
                 }
             }
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
         .onAppear {
             store.send(.onAppear(concertID: concertID))
+        }
+    }
+}
+
+// MARK: - Header Section
+
+private extension ConcertDetailView {
+    var headerSection: some View {
+        ZStack {
+            posterSection
+                .frame(maxWidth: .infinity)
+                .frame(height: 340)
+
+            concertInfoSection
+                .padding(.top, 120)
+                .padding(.bottom, 30)
+        }
+    }
+}
+
+// MARK: - Segment TabBar
+
+private extension ConcertDetailView {
+    var segmentTabBar: some View {
+        ConcertSegmentTabBar(
+            selectedTab: store.state.selectedTab,
+            communityCount: store.state.communityCount,
+            onTabSelected: { tab in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    store.send(.tabSelected(tab))
+                }
+            }
+        )
+    }
+}
+
+// MARK: - Tab Content
+
+private extension ConcertDetailView {
+    @ViewBuilder
+    var tabContentView: some View {
+        switch store.state.selectedTab {
+        case .artistDetail:
+            ArtistDetailTabView()
+        case .concertInfo:
+            ConcertInfoTabView()
+        case .setlist:
+            SetlistTabView()
+        case .community:
+            CommunityTabView()
         }
     }
 }
