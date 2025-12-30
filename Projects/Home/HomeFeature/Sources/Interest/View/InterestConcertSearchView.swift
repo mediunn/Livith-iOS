@@ -6,10 +6,9 @@
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
-import SwiftUI
-
 import DSKit
 import HomeDomain
+import SwiftUI
 
 struct InterestConcertSearchView: View {
     @Environment(\.homeCoordinator) private var coordinator
@@ -29,6 +28,8 @@ struct InterestConcertSearchView: View {
                 searchTextField
                     .padding(.top, 12)
                     .padding(.horizontal, 16)
+                
+                Spacer()
                 
                 scrollView
                     .padding(.top, 20)
@@ -85,7 +86,7 @@ private extension InterestConcertSearchView {
                     .foregroundStyle(.livithColor(.white100))
                     .autocorrectionDisabled()
                     .focused($isTextFieldFocused)
-                    .onSubmit { 
+                    .onSubmit {
                         isTextFieldFocused = false
                         store.send(.onSearch)
                     }
@@ -139,11 +140,11 @@ private extension InterestConcertSearchView {
     
     var scrollView: some View {
         Group {
-            if isTextFieldFocused { // 1순위: 입력 중
-                recommendKeywordListView
-            } else if !store.state.searchText.isEmpty, !isTextFieldFocused { // 2순위: 검색 완료
+            if isTextFieldFocused, !store.state.hasSearched {  // 1순위: 키워드 작성 중
+                recommendKeywordListView()
+            } else if !store.state.searchText.isEmpty, store.state.hasSearched {  // 2순위: 검색 실행 완료
                 searchResultGridView()
-            } else if store.state.searchText.isEmpty { // 3순위: 초기 상태
+            } else if store.state.searchText.isEmpty {  // 3순위: 초기 상태
                 concertGridView()
             }
         }
@@ -182,7 +183,7 @@ private extension InterestConcertSearchView {
                             store.send(.selectConcert(concert.id))
                         }
                         .onAppear {
-                            if concert.id == store.state.concertList.last?.id {
+                            if concert.id == store.state.concertList.last?.id, !store.state.isConcertsLoadingMore {
                                 store.send(.loadMoreConcerts)
                             }
                         }
@@ -192,7 +193,8 @@ private extension InterestConcertSearchView {
         }
     }
     
-    var recommendKeywordListView: some View {
+    @ViewBuilder
+    func recommendKeywordListView() -> some View {
         ScrollView(showsIndicators: false) {
             HStack {
                 RecommendKeywordListView(
@@ -214,13 +216,13 @@ private extension InterestConcertSearchView {
     func searchResultGridView() -> some View {
         VStack(alignment: .leading) {
             searchResultText
-
+            
             if store.state.searchList.isEmpty {
                 Spacer()
-
+                
                 LivithEmptyView(text: "검색 결과가 없어요")
                     .frame(maxWidth: .infinity)
-
+                
                 Spacer()
             } else {
                 ScrollView(showsIndicators: false) {
@@ -238,10 +240,10 @@ private extension InterestConcertSearchView {
     
     var searchResultText: some View {
         (Text("검색 결과 ")
-            .foregroundStyle(.livithColor(.black5)) +
-         Text("\(store.state.searchList.count)개")
-            .foregroundStyle(.livithColor(.yellow30)) +
-         Text("의 정보가 있어요")
+            .foregroundStyle(.livithColor(.black5))
+         + Text("\(store.state.searchList.count)개")
+            .foregroundStyle(.livithColor(.yellow30))
+         + Text("의 정보가 있어요")
             .foregroundStyle(.livithColor(.black5)))
         .notosans(.body2Medium)
     }
@@ -262,7 +264,7 @@ private extension InterestConcertSearchView {
                 store.send(.selectConcert(concert.id))
             }
             .onAppear {
-                if concert.id == store.state.searchList.last?.id {
+                if concert.id == store.state.searchList.last?.id, !store.state.isSearchResultsLoadingMore {
                     store.send(.loadMoreSearchResults)
                 }
             }
@@ -275,10 +277,14 @@ private extension InterestConcertSearchView {
         } label: {
             Text("설정하기")
                 .notosans(.body3Medium)
-                .foregroundColor(store.state.selectedConcertID != nil ? Color.livithColor(.black100) : Color.livithColor(.black50))
+                .foregroundColor(
+                    store.state.selectedConcertID != nil ? Color.livithColor(.black100) : Color.livithColor(.black50)
+                )
                 .frame(maxWidth: .infinity)
                 .frame(height: 60)
-                .background(store.state.selectedConcertID != nil ? Color.livithColor(.yellow30) : Color.livithColor(.black80))
+                .background(
+                    store.state.selectedConcertID != nil ? Color.livithColor(.yellow30) : Color.livithColor(.black80)
+                )
                 .cornerRadius(8)
         }
         .disabled(store.state.selectedConcertID == nil)

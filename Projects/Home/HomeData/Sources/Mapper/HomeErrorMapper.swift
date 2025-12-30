@@ -10,6 +10,7 @@ import Foundation
 
 import HomeDomain
 import LivithNetwork
+import Alamofire
 
 struct HomeErrorMapper {
     func mapToDomainError(from error: Error) -> HomeError {
@@ -22,6 +23,11 @@ struct HomeErrorMapper {
             return .serverError
         case .decodingFailed:
             return .noResponse
+        case .unknown(let error):
+            if let afError = error as? AFError, case .explicitlyCancelled = afError {
+                return .cancelled
+            }
+            return .unknown
         default:
             return .unknown
         }

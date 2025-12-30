@@ -34,6 +34,7 @@ struct InterestConcertSearchState {
     var errorMessage: String = ""
     var isConcertsLoadingMore: Bool = false
     var isSearchResultsLoadingMore: Bool = false
+    var hasSearched: Bool = false
 }
 
 final class InterestConcertSearchStore: ObservableObject {
@@ -53,6 +54,7 @@ final class InterestConcertSearchStore: ObservableObject {
         case .updateText(let text):
             state.searchList.removeAll()
             state.searchText = text
+            state.hasSearched = false
 
             if text.isEmpty {
                 state.recommendKeywordList.removeAll()
@@ -62,6 +64,8 @@ final class InterestConcertSearchStore: ObservableObject {
             }
 
         case .onSearch:
+            state.hasSearched = true
+            state.searchList.removeAll()
             performFetchSearchList()
 
         case .selectConcert(let concertID):
@@ -74,12 +78,10 @@ final class InterestConcertSearchStore: ObservableObject {
             state.errorMessage = ""
         
         case .loadMoreConcerts:
-            guard !state.isConcertsLoadingMore else { return }
             state.isConcertsLoadingMore = true
             performFetchConcertList(isNextPage: true)
             
         case .loadMoreSearchResults:
-            guard !state.isSearchResultsLoadingMore else { return }
             state.isSearchResultsLoadingMore = true
             performFetchSearchList(isNextPage: true)
 
@@ -151,6 +153,8 @@ private extension InterestConcertSearchStore {
             do {
                 let keywordList = try await repository.fetchRecommendKeywordList(for: state.searchText)
                 await send(._fetchRecommendKeywordListResult(.success(keywordList)))
+            } catch HomeError.cancelled {
+                return
             } catch {
                 await send(._fetchRecommendKeywordListResult(.failure(error)))
             }
