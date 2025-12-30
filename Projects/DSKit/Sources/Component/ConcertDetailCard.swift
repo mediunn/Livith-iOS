@@ -20,6 +20,7 @@ public struct ConcertDetailCard: View {
     private let artist: String
     private let status: String
     private let remainDays: Int
+    private let isSelected: Bool
     
     // MARK: - LifeCycle
     
@@ -29,7 +30,8 @@ public struct ConcertDetailCard: View {
         date: String,
         artist: String,
         status: String,
-        remainDays: Int = 0
+        remainDays: Int = 0,
+        isSelected: Bool = false
     ) {
         self.posterURL = posterURL
         self.title = title
@@ -37,6 +39,7 @@ public struct ConcertDetailCard: View {
         self.artist = artist
         self.status = status
         self.remainDays = remainDays
+        self.isSelected = isSelected
     }
     
     // MARK: - Body
@@ -45,6 +48,10 @@ public struct ConcertDetailCard: View {
         ZStack(alignment: .topLeading) {
             VStack(alignment: .leading, spacing: 0) {
                 posterImage()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(isSelected ? Color.livithColor(.yellow30) : .clear, lineWidth: 2)
+                    )   
                 
                 titleText()
                     .padding(.top, 6)
@@ -58,7 +65,7 @@ public struct ConcertDetailCard: View {
             }
             .frame(width: 108)
             
-            ConcertStatusChip(statusText: status, remainDays: remainDays)
+            ConcertStatusChip(statusText: status, remainDays: remainDays, isHighlighted: isSelected)
                 .padding(.top, 10)
                 .padding(.leading, 10)
         }
@@ -101,5 +108,28 @@ private extension ConcertDetailCard {
             .lineLimit(1)
             .notosans(.caption1Semibold)
             .foregroundStyle(Color.livithColor(.black50))
+    }
+}
+
+#Preview {
+    VStack {
+        ConcertDetailCard(
+            posterURL: URL(string: "https://fastly.picsum.photos/id/58/108/158.jpg?hmac=MQWXlBOSI-9yWj9BvjYs7Bkb2mA9M7yDHnZFpGzRsb8")!,
+            title: "아이유 단독 콘서트 'The Golden Hour : 오렌지 태양 아래'",
+            date: "2025.12.01 ~ 2025.12.31",
+            artist: "아이유",
+            status: "D-",
+            remainDays: 3
+        )
+        
+        ConcertDetailCard(
+            posterURL: URL(string: "https://fastly.picsum.photos/id/58/108/158.jpg?hmac=MQWXlBOSI-9yWj9BvjYs7Bkb2mA9M7yDHnZFpGzRsb8")!,
+            title: "아이유 단독 콘서트 'The Golden Hour : 오렌지 태양 아래'",
+            date: "2025.12.01 ~ 2025.12.31",
+            artist: "아이유",
+            status: "D-",
+            remainDays: 3,
+            isSelected: true
+        )
     }
 }

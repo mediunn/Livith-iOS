@@ -14,12 +14,14 @@ public struct ConcertStatusChip: View {
     
     private let remainDays: Int
     private let statusText: String
+    private let isHighlighted: Bool
     
     // MARK: - LifeCycle
     
-    public init(statusText: String, remainDays: Int = 0) {
+    public init(statusText: String, remainDays: Int = 0, isHighlighted: Bool = false) {
         self.statusText = statusText
         self.remainDays = remainDays
+        self.isHighlighted = isHighlighted
     }
     
     // MARK: - Body
@@ -30,7 +32,7 @@ public struct ConcertStatusChip: View {
         }
         .padding(.horizontal, 13)
         .padding(.vertical, 7)
-        .background(Color.livithColor(.black90))
+        .background(.livithColor(isHighlighted ? .yellow30 : .black90))
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }
@@ -39,10 +41,13 @@ private extension ConcertStatusChip {
     var buttonText: some View {
         Text(remainDays <= 0 ? statusText : "\(statusText)\(remainDays)")
             .notosans(.caption1Bold)
-            .foregroundStyle(Color.livithColor(.black30))
+            .foregroundStyle(.livithColor(isHighlighted ? .black100 : .black30))
     }
 }
 
 #Preview {
-    ConcertStatusChip(statusText: "D-", remainDays: 3)
+    VStack {
+        ConcertStatusChip(statusText: "D-", remainDays: 3)
+        ConcertStatusChip(statusText: "D-", remainDays: 3, isHighlighted: true)
+    }    
 }

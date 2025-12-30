@@ -9,6 +9,7 @@
 import SwiftUI
 
 import DSKit
+import HomeDomain
 
 struct InterestConcertSearchView: View {
     @Environment(\.homeCoordinator) private var coordinator
@@ -118,14 +119,42 @@ private extension InterestConcertSearchView {
                 .frame(width: Constants.iconSize, height: Constants.iconSize)
         }
     }
-
+    
     var scrollView: some View {
         ScrollView(showsIndicators: false) {
-            if isWriting {
+            if isWriting { // 1순위: 입력 중
                 recommendKeywordListView
+            } else if !store.state.searchList.isEmpty, !store.state.searchText.isEmpty, !isTextFieldFocused { // 2순위: 검색 완료
+                searchResultGridView
+            } else if store.state.searchText.isEmpty { // 3순위: 초기 상태
+                concertGridView
             }
         }
         .ignoresSafeArea(edges: .bottom)
+    }
+
+    var concertGridView: some View {
+        LazyVGrid(
+            columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
+            spacing: 16
+        ) {
+            ForEach(store.state.concertList, id: \.id) { concert in
+                ConcertDetailCard(
+                    posterURL: concert.posterURL,
+                    title: concert.title,
+                    date: concert.startDate,
+                    artist: concert.artist,
+                    status: concert.status.statusChipText,
+                    remainDays: concert.daysLeft,
+                    isSelected: store.state.selectedConcertID == concert.id
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                .onTapGesture {
+                    print("Tapped concert id: \(concert.id)")
+                    store.send(.selectConcert(concert.id))
+                }
+            }
+        }
     }
     
     var recommendKeywordListView: some View {
@@ -141,6 +170,48 @@ private extension InterestConcertSearchView {
             )
             
             Spacer()
+        }
+    }
+    
+    var searchResultGridView: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            searchResultText
+            
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
+                spacing: 16
+            ) {
+                searchResultRow
+            }
+        }
+    }
+
+    var searchResultText: some View {
+        (Text("검색 결과 ")
+            .foregroundStyle(.livithColor(.black5)) +
+         Text("\(store.state.searchList.count)개")
+            .foregroundStyle(.livithColor(.yellow30)) +
+         Text("의 정보가 있어요")
+            .foregroundStyle(.livithColor(.black5)))
+            .notosans(.body2Medium)
+    }
+    
+    var searchResultRow: some View {
+        ForEach(store.state.searchList, id: \.id) { concert in
+            ConcertDetailCard(
+                posterURL: concert.posterURL,
+                title: concert.title,
+                date: concert.startDate,
+                artist: concert.artist,
+                status: concert.status.statusChipText,
+                remainDays: concert.daysLeft,
+                isSelected: store.state.selectedConcertID == concert.id
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            .onTapGesture {
+                print("Tapped concert id: \(concert.id)")
+                store.send(.selectConcert(concert.id))
+            }
         }
     }
 }
