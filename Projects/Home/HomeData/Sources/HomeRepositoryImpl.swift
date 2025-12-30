@@ -36,10 +36,13 @@ extension HomeRepositoryImpl: HomeRepository {
 
     func fetchInterestedConcert() async throws(HomeError) -> Concert? {
         do {
-            let response: DTO.Response.FetchUserInterestConcert = try await homeService.request(.fetchInterestedConcert)
+            let response: DTO.Response.FetchUserInterestConcert? = try await homeService.request(.fetchInterestedConcert)
+            
+            guard let response else {
+                return nil
+            }
+            
             return mapper.toDomain(from: response)
-        } catch NetworkError.decodingFailed {
-            return nil
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)
