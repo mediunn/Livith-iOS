@@ -14,9 +14,9 @@ struct ConcertSegmentTabBar: View {
 
     // MARK: - Property
 
-    let selectedTab: ConcertDetailTab
+    let selectedTab: ConcertTab
     let communityCount: Int
-    let onTabSelected: (ConcertDetailTab) -> Void
+    let onTabSelected: (ConcertTab) -> Void
 
     @Namespace private var tabNamespace
 
@@ -25,7 +25,7 @@ struct ConcertSegmentTabBar: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                ForEach(ConcertDetailTab.allCases, id: \.self) { tab in
+                ForEach(ConcertTab.allCases, id: \.self) { tab in
                     tabButton(for: tab)
                 }
             }
@@ -39,7 +39,7 @@ struct ConcertSegmentTabBar: View {
 // MARK: - Tab Button
 
 private extension ConcertSegmentTabBar {
-    func tabButton(for tab: ConcertDetailTab) -> some View {
+    func tabButton(for tab: ConcertTab) -> some View {
         let isSelected = selectedTab == tab
 
         return Button {
@@ -66,7 +66,7 @@ private extension ConcertSegmentTabBar {
         }
     }
 
-    func tabLabel(for tab: ConcertDetailTab, isSelected: Bool) -> some View {
+    func tabLabel(for tab: ConcertTab, isSelected: Bool) -> some View {
         Group {
             if tab == .community {
                 HStack(spacing: 2) {

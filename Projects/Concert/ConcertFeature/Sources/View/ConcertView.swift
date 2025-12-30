@@ -1,5 +1,5 @@
 //
-//  ConcertDetailView.swift
+//  ConcertView.swift
 //  ConcertFeature
 //
 //  Created by Youjin Lee on 12/29/25.
@@ -13,7 +13,7 @@ import Kingfisher
 import ConcertDomain
 import DSKit
 
-public struct ConcertDetailView: View {
+public struct ConcertView: View {
 
     // MARK: - Property
     
@@ -21,12 +21,12 @@ public struct ConcertDetailView: View {
     private let onDismiss: () -> Void
 
     @State private var isPosterLoaded: Bool = false
-    @ObservedObject private var store: ConcertDetailStore
+    @ObservedObject private var store: ConcertStore
 
     // MARK: - Initializer
 
     public init(
-        store: ConcertDetailStore = ConcertDetailStore(),
+        store: ConcertStore = ConcertStore(),
         concertID: Int,
         onDismiss: @escaping () -> Void
     ) {
@@ -65,7 +65,7 @@ public struct ConcertDetailView: View {
 
 // MARK: - Header Section
 
-private extension ConcertDetailView {
+private extension ConcertView {
     var headerSection: some View {
         ZStack {
             posterSection
@@ -81,7 +81,7 @@ private extension ConcertDetailView {
 
 // MARK: - Segment TabBar
 
-private extension ConcertDetailView {
+private extension ConcertView {
     var segmentTabBar: some View {
         ConcertSegmentTabBar(
             selectedTab: store.state.selectedTab,
@@ -97,7 +97,7 @@ private extension ConcertDetailView {
 
 // MARK: - Tab Content
 
-private extension ConcertDetailView {
+private extension ConcertView {
     @ViewBuilder
     var tabContentView: some View {
         switch store.state.selectedTab {
@@ -115,7 +115,7 @@ private extension ConcertDetailView {
 
 // MARK: - Poster Section
 
-private extension ConcertDetailView {
+private extension ConcertView {
     var posterSection: some View {
         ZStack(alignment: .topTrailing) {
             posterImage
@@ -162,7 +162,7 @@ private extension ConcertDetailView {
 
 // MARK: - Concert Info Section
 
-private extension ConcertDetailView {
+private extension ConcertView {
     var concertInfoSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let label = store.state.concert?.label, !label.isEmpty {
@@ -223,8 +223,8 @@ private extension ConcertDetailView {
 }
 
 #Preview {
-    ConcertDetailView(
-        store: ConcertDetailStore(),
+    ConcertView(
+        store: ConcertStore(),
         concertID: 1,
         onDismiss: {}
     )

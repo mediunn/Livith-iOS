@@ -13,5 +13,4 @@ import DSKit
 enum HomeRoute: Route {
     case home
     case interest
-    case concertDetail(concertID: Int)
 }

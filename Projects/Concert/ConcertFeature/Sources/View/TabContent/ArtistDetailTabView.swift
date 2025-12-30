@@ -14,6 +14,8 @@ struct ArtistDetailTabView: View {
 
     // MARK: - Property
 
+    @Environment(\.concertCoordinator) private var coordinator
+
     let introduction: String
 
     // TODO: 실제 API 연동 시 아티스트 데이터로 교체
@@ -62,10 +64,12 @@ private extension ArtistDetailTabView {
     var artistInfoSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 20) {
-                sectionHeader(
+                SectionHeaderView(
                     firstLine: "아티스트 정보",
                     secondLine: "함께 알아볼까요?"
-                )
+                ) {
+                    coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
+                }
 
                 artistInfoCard(imageURL: mockArtist.imageURL)
             }
@@ -99,10 +103,10 @@ private extension ArtistDetailTabView {
 
             VStack(alignment: .leading, spacing: 0) {
                 artistTag
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 8)
 
                 artistNameRow
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 12)
 
                 dashedDivider
                     .padding(.bottom, 12)
@@ -139,14 +143,15 @@ private extension ArtistDetailTabView {
 
             Spacer()
 
-            // TODO: 인스타그램 아이콘 에셋 추가 후 주석 해제
-            // if let instagramURL = mockArtist.instagramURL {
-            //     Link(destination: instagramURL) {
-            //         Image.livithIcon(.instagramLine)
-            //             .resizable()
-            //             .frame(width: 32, height: 32)
-            //     }
-            // }
+            if let instagramURL = mockArtist.instagramURL {
+                Button {
+                    coordinator?.present(to: .safari(instagramURL))
+                } label: {
+                    Image.livithImage(.instagram)
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                }
+            }
         }
     }
 
@@ -187,18 +192,22 @@ private struct Line: Shape {
 private extension ArtistDetailTabView {
     var fanCultureSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            sectionHeader(
+            SectionHeaderView(
                 badgeCount: mockFanCultures.count,
                 firstLine: "의 팬문화와",
                 secondLine: "꿀팁을 알아봐요"
-            )
+            ) {
+                coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
+            }
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(alignment: .top, spacing: 10) {
                     ForEach(Array(mockFanCultures.enumerated()), id: \.offset) { index, culture in
                         fanCultureCard(index: index + 1, culture: culture)
+                            .frame(maxHeight: .infinity, alignment: .top)
                     }
                 }
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -206,18 +215,18 @@ private extension ArtistDetailTabView {
     func fanCultureCard(index: Int, culture: MockFanCulture) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("팬문화 \(index)")
-                .notosans(.caption1Semibold)
+                .notosans(.caption1Bold)
                 .foregroundStyle(Color.livithColor(.black50))
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
                 .background(Color.livithColor(.black100))
                 .clipShape(RoundedRectangle(cornerRadius: 24))
-                .padding(.bottom, 12)
+                .padding(.bottom, 4)
 
             Text(culture.title)
                 .notosans(.body2Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
-                .padding(.bottom, 16)
+                .padding(.bottom, 12)
 
             dashedDivider
                 .padding(.bottom, 12)
@@ -229,7 +238,7 @@ private extension ArtistDetailTabView {
         }
         .frame(width: 200, alignment: .leading)
         .padding(16)
-        .background(Color.livithColor(.black80))
+        .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
@@ -237,60 +246,6 @@ private extension ArtistDetailTabView {
 // MARK: - Common Components
 
 private extension ArtistDetailTabView {
-    func sectionHeader(
-        badgeCount: Int? = nil,
-        firstLine: String,
-        secondLine: String
-    ) -> some View {
-        HStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .center, spacing: 4) {
-                    if let count = badgeCount {
-                        badgeText(count: count)
-                    }
-
-                    Text(firstLine)
-                        .notosans(.body1Semibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                }
-
-                Text(secondLine)
-                    .notosans(.body1Semibold)
-                    .foregroundStyle(Color.livithColor(.white100))
-            }
-
-            Spacer()
-
-            reportButton
-        }
-    }
-
-    var reportButton: some View {
-        Button {
-            // TODO: 정보 제보 액션
-        } label: {
-            Text("정보 제보")
-                .notosans(.caption1Semibold)
-                .foregroundStyle(Color.livithColor(.black50))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.livithColor(.black80), lineWidth: 1)
-                )
-        }
-    }
-
-    func badgeText(count: Int) -> some View {
-        Text("\(count)개")
-            .notosans(.body1Semibold)
-            .foregroundStyle(Color.livithColor(.black100))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 1)
-            .background(Color.livithColor(.yellow30))
-            .clipShape(RoundedRectangle(cornerRadius: 4))
-    }
-
     var dashedDivider: some View {
         Line()
             .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))

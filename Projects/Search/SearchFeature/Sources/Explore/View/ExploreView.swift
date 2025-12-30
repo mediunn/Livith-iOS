@@ -87,7 +87,7 @@ private extension ExploreView {
         ConcertSectionView(
             concertSection: section,
             onConcertTap: { concert in
-                // TODO: Router를 이용한 콘서트 상세 화면 이동 + Concert 전달
+                coordinator?.showConcertDetail(concertID: concert.id)
             }
         )
     }

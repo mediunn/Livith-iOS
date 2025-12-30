@@ -156,6 +156,7 @@ public extension Image {
     
     enum LivithImage {
         case concertCardEmpty
+        case instagram
         case livithLogo, livithEmpty
         case splash, feedback
         case polygon
@@ -165,6 +166,8 @@ public extension Image {
             switch self {
             case .concertCardEmpty:
                 DSKitAsset.ImageAssets.imageConcertCardEmpty.swiftUIImage
+            case .instagram:
+                DSKitAsset.ImageAssets.imageInstagram.swiftUIImage
             case .livithLogo:
                 DSKitAsset.ImageAssets.imageLivithLogo.swiftUIImage
             case .livithEmpty:

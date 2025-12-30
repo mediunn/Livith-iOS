@@ -1,5 +1,5 @@
 //
-//  ConcertDetailStore.swift
+//  ConcertStore.swift
 //  ConcertFeature
 //
 //  Created by Youjin Lee on 12/29/25.
@@ -12,7 +12,7 @@ import ConcertDomain
 import DIContainer
 import LivithConcurrency
 
-public enum ConcertDetailTab: Int, CaseIterable {
+public enum ConcertTab: Int, CaseIterable {
     case artistDetail
     case concertInfo
     case setlist
@@ -28,32 +28,32 @@ public enum ConcertDetailTab: Int, CaseIterable {
     }
 }
 
-public struct ConcertDetailState {
+public struct ConcertState {
     public var concert: Concert?
     public var communityCount: Int = 0
     public var isLoading: Bool = false
     public var errorMessage: String = ""
     public var formattedDateRange: String = ""
-    public var selectedTab: ConcertDetailTab = .artistDetail
+    public var selectedTab: ConcertTab = .artistDetail
     
     public init() {}
 }
 
-public enum ConcertDetailIntent {
+public enum ConcertIntent {
     case onAppear(concertID: Int)
     case favoriteButtonTapped
-    case tabSelected(ConcertDetailTab)
+    case tabSelected(ConcertTab)
 
     case _setConcert(Concert, formattedDateRange: String)
     case _setLoading(Bool)
 }
 
-public final class ConcertDetailStore: ObservableObject {
+public final class ConcertStore: ObservableObject {
 
     // MARK: - Property
 
     private var fetchTask: Task<Void, Never>?
-    @Published private(set) var state = ConcertDetailState()
+    @Published private(set) var state = ConcertState()
 
     // MARK: - Initializer
 
@@ -65,10 +65,10 @@ public final class ConcertDetailStore: ObservableObject {
     // MARK: - Intent Handler
 
     @MainActor
-    public func send(_ intent: ConcertDetailIntent) {
+    public func send(_ intent: ConcertIntent) {
         switch intent {
         case .onAppear(let concertID):
-            fetchConcertDetail(concertID: concertID)
+            fetchConcertInfo(concertID: concertID)
         case .favoriteButtonTapped:
             // TODO: 관심 콘서트 설정 기능 구현
             break
@@ -85,8 +85,8 @@ public final class ConcertDetailStore: ObservableObject {
 
 // MARK: - Private Methods
 
-private extension ConcertDetailStore {
-    func fetchConcertDetail(concertID: Int) {
+private extension ConcertStore {
+    func fetchConcertInfo(concertID: Int) {
         fetchTask?.cancel()
 
         fetchTask = Task { @MainActor in
