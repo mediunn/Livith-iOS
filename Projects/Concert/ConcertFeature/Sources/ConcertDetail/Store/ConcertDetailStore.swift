@@ -25,9 +25,8 @@ public enum ConcertDetailIntent {
     case onAppear(concertID: Int)
     case favoriteButtonTapped
 
-    case _setConcert(Concert)
+    case _setConcert(Concert, formattedDateRange: String)
     case _setLoading(Bool)
-    case _setErrorMessage(String)
 }
 
 public final class ConcertDetailStore: ObservableObject {
@@ -54,12 +53,11 @@ public final class ConcertDetailStore: ObservableObject {
         case .favoriteButtonTapped:
             // TODO: 관심 콘서트 설정 기능 구현
             break
-        case ._setConcert(let concert):
+        case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
+            state.formattedDateRange = formattedDateRange
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
-        case ._setErrorMessage(let message):
-            state.errorMessage = message
         }
     }
 }
@@ -71,7 +69,7 @@ private extension ConcertDetailStore {
         fetchTask?.cancel()
 
         fetchTask = Task { @MainActor in
-            state.isLoading = true
+            send(._setLoading(true))
 
             // TODO: Repository 연결 시 실제 API 호출로 교체
             // 현재는 Mock 데이터 사용
@@ -93,9 +91,8 @@ private extension ConcertDetailStore {
                 label: "많이 찾는 콘서트 1위"
             )
 
-            state.concert = mockConcert
-            state.formattedDateRange = formatDateRange(from: mockConcert)
-            state.isLoading = false
+            send(._setConcert(mockConcert, formattedDateRange: formatDateRange(from: mockConcert)))
+            send(._setLoading(false))
         }
     }
 

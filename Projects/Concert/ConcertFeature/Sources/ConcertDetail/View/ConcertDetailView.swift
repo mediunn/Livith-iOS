@@ -33,8 +33,6 @@ public struct ConcertDetailView: View {
         self.store = store
         self.concertID = concertID
         self.onDismiss = onDismiss
-
-        store.send(.onAppear(concertID: concertID))
     }
 
     // MARK: - Body
@@ -59,6 +57,9 @@ public struct ConcertDetailView: View {
             }
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
+        .onAppear {
+            store.send(.onAppear(concertID: concertID))
+        }
     }
 }
 
