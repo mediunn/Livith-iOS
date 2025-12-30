@@ -14,4 +14,11 @@ public protocol HomeRepository {
     @discardableResult
     func updateInterestedConcert(id: Int) async throws(HomeError) -> Concert
     func deleteInterestedConcert() async throws(HomeError)
+    func fetchRecommendKeywordList(for keyword: String) async throws(HomeError) -> [String]
+    func fetchConcertList(startDate: String?, concertID: Int?) async throws(HomeError) -> [Concert]
+    func fetchSearchedConcertList(
+        keyword: String,
+        startDate: String?,
+        concertID: Int?
+    ) async throws(HomeError) -> [Concert]
 }
