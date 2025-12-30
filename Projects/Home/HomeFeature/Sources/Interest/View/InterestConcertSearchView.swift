@@ -38,6 +38,7 @@ struct InterestConcertSearchView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
             }
+            .ignoresSafeArea(.keyboard)
             .livithToast(
                 isPresented: Binding(
                     get: { !store.state.errorMessage.isEmpty },

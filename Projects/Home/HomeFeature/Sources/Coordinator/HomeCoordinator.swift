@@ -34,7 +34,7 @@ final class HomeCoordinator: Coordinator {
             return UIHostingController(rootView: HomeView(nickname: nickname).environment(\.homeCoordinator, self))
 
         case .interest:
-            return UIHostingController(rootView: InterestTempView().environment(\.homeCoordinator, self))
+            return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))
         }
     }
 }
