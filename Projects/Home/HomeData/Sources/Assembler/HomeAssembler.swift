@@ -17,9 +17,10 @@ public struct HomeAssembler: DependencyAssembler {
     
     public func assemble(to container: any DependencyContainer) {
         let homeService = HomeService()
+        let searchService = SearchService()
         
         container.register({
-            HomeRepositoryImpl(homeService: homeService)
+            HomeRepositoryImpl(homeService: homeService, searchService: searchService)
         }, for: HomeRepository.self)
     }
 }

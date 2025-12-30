@@ -13,11 +13,13 @@ import LivithNetwork
 
 struct HomeRepositoryImpl {
     private let homeService: HomeService
+    private let searchService: SearchService
     private let mapper: HomeMapper = .init()
     private let errorMapper: HomeErrorMapper = .init()
     
-    init(homeService: HomeService) {
+    init(homeService: HomeService, searchService: SearchService) {
         self.homeService = homeService
+        self.searchService = searchService
     }
 }
 
@@ -63,6 +65,16 @@ extension HomeRepositoryImpl: HomeRepository {
     func deleteInterestedConcert() async throws(HomeError) {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchRecommendKeywordList(for keyword: String) async throws(HomeError) -> [String] {
+        do {
+            let response: DTO.Response.FetchRecommendKeywordList = try await searchService.request(.fetchRecommendedSearchResult(letter: keyword))
+            return response
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)

@@ -119,9 +119,8 @@ private extension InterestConcertSearchStore {
             guard await Task.wait(for: .milliseconds(400)) else { return }
 
             do {
-                let allKeywords = ["아이유", "아이즈원", "아이브", "뉴진스", "BTS", "블랙핑크", "세븐틴", "트와이스"]
-                let filteredKeywords = allKeywords.filter { $0.localizedCaseInsensitiveContains(state.searchText) }
-                await send(._fetchRecommendKeywordListResult(.success(filteredKeywords)))
+                let keywordList = try await repository.fetchRecommendKeywordList(for: state.searchText)
+                await send(._fetchRecommendKeywordListResult(.success(keywordList)))
             } catch {
                 await send(._fetchRecommendKeywordListResult(.failure(error)))
             }
