@@ -51,10 +51,10 @@ struct InterestConcertSearchView: View {
             )
             .onChange(of: isTextFieldFocused) { _, isFocused in
                 if isFocused {
-                    store.send(.setMode(.recommendingKeywords))
+                    store.send(.onModeChange(.recommendingKeywords))
                 } else if store.state.mode == .recommendingKeywords {
                     if store.state.searchText.isEmpty {
-                        store.send(.setMode(.initial))
+                        store.send(.onModeChange(.initial))
                     }
                 }
             }
@@ -128,7 +128,7 @@ private extension InterestConcertSearchView {
     
     var deleteButton: some View {
         Button {
-            store.send(.updateText(""))
+            store.send(.onTextChange(""))
         } label: {
             Image.livithIcon(.deleteFillDefault)
                 .resizable()
@@ -190,11 +190,11 @@ private extension InterestConcertSearchView {
                         )
                         .transition(.opacity.combined(with: .scale(scale: 0.95)))
                         .onTapGesture {
-                            store.send(.selectConcert(concert.id))
+                            store.send(.onConcertTap(concert.id))
                         }
                         .onAppear {
                             if concert.id == store.state.concertList.last?.id, !store.state.isConcertsLoadingMore {
-                                store.send(.loadMoreConcerts)
+                                store.send(.onLoadMoreConcerts)
                             }
                         }
                     }
@@ -211,7 +211,7 @@ private extension InterestConcertSearchView {
                     searchText: store.state.searchText,
                     keywordList: store.state.recommendKeywordList,
                     onTap: { keyword in
-                        store.send(.updateText(keyword))
+                        store.send(.onTextChange(keyword))
                         isTextFieldFocused = false
                         store.send(.onSearch)
                     }
@@ -271,11 +271,11 @@ private extension InterestConcertSearchView {
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onTapGesture {
-                store.send(.selectConcert(concert.id))
+                store.send(.onConcertTap(concert.id))
             }
             .onAppear {
                 if concert.id == store.state.searchList.last?.id, !store.state.isSearchResultsLoadingMore {
-                    store.send(.loadMoreSearchResults)
+                    store.send(.onLoadMoreSearchResults)
                 }
             }
         }
@@ -307,7 +307,7 @@ private extension InterestConcertSearchView {
     var searchText: Binding<String> {
         Binding(
             get: { store.state.searchText },
-            set: { store.send(.updateText($0)) }
+            set: { store.send(.onTextChange($0)) }
         )
     }
     

@@ -13,14 +13,14 @@ import DIContainer
 import LivithConcurrency
 
 enum InterestConcertSearchIntent {
-    case updateText(String)
+    case onTextChange(String)
     case onSearch
-    case selectConcert(Int)
+    case onConcertTap(Int)
     case onSubmit
     case onToastDisappear
-    case loadMoreConcerts
-    case loadMoreSearchResults
-    case setMode(InterestConcertSearchState.Mode)
+    case onLoadMoreConcerts
+    case onLoadMoreSearchResults
+    case onModeChange(InterestConcertSearchState.Mode)
     case _fetchConcertListResult(Result<[Concert], Error>)
     case _fetchRecommendKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
@@ -58,7 +58,7 @@ final class InterestConcertSearchStore: ObservableObject {
     @MainActor
     func send(_ intent: InterestConcertSearchIntent) {
         switch intent {
-        case .updateText(let text):
+        case .onTextChange(let text):
             state.searchList.removeAll()
             state.searchText = text
 
@@ -75,7 +75,7 @@ final class InterestConcertSearchStore: ObservableObject {
             state.searchList.removeAll()
             performFetchSearchList()
 
-        case .selectConcert(let concertID):
+        case .onConcertTap(let concertID):
             state.selectedConcertID = state.selectedConcertID == concertID ? nil : concertID
 
         case .onSubmit:
@@ -84,14 +84,14 @@ final class InterestConcertSearchStore: ObservableObject {
         case .onToastDisappear:
             state.errorMessage = ""
         
-        case .setMode(let mode):
+        case .onModeChange(let mode):
             state.mode = mode
         
-        case .loadMoreConcerts:
+        case .onLoadMoreConcerts:
             state.isConcertsLoadingMore = true
             performFetchConcertList(isNextPage: true)
             
-        case .loadMoreSearchResults:
+        case .onLoadMoreSearchResults:
             state.isSearchResultsLoadingMore = true
             performFetchSearchList(isNextPage: true)
 
