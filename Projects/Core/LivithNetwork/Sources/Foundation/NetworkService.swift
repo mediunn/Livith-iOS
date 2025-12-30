@@ -81,6 +81,8 @@ public extension NetworkService {
                 interceptor: interceptor(for: endPoint)
             )
         }
+        
+        dataRequest.validate()
 
         do {
             let data = try await dataRequest.serializingData().value

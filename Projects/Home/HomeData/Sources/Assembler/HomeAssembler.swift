@@ -1,0 +1,25 @@
+//
+//  HomeAssembler.swift
+//  HomeData
+//
+//  Created by 김진웅 on 12/29/25.
+//  Copyright © 2025 Livith. All rights reserved.
+//
+
+import Foundation
+
+import DIContainer
+import HomeDomain
+import LivithNetwork
+
+public struct HomeAssembler: DependencyAssembler {
+    public init() {}
+    
+    public func assemble(to container: any DependencyContainer) {
+        let homeService = HomeService()
+        
+        container.register({
+            HomeRepositoryImpl(homeService: homeService)
+        }, for: HomeRepository.self)
+    }
+}
