@@ -13,11 +13,13 @@ import LivithNetwork
 
 struct HomeRepositoryImpl {
     private let homeService: HomeService
+    private let searchService: SearchService
     private let mapper: HomeMapper = .init()
     private let errorMapper: HomeErrorMapper = .init()
     
-    init(homeService: HomeService) {
+    init(homeService: HomeService, searchService: SearchService) {
         self.homeService = homeService
+        self.searchService = searchService
     }
 }
 
@@ -34,10 +36,13 @@ extension HomeRepositoryImpl: HomeRepository {
 
     func fetchInterestedConcert() async throws(HomeError) -> Concert? {
         do {
-            let response: DTO.Response.FetchUserInterestConcert = try await homeService.request(.fetchInterestedConcert)
+            let response: DTO.Response.FetchUserInterestConcert? = try await homeService.request(.fetchInterestedConcert)
+            
+            guard let response else {
+                return nil
+            }
+            
             return mapper.toDomain(from: response)
-        } catch NetworkError.decodingFailed {
-            return nil
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)
@@ -63,6 +68,61 @@ extension HomeRepositoryImpl: HomeRepository {
     func deleteInterestedConcert() async throws(HomeError) {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchRecommendKeywordList(for keyword: String) async throws(HomeError) -> [String] {
+        do {
+            let response: DTO.Response.FetchRecommendKeywordList = try await searchService.request(.fetchRecommendedSearchResult(letter: keyword))
+            return response
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchConcertList(startDate: String?, concertID: Int?) async throws(HomeError) -> [Concert] {
+        do {
+            let response: DTO.Response.FetchConcertList = try await searchService.request(
+                .fetchConcertList(
+                    startDate: startDate,
+                    concertID: concertID,
+                    size: 12
+                )
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchSearchedConcertList(
+        keyword: String,
+        startDate: String?,
+        concertID: Int?
+    ) async throws(HomeError) -> [Concert] {
+        let cursor: String? = if let startDate = startDate, let concertID = concertID {
+            "{\"value\":\"\(startDate)\",\"id\":\(concertID)}"
+        } else {
+            nil
+        }
+
+        do {
+            let response: DTO.Response.FetchFilterSearchResult = try await searchService.request(
+                .fetchFilterSearchResult(
+                    genre: [],
+                    sort: "LATEST",
+                    status: [],
+                    keyword: keyword,
+                    cursor: cursor,
+                    size: 12
+                )
+            )
+            return mapper.toDomain(from: response)
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)

@@ -22,6 +22,11 @@ public enum SearchEndpoint {
         size: Int?
     )
     case fetchRecommendedSearchResult(letter: String)
+    case fetchConcertList(
+        startDate: String?,
+        concertID: Int?,
+        size: Int?
+    )
 }
 
 extension SearchEndpoint: NetworkEndpoint {
@@ -35,6 +40,8 @@ extension SearchEndpoint: NetworkEndpoint {
             return "/api/v4/search"
         case .fetchRecommendedSearchResult:
             return "/api/v4/search/suggestions"
+        case .fetchConcertList:
+            return "/api/v4/concerts"
         }
     }
 
@@ -61,33 +68,44 @@ extension SearchEndpoint: NetworkEndpoint {
             return params.compactMapValues { $0 }
         case .fetchRecommendedSearchResult(letter: let letter):
             return ["letter": letter]
+        case .fetchConcertList(
+            startDate: let startDate,
+            concertID: let concertID,
+            size: let size):
+            let params: [String: Any?] = [
+                "cursor": startDate,
+                "id": concertID,
+                "size": size
+            ]
+
+            return params.compactMapValues { $0 }
         }
     }
 
     public var method: HTTPMethod {
         switch self {
-        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult:
+        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult, .fetchConcertList:
             return .get
         }
     }
 
     public var headers: HTTPHeaders? {
         switch self {
-        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult:
+        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult, .fetchConcertList:
             return nil
         }
     }
 
     public var body: Encodable? {
         switch self {
-        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult:
+        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult, .fetchConcertList:
             return nil
         }
     }
 
     public var requiresInterceptor: Bool {
         switch self {
-        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult:
+        case .fetchSections, .fetchBanners, .fetchFilterSearchResult, .fetchRecommendedSearchResult, .fetchConcertList:
             return false
         }
     }
