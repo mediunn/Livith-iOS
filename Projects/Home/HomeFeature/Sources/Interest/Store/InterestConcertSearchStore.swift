@@ -126,7 +126,10 @@ private extension InterestConcertSearchStore {
     func performFetchSearchList(for keyword: String) {
         Task {
             do {
-                let searchList = createSearchResultMockData()
+                let searchList = createSearchResultMockData().filter {
+                    $0.title.localizedCaseInsensitiveContains(keyword) ||
+                    $0.artist.localizedCaseInsensitiveContains(keyword)
+                }
                 await send(._fetchSearchListResult(.success(searchList)))
             } catch {
                 await send(._fetchSearchListResult(.failure(error)))
