@@ -36,20 +36,8 @@ struct HomeView: View {
             type: .failure,
             message: store.state.errorMessage,
             duration: 2
+            )
         .background(.livithColor(.black90))
-    }
-}
-
-// MARK: - Helper
-
-private extension HomeView {
-    func concertSectionRow(for section: ConcertSection) -> some View {
-        ConcertSectionView(
-            concertSection: section,
-            onConcertTap: { concert in
-                coordinator?.push(to: .concertDetail(concertID: concert.id))
-            }
-        )
         .onAppear {
             store.send(.onAppear)
         }
