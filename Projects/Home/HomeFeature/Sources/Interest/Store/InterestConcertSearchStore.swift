@@ -17,6 +17,7 @@ enum InterestConcertSearchIntent {
     case onSearch
     case selectConcert(Int)
     case onSubmit
+    case onToastDisappear
     case _fetchConcertListResult(Result<[Concert], Error>)
     case _fetchRecommendKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
@@ -28,6 +29,7 @@ struct InterestConcertSearchState {
     var recommendKeywordList: [String] = []
     var searchList: [Concert] = []
     var selectedConcertID: Int?
+    var errorMessage: String = ""
 }
 
 final class InterestConcertSearchStore: ObservableObject {
@@ -64,6 +66,9 @@ final class InterestConcertSearchStore: ObservableObject {
         case .onSubmit:
             break
         
+        case .onToastDisappear:
+            state.errorMessage = ""
+            
         case ._fetchConcertListResult(let result):
             switch result {
             case .success(let concertList):

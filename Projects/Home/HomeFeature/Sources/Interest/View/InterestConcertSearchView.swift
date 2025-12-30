@@ -38,6 +38,15 @@ struct InterestConcertSearchView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
             }
+            .livithToast(
+                isPresented: Binding(
+                    get: { !store.state.errorMessage.isEmpty },
+                    set: { _ in store.send(.onToastDisappear) }
+                ),
+                type: .failure,
+                message: store.state.errorMessage,
+                duration: 2
+            )
         }
     }
 }
