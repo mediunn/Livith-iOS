@@ -20,12 +20,20 @@ enum InterestConcertSearchIntent {
     case onToastDisappear
     case loadMoreConcerts
     case loadMoreSearchResults
+    case setMode(InterestConcertSearchState.Mode)
     case _fetchConcertListResult(Result<[Concert], Error>)
     case _fetchRecommendKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
 }
 
 struct InterestConcertSearchState {
+    enum Mode {
+        case initial
+        case recommendingKeywords
+        case showingSearchResults
+    }
+    
+    var mode: Mode = .initial
     var concertList: [Concert] = []
     var searchText: String = ""
     var recommendKeywordList: [String] = []
@@ -34,7 +42,6 @@ struct InterestConcertSearchState {
     var errorMessage: String = ""
     var isConcertsLoadingMore: Bool = false
     var isSearchResultsLoadingMore: Bool = false
-    var hasSearched: Bool = false
 }
 
 final class InterestConcertSearchStore: ObservableObject {
@@ -54,7 +61,6 @@ final class InterestConcertSearchStore: ObservableObject {
         case .updateText(let text):
             state.searchList.removeAll()
             state.searchText = text
-            state.hasSearched = false
 
             if text.isEmpty {
                 state.recommendKeywordList.removeAll()
@@ -64,7 +70,8 @@ final class InterestConcertSearchStore: ObservableObject {
             }
 
         case .onSearch:
-            state.hasSearched = true
+            guard !state.searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+            state.mode = .showingSearchResults
             state.searchList.removeAll()
             performFetchSearchList()
 
@@ -76,6 +83,9 @@ final class InterestConcertSearchStore: ObservableObject {
         
         case .onToastDisappear:
             state.errorMessage = ""
+        
+        case .setMode(let mode):
+            state.mode = mode
         
         case .loadMoreConcerts:
             state.isConcertsLoadingMore = true
@@ -143,9 +153,7 @@ private extension InterestConcertSearchStore {
         }
     }
 
-    func performFetchRecommendKeywordList() {
-        guard !state.searchText.isEmpty else { return }
-        
+    func performFetchRecommendKeywordList() {        
         searchTask?.cancel()
         searchTask = Task {
             guard await Task.wait(for: .milliseconds(400)) else { return }

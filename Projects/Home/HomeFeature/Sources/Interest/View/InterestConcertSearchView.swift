@@ -49,6 +49,15 @@ struct InterestConcertSearchView: View {
                 message: store.state.errorMessage,
                 duration: 2
             )
+            .onChange(of: isTextFieldFocused) { _, isFocused in
+                if isFocused {
+                    store.send(.setMode(.recommendingKeywords))
+                } else if store.state.mode == .recommendingKeywords {
+                    if store.state.searchText.isEmpty {
+                        store.send(.setMode(.initial))
+                    }
+                }
+            }
         }
     }
 }
@@ -140,12 +149,13 @@ private extension InterestConcertSearchView {
     
     var scrollView: some View {
         Group {
-            if isTextFieldFocused, !store.state.hasSearched {  // 1순위: 키워드 작성 중
-                recommendKeywordListView()
-            } else if !store.state.searchText.isEmpty, store.state.hasSearched {  // 2순위: 검색 실행 완료
-                searchResultGridView()
-            } else if store.state.searchText.isEmpty {  // 3순위: 초기 상태
+            switch store.state.mode {
+            case .initial:
                 concertGridView()
+            case .recommendingKeywords:
+                recommendKeywordListView()
+            case .showingSearchResults:
+                searchResultGridView()
             }
         }
         .onTapGesture { isTextFieldFocused = false }
@@ -202,8 +212,8 @@ private extension InterestConcertSearchView {
                     keywordList: store.state.recommendKeywordList,
                     onTap: { keyword in
                         store.send(.updateText(keyword))
-                        store.send(.onSearch)
                         isTextFieldFocused = false
+                        store.send(.onSearch)
                     }
                 )
                 
