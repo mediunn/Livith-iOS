@@ -17,6 +17,7 @@ struct TokenStorage {
     }
     
     func save(_ token: Token) throws(TokenError) {
+        print("[TokenStorage] 🔵 save() 시작")
         try? remove()
         
         do {
@@ -25,39 +26,48 @@ struct TokenStorage {
             
             let issuedAtString = String(token.refreshTokenIssuedAt.timeIntervalSince1970)
             try add(key: .issuedAt, value: issuedAtString)
+            print("[TokenStorage] ✅ save() 완료")
         } catch {
-            throw TokenError.saveFailed
+            print("[TokenStorage] ❌ save() 실패: \(error)")
+            throw TokenError.storage(.saveFailed)
         }
     }
     
     func fetch() throws(TokenError) -> Token {
+        print("[TokenStorage] 🔵 fetch() 시작")
         let accessToken = try fetch(key: .accessToken)
         let refreshToken = try fetch(key: .refreshToken)
         let issuedAtString = try fetch(key: .issuedAt)
         
         guard let timeInterval = TimeInterval(issuedAtString) else {
-            throw TokenError.noData
+            print("[TokenStorage] ❌ fetch() 실패: 유효하지 않은 issuedAt 형식")
+            throw TokenError.storage(.noData)
         }
         let issuedAt = Date(timeIntervalSince1970: timeInterval)
 
         let token = Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: issuedAt)
 
         if token.refreshTokenIsExpired {
-            throw .refreshTokenExpired
+            print("[TokenStorage] ❌ fetch() 실패: refreshToken 만료됨")
+            throw .storage(.refreshTokenExpired)
         }
         
+        print("[TokenStorage] ✅ fetch() 완료")
         return token
     }
     
     func remove() throws(TokenError) {
+        print("[TokenStorage] 🔵 remove() 시작")
         let keysToDelete: [Keys] = [.accessToken, .refreshToken, .issuedAt]
         
         for key in keysToDelete {
             let status = delete(key: key)
             if status != errSecSuccess && status != errSecItemNotFound {
-                throw TokenError.deleteFailed
+                print("[TokenStorage] ❌ remove() 실패: \(key.description) 삭제 중 에러")
+                throw TokenError.storage(.deleteFailed)
             }
         }
+        print("[TokenStorage] ✅ remove() 완료")
     }
 }
 
@@ -80,7 +90,7 @@ private extension TokenStorage {
     
     func add(key: Keys, value: String) throws(TokenError) {
         guard let valueData = value.data(using: .utf8) else {
-            throw TokenError.saveFailed
+            throw TokenError.storage(.saveFailed)
         }
         
         var query = keychainQuery(for: key)
@@ -89,7 +99,7 @@ private extension TokenStorage {
         
         let status = SecItemAdd(query as CFDictionary, nil)
         guard status == errSecSuccess else {
-            throw TokenError.saveFailed
+            throw TokenError.storage(.saveFailed)
         }
     }
     
@@ -102,7 +112,7 @@ private extension TokenStorage {
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         
         guard status != errSecItemNotFound else {
-            throw TokenError.noData
+            throw TokenError.storage(.noData)
         }
         
         guard status == errSecSuccess else {
@@ -112,16 +122,17 @@ private extension TokenStorage {
         guard let data = result as? Data,
               let value = String(data: data, encoding: .utf8)
         else {
-            throw TokenError.noData
+            throw TokenError.storage(.noData)
         }
-        
+
         return value
     }
     
     @discardableResult
     func delete(key: Keys) -> OSStatus {
         let query = keychainQuery(for: key)
-        return SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+        return status
     }
     
     func keychainQuery(for key: Keys) -> [String: Any] {

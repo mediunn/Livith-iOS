@@ -24,45 +24,59 @@ struct TokenRefresher {
     }
     
     func refresh(with refreshToken: String) async throws(TokenError) -> DTO.Response.UpdateToken {
+        print("[TokenRefresher] 🔵 refresh(with:) 시작")
         do {
             let request = try buildRequest(refreshToken: refreshToken)
+            print("[TokenRefresher] 🟡 HTTP 요청 전송")
             let (data, response) = try await urlSession.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
+                print("[TokenRefresher] ❌ refresh(with:) 실패: 유효하지 않은 HTTP 응답")
                 throw TokenError.unknown
             }
             
-            guard (200...299).contains(httpResponse.statusCode) else {
-                if httpResponse.statusCode == 401 {
-                    throw TokenError.refreshTokenExpired
-                } else {
-                    throw TokenError.networkError
-                }
+            if let dataString = String(data: data, encoding: .utf8) {
+                print("[TokenRefresher] 🔍 원본 데이터: \(dataString)")
             }
             
-            let result = try decoder.decode(BaseResponse<DTO.Response.UpdateToken>.self, from: data)
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw mapStatusCodeToError(httpResponse.statusCode)
+            }
+            
+            let result: BaseResponse<DTO.Response.UpdateToken>
+            do {
+                result = try decoder.decode(BaseResponse<DTO.Response.UpdateToken>.self, from: data)
+            } catch {
+                print("[TokenRefresher] ❌ refresh(with:) 실패: 응답 디코딩 실패 - \(error)")
+                throw TokenError.refresh(.decodingFailed)
+            }
             
             guard let data = result.data else {
-                throw TokenError.noData
+                print("[TokenRefresher] ❌ refresh(with:) 실패: 응답 데이터 없음")
+                throw TokenError.refresh(.emptyResponse)
             }
+            print("[TokenRefresher] ✅ refresh(with:) 완료")
             return data
         } catch let error as TokenError {
             throw error
         } catch {
-            throw .networkError
+            throw TokenError.refresh(.noConnection)
         }
     }
     
     private func buildRequest(refreshToken: String) throws -> URLRequest {
+        print("[TokenRefresher] 🟡 buildRequest(refreshToken:) 시작, refreshToken: \(refreshToken)")
         var components = URLComponents(
             url: Bundle.baseURL.appendingPathComponent(Literals.tokenRefreshPath),
             resolvingAgainstBaseURL: false
         )
         components?.queryItems = [URLQueryItem(name: Literals.clientQueryKey, value: Literals.clientQueryValue)]
         guard let url = components?.url else {
+            print("[TokenRefresher] ❌ buildRequest(refreshToken:) 실패: URL 생성 실패")
             throw TokenError.unknown
         }
         
+        print("[TokenRefresher] 🟡 URL 생성 완료: \(url.absoluteString)")
         var request = URLRequest(url: url)
         request.httpMethod = Literals.postMethod
         request.setValue(Literals.contentTypeValue, forHTTPHeaderField: Literals.contentTypeKey)
@@ -71,6 +85,27 @@ struct TokenRefresher {
         request.httpBody = try encoder.encode(requestBody)
         
         return request
+    }
+
+    private func mapStatusCodeToError(_ statusCode: Int) -> TokenError {
+        let error = switch statusCode {
+        case 400:
+            TokenError.refresh(.badRequest)
+        case 401:
+            TokenError.refresh(.unauthorized)
+        case 403:
+            TokenError.refresh(.forbidden)
+        case 404:
+            TokenError.refresh(.notFound)
+        case 400...499:
+            TokenError.refresh(.unauthorized)
+        case 500...599:
+            TokenError.refresh(.serverError)
+        default:
+            TokenError.unknown
+        }
+        print("[TokenRefresher] ❌ HTTP 오류 발생: 상태 코드 \(statusCode), 오류: \(error)")
+        return error
     }
 }
 
