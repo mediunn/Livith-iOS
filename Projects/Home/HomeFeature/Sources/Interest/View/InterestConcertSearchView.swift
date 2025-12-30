@@ -212,22 +212,18 @@ private extension InterestConcertSearchView {
     
     @ViewBuilder
     func searchResultGridView() -> some View {
-        if store.state.searchList.isEmpty {
-            VStack(alignment: .leading) {
-                searchResultText
-                
+        VStack(alignment: .leading) {
+            searchResultText
+
+            if store.state.searchList.isEmpty {
                 Spacer()
-                
+
                 LivithEmptyView(text: "검색 결과가 없어요")
                     .frame(maxWidth: .infinity)
-                
+
                 Spacer()
-            }
-        } else {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 20) {
-                    searchResultText
-                    
+            } else {
+                ScrollView(showsIndicators: false) {
                     LazyVGrid(
                         columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
                         spacing: 16
@@ -235,6 +231,7 @@ private extension InterestConcertSearchView {
                         searchResultRow
                     }
                 }
+                .padding(.top, 20)
             }
         }
     }
@@ -264,12 +261,17 @@ private extension InterestConcertSearchView {
             .onTapGesture {
                 store.send(.selectConcert(concert.id))
             }
+            .onAppear {
+                if concert.id == store.state.searchList.last?.id {
+                    store.send(.loadMoreSearchResults)
+                }
+            }
         }
     }
     
     var submitButton: some View {
         Button {
-            
+            store.send(.onSubmit)
         } label: {
             Text("설정하기")
                 .notosans(.body3Medium)

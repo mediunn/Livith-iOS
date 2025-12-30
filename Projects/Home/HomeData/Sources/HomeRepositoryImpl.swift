@@ -81,13 +81,42 @@ extension HomeRepositoryImpl: HomeRepository {
         }
     }
 
-    func fetchConcertList(startDate: String?, concertID: Int?, size: Int? = 12) async throws(HomeError) -> [Concert] {
+    func fetchConcertList(startDate: String?, concertID: Int?) async throws(HomeError) -> [Concert] {
         do {
             let response: DTO.Response.FetchConcertList = try await searchService.request(
                 .fetchConcertList(
                     startDate: startDate,
                     concertID: concertID,
-                    size: size
+                    size: 12
+                )
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchSearchedConcertList(
+        keyword: String,
+        startDate: String?,
+        concertID: Int?
+    ) async throws(HomeError) -> [Concert] {
+        let cursor: String? = if let startDate = startDate, let concertID = concertID {
+            "{\"value\":\"\(startDate)\",\"id\":\(concertID)}"
+        } else {
+            nil
+        }
+
+        do {
+            let response: DTO.Response.FetchFilterSearchResult = try await searchService.request(
+                .fetchFilterSearchResult(
+                    genre: [],
+                    sort: "LATEST",
+                    status: [],
+                    keyword: keyword,
+                    cursor: cursor,
+                    size: 12
                 )
             )
             return mapper.toDomain(from: response)

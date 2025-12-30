@@ -95,7 +95,34 @@ struct HomeMapper {
 	}
 
 	func toDomain(from response: DTO.Response.FetchConcertList) -> [Concert] {
-        response.data.map { concert in
+        return response.data.map { concert in
+			guard let status = ConcertStatus(rawValue: concert.status),
+				  let posterURL = URL(string: concert.posterURL)
+			else {
+				return nil
+			}
+
+			return Concert(
+				id: concert.id,
+				title: concert.title,
+				artist: concert.artist,
+				status: status,
+				daysLeft: concert.daysLeft,
+				startDate: concert.startDate,
+				endDate: concert.endDate,
+				posterURL: posterURL,
+				venue: concert.venue,
+				ticketSite: concert.ticketSite,
+				ticketURL: URL(string: concert.ticketURL ?? ""),
+				introduction: concert.introduction,
+				label: concert.label
+			)
+		}
+		.compactMap { $0 }
+	}
+
+	func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> [Concert] {
+		return response.data.map { concert in
 			guard let status = ConcertStatus(rawValue: concert.status),
 				  let posterURL = URL(string: concert.posterURL)
 			else {
