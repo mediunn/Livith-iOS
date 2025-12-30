@@ -43,6 +43,8 @@ extension HomeRepositoryImpl: HomeRepository {
             }
             
             return mapper.toDomain(from: response)
+        } catch NetworkError.decodingFailed {
+            return nil
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)
