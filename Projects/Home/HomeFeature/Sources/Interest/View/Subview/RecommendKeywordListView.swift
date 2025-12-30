@@ -26,48 +26,66 @@ struct RecommendKeywordListView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            ForEach(keywordList, id: \.self) { keyword in
-                    keywordText(keyword)
+        ScrollView(showsIndicators: false) {
+            HStack {
+                VStack(alignment: .leading, spacing: 24) {
+                    ForEach(keywordList, id: \.self) { keyword in
+                        keywordButton(keyword)
+                    }
+                }
+                
+                Spacer()
             }
         }
     }
 }
 
-// MARK: - Private Builders
+// MARK: - Subviews
 
 private extension RecommendKeywordListView {
-    @ViewBuilder
-    func keywordText(_ keyword: String) -> some View {
+    func keywordButton(_ keyword: String) -> some View {
         Button {
             onTap(keyword)
         } label: {
-            let attributed = styled(keyword: keyword)
-            Text(attributed)
+            Text(styledKeyword(keyword))
                 .notosans(.body3Medium)
         }
     }
+}
 
-    func styled(keyword: String) -> AttributedString {
+// MARK: - Styling
+
+private extension RecommendKeywordListView {
+    func styledKeyword(_ keyword: String) -> AttributedString {
         var attributed = AttributedString(keyword)
         guard !keyword.isEmpty else { return attributed }
-
-        let baseRange = attributed.startIndex..<attributed.endIndex
-        let font = Font.Notosans.body4Regular
-        attributed[baseRange].font = .notosans(font)
-        attributed[baseRange].kern = font.kerning
-        attributed[baseRange].foregroundColor = .livithColor(.black50)
         
-        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.isEmpty,
-           let matchRange = attributed.range(of: trimmed, options: [.caseInsensitive]) {
-            let font = Font.Notosans.body4Semibold
-            attributed[matchRange].font = .notosans(font)
-            attributed[baseRange].kern = font.kerning
-            attributed[matchRange].foregroundColor = .livithColor(.white100)
-        }
-
+        applyBaseStyle(to: &attributed)
+        highlightSearchText(in: &attributed)
+        
         return attributed
+    }
+    
+    func applyBaseStyle(to attributed: inout AttributedString) {
+        let range = attributed.startIndex..<attributed.endIndex
+        let font = Font.Notosans.body4Regular
+        
+        attributed[range].font = .notosans(font)
+        attributed[range].kern = font.kerning
+        attributed[range].foregroundColor = .livithColor(.black50)
+    }
+    
+    func highlightSearchText(in attributed: inout AttributedString) {
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              let matchRange = attributed.range(of: trimmed, options: [.caseInsensitive]) else {
+            return
+        }
+        
+        let font = Font.Notosans.body4Semibold
+        attributed[matchRange].font = .notosans(font)
+        attributed[matchRange].kern = font.kerning
+        attributed[matchRange].foregroundColor = .livithColor(.white100)
     }
 }
 

@@ -6,9 +6,10 @@
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
+import SwiftUI
+
 import DSKit
 import HomeDomain
-import SwiftUI
 
 struct InterestConcertSearchView: View {
     @Environment(\.homeCoordinator) private var coordinator
@@ -151,62 +152,14 @@ private extension InterestConcertSearchView {
         Group {
             switch store.state.mode {
             case .initial:
-                concertGridView()
+                ConcertGridView(
+                    concerts: store.state.concertList,
+                    selectedID: store.state.selectedConcertID,
+                    isLoadingMore: store.state.isConcertsLoadingMore,
+                    onConcertTap: { store.send(.onConcertTap($0)) },
+                    onLoadMore: { store.send(.onLoadMoreConcerts) }
+                )
             case .recommendingKeywords:
-                recommendKeywordListView()
-            case .showingSearchResults:
-                searchResultGridView()
-            }
-        }
-        .onTapGesture { isTextFieldFocused = false }
-    }
-    
-    @ViewBuilder
-    func concertGridView() -> some View {
-        if store.state.concertList.isEmpty {
-            VStack {
-                Spacer()
-                
-                LivithEmptyView(text: "콘서트 일정이 없어요")
-                    .frame(maxWidth: .infinity)
-                
-                Spacer()
-            }
-        } else {
-            ScrollView(showsIndicators: false) {
-                LazyVGrid(
-                    columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-                    spacing: 16
-                ) {
-                    ForEach(store.state.concertList, id: \.id) { concert in
-                        ConcertDetailCard(
-                            posterURL: concert.posterURL,
-                            title: concert.title,
-                            date: concert.startDate,
-                            artist: concert.artist,
-                            status: concert.status.statusChipText,
-                            remainDays: concert.daysLeft,
-                            isSelected: store.state.selectedConcertID == concert.id
-                        )
-                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                        .onTapGesture {
-                            store.send(.onConcertTap(concert.id))
-                        }
-                        .onAppear {
-                            if concert.id == store.state.concertList.last?.id, !store.state.isConcertsLoadingMore {
-                                store.send(.onLoadMoreConcerts)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    @ViewBuilder
-    func recommendKeywordListView() -> some View {
-        ScrollView(showsIndicators: false) {
-            HStack {
                 RecommendKeywordListView(
                     searchText: store.state.searchText,
                     keywordList: store.state.recommendKeywordList,
@@ -216,69 +169,17 @@ private extension InterestConcertSearchView {
                         store.send(.onSearch)
                     }
                 )
-                
-                Spacer()
+            case .showingSearchResults:
+                SearchResultGridView(
+                    searchResults: store.state.searchList,
+                    selectedID: store.state.selectedConcertID,
+                    isLoadingMore: store.state.isSearchResultsLoadingMore,
+                    onConcertTap: { store.send(.onConcertTap($0)) },
+                    onLoadMore: { store.send(.onLoadMoreSearchResults) }
+                )
             }
         }
-    }
-    
-    @ViewBuilder
-    func searchResultGridView() -> some View {
-        VStack(alignment: .leading) {
-            searchResultText
-            
-            if store.state.searchList.isEmpty {
-                Spacer()
-                
-                LivithEmptyView(text: "검색 결과가 없어요")
-                    .frame(maxWidth: .infinity)
-                
-                Spacer()
-            } else {
-                ScrollView(showsIndicators: false) {
-                    LazyVGrid(
-                        columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-                        spacing: 16
-                    ) {
-                        searchResultRow
-                    }
-                }
-                .padding(.top, 20)
-            }
-        }
-    }
-    
-    var searchResultText: some View {
-        (Text("검색 결과 ")
-            .foregroundStyle(.livithColor(.black5))
-         + Text("\(store.state.searchList.count)개")
-            .foregroundStyle(.livithColor(.yellow30))
-         + Text("의 정보가 있어요")
-            .foregroundStyle(.livithColor(.black5)))
-        .notosans(.body2Medium)
-    }
-    
-    var searchResultRow: some View {
-        ForEach(store.state.searchList, id: \.id) { concert in
-            ConcertDetailCard(
-                posterURL: concert.posterURL,
-                title: concert.title,
-                date: concert.startDate,
-                artist: concert.artist,
-                status: concert.status.statusChipText,
-                remainDays: concert.daysLeft,
-                isSelected: store.state.selectedConcertID == concert.id
-            )
-            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            .onTapGesture {
-                store.send(.onConcertTap(concert.id))
-            }
-            .onAppear {
-                if concert.id == store.state.searchList.last?.id, !store.state.isSearchResultsLoadingMore {
-                    store.send(.onLoadMoreSearchResults)
-                }
-            }
-        }
+        .onTapGesture { isTextFieldFocused = false }
     }
     
     var submitButton: some View {
