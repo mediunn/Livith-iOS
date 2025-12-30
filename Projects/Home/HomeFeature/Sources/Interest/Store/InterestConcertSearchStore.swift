@@ -72,6 +72,7 @@ final class InterestConcertSearchStore: ObservableObject {
         case .onSearch:
             guard !state.searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
             state.mode = .showingSearchResults
+            state.selectedConcertID = nil
             state.searchList.removeAll()
             performFetchSearchList()
 
@@ -86,6 +87,7 @@ final class InterestConcertSearchStore: ObservableObject {
         
         case .onModeChange(let mode):
             state.mode = mode
+            state.selectedConcertID = nil
         
         case .onLoadMoreConcerts:
             state.isConcertsLoadingMore = true
