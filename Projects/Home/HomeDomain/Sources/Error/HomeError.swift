@@ -11,6 +11,7 @@ import Foundation
 public enum HomeError: Error, LocalizedError {
     case noConnection
     case serverError
+    case noResponse
     case unknown
     
     public var errorDescription: String? {
@@ -19,6 +20,8 @@ public enum HomeError: Error, LocalizedError {
             return "네트워크 연결이 없습니다. 연결 상태를 확인해주세요."
         case .serverError:
             return "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
+        case .noResponse:
+            return "서버로부터 응답이 없습니다. 잠시 후 다시 시도해주세요."
         case .unknown:
             return "알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
         }

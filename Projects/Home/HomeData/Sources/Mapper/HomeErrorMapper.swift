@@ -20,6 +20,8 @@ struct HomeErrorMapper {
             return .noConnection
         case .serverError:
             return .serverError
+        case .decodingFailed:
+            return .noResponse
         default:
             return .unknown
         }

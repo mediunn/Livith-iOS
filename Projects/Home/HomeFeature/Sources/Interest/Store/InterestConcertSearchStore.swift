@@ -18,6 +18,7 @@ enum InterestConcertSearchIntent {
     case selectConcert(Int)
     case onSubmit
     case onToastDisappear
+    case loadMoreConcerts
     case _fetchConcertListResult(Result<[Concert], Error>)
     case _fetchRecommendKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
@@ -30,6 +31,7 @@ struct InterestConcertSearchState {
     var searchList: [Concert] = []
     var selectedConcertID: Int?
     var errorMessage: String = ""
+    var isConcertsLoadingMore: Bool = false
 }
 
 final class InterestConcertSearchStore: ObservableObject {
@@ -68,13 +70,23 @@ final class InterestConcertSearchStore: ObservableObject {
         
         case .onToastDisappear:
             state.errorMessage = ""
+        
+        case .loadMoreConcerts:
+            guard !state.isConcertsLoadingMore else { return }
+            state.isConcertsLoadingMore = true
+            performFetchConcertList(isNextPage: true)
             
         case ._fetchConcertListResult(let result):
+            state.isConcertsLoadingMore = false
             switch result {
             case .success(let concertList):
-                state.concertList = concertList
-            case .failure:
-                state.concertList = []
+                if state.concertList.isEmpty {
+                    state.concertList = concertList
+                } else {
+                    state.concertList.append(contentsOf: concertList)
+                }
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
             }
 
         case ._fetchRecommendKeywordListResult(let result):
@@ -82,16 +94,18 @@ final class InterestConcertSearchStore: ObservableObject {
             case .success(let keywordList):
                 state.recommendKeywordList = keywordList
                 print("Fetched recommend keywords: \(keywordList)")
-            case .failure:
+            case .failure(let error):
                 state.recommendKeywordList = []
+                state.errorMessage = error.localizedDescription
             }
 
         case ._fetchSearchListResult(let result):
             switch result {
             case .success(let searchList):
                 state.searchList = searchList
-            case .failure:
+            case .failure(let error):
                 state.searchList = []
+                state.errorMessage = error.localizedDescription
             }
         }
     }
@@ -100,11 +114,20 @@ final class InterestConcertSearchStore: ObservableObject {
 // MARK: - Helpers
 
 private extension InterestConcertSearchStore {
-    func performFetchConcertList() {
+    func performFetchConcertList(isNextPage: Bool = false) {
+        let startDate: String? = isNextPage ? state.concertList.last?.startDate : nil
+        let concertID: Int? = isNextPage ? state.concertList.last?.id : nil
+
         Task {
             do {
-                let concertList = createConcertListMockData()
+                let concertList = try await repository.fetchConcertList(
+                    startDate: startDate,
+                    concertID: concertID,
+                    size: 12
+                )
                 await send(._fetchConcertListResult(.success(concertList)))
+            } catch HomeError.noResponse {
+                await send(._fetchConcertListResult(.success([])))
             } catch {
                 await send(._fetchConcertListResult(.failure(error)))
             }
@@ -139,161 +162,6 @@ private extension InterestConcertSearchStore {
                 await send(._fetchSearchListResult(.failure(error)))
             }
         }
-    }
-
-    func createConcertListMockData() -> [Concert] {
-        [
-            Concert(
-                id: 101,
-                title: "NCT DREAM THE DREAM SHOW 3",
-                artist: "엔시티 드림",
-                status: .upcoming,
-                daysLeft: 25,
-                startDate: "2026.01.24",
-                endDate: "2026.01.26",
-                posterURL: URL(string: "https://picsum.photos/id/100/200/300")!,
-                venue: "고척스카이돔",
-                ticketSite: "YES24",
-                ticketURL: URL(string: "https://ticket.yes24.com"),
-                introduction: "엔시티 드림 세번째 단독 투어",
-                label: "HOT"
-            ),
-            Concert(
-                id: 102,
-                title: "TWICE 5TH WORLD TOUR 'READY TO BE'",
-                artist: "트와이스",
-                status: .ongoing,
-                daysLeft: 0,
-                startDate: "2025.12.28",
-                endDate: "2026.01.05",
-                posterURL: URL(string: "https://picsum.photos/id/101/200/300")!,
-                venue: "KSPO DOME",
-                ticketSite: "인터파크 티켓",
-                ticketURL: URL(string: "https://tickets.interpark.com"),
-                introduction: "트와이스 5번째 월드투어 서울 공연",
-                label: "SOLD OUT"
-            ),
-            Concert(
-                id: 103,
-                title: "Red Velvet 'R to V' CONCERT",
-                artist: "레드벨벳",
-                status: .upcoming,
-                daysLeft: 40,
-                startDate: "2026.02.08",
-                endDate: "2026.02.09",
-                posterURL: URL(string: "https://picsum.photos/id/102/200/300")!,
-                venue: "잠실실내체육관",
-                ticketSite: "멜론티켓",
-                ticketURL: URL(string: "https://ticket.melon.com"),
-                introduction: "레드벨벳 단독 콘서트",
-                label: nil
-            ),
-            Concert(
-                id: 104,
-                title: "Stray Kids 'DominATE' WORLD TOUR",
-                artist: "스트레이키즈",
-                status: .upcoming,
-                daysLeft: 35,
-                startDate: "2026.02.03",
-                endDate: "2026.02.05",
-                posterURL: URL(string: "https://picsum.photos/id/103/200/300")!,
-                venue: "고척스카이돔",
-                ticketSite: "YES24",
-                ticketURL: URL(string: "https://ticket.yes24.com"),
-                introduction: "스트레이키즈 월드투어 서울 공연",
-                label: "HOT"
-            ),
-            Concert(
-                id: 105,
-                title: "LE SSERAFIM 'FLAME RISES' TOUR",
-                artist: "르세라핌",
-                status: .upcoming,
-                daysLeft: 50,
-                startDate: "2026.02.18",
-                endDate: "2026.02.20",
-                posterURL: URL(string: "https://picsum.photos/id/104/200/300")!,
-                venue: "KSPO DOME",
-                ticketSite: "인터파크 티켓",
-                ticketURL: URL(string: "https://tickets.interpark.com"),
-                introduction: "르세라핌 첫 단독 투어",
-                label: "NEW"
-            ),
-            Concert(
-                id: 106,
-                title: "(G)I-DLE 'I am FREE-TY' CONCERT",
-                artist: "(여자)아이들",
-                status: .completed,
-                daysLeft: 0,
-                startDate: "2025.11.15",
-                endDate: "2025.12.15",
-                posterURL: URL(string: "https://picsum.photos/id/105/200/300")!,
-                venue: "올림픽공원 올림픽홀",
-                ticketSite: "YES24",
-                ticketURL: URL(string: "https://ticket.yes24.com"),
-                introduction: "(여자)아이들 전국투어",
-                label: nil
-            ),
-            Concert(
-                id: 107,
-                title: "NMIXX 'MIXXTOPIA' SHOWCASE",
-                artist: "엔믹스",
-                status: .upcoming,
-                daysLeft: 18,
-                startDate: "2026.01.17",
-                endDate: "2026.01.18",
-                posterURL: URL(string: "https://picsum.photos/id/106/200/300")!,
-                venue: "잠실실내체육관",
-                ticketSite: "멜론티켓",
-                ticketURL: URL(string: "https://ticket.melon.com"),
-                introduction: "엔믹스 단독 쇼케이스",
-                label: "NEW"
-            ),
-            Concert(
-                id: 108,
-                title: "ITZY 2ND WORLD TOUR 'BORN TO BE'",
-                artist: "있지",
-                status: .upcoming,
-                daysLeft: 12,
-                startDate: "2026.01.11",
-                endDate: "2026.01.12",
-                posterURL: URL(string: "https://picsum.photos/id/107/200/300")!,
-                venue: "KSPO DOME",
-                ticketSite: "인터파크 티켓",
-                ticketURL: URL(string: "https://tickets.interpark.com"),
-                introduction: "있지 두번째 월드투어",
-                label: "HOT"
-            ),
-            Concert(
-                id: 109,
-                title: "태연 'The ODD OF LOVE' CONCERT",
-                artist: "태연",
-                status: .upcoming,
-                daysLeft: 55,
-                startDate: "2026.02.23",
-                endDate: "2026.02.25",
-                posterURL: URL(string: "https://picsum.photos/id/108/200/300")!,
-                venue: "올림픽공원 올림픽홀",
-                ticketSite: "YES24",
-                ticketURL: URL(string: "https://ticket.yes24.com"),
-                introduction: "태연 단독 콘서트",
-                label: nil
-            ),
-            Concert(
-                id: 110,
-                title: "EXO 'EXO PLANET' ENCORE",
-                artist: "엑소",
-                status: .upcoming,
-                daysLeft: 70,
-                startDate: "2026.03.10",
-                endDate: "2026.03.12",
-                posterURL: URL(string: "https://picsum.photos/id/109/200/300")!,
-                venue: "고척스카이돔",
-                ticketSite: "인터파크 티켓",
-                ticketURL: URL(string: "https://tickets.interpark.com"),
-                introduction: "엑소 앵콜 콘서트",
-                label: "SOLD OUT"
-            )
-        ]
     }
     
     func createSearchResultMockData() -> [Concert] {

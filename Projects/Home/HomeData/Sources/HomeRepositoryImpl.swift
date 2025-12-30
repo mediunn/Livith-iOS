@@ -80,6 +80,22 @@ extension HomeRepositoryImpl: HomeRepository {
             throw errorMapper.mapToDomainError(from: error)
         }
     }
+
+    func fetchConcertList(startDate: String?, concertID: Int?, size: Int? = 12) async throws(HomeError) -> [Concert] {
+        do {
+            let response: DTO.Response.FetchConcertList = try await searchService.request(
+                .fetchConcertList(
+                    startDate: startDate,
+                    concertID: concertID,
+                    size: size
+                )
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
 }
 
 // MARK: - Helpers

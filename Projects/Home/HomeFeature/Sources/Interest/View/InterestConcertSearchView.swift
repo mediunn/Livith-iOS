@@ -181,6 +181,11 @@ private extension InterestConcertSearchView {
                         .onTapGesture {
                             store.send(.selectConcert(concert.id))
                         }
+                        .onAppear {
+                            if concert.id == store.state.concertList.last?.id {
+                                store.send(.loadMoreConcerts)
+                            }
+                        }
                     }
                 }
             }
@@ -302,11 +307,4 @@ private extension InterestConcertSearchView {
         static let iconSize: CGFloat = 36
         static let textFieldHeight: CGFloat = 52
     }
-}
-
-#Preview {
-    let nickname = Binding.constant("유지미")
-    let coordinator = HomeCoordinator(nickname: nickname)
-    InterestConcertSearchView()
-        .environment(\.homeCoordinator, coordinator)
 }
