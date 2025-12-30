@@ -33,9 +33,12 @@ struct InterestConcertSearchView: View {
                 scrollView
                     .padding(.top, 20)
                     .padding(.horizontal, 16)
+                
+                submitButton
+                    .padding(.horizontal, 16)
+                    .padding(.top, 20)
             }
         }
-        .ignoresSafeArea(edges: .bottom)
     }
 }
 
@@ -122,7 +125,7 @@ private extension InterestConcertSearchView {
     
     var scrollView: some View {
         ScrollView(showsIndicators: false) {
-            if isWriting { // 1순위: 입력 중
+            if isTextFieldFocused { // 1순위: 입력 중
                 recommendKeywordListView
             } else if !store.state.searchList.isEmpty, !store.state.searchText.isEmpty, !isTextFieldFocused { // 2순위: 검색 완료
                 searchResultGridView
@@ -130,7 +133,7 @@ private extension InterestConcertSearchView {
                 concertGridView
             }
         }
-        .ignoresSafeArea(edges: .bottom)
+        .onTapGesture { isTextFieldFocused = false }
     }
 
     var concertGridView: some View {
@@ -213,6 +216,21 @@ private extension InterestConcertSearchView {
                 store.send(.selectConcert(concert.id))
             }
         }
+    }
+
+    var submitButton: some View {
+        Button {
+
+        } label: {
+            Text("설정하기")
+                .notosans(.body3Medium)
+                .foregroundColor(store.state.selectedConcertID != nil ? Color.livithColor(.black100) : Color.livithColor(.black50))
+                .frame(maxWidth: .infinity)
+                .frame(height: 60)
+                .background(store.state.selectedConcertID != nil ? Color.livithColor(.yellow30) : Color.livithColor(.black80))
+                .cornerRadius(8)
+        }
+        .disabled(store.state.selectedConcertID == nil)
     }
 }
 

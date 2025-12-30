@@ -16,6 +16,7 @@ enum InterestConcertSearchIntent {
     case updateText(String)
     case onSearch
     case selectConcert(Int)
+    case onSubmit
     case _fetchConcertListResult(Result<[Concert], Error>)
     case _fetchRecommendKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
@@ -46,13 +47,22 @@ final class InterestConcertSearchStore: ObservableObject {
         case .updateText(let text):
             state.searchList.removeAll()
             state.searchText = text
-            performFetchRecommendKeywordList()
+
+            if text.isEmpty {
+                state.recommendKeywordList.removeAll()
+                searchTask?.cancel()
+            } else {
+                performFetchRecommendKeywordList()
+            }
 
         case .onSearch:
             performFetchSearchList(for: state.searchText)
 
         case .selectConcert(let concertID):
             state.selectedConcertID = state.selectedConcertID == concertID ? nil : concertID
+
+        case .onSubmit:
+            break
         
         case ._fetchConcertListResult(let result):
             switch result {
