@@ -50,10 +50,18 @@ private extension ConcertSegmentTabBar {
 
                 tabLabel(for: tab, isSelected: isSelected)
 
-                Rectangle()
-                    .fill(isSelected ? Color.livithColor(.white100) : Color.clear)
-                    .frame(height: 3)
-                    .matchedGeometryEffect(id: "underline", in: tabNamespace)
+                ZStack {
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: 3)
+
+                    if isSelected {
+                        Rectangle()
+                            .fill(Color.livithColor(.white100))
+                            .frame(height: 3)
+                            .matchedGeometryEffect(id: "underline", in: tabNamespace)
+                    }
+                }
             }
         }
     }

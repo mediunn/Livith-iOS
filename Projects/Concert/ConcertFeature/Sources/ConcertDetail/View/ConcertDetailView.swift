@@ -102,7 +102,7 @@ private extension ConcertDetailView {
     var tabContentView: some View {
         switch store.state.selectedTab {
         case .artistDetail:
-            ArtistDetailTabView()
+            ArtistDetailTabView(introduction: store.state.concert?.introduction ?? "")
         case .concertInfo:
             ConcertInfoTabView()
         case .setlist:
