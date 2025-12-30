@@ -36,7 +36,8 @@ struct HomeView: View {
             type: .failure,
             message: store.state.errorMessage,
             duration: 2
-        )
+            )
+        .background(.livithColor(.black90))
         .onAppear {
             store.send(.onAppear)
         }

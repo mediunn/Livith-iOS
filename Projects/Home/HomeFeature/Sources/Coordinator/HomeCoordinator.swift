@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import ConcertFeature
 import DSKit
 
 final class HomeCoordinator: Coordinator {
@@ -35,6 +36,12 @@ final class HomeCoordinator: Coordinator {
 
         case .interest:
             return UIHostingController(rootView: InterestTempView().environment(\.homeCoordinator, self))
+
+        case .concertDetail(let concertID):
+            let view = ConcertDetailView(concertID: concertID) { [weak self] in
+                self?.pop()
+            }
+            return UIHostingController(rootView: view)
         }
     }
 }
