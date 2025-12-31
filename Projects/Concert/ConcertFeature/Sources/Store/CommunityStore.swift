@@ -73,6 +73,7 @@ public final class CommunityStore: ObservableObject {
 
     private enum Constants {
         static let pageSize = 15
+        static let loadingDelay: Duration = .milliseconds(500)
         static let fetchErrorMessage = "댓글을 불러오는 데 실패했어요"
         static let submitSuccessMessage = "댓글이 작성되었어요"
         static let submitErrorMessage = "댓글 작성에 실패했어요"
@@ -193,11 +194,14 @@ private extension CommunityStore {
             send(._setLoadingMore(true))
 
             do {
-                let result = try await repository.fetchConcertComments(
+                async let delayTask: Void = Task.sleep(for: Constants.loadingDelay)
+                async let fetchTask = repository.fetchConcertComments(
                     concertID: state.concertID,
                     cursor: cursor,
                     size: Constants.pageSize
                 )
+
+                let (_, result) = try await (delayTask, fetchTask)
 
                 guard await Task.wait() else { return }
 
