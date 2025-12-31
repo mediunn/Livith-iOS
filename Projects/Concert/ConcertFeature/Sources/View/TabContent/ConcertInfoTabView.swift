@@ -17,9 +17,9 @@ struct ConcertInfoTabView: View {
 
     @Environment(\.concertCoordinator) private var coordinator
 
-    let schedules: [ConcertSchedule]
     let ticketingOffice: String?
     let ticketingOfficeURL: URL?
+    let scheduleList: [ConcertSchedule]
     let concertInfoList: [ConcertInfo]
     let merchandiseList: [ConcertMerchandise]
 
@@ -47,7 +47,7 @@ struct ConcertInfoTabView: View {
 private extension ConcertInfoTabView {
     @ViewBuilder
     var scheduleSection: some View {
-        if !schedules.isEmpty {
+        if !scheduleList.isEmpty {
             VStack(alignment: .leading, spacing: 25) {
                 SectionHeaderView(
                     firstLine: "날짜와 시간",
@@ -57,7 +57,7 @@ private extension ConcertInfoTabView {
                 }
 
                 VStack(spacing: 34) {
-                    ForEach(schedules) { schedule in
+                    ForEach(scheduleList) { schedule in
                         ScheduleRowView(schedule: schedule)
                     }
                 }
@@ -75,25 +75,29 @@ private extension ConcertInfoTabView {
             Button {
                 coordinator?.present(to: .safari(ticketingOfficeURL))
             } label: {
-                HStack(spacing: 12) {
+                HStack(alignment: .top, spacing: 16) {
                     Image.livithIcon(.earth)
                         .resizable()
-                        .frame(width: 24, height: 24)
+                        .renderingMode(.template)
+                        .foregroundStyle(.livithColor(.black5))
+                        .frame(width: 18, height: 18)
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("티켓 웹사이트 바로가기")
-                            .notosans(.body3Semibold)
+                            .notosans(.body2Semibold)
                             .foregroundStyle(Color.livithColor(.white100))
 
                         Text("다시 방문하여 콘서트 소식을 한 눈에 확인해요")
-                            .notosans(.caption1Regular)
+                            .notosans(.body4Semibold)
                             .foregroundStyle(Color.livithColor(.black50))
                     }
 
                     Spacer()
                 }
-                .padding(16)
-                .background(Color.livithColor(.black90))
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
+                .background(Color.livithColor(.black80))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
@@ -146,12 +150,11 @@ private extension ConcertInfoTabView {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(Array(merchandiseList.enumerated()), id: \.element.id) { index, merchandise in
+                        ForEach(merchandiseList) { merchandise in
                             merchandiseCard(merchandise: merchandise)
-                                .padding(.leading, index == 0 ? 16 : 0)
-                                .padding(.trailing, index == merchandiseList.count - 1 ? 16 : 0)
                         }
                     }
+                    .padding(.horizontal, 16)
                 }
             }
         }
@@ -191,29 +194,36 @@ private struct ConcertInfoCarousel: View {
     @State private var currentIndex: Int = 0
 
     var body: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                ForEach(Array(concertInfoList.enumerated()), id: \.element.id) { index, info in
-                    concertInfoCard(info: info)
-                        .opacity(index == currentIndex ? 1 : 0)
-                }
+        ZStack(alignment: .bottom) {
+            ForEach(Array(concertInfoList.enumerated()), id: \.offset) { index, info in
+                concertInfoCard(info: info)
+                    .opacity(index == currentIndex ? 1 : 0)
             }
-            .frame(height: 280)
-            .gesture(
-                DragGesture(minimumDistance: 20)
-                    .onEnded { value in
-                        let threshold: CGFloat = 50
+
+            LivithPageIndicator(currentPage: currentIndex, pageCount: concertInfoList.count)
+                .padding(.bottom, 18)
+        }
+        .frame(height: 274)
+        .padding(.horizontal, 16)
+        .gesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    let threshold: CGFloat = 50
+                    var newIndex = currentIndex
+
+                    if value.translation.width < -threshold {
+                        newIndex = (currentIndex + 1) % concertInfoList.count
+                    } else if value.translation.width > threshold {
+                        newIndex = (currentIndex - 1 + concertInfoList.count) % concertInfoList.count
+                    }
+
+                    if newIndex != currentIndex {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            if value.translation.width < -threshold {
-                                currentIndex = min(currentIndex + 1, concertInfoList.count - 1)
-                            } else if value.translation.width > threshold {
-                                currentIndex = max(currentIndex - 1, 0)
-                            }
+                            currentIndex = newIndex
                         }
                     }
-            )
-        }
-        .padding(.horizontal, 16)
+                }
+        )
     }
 
     func concertInfoCard(info: ConcertInfo) -> some View {
@@ -228,20 +238,16 @@ private struct ConcertInfoCarousel: View {
             .frame(height: 274)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 CardTagView(info.title, fontStyle: .caption1Semibold)
 
                 Text(info.description)
-                    .notosans(.body3Medium)
+                    .notosans(.body2Medium)
                     .foregroundStyle(Color.livithColor(.white100))
                     .lineLimit(3)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 52)
-            
-            LivithPageIndicator(currentPage: currentIndex, pageCount: concertInfoList.count)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.bottom, 18)
         }
     }
 }
@@ -251,7 +257,9 @@ private struct ConcertInfoCarousel: View {
 #Preview {
     ScrollView {
         ConcertInfoTabView(
-            schedules: [
+            ticketingOffice: "인터파크",
+            ticketingOfficeURL: URL(string: "https://tickets.interpark.com"),
+            scheduleList: [
                 ConcertSchedule(
                     id: 1,
                     category: "티켓팅 오픈",
@@ -271,8 +279,6 @@ private struct ConcertInfoCarousel: View {
                     type: .none
                 )
             ],
-            ticketingOffice: "인터파크",
-            ticketingOfficeURL: URL(string: "https://tickets.interpark.com"),
             concertInfoList: [
                 ConcertInfo(
                     id: 1,
@@ -290,6 +296,7 @@ private struct ConcertInfoCarousel: View {
             merchandiseList: [
                 ConcertMerchandise(id: 1, name: "제품이름", price: "가격", imageURL: nil),
                 ConcertMerchandise(id: 2, name: "제품이름", price: "가격", imageURL: nil),
+                ConcertMerchandise(id: 3, name: "제품이름", price: "가격", imageURL: nil),
                 ConcertMerchandise(id: 3, name: "제품이름", price: "가격", imageURL: nil)
             ]
         )

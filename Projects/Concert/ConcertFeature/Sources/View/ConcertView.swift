@@ -168,9 +168,9 @@ private extension ConcertView {
             .background(.livithColor(.black100))
         case .concertInfo:
             ConcertInfoTabView(
-                schedules: store.state.schedules,
                 ticketingOffice: store.state.concert?.ticketingOffice,
                 ticketingOfficeURL: store.state.concert?.ticketingOfficeURL,
+                scheduleList: store.state.schedules,
                 concertInfoList: store.state.concertInfoList,
                 merchandiseList: store.state.merchandiseList
             )
