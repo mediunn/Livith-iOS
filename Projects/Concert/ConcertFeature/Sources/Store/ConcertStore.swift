@@ -72,6 +72,9 @@ public enum ConcertIntent {
     case _setLoading(Bool)
     case _setArtist(Artist)
     case _setFanCultures([ConcertCulture])
+    case _setSchedules([ConcertSchedule])
+    case _setConcertInfoList([ConcertInfo])
+    case _setMerchandiseList([ConcertMerchandise])
     case _setConcert(Concert, formattedDateRange: String)
     case _setInterestStatus(InterestSettingStatus)
     case _setFetchError(String?)
@@ -113,6 +116,12 @@ public final class ConcertStore: ObservableObject {
             state.artist = artist
         case ._setFanCultures(let fanCultures):
             state.fanCultures = fanCultures
+        case ._setSchedules(let schedules):
+            state.schedules = schedules
+        case ._setConcertInfoList(let concertInfoList):
+            state.concertInfoList = concertInfoList
+        case ._setMerchandiseList(let merchandiseList):
+            state.merchandiseList = merchandiseList
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
         case ._setInterestStatus(let status):
@@ -152,14 +161,27 @@ private extension ConcertStore {
                 async let concertResult = repository.fetchConcertInfo(concertID: concertID)
                 async let artistResult = repository.fetchConcertArtistInfo(concertID: concertID)
                 async let cultureResult = repository.fetchConcertCultureList(concertID: concertID)
+                async let scheduleResult = repository.fetchConcertSchedule(concertID: concertID)
+                async let concertInfoResult = repository.fetchConcertInfoList(concertID: concertID)
+                async let merchandiseResult = repository.fetchConcertMerchandiseList(concertID: concertID)
 
-                let (concert, artist, cultures) = try await (concertResult, artistResult, cultureResult)
+                let (concert, artist, cultures, schedules, concertInfoList, merchandiseList) = try await (
+                    concertResult,
+                    artistResult,
+                    cultureResult,
+                    scheduleResult,
+                    concertInfoResult,
+                    merchandiseResult
+                )
 
                 guard await Task.wait() else { return }
 
                 send(._setConcert(concert, formattedDateRange: formatDateRange(from: concert)))
                 send(._setArtist(artist))
                 send(._setFanCultures(cultures))
+                send(._setSchedules(schedules))
+                send(._setConcertInfoList(concertInfoList))
+                send(._setMerchandiseList(merchandiseList))
             } catch {
                 guard !Task.isCancelled else { return }
                 send(._setFetchError("데이터를 불러오는데 실패했어요"))

@@ -60,6 +60,17 @@ extension ConcertRepositoryImpl: ConcertRepository {
         }
     }
 
+    public func fetchConcertInfoList(concertID: Int) async throws(ConcertError) -> [ConcertInfo] {
+        do {
+            let response: DTO.Response.FetchConcertInfoList = try await service.request(
+                .fetchConcertInfoList(concertID: concertID)
+            )
+            return entityMapper.toDomain(from: response)
+        } catch {
+            throw errorMapper.mapToConcertError(error)
+        }
+    }
+
     public func fetchConcertMerchandiseList(concertID: Int) async throws(ConcertError) -> [ConcertMerchandise] {
         do {
             let response: DTO.Response.FetchConcertMerchandiseList = try await service.request(

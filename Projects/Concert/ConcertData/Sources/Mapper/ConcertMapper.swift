@@ -81,6 +81,19 @@ struct ConcertMapper {
         }
     }
 
+    // MARK: - Concert Info
+
+    func toDomain(from response: DTO.Response.FetchConcertInfoList) -> [ConcertInfo] {
+        response.map { info in
+            ConcertInfo(
+                id: info.id,
+                imageURL: info.imageURL ?? "",
+                title: info.category,
+                description: info.content
+            )
+        }
+    }
+
     // MARK: - Merchandise
 
     func toDomain(from response: DTO.Response.FetchConcertMerchandiseList) -> [ConcertMerchandise] {
