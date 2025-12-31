@@ -19,6 +19,7 @@ struct TicketReturnBanner: View {
 
     @State private var offset: CGFloat = 0
     @State private var isDragging: Bool = false
+    @State private var timerResetCount: Int = 0
 
     private let autoDismissDelay: TimeInterval = 5.0
     private let dismissThreshold: CGFloat = 50
@@ -35,11 +36,10 @@ struct TicketReturnBanner: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
         }
-        .task {
+        .task(id: timerResetCount) {
             try? await Task.sleep(for: .seconds(autoDismissDelay))
-            if !isDragging {
-                onDismiss()
-            }
+            guard !Task.isCancelled, !isDragging else { return }
+            onDismiss()
         }
     }
 }
@@ -83,14 +83,16 @@ private extension TicketReturnBanner {
                     withAnimation(.easeOut(duration: 0.2)) {
                         offset = 200
                     }
-                    Task {
+                    Task { @MainActor in
                         try? await Task.sleep(for: .milliseconds(200))
+                        guard !Task.isCancelled else { return }
                         onDismiss()
                     }
                 } else {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         offset = 0
                     }
+                    timerResetCount += 1
                 }
             }
     }
