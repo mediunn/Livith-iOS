@@ -186,22 +186,24 @@ private extension CommunityStore {
     }
 
     func loadNextPage() {
-        guard !state.isLoadingMore, state.hasMorePages, let cursor = state.cursor else { return }
+        guard !state.isLoading, !state.isLoadingMore, state.hasMorePages, let cursor = state.cursor else { return }
 
         loadMoreTask?.cancel()
+        state.isLoadingMore = true
 
         loadMoreTask = Task { @MainActor in
-            send(._setLoadingMore(true))
+            try? await Task.sleep(for: Constants.loadingDelay)
+            guard !Task.isCancelled else {
+                state.isLoadingMore = false
+                return
+            }
 
             do {
-                async let delayTask: Void = Task.sleep(for: Constants.loadingDelay)
-                async let fetchTask = repository.fetchConcertComments(
+                let result = try await repository.fetchConcertComments(
                     concertID: state.concertID,
                     cursor: cursor,
                     size: Constants.pageSize
                 )
-
-                let (_, result) = try await (delayTask, fetchTask)
 
                 guard await Task.wait() else { return }
 
