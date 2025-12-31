@@ -18,6 +18,8 @@ public struct ConcertView: View {
     private let concertID: Int
     private let onDismiss: () -> Void
 
+    @Environment(\.concertCoordinator) private var coordinator
+
     @ObservedObject private var store: ConcertStore
     @State private var showInterestConfirmDialog: Bool = false
 
@@ -35,6 +37,10 @@ public struct ConcertView: View {
 
     // MARK: - Body
 
+    private var showEmptyView: Bool {
+        !store.state.isLoading && store.state.concert == nil
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
             ConcertNavigationBar(
@@ -42,24 +48,29 @@ public struct ConcertView: View {
                 onBack: onDismiss
             )
 
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                        headerSection
-                            .id("top")
+            if showEmptyView {
+                LivithEmptyView(text: "콘서트 정보가 없어요")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                            headerSection
+                                .id("top")
 
-                        Section {
-                            tabContentView
-                        } header: {
-                            segmentTabBar
+                            Section {
+                                tabContentView
+                            } header: {
+                                segmentTabBar
+                            }
                         }
+                        .opacity(store.state.concert != nil ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
                     }
-                    .opacity(store.state.concert != nil ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
-                }
-                .onChange(of: store.state.selectedTab) {
-                    withAnimation {
-                        proxy.scrollTo("top", anchor: .top)
+                    .onChange(of: store.state.selectedTab) {
+                        withAnimation {
+                            proxy.scrollTo("top", anchor: .top)
+                        }
                     }
                 }
             }
@@ -113,8 +124,29 @@ public struct ConcertView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showInterestConfirmDialog)
+        .overlay {
+            if store.state.showTicketReturnBanner {
+                TicketReturnBanner(
+                    onSettingTapped: {
+                        store.send(.onTicketBannerDismiss)
+                        showInterestConfirmDialog = true
+                    },
+                    onDismiss: {
+                        store.send(.onTicketBannerDismiss)
+                    }
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
         .onAppear {
             store.send(.onAppear(concertID: concertID))
+            coordinator?.onTicketSiteReturn = { [weak store] in
+                store?.send(.onTicketSiteReturn)
+            }
+        }
+        .onDisappear {
+            coordinator?.onTicketSiteReturn = nil
         }
     }
 }
@@ -168,12 +200,13 @@ private extension ConcertView {
             .background(.livithColor(.black100))
         case .concertInfo:
             ConcertInfoTabView(
-                schedules: store.state.schedules,
                 ticketingOffice: store.state.concert?.ticketingOffice,
                 ticketingOfficeURL: store.state.concert?.ticketingOfficeURL,
+                scheduleList: store.state.schedules,
                 concertInfoList: store.state.concertInfoList,
                 merchandiseList: store.state.merchandiseList
             )
+            .frame(maxWidth: UIScreen.main.bounds.width)
             .background(.livithColor(.black100))
         case .setlist:
             SetlistTabView()
@@ -203,9 +236,14 @@ private extension ConcertView {
     var posterImage: some View {
         AsyncImageView(
             url: store.state.concert?.posterURL,
-            showGradient: true,
-            placeholder: Image.livithImage(.concertCardEmpty)
-        )
+            showGradient: false
+        ) {
+            Image.livithImage(.concertCardEmpty)
+                .resizable()
+        }
+        .overlay {
+            Color.black.opacity(0.7)
+        }
     }
 }
 
