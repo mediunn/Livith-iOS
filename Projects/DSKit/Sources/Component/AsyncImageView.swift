@@ -14,18 +14,12 @@ import Kingfisher
 /// 로드 실패 시 placeholder 표시 또는 뷰 자체가 제거됨
 public struct AsyncImageView: View {
 
-    private enum LoadingState {
-        case loading
-        case loaded
-        case failed
-    }
-
     private let url: URL?
     private let contentMode: SwiftUI.ContentMode
     private let showGradient: Bool
     private let placeholder: Image?
 
-    @State private var state: LoadingState = .loading
+    @State private var didFail: Bool = false
 
     public init(
         url: URL?,
@@ -41,49 +35,25 @@ public struct AsyncImageView: View {
 
     public var body: some View {
         Group {
-            switch state {
-            case .loading:
-                if let url {
-                    KFImage(url)
-                        .onSuccess { _ in state = .loaded }
-                        .onFailure { _ in state = .failed }
-                        .resizable()
-                        .aspectRatio(contentMode: contentMode)
-                        .clipped()
-                        .overlay {
-                            if showGradient {
-                                BackgroundGradient(
-                                    baseColor: .livithColor(.black100),
-                                    startPoint: .bottom,
-                                    endPoint: .top
-                                )
-                            }
+            if didFail {
+                placeholderView
+            } else if let url {
+                KFImage(url)
+                    .onFailure { _ in didFail = true }
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
+                    .clipped()
+                    .overlay {
+                        if showGradient {
+                            BackgroundGradient(
+                                baseColor: .livithColor(.black100),
+                                startPoint: .bottom,
+                                endPoint: .top
+                            )
                         }
-                } else if placeholder != nil {
-                    placeholderView
-                }
-
-            case .loaded:
-                if let url {
-                    KFImage(url)
-                        .resizable()
-                        .aspectRatio(contentMode: contentMode)
-                        .clipped()
-                        .overlay {
-                            if showGradient {
-                                BackgroundGradient(
-                                    baseColor: .livithColor(.black100),
-                                    startPoint: .bottom,
-                                    endPoint: .top
-                                )
-                            }
-                        }
-                }
-
-            case .failed:
-                if placeholder != nil {
-                    placeholderView
-                }
+                    }
+            } else {
+                placeholderView
             }
         }
     }
