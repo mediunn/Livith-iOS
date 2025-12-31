@@ -24,7 +24,6 @@ public struct LivithReportDialog: View {
     private let cancelTitle: String
     private let onConfirm: (String) -> Void
     private let onCancel: () -> Void
-    private let onOverLimitChanged: ((Bool) -> Void)?
 
     @State private var text: String = ""
     @State private var isOverLimit: Bool = false
@@ -42,15 +41,13 @@ public struct LivithReportDialog: View {
         confirmTitle: String,
         cancelTitle: String,
         onConfirm: @escaping (String) -> Void,
-        onCancel: @escaping () -> Void,
-        onOverLimitChanged: ((Bool) -> Void)? = nil
+        onCancel: @escaping () -> Void
     ) {
         self.message = message
         self.confirmTitle = confirmTitle
         self.cancelTitle = cancelTitle
         self.onConfirm = onConfirm
         self.onCancel = onCancel
-        self.onOverLimitChanged = onOverLimitChanged
     }
 
     // MARK: - Body
@@ -135,11 +132,7 @@ private extension LivithReportDialog {
                 .lineLimit(6)
                 .focused($isFocused)
                 .onChange(of: text) { _, newValue in
-                    let nowOverLimit = newValue.count > Constants.maxLength
-                    if nowOverLimit != isOverLimit {
-                        onOverLimitChanged?(nowOverLimit)
-                    }
-                    isOverLimit = nowOverLimit
+                    isOverLimit = newValue.count > Constants.maxLength
                 }
 
                 Spacer()

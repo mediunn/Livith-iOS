@@ -29,7 +29,6 @@ public struct CommunityState {
     // Dialog states
     public var deleteTargetCommentID: Int? = nil
     public var reportTargetCommentID: Int? = nil
-    public var isReportTextOverLimit: Bool = false
 
     public enum ToastType {
         case success
@@ -52,7 +51,6 @@ public enum CommunityIntent {
     case showReportDialog(commentID: Int)
     case confirmReport(content: String)
     case dismissReportDialog
-    case setReportTextOverLimit(Bool)
 
     case onToastDismiss
 
@@ -60,6 +58,7 @@ public enum CommunityIntent {
     case _appendComments([ConcertComment], cursor: (createdAt: String, id: Int)?)
     case _addComment(ConcertComment)
     case _removeComment(commentID: Int)
+    case _setCommentText(String)
     case _setLoading(Bool)
     case _setSubmitting(Bool)
     case _setLoadingMore(Bool)
@@ -95,8 +94,6 @@ public final class CommunityStore: ObservableObject {
             submitComment()
         case .updateCommentText(let text):
             state.commentText = text
-
-        // Dialog handling
         case .showDeleteDialog(let commentID):
             state.deleteTargetCommentID = commentID
         case .confirmDelete:
@@ -115,10 +112,6 @@ public final class CommunityStore: ObservableObject {
             }
         case .dismissReportDialog:
             state.reportTargetCommentID = nil
-            state.isReportTextOverLimit = false
-        case .setReportTextOverLimit(let isOverLimit):
-            state.isReportTextOverLimit = isOverLimit
-
         case .onToastDismiss:
             state.toastMessage = nil
         case ._setComments(let comments, let totalCount, let cursor):
@@ -134,6 +127,8 @@ public final class CommunityStore: ObservableObject {
         case ._removeComment(let commentID):
             state.comments.removeAll { $0.id == commentID }
             state.totalCount -= 1
+        case ._setCommentText(let text):
+            state.commentText = text
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
         case ._setSubmitting(let isSubmitting):
@@ -218,16 +213,13 @@ private extension CommunityStore {
                     concertID: state.concertID,
                     content: content
                 )
-                state.comments.insert(comment, at: 0)
-                state.totalCount += 1
-                state.commentText = ""
-                state.isSubmitting = false
-                state.toastMessage = "댓글이 작성되었어요"
-                state.toastType = .success
+                send(._addComment(comment))
+                send(._setCommentText(""))
+                send(._setSubmitting(false))
+                send(._showToast("댓글이 작성되었어요", type: .success))
             } catch {
-                state.isSubmitting = false
-                state.toastMessage = "댓글 작성에 실패했어요"
-                state.toastType = .failure
+                send(._setSubmitting(false))
+                send(._showToast("댓글 작성에 실패했어요", type: .failure))
             }
         }
     }
