@@ -28,6 +28,10 @@ public final class KeyboardHeightObserver: ObservableObject {
         )
     }
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     @objc private func keyboardWillShow(_ notification: Notification) {
         if let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
             height = frame.height
