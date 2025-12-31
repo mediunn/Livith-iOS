@@ -24,6 +24,7 @@ enum InterestConcertSearchIntent {
     case _fetchConcertListResult(Result<[Concert], Error>)
     case _fetchRecommendKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
+    case _updateInterestConcertResult(Result<Concert, Error>)
 }
 
 struct InterestConcertSearchState {
@@ -39,6 +40,7 @@ struct InterestConcertSearchState {
     var recommendKeywordList: [String] = []
     var searchList: [Concert] = []
     var selectedConcertID: Int?
+    var completedConcert: Concert?
     var errorMessage: String = ""
     var isConcertsLoadingMore: Bool = false
     var isSearchResultsLoadingMore: Bool = false
@@ -80,7 +82,7 @@ final class InterestConcertSearchStore: ObservableObject {
             state.selectedConcertID = state.selectedConcertID == concertID ? nil : concertID
 
         case .onSubmit:
-            break
+            performUpdateInterestConcert()
         
         case .onToastDisappear:
             state.errorMessage = ""
@@ -129,6 +131,14 @@ final class InterestConcertSearchStore: ObservableObject {
                 } else {
                     state.searchList.append(contentsOf: searchList)
                 }
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+            }
+
+        case ._updateInterestConcertResult(let result):
+            switch result {
+            case .success(let concert):
+                state.completedConcert = concert
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
@@ -184,6 +194,19 @@ private extension InterestConcertSearchStore {
                 await send(._fetchSearchListResult(.success([])))
             } catch {
                 await send(._fetchSearchListResult(.failure(error)))
+            }
+        }
+    }
+
+    func performUpdateInterestConcert() {
+        guard let concertID = state.selectedConcertID else { return }
+        
+        Task {
+            do {
+                let concert = try await repository.updateInterestedConcert(id: concertID)
+                await send(._updateInterestConcertResult(.success(concert)))
+            } catch {
+                await send(._updateInterestConcertResult(.failure(error)))
             }
         }
     }

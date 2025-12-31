@@ -42,6 +42,12 @@ final class HomeCoordinator: Coordinator {
                 self?.pop()
             }
             return UIHostingController(rootView: view)
+            
+        case .interestComplete(posterURL: let url, title: let title):
+            return UIHostingController(
+                rootView: InteresetConcertCompleteView(concertPosterURL: url, concertTitle: title)
+                    .environment(\.homeCoordinator, self)
+            )
         }
     }
 }
