@@ -113,7 +113,8 @@ public struct ConcertView: View {
                 set: { _ in store.send(.onToastDisappear) }
             ),
             type: .failure,
-            message: store.state.interestStatus.message
+            message: store.state.interestStatus.message,
+            topPadding: 16
         )
         .livithToast(
             isPresented: Binding(
@@ -124,7 +125,8 @@ public struct ConcertView: View {
                 set: { _ in store.send(.onToastDisappear) }
             ),
             type: .success,
-            message: store.state.interestStatus.message
+            message: store.state.interestStatus.message,
+            topPadding: 16
         )
         .livithToast(
             isPresented: Binding(
@@ -132,7 +134,8 @@ public struct ConcertView: View {
                 set: { _ in store.send(.onFetchErrorDismiss) }
             ),
             type: .failure,
-            message: store.state.fetchError ?? ""
+            message: store.state.fetchError ?? "",
+            topPadding: 16
         )
         .overlay {
             if showInterestConfirmDialog {
@@ -191,7 +194,8 @@ public struct ConcertView: View {
                 set: { if !$0 { communityStore.send(.dismissToast) } }
             ),
             type: communityToastType,
-            message: communityToastMessage
+            message: communityToastMessage,
+            topPadding: 16
         )
         .overlay {
             if store.state.showTicketReturnBanner {

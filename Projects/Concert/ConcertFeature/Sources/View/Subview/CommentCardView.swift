@@ -26,7 +26,7 @@ struct CommentCardView: View {
             headerRow
 
             Text(comment.content)
-                .notosans(.body2Medium)
+                .notosans(.body2Regular)
                 .foregroundStyle(Color.livithColor(.white100))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -44,7 +44,7 @@ private extension CommentCardView {
             profileImage
 
             Text(comment.nickname)
-                .notosans(.body2Semibold)
+                .notosans(.body3Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
 
             Spacer()
