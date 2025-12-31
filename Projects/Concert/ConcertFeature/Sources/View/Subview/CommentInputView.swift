@@ -51,22 +51,24 @@ private extension CommentInputView {
 
     var textField: some View {
         ZStack(alignment: .topLeading) {
+            TextEditor(text: $text)
+                .notosans(.body3Medium)
+                .foregroundStyle(Color.livithColor(.white100))
+                .scrollContentBackground(.hidden)
+                .tint(Color.livithColor(.white100))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .frame(minHeight: 44)
+                .fixedSize(horizontal: false, vertical: true)
+
             if text.isEmpty {
                 Text(Constants.placeholder)
                     .notosans(.body3Medium)
                     .foregroundStyle(Color.livithColor(.black50))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
+                    .allowsHitTesting(false)
             }
-
-            TextEditor(text: $text)
-                .notosans(.body3Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-                .scrollContentBackground(.hidden)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-                .frame(minHeight: 44)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 8))
