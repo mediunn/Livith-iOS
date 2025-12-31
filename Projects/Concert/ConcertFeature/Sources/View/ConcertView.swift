@@ -145,6 +145,9 @@ public struct ConcertView: View {
                 store?.send(.onTicketSiteReturn)
             }
         }
+        .onDisappear {
+            coordinator?.onTicketSiteReturn = nil
+        }
     }
 }
 
@@ -233,10 +236,13 @@ private extension ConcertView {
     var posterImage: some View {
         AsyncImageView(
             url: store.state.concert?.posterURL,
-            showGradient: true
+            showGradient: false
         ) {
             Image.livithImage(.concertCardEmpty)
                 .resizable()
+        }
+        .overlay {
+            Color.black.opacity(0.7)
         }
     }
 }
