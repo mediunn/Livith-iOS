@@ -66,6 +66,16 @@ public final class ConcertCoordinator: Coordinator {
             }.ignoresSafeArea()
 
             return UIHostingController(rootView: safariView)
+
+        case .merchandiseDetail(let merchandiseList):
+            let view = MerchandiseDetailView(
+                merchandiseList: merchandiseList,
+                onDismiss: { [weak self] in
+                    self?.pop()
+                }
+            )
+
+            return UIHostingController(rootView: view)
         }
     }
 }

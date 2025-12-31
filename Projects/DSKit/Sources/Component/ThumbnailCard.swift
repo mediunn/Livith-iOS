@@ -15,17 +15,20 @@ public struct ThumbnailCard: View {
     private let imageURL: URL?
     private let title: String
     private let subtitle: String?
+    private let flexible: Bool
 
     // MARK: - Initializer
 
     public init(
         imageURL: URL?,
         title: String,
-        subtitle: String? = nil
+        subtitle: String? = nil,
+        flexible: Bool = false
     ) {
         self.imageURL = imageURL
         self.title = title
         self.subtitle = subtitle
+        self.flexible = flexible
     }
 
     // MARK: - Body
@@ -37,7 +40,7 @@ public struct ThumbnailCard: View {
             Text(title)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
-                .frame(width: 108, alignment: .leading)
+                .frame(maxWidth: flexible ? .infinity : 108, alignment: .leading)
 
             if let subtitle, !subtitle.isEmpty {
                 Text(subtitle)
@@ -45,7 +48,7 @@ public struct ThumbnailCard: View {
                     .foregroundStyle(Color.livithColor(.black50))
             }
         }
-        .frame(width: 108, alignment: .top)
+        .frame(maxWidth: flexible ? .infinity : 108, alignment: .top)
         .padding(.bottom, 8)
     }
 }
@@ -56,13 +59,33 @@ private extension ThumbnailCard {
     @ViewBuilder
     var thumbnailImage: some View {
         if let imageURL {
-            AsyncImageView(url: imageURL)
-                .frame(width: 108, height: 158)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+            if flexible {
+                AsyncImageView(url: imageURL)
+                    .aspectRatio(108/158, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            } else {
+                AsyncImageView(url: imageURL)
+                    .frame(width: 108, height: 158)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
         } else {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.livithColor(.black80))
-                .frame(width: 108, height: 158)
+                .modifier(ThumbnailSizeModifier(flexible: flexible))
+        }
+    }
+}
+
+// MARK: - Size Modifier
+
+private struct ThumbnailSizeModifier: ViewModifier {
+    let flexible: Bool
+
+    func body(content: Content) -> some View {
+        if flexible {
+            content.aspectRatio(108/158, contentMode: .fit)
+        } else {
+            content.frame(width: 108, height: 158)
         }
     }
 }

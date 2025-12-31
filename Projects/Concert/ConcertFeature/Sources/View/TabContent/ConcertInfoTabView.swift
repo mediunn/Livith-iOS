@@ -142,7 +142,7 @@ private extension ConcertInfoTabView {
                     secondLine: "한 눈에 확인해요"
                 ) {
                     Button {
-                        // TODO: MD 상세 화면으로 이동
+                        coordinator?.push(to: .merchandiseDetail(merchandiseList))
                     } label: {
                         Image.livithIcon(.rightLineDefault)
                             .resizable()
