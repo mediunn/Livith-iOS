@@ -73,7 +73,7 @@ private extension ConcertInfoTabView {
     var ticketWebsiteCard: some View {
         if let ticketingOfficeURL {
             Button {
-                coordinator?.present(to: .safari(ticketingOfficeURL))
+                coordinator?.present(to: .ticketSafari(ticketingOfficeURL))
             } label: {
                 HStack(alignment: .top, spacing: 16) {
                     Image.livithIcon(.earth)
@@ -119,7 +119,10 @@ private extension ConcertInfoTabView {
                 }
                 .padding(.horizontal, 16)
 
-                ConcertInfoCarousel(concertInfoList: concertInfoList)
+                ConcertInfoCarousel(
+                    concertInfoList: concertInfoList,
+                    ticketingOfficeURL: ticketingOfficeURL
+                )
             }
         }
     }
@@ -149,9 +152,13 @@ private extension ConcertInfoTabView {
                 .padding(.horizontal, 16)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
+                    HStack(alignment: .top, spacing: 10) {
                         ForEach(merchandiseList) { merchandise in
-                            merchandiseCard(merchandise: merchandise)
+                            ThumbnailCard(
+                                imageURL: merchandise.imageURL.flatMap { URL(string: $0) },
+                                title: merchandise.name,
+                                subtitle: merchandise.price
+                            )
                         }
                     }
                     .padding(.horizontal, 16)
@@ -160,37 +167,15 @@ private extension ConcertInfoTabView {
         }
     }
 
-    func merchandiseCard(merchandise: ConcertMerchandise) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let imageURLString = merchandise.imageURL,
-               let url = URL(string: imageURLString) {
-                AsyncImageView(url: url)
-                    .frame(width: 108, height: 158)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.livithColor(.black80))
-                    .frame(width: 108, height: 158)
-            }
-
-            Text(merchandise.name)
-                .notosans(.body2Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-                .lineLimit(1)
-
-            if let price = merchandise.price {
-                Text(price)
-                    .notosans(.caption1Semibold)
-                    .foregroundStyle(Color.livithColor(.black50))
-            }
-        }
-    }
 }
 
 // MARK: - Info Carousel
 
 private struct ConcertInfoCarousel: View {
+    @Environment(\.concertCoordinator) private var coordinator
+
     let concertInfoList: [ConcertInfo]
+    let ticketingOfficeURL: URL?
     @State private var currentIndex: Int = 0
 
     var body: some View {
@@ -227,27 +212,33 @@ private struct ConcertInfoCarousel: View {
     }
 
     func concertInfoCard(info: ConcertInfo) -> some View {
-        ZStack(alignment: .bottomLeading) {
-            AsyncImageView(
-                url: URL(string: info.imageURL),
-                showGradient: true
-            ) {
-                Color.livithColor(.black80)
+        Button {
+            if let url = ticketingOfficeURL {
+                coordinator?.present(to: .ticketSafari(url))
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 274)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+        } label: {
+            ZStack(alignment: .bottomLeading) {
+                AsyncImageView(
+                    url: URL(string: info.imageURL),
+                    showGradient: true
+                ) {
+                    Color.livithColor(.black80)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 274)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
-            VStack(alignment: .leading, spacing: 10) {
-                CardTagView(info.title, fontStyle: .caption1Semibold)
+                VStack(alignment: .leading, spacing: 10) {
+                    CardTagView(info.title, fontStyle: .caption1Semibold)
 
-                Text(info.description)
-                    .notosans(.body2Medium)
-                    .foregroundStyle(Color.livithColor(.white100))
-                    .lineLimit(3)
+                    Text(info.description)
+                        .notosans(.body2Medium)
+                        .foregroundStyle(Color.livithColor(.white100))
+                        .lineLimit(3)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 52)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 52)
         }
     }
 }

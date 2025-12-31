@@ -13,4 +13,5 @@ import DSKit
 public enum ConcertRoute: Route {
     case detail(concertID: Int)
     case safari(URL)
+    case ticketSafari(URL)
 }

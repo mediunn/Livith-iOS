@@ -18,6 +18,8 @@ public final class ConcertCoordinator: Coordinator {
 
     private let onDismiss: () -> Void
 
+    var onTicketSiteReturn: (() -> Void)?
+
     // MARK: - Initializer
 
     public init(
@@ -53,6 +55,14 @@ public final class ConcertCoordinator: Coordinator {
         case .safari(let url):
             let safariView = SafariView(url: url) { [weak self] in
                 self?.dismiss()
+            }.ignoresSafeArea()
+
+            return UIHostingController(rootView: safariView)
+
+        case .ticketSafari(let url):
+            let safariView = SafariView(url: url) { [weak self] in
+                self?.dismiss()
+                self?.onTicketSiteReturn?()
             }.ignoresSafeArea()
 
             return UIHostingController(rootView: safariView)

@@ -58,6 +58,7 @@ public struct ConcertState {
     public var selectedTab: ConcertTab = .artistDetail
     public var merchandiseList: [ConcertMerchandise] = []
     public var interestStatus: InterestSettingStatus = .idle
+    public var showTicketReturnBanner: Bool = false
 
     public init() {}
 }
@@ -68,6 +69,8 @@ public enum ConcertIntent {
     case onAppear(concertID: Int)
     case onToastDisappear
     case onFetchErrorDismiss
+    case onTicketSiteReturn
+    case onTicketBannerDismiss
 
     case _setLoading(Bool)
     case _setArtist(Artist)
@@ -109,6 +112,10 @@ public final class ConcertStore: ObservableObject {
             state.interestStatus = .idle
         case .onFetchErrorDismiss:
             state.fetchError = nil
+        case .onTicketSiteReturn:
+            state.showTicketReturnBanner = true
+        case .onTicketBannerDismiss:
+            state.showTicketReturnBanner = false
         case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
             state.formattedDateRange = formattedDateRange
