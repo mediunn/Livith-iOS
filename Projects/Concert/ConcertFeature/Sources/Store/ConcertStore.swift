@@ -51,8 +51,12 @@ public struct ConcertState {
     public var communityCount: Int = 0
     public var isLoading: Bool = false
     public var interestStatus: InterestSettingStatus = .idle
+    public var fetchError: String?
     public var formattedDateRange: String = ""
     public var fanCultures: [ConcertCulture] = []
+    public var schedules: [ConcertSchedule] = []
+    public var concertInfoList: [ConcertInfo] = []
+    public var merchandiseList: [ConcertMerchandise] = []
     public var selectedTab: ConcertTab = .artistDetail
 
     public init() {}
@@ -63,12 +67,14 @@ public enum ConcertIntent {
     case tabSelected(ConcertTab)
     case onAppear(concertID: Int)
     case onToastDisappear
+    case onFetchErrorDismiss
 
     case _setLoading(Bool)
     case _setArtist(Artist)
     case _setFanCultures([ConcertCulture])
     case _setConcert(Concert, formattedDateRange: String)
     case _setInterestStatus(InterestSettingStatus)
+    case _setFetchError(String?)
 }
 
 public final class ConcertStore: ObservableObject {
@@ -98,6 +104,8 @@ public final class ConcertStore: ObservableObject {
             state.selectedTab = tab
         case .onToastDisappear:
             state.interestStatus = .idle
+        case .onFetchErrorDismiss:
+            state.fetchError = nil
         case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
             state.formattedDateRange = formattedDateRange
@@ -109,6 +117,8 @@ public final class ConcertStore: ObservableObject {
             state.isLoading = isLoading
         case ._setInterestStatus(let status):
             state.interestStatus = status
+        case ._setFetchError(let error):
+            state.fetchError = error
         }
     }
 }
@@ -151,7 +161,8 @@ private extension ConcertStore {
                 send(._setArtist(artist))
                 send(._setFanCultures(cultures))
             } catch {
-                // TODO: 에러 처리 구현 필요
+                guard !Task.isCancelled else { return }
+                send(._setFetchError("데이터를 불러오는데 실패했어요"))
             }
 
             send(._setLoading(false))

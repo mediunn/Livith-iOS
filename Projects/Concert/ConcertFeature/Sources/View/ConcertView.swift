@@ -87,6 +87,14 @@ public struct ConcertView: View {
             type: .success,
             message: store.state.interestStatus.message
         )
+        .livithToast(
+            isPresented: Binding(
+                get: { store.state.fetchError != nil },
+                set: { _ in store.send(.onFetchErrorDismiss) }
+            ),
+            type: .failure,
+            message: store.state.fetchError ?? ""
+        )
         .overlay {
             if showInterestConfirmDialog {
                 LivithConfirmDialog(
@@ -159,7 +167,14 @@ private extension ConcertView {
             )
             .background(.livithColor(.black100))
         case .concertInfo:
-            ConcertInfoTabView()
+            ConcertInfoTabView(
+                schedules: store.state.schedules,
+                ticketingOffice: store.state.concert?.ticketingOffice,
+                ticketingOfficeURL: store.state.concert?.ticketingOfficeURL,
+                concertInfoList: store.state.concertInfoList,
+                merchandiseList: store.state.merchandiseList
+            )
+            .background(.livithColor(.black100))
         case .setlist:
             SetlistTabView()
         case .community:
