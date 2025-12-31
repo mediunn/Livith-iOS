@@ -100,14 +100,12 @@ private struct LivithToastModifier: ViewModifier {
                     }
                     .onAppear {
                         keyboardHeight = KeyboardHeightObserver.shared.height
-                        if let duration {
-                            Task {
-                                try? await Task.sleep(for: .seconds(duration))
-                                await MainActor.run {
-                                    withAnimation { isPresented = false }
-                                }
-                            }
-                        }
+                    }
+                    .task(id: isPresented) {
+                        guard let duration else { return }
+                        try? await Task.sleep(for: .seconds(duration))
+                        guard !Task.isCancelled else { return }
+                        withAnimation { isPresented = false }
                     }
                 }
             }
