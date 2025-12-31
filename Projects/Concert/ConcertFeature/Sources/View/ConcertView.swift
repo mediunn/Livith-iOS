@@ -21,6 +21,7 @@ public struct ConcertView: View {
     @Environment(\.concertCoordinator) private var coordinator
 
     @ObservedObject private var store: ConcertStore
+    @StateObject private var communityStore: CommunityStore = CommunityStore()
     @State private var showInterestConfirmDialog: Bool = false
 
     // MARK: - Initializer
@@ -173,7 +174,7 @@ private extension ConcertView {
     var segmentTabBar: some View {
         ConcertSegmentTabBar(
             selectedTab: store.state.selectedTab,
-            communityCount: store.state.communityCount,
+            communityCount: communityStore.state.totalCount,
             onTabSelected: { tab in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     store.send(.tabSelected(tab))
@@ -213,7 +214,12 @@ private extension ConcertView {
                 .frame(maxWidth: UIScreen.main.bounds.width)
                 .background(.livithColor(.black100))
         case .community:
-            CommunityTabView()
+            CommunityTabView(store: communityStore)
+                .onAppear {
+                    if communityStore.state.concertID == 0 {
+                        communityStore.send(.onAppear(concertID: concertID))
+                    }
+                }
         }
     }
 }

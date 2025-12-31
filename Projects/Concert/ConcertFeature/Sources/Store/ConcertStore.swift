@@ -50,7 +50,6 @@ public struct ConcertState {
     public var concertID: Int = 0
     public var fetchError: String?
     public var isLoading: Bool = false
-    public var communityCount: Int = 0
     public var formattedDateRange: String = ""
     public var schedules: [ConcertSchedule] = []
     public var fanCultures: [ConcertCulture] = []
