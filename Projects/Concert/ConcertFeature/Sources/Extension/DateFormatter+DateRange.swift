@@ -22,14 +22,13 @@ extension DateFormatter {
     }()
 
     static func formatDateRange(from startDate: Date, to endDate: Date) -> String {
+        let calendar = Calendar.current
         let startDateString = fullDate.string(from: startDate)
-        let endDateString = fullDate.string(from: endDate)
 
-        if startDateString == endDateString {
+        if calendar.isDate(startDate, inSameDayAs: endDate) {
             return startDateString
         }
 
-        let calendar = Calendar.current
         let startYear = calendar.component(.year, from: startDate)
         let endYear = calendar.component(.year, from: endDate)
 
@@ -37,6 +36,7 @@ extension DateFormatter {
             let endShortString = shortDate.string(from: endDate)
             return "\(startDateString)~\(endShortString)"
         } else {
+            let endDateString = fullDate.string(from: endDate)
             return "\(startDateString)~\(endDateString)"
         }
     }
