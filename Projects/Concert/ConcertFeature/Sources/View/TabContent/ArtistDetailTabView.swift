@@ -26,12 +26,13 @@ struct ArtistDetailTabView: View {
     var body: some View {
         VStack(spacing: 30) {
             introductionSection
+                .padding(.horizontal, 16)
 
             artistInfoSection
+                .padding(.horizontal, 16)
 
             fanCultureSection
         }
-        .padding(.horizontal, 16)
         .padding(.top, 30)
         .padding(.bottom, 40)
     }
@@ -186,11 +187,13 @@ private extension ArtistDetailTabView {
                 ) {
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
+                .padding(.horizontal, 16)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 10) {
                         ForEach(Array(fanCultures.enumerated()), id: \.element.id) { index, culture in
                             fanCultureCard(index: index + 1, culture: culture)
+                                .padding(.leading, index == 0 ? 16 : 0)
                                 .padding(.trailing, index == fanCultures.count - 1 ? 16 : 0)
                         }
                     }

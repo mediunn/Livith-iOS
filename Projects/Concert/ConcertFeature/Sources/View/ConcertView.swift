@@ -62,6 +62,14 @@ public struct ConcertView: View {
             }
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
+        .livithToast(
+            isPresented: Binding(
+                get: { !store.state.errorMessage.isEmpty },
+                set: { _ in store.send(.onToastDisappear) }
+            ),
+            type: .failure,
+            message: store.state.errorMessage
+        )
         .onAppear {
             store.send(.onAppear(concertID: concertID))
         }

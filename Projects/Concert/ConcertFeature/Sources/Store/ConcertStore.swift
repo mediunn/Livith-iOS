@@ -45,6 +45,7 @@ public enum ConcertIntent {
     case favoriteButtonTapped
     case tabSelected(ConcertTab)
     case onAppear(concertID: Int)
+    case onToastDisappear
 
     case _setError(String)
     case _setLoading(Bool)
@@ -78,6 +79,8 @@ public final class ConcertStore: ObservableObject {
             break
         case .tabSelected(let tab):
             state.selectedTab = tab
+        case .onToastDisappear:
+            state.errorMessage = ""
         case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
             state.formattedDateRange = formattedDateRange
