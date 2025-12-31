@@ -40,7 +40,7 @@ public struct ThumbnailCard: View {
             Text(title)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
-                .frame(maxWidth: flexible ? .infinity : 108, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             if let subtitle, !subtitle.isEmpty {
                 Text(subtitle)
@@ -48,7 +48,8 @@ public struct ThumbnailCard: View {
                     .foregroundStyle(Color.livithColor(.black50))
             }
         }
-        .frame(maxWidth: flexible ? .infinity : 108, alignment: .top)
+        .frame(width: flexible ? nil : 108, alignment: .top)
+        .frame(maxWidth: flexible ? .infinity : nil)
         .padding(.bottom, 8)
     }
 }
@@ -60,9 +61,13 @@ private extension ThumbnailCard {
     var thumbnailImage: some View {
         if let imageURL {
             if flexible {
-                AsyncImageView(url: imageURL)
+                Color.clear
                     .aspectRatio(108/158, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay {
+                        AsyncImageView(url: imageURL)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .clipped()
             } else {
                 AsyncImageView(url: imageURL)
                     .frame(width: 108, height: 158)
@@ -71,21 +76,8 @@ private extension ThumbnailCard {
         } else {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.livithColor(.black80))
-                .modifier(ThumbnailSizeModifier(flexible: flexible))
-        }
-    }
-}
-
-// MARK: - Size Modifier
-
-private struct ThumbnailSizeModifier: ViewModifier {
-    let flexible: Bool
-
-    func body(content: Content) -> some View {
-        if flexible {
-            content.aspectRatio(108/158, contentMode: .fit)
-        } else {
-            content.frame(width: 108, height: 158)
+                .aspectRatio(108/158, contentMode: flexible ? .fit : .fill)
+                .frame(width: flexible ? nil : 108, height: flexible ? nil : 158)
         }
     }
 }

@@ -19,7 +19,7 @@ struct MerchandiseDetailView: View {
     let onDismiss: () -> Void
 
     private let columns = Array(
-        repeating: GridItem(.flexible(), spacing: 8),
+        repeating: GridItem(.flexible(), spacing: 8, alignment: .top),
         count: 3
     )
 
@@ -33,7 +33,7 @@ struct MerchandiseDetailView: View {
             )
 
             ScrollView {
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 16, pinnedViews: []) {
+                LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(merchandiseList) { merchandise in
                         ThumbnailCard(
                             imageURL: merchandise.imageURL.flatMap { URL(string: $0) },
@@ -41,7 +41,6 @@ struct MerchandiseDetailView: View {
                             subtitle: merchandise.price,
                             flexible: true
                         )
-                        .frame(maxHeight: .infinity, alignment: .top)
                     }
                 }
                 .padding(.horizontal, 16)
