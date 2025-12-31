@@ -99,7 +99,7 @@ private extension ArtistDetailTabView {
 
             VStack(alignment: .leading, spacing: 0) {
                 if !artist.category.isEmpty {
-                    artistTag(category: artist.category)
+                    CardTagView(artist.category)
                         .padding(.bottom, 8)
                 }
 
@@ -121,16 +121,6 @@ private extension ArtistDetailTabView {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-
-    func artistTag(category: String) -> some View {
-        Text(category)
-            .notosans(.caption1Semibold)
-            .foregroundStyle(Color.livithColor(.black50))
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
-            .background(Color.livithColor(.black100))
-            .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
     func artistNameRow(for artist: Artist) -> some View {
@@ -218,13 +208,7 @@ private extension ArtistDetailTabView {
 
     func fanCultureCard(index: Int, culture: ConcertCulture) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("팬문화 \(index)")
-                .notosans(.caption1Bold)
-                .foregroundStyle(Color.livithColor(.black50))
-                .padding(.horizontal, 9)
-                .padding(.vertical, 4)
-                .background(Color.livithColor(.black100))
-                .clipShape(RoundedRectangle(cornerRadius: 24))
+            CardTagView("팬문화 \(index)", fontStyle: .caption1Bold)
                 .padding(.bottom, 4)
 
             Text(culture.title)
@@ -236,7 +220,7 @@ private extension ArtistDetailTabView {
                 .padding(.bottom, 12)
 
             Text(culture.content)
-                .notosans(.body4Medium)
+                .notosans(.body4Regular)
                 .foregroundStyle(Color.livithColor(.black30))
 
             Spacer(minLength: 0)
