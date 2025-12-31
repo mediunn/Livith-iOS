@@ -173,6 +173,7 @@ public struct ConcertView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
         .onAppear {
             store.send(.onAppear(concertID: concertID))
+            communityStore.send(.onAppear(concertID: concertID))
             coordinator?.onTicketSiteReturn = { [weak store] in
                 store?.send(.onTicketSiteReturn)
             }
@@ -246,11 +247,6 @@ private extension ConcertView {
                 .background(.livithColor(.black100))
         case .community:
             CommunityTabView(store: communityStore)
-                .onAppear {
-                    if communityStore.state.concertID == 0 {
-                        communityStore.send(.onAppear(concertID: concertID))
-                    }
-                }
         }
     }
 }
