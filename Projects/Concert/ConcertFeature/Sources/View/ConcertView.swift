@@ -19,6 +19,7 @@ public struct ConcertView: View {
     private let onDismiss: () -> Void
 
     @ObservedObject private var store: ConcertStore
+    @State private var showFavoriteConfirmDialog: Bool = false
 
     // MARK: - Initializer
 
@@ -53,6 +54,8 @@ public struct ConcertView: View {
                             segmentTabBar
                         }
                     }
+                    .opacity(store.state.concert != nil ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
                 }
                 .onChange(of: store.state.selectedTab) {
                     withAnimation {
@@ -70,6 +73,32 @@ public struct ConcertView: View {
             type: .failure,
             message: store.state.errorMessage
         )
+        .livithToast(
+            isPresented: Binding(
+                get: { !store.state.successMessage.isEmpty },
+                set: { _ in store.send(.onToastDisappear) }
+            ),
+            type: .success,
+            message: store.state.successMessage
+        )
+        .overlay {
+            if showFavoriteConfirmDialog {
+                LivithConfirmDialog(
+                    message: "관심 콘서트를 변경하시겠어요?",
+                    confirmTitle: "변경할래요",
+                    cancelTitle: "취소할래요",
+                    onConfirm: {
+                        showFavoriteConfirmDialog = false
+                        store.send(.favoriteButtonTapped)
+                    },
+                    onCancel: {
+                        showFavoriteConfirmDialog = false
+                    }
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: showFavoriteConfirmDialog)
         .onAppear {
             store.send(.onAppear(concertID: concertID))
         }
@@ -80,14 +109,13 @@ public struct ConcertView: View {
 
 private extension ConcertView {
     var headerSection: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             posterSection
                 .frame(maxWidth: .infinity)
                 .frame(height: 340)
                 .clipped()
 
             concertInfoSection
-                .padding(.top, 120)
                 .padding(.bottom, 30)
         }
     }
@@ -143,7 +171,7 @@ private extension ConcertView {
                 .frame(height: 337)
 
             FavoriteButton {
-                store.send(.favoriteButtonTapped)
+                showFavoriteConfirmDialog = true
             }
             
             .padding(.top, 16)

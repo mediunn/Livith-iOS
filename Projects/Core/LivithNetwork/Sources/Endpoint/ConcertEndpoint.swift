@@ -17,6 +17,7 @@ public enum ConcertEndpoint {
     case fetchConcertMerchandiseList(concertID: Int)
     case fetchConcertSetlistList(concertID: Int)
     case fetchConcertArtistInfo(concertID: Int)
+    case setInterestConcert(concertID: Int)
 }
 
 extension ConcertEndpoint: NetworkEndpoint {
@@ -34,6 +35,8 @@ extension ConcertEndpoint: NetworkEndpoint {
             return "/api/v4/concerts/\(concertID)/setlists"
         case .fetchConcertArtistInfo(let concertID):
             return "/api/v4/concerts/\(concertID)/artist"
+        case .setInterestConcert:
+            return "/api/v4/users/interest-concert"
         }
     }
 
@@ -42,7 +45,12 @@ extension ConcertEndpoint: NetworkEndpoint {
     }
 
     public var method: HTTPMethod {
-        return .get
+        switch self {
+        case .setInterestConcert:
+            return .post
+        default:
+            return .get
+        }
     }
 
     public var headers: HTTPHeaders? {
@@ -50,10 +58,20 @@ extension ConcertEndpoint: NetworkEndpoint {
     }
 
     public var body: Encodable? {
-        return nil
+        switch self {
+        case .setInterestConcert(let concertID):
+            return DTO.Request.UpdateUserInterestConcert(concertID: concertID)
+        default:
+            return nil
+        }
     }
 
     public var requiresInterceptor: Bool {
-        return false
+        switch self {
+        case .setInterestConcert:
+            return true
+        default:
+            return false
+        }
     }
 }

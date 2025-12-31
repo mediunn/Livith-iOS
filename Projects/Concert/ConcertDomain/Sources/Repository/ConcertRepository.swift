@@ -15,4 +15,5 @@ public protocol ConcertRepository {
     func fetchConcertMerchandiseList(concertID: Int) async throws(ConcertError) -> [ConcertMerchandise]
     func fetchConcertSetlistList(concertID: Int) async throws(ConcertError) -> [ConcertSetlist]
     func fetchConcertArtistInfo(concertID: Int) async throws(ConcertError) -> Artist
+    func setInterestConcert(concertID: Int) async throws(ConcertError)
 }

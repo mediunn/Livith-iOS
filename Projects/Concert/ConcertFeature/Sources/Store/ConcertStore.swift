@@ -29,11 +29,13 @@ public enum ConcertTab: Int, CaseIterable {
 }
 
 public struct ConcertState {
+    public var concertID: Int = 0
     public var artist: Artist?
     public var concert: Concert?
     public var communityCount: Int = 0
     public var isLoading: Bool = false
     public var errorMessage: String = ""
+    public var successMessage: String = ""
     public var formattedDateRange: String = ""
     public var fanCultures: [ConcertCulture] = []
     public var selectedTab: ConcertTab = .artistDetail
@@ -48,6 +50,7 @@ public enum ConcertIntent {
     case onToastDisappear
 
     case _setError(String)
+    case _setSuccess(String)
     case _setLoading(Bool)
     case _setArtist(Artist)
     case _setFanCultures([ConcertCulture])
@@ -73,14 +76,15 @@ public final class ConcertStore: ObservableObject {
     public func send(_ intent: ConcertIntent) {
         switch intent {
         case .onAppear(let concertID):
+            state.concertID = concertID
             fetchConcertData(concertID: concertID)
         case .favoriteButtonTapped:
-            // TODO: 관심 콘서트 설정 기능 구현
-            break
+            setInterestConcert()
         case .tabSelected(let tab):
             state.selectedTab = tab
         case .onToastDisappear:
             state.errorMessage = ""
+            state.successMessage = ""
         case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
             state.formattedDateRange = formattedDateRange
@@ -92,6 +96,8 @@ public final class ConcertStore: ObservableObject {
             state.isLoading = isLoading
         case ._setError(let message):
             state.errorMessage = message
+        case ._setSuccess(let message):
+            state.successMessage = message
         }
     }
 }
@@ -148,4 +154,14 @@ private extension ConcertStore {
         }
     }
 
+    func setInterestConcert() {
+        Task { @MainActor in
+            do {
+                try await repository.setInterestConcert(concertID: state.concertID)
+                send(._setSuccess("관심 공연을 변경했어요"))
+            } catch {
+                send(._setError(error.localizedDescription))
+            }
+        }
+    }
 }

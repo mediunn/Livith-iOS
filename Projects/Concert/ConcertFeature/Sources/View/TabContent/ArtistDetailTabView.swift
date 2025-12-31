@@ -23,18 +23,31 @@ struct ArtistDetailTabView: View {
 
     // MARK: - Body
 
+    private var hasNoContent: Bool {
+        let hasIntroduction = !introduction.isEmpty
+        let hasArtist = artist != nil && !artist!.name.isEmpty
+        let hasFanCultures = !fanCultures.isEmpty
+        return !hasIntroduction && !hasArtist && !hasFanCultures
+    }
+
     var body: some View {
-        VStack(spacing: 30) {
-            introductionSection
-                .padding(.horizontal, 16)
+        if hasNoContent {
+            LivithEmptyView(text: "가수 정보가 없어요")
+                .frame(maxWidth: .infinity)
+                .padding(.top, 98)
+        } else {
+            VStack(spacing: 30) {
+                introductionSection
+                    .padding(.horizontal, 16)
 
-            artistInfoSection
-                .padding(.horizontal, 16)
+                artistInfoSection
+                    .padding(.horizontal, 16)
 
-            fanCultureSection
+                fanCultureSection
+            }
+            .padding(.top, 30)
+            .padding(.bottom, 40)
         }
-        .padding(.top, 30)
-        .padding(.bottom, 40)
     }
 }
 
