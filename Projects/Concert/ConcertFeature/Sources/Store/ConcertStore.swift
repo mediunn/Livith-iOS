@@ -28,14 +28,29 @@ public enum ConcertTab: Int, CaseIterable {
     }
 }
 
+public enum InterestSettingStatus: Equatable {
+    case idle
+    case inProgress
+    case success(String)
+    case failure(String)
+
+    var message: String {
+        switch self {
+        case .success(let message), .failure(let message):
+            return message
+        default:
+            return ""
+        }
+    }
+}
+
 public struct ConcertState {
     public var concertID: Int = 0
     public var artist: Artist?
     public var concert: Concert?
     public var communityCount: Int = 0
     public var isLoading: Bool = false
-    public var errorMessage: String = ""
-    public var successMessage: String = ""
+    public var interestStatus: InterestSettingStatus = .idle
     public var formattedDateRange: String = ""
     public var fanCultures: [ConcertCulture] = []
     public var selectedTab: ConcertTab = .artistDetail
@@ -44,17 +59,16 @@ public struct ConcertState {
 }
 
 public enum ConcertIntent {
-    case favoriteButtonTapped
+    case interestButtonTapped
     case tabSelected(ConcertTab)
     case onAppear(concertID: Int)
     case onToastDisappear
 
-    case _setError(String)
-    case _setSuccess(String)
     case _setLoading(Bool)
     case _setArtist(Artist)
     case _setFanCultures([ConcertCulture])
     case _setConcert(Concert, formattedDateRange: String)
+    case _setInterestStatus(InterestSettingStatus)
 }
 
 public final class ConcertStore: ObservableObject {
@@ -78,13 +92,12 @@ public final class ConcertStore: ObservableObject {
         case .onAppear(let concertID):
             state.concertID = concertID
             fetchConcertData(concertID: concertID)
-        case .favoriteButtonTapped:
+        case .interestButtonTapped:
             setInterestConcert()
         case .tabSelected(let tab):
             state.selectedTab = tab
         case .onToastDisappear:
-            state.errorMessage = ""
-            state.successMessage = ""
+            state.interestStatus = .idle
         case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
             state.formattedDateRange = formattedDateRange
@@ -94,12 +107,26 @@ public final class ConcertStore: ObservableObject {
             state.fanCultures = fanCultures
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
-        case ._setError(let message):
-            state.errorMessage = message
-        case ._setSuccess(let message):
-            state.successMessage = message
+        case ._setInterestStatus(let status):
+            state.interestStatus = status
         }
     }
+}
+
+// MARK: - Date Formatter
+
+private extension ConcertStore {
+    static let fullDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        return formatter
+    }()
+
+    static let shortDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM.dd"
+        return formatter
+    }()
 }
 
 // MARK: - Private Methods
@@ -124,7 +151,7 @@ private extension ConcertStore {
                 send(._setArtist(artist))
                 send(._setFanCultures(cultures))
             } catch {
-                send(._setError(error.localizedDescription))
+                // TODO: 에러 처리 구현 필요
             }
 
             send(._setLoading(false))
@@ -136,18 +163,13 @@ private extension ConcertStore {
         let startYear = calendar.component(.year, from: concert.startDate)
         let endYear = calendar.component(.year, from: concert.endDate)
 
-        let fullFormatter = DateFormatter()
-        fullFormatter.dateFormat = "yyyy.MM.dd"
-
-        let startDateString = fullFormatter.string(from: concert.startDate)
-        let endDateString = fullFormatter.string(from: concert.endDate)
+        let startDateString = Self.fullDateFormatter.string(from: concert.startDate)
+        let endDateString = Self.fullDateFormatter.string(from: concert.endDate)
 
         if startDateString == endDateString {
             return startDateString
         } else if startYear == endYear {
-            let shortFormatter = DateFormatter()
-            shortFormatter.dateFormat = "MM.dd"
-            let endShortString = shortFormatter.string(from: concert.endDate)
+            let endShortString = Self.shortDateFormatter.string(from: concert.endDate)
             return "\(startDateString)~\(endShortString)"
         } else {
             return "\(startDateString)~\(endDateString)"
@@ -155,12 +177,16 @@ private extension ConcertStore {
     }
 
     func setInterestConcert() {
+        guard state.interestStatus != .inProgress else { return }
+
         Task { @MainActor in
+            send(._setInterestStatus(.inProgress))
+
             do {
                 try await repository.setInterestConcert(concertID: state.concertID)
-                send(._setSuccess("관심 공연을 변경했어요"))
+                send(._setInterestStatus(.success("관심 공연을 변경했어요")))
             } catch {
-                send(._setError(error.localizedDescription))
+                send(._setInterestStatus(.failure(error.localizedDescription)))
             }
         }
     }

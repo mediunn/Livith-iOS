@@ -25,7 +25,7 @@ struct ArtistDetailTabView: View {
 
     private var hasNoContent: Bool {
         let hasIntroduction = !introduction.isEmpty
-        let hasArtist = artist != nil && !artist!.name.isEmpty
+        let hasArtist = artist?.name.isEmpty == false
         let hasFanCultures = !fanCultures.isEmpty
         return !hasIntroduction && !hasArtist && !hasFanCultures
     }

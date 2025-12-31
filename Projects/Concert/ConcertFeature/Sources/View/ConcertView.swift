@@ -19,7 +19,7 @@ public struct ConcertView: View {
     private let onDismiss: () -> Void
 
     @ObservedObject private var store: ConcertStore
-    @State private var showFavoriteConfirmDialog: Bool = false
+    @State private var showInterestConfirmDialog: Bool = false
 
     // MARK: - Initializer
 
@@ -67,38 +67,44 @@ public struct ConcertView: View {
         .background(Color.livithColor(.black100).ignoresSafeArea())
         .livithToast(
             isPresented: Binding(
-                get: { !store.state.errorMessage.isEmpty },
+                get: {
+                    if case .failure = store.state.interestStatus { return true }
+                    return false
+                },
                 set: { _ in store.send(.onToastDisappear) }
             ),
             type: .failure,
-            message: store.state.errorMessage
+            message: store.state.interestStatus.message
         )
         .livithToast(
             isPresented: Binding(
-                get: { !store.state.successMessage.isEmpty },
+                get: {
+                    if case .success = store.state.interestStatus { return true }
+                    return false
+                },
                 set: { _ in store.send(.onToastDisappear) }
             ),
             type: .success,
-            message: store.state.successMessage
+            message: store.state.interestStatus.message
         )
         .overlay {
-            if showFavoriteConfirmDialog {
+            if showInterestConfirmDialog {
                 LivithConfirmDialog(
                     message: "관심 콘서트를 변경하시겠어요?",
                     confirmTitle: "변경할래요",
                     cancelTitle: "취소할래요",
                     onConfirm: {
-                        showFavoriteConfirmDialog = false
-                        store.send(.favoriteButtonTapped)
+                        showInterestConfirmDialog = false
+                        store.send(.interestButtonTapped)
                     },
                     onCancel: {
-                        showFavoriteConfirmDialog = false
+                        showInterestConfirmDialog = false
                     }
                 )
                 .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: showFavoriteConfirmDialog)
+        .animation(.easeInOut(duration: 0.3), value: showInterestConfirmDialog)
         .onAppear {
             store.send(.onAppear(concertID: concertID))
         }
@@ -170,10 +176,9 @@ private extension ConcertView {
             posterImage
                 .frame(height: 337)
 
-            FavoriteButton {
-                showFavoriteConfirmDialog = true
+            InterestButton {
+                showInterestConfirmDialog = true
             }
-            
             .padding(.top, 16)
             .padding(.trailing, 16)
         }

@@ -1,5 +1,5 @@
 //
-//  FavoriteButton.swift
+//  InterestButton.swift
 //  ConcertFeature
 //
 //  Created by Youjin Lee on 12/29/25.
@@ -10,7 +10,7 @@ import SwiftUI
 
 import DSKit
 
-struct FavoriteButton: View {
+struct InterestButton: View {
 
     // MARK: - Property
 
@@ -39,7 +39,7 @@ struct FavoriteButton: View {
             }
             .padding(10)
             .background(Color.livithColor(.black100))
-            .cornerRadius(8)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .shadow(
                 color: .livithColor(.white100).opacity(0.3),
                 radius: 6
@@ -49,6 +49,6 @@ struct FavoriteButton: View {
 }
 
 #Preview {
-    FavoriteButton(action: {})
+    InterestButton(action: {})
         .background(Color.livithColor(.black80))
 }
