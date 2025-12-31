@@ -23,16 +23,19 @@ public struct CommunityState {
     public var isLoadingMore: Bool = false
     public var hasMorePages: Bool = true
     public var cursor: (createdAt: String, id: Int)? = nil
-    public var toastMessage: String? = nil
-    public var toastType: ToastType = .success
+    public var toastState: ToastState = .none
+    public var dialogState: DialogState = .none
 
-    // Dialog states
-    public var deleteTargetCommentID: Int? = nil
-    public var reportTargetCommentID: Int? = nil
+    public enum ToastState: Equatable {
+        case none
+        case success(String)
+        case failure(String)
+    }
 
-    public enum ToastType {
-        case success
-        case failure
+    public enum DialogState: Equatable {
+        case none
+        case delete(commentID: Int)
+        case report(commentID: Int)
     }
 
     public init() {}
@@ -44,15 +47,13 @@ public enum CommunityIntent {
     case submitComment
     case updateCommentText(String)
 
-    // Dialog intents
     case showDeleteDialog(commentID: Int)
-    case confirmDelete
-    case dismissDeleteDialog
     case showReportDialog(commentID: Int)
+    case confirmDelete
     case confirmReport(content: String)
-    case dismissReportDialog
+    case dismissDialog
 
-    case onToastDismiss
+    case dismissToast
 
     case _setComments([ConcertComment], totalCount: Int, cursor: (createdAt: String, id: Int)?)
     case _appendComments([ConcertComment], cursor: (createdAt: String, id: Int)?)
@@ -63,7 +64,7 @@ public enum CommunityIntent {
     case _setSubmitting(Bool)
     case _setLoadingMore(Bool)
     case _setHasMorePages(Bool)
-    case _showToast(String, type: CommunityState.ToastType)
+    case _setToast(CommunityState.ToastState)
 }
 
 public final class CommunityStore: ObservableObject {
@@ -107,25 +108,23 @@ public final class CommunityStore: ObservableObject {
         case .updateCommentText(let text):
             state.commentText = text
         case .showDeleteDialog(let commentID):
-            state.deleteTargetCommentID = commentID
+            state.dialogState = .delete(commentID: commentID)
+        case .showReportDialog(let commentID):
+            state.dialogState = .report(commentID: commentID)
         case .confirmDelete:
-            if let commentID = state.deleteTargetCommentID {
-                state.deleteTargetCommentID = nil
+            if case .delete(let commentID) = state.dialogState {
+                state.dialogState = .none
                 deleteComment(commentID: commentID)
             }
-        case .dismissDeleteDialog:
-            state.deleteTargetCommentID = nil
-        case .showReportDialog(let commentID):
-            state.reportTargetCommentID = commentID
         case .confirmReport(let content):
-            if let commentID = state.reportTargetCommentID {
-                state.reportTargetCommentID = nil
+            if case .report(let commentID) = state.dialogState {
+                state.dialogState = .none
                 reportComment(commentID: commentID, content: content)
             }
-        case .dismissReportDialog:
-            state.reportTargetCommentID = nil
-        case .onToastDismiss:
-            state.toastMessage = nil
+        case .dismissDialog:
+            state.dialogState = .none
+        case .dismissToast:
+            state.toastState = .none
         case ._setComments(let comments, let totalCount, let cursor):
             state.comments = comments
             state.totalCount = totalCount
@@ -149,9 +148,8 @@ public final class CommunityStore: ObservableObject {
             state.isLoadingMore = isLoadingMore
         case ._setHasMorePages(let hasMorePages):
             state.hasMorePages = hasMorePages
-        case ._showToast(let message, let type):
-            state.toastMessage = message
-            state.toastType = type
+        case ._setToast(let toastState):
+            state.toastState = toastState
         }
     }
 }
@@ -178,7 +176,7 @@ private extension CommunityStore {
                 send(._setHasMorePages(result.cursor != nil))
             } catch {
                 guard !Task.isCancelled else { return }
-                send(._showToast(Constants.fetchErrorMessage, type: .failure))
+                send(._setToast(.failure(Constants.fetchErrorMessage)))
             }
 
             send(._setLoading(false))
@@ -228,10 +226,10 @@ private extension CommunityStore {
                 send(._addComment(comment))
                 send(._setCommentText(""))
                 send(._setSubmitting(false))
-                send(._showToast(Constants.submitSuccessMessage, type: .success))
+                send(._setToast(.success(Constants.submitSuccessMessage)))
             } catch {
                 send(._setSubmitting(false))
-                send(._showToast(Constants.submitErrorMessage, type: .failure))
+                send(._setToast(.failure(Constants.submitErrorMessage)))
             }
         }
     }
@@ -241,9 +239,9 @@ private extension CommunityStore {
             do {
                 try await repository.deleteComment(commentID: commentID)
                 send(._removeComment(commentID: commentID))
-                send(._showToast(Constants.deleteSuccessMessage, type: .success))
+                send(._setToast(.success(Constants.deleteSuccessMessage)))
             } catch {
-                send(._showToast(Constants.deleteErrorMessage, type: .failure))
+                send(._setToast(.failure(Constants.deleteErrorMessage)))
             }
         }
     }
@@ -252,9 +250,9 @@ private extension CommunityStore {
         Task { @MainActor in
             do {
                 try await repository.reportComment(commentID: commentID, content: content)
-                send(._showToast(Constants.reportSuccessMessage, type: .success))
+                send(._setToast(.success(Constants.reportSuccessMessage)))
             } catch {
-                send(._showToast(Constants.reportErrorMessage, type: .failure))
+                send(._setToast(.failure(Constants.reportErrorMessage)))
             }
         }
     }
