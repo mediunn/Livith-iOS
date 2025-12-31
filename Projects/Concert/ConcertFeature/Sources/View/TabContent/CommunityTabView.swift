@@ -20,33 +20,26 @@ struct CommunityTabView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            contentArea
-            CommentInputView(
-                text: Binding(
-                    get: { store.state.commentText },
-                    set: { store.send(.updateCommentText($0)) }
+        contentArea
+            .onTapGesture {
+                hideKeyboard()
+            }
+            .livithToast(
+                isPresented: Binding(
+                    get: { store.state.toastMessage != nil && store.state.toastType == .success },
+                    set: { _ in store.send(.onToastDismiss) }
                 ),
-                isSubmitting: store.state.isSubmitting,
-                onSubmit: { store.send(.submitComment) }
+                type: .success,
+                message: store.state.toastMessage ?? ""
             )
-        }
-        .livithToast(
-            isPresented: Binding(
-                get: { store.state.toastMessage != nil && store.state.toastType == .success },
-                set: { _ in store.send(.onToastDismiss) }
-            ),
-            type: .success,
-            message: store.state.toastMessage ?? ""
-        )
-        .livithToast(
-            isPresented: Binding(
-                get: { store.state.toastMessage != nil && store.state.toastType == .failure },
-                set: { _ in store.send(.onToastDismiss) }
-            ),
-            type: .failure,
-            message: store.state.toastMessage ?? ""
-        )
+            .livithToast(
+                isPresented: Binding(
+                    get: { store.state.toastMessage != nil && store.state.toastType == .failure },
+                    set: { _ in store.send(.onToastDismiss) }
+                ),
+                type: .failure,
+                message: store.state.toastMessage ?? ""
+            )
     }
 }
 
@@ -119,6 +112,14 @@ private extension CommunityTabView {
 
             Spacer()
         }
+    }
+}
+
+// MARK: - Keyboard
+
+private extension CommunityTabView {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 

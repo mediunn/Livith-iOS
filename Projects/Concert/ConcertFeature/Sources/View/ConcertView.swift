@@ -68,11 +68,23 @@ public struct ConcertView: View {
                         .opacity(store.state.concert != nil ? 1 : 0)
                         .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
                     }
+                    .scrollDismissesKeyboard(.interactively)
                     .onChange(of: store.state.selectedTab) {
                         withAnimation {
                             proxy.scrollTo("top", anchor: .top)
                         }
                     }
+                }
+
+                if store.state.selectedTab == .community {
+                    CommentInputView(
+                        text: Binding(
+                            get: { communityStore.state.commentText },
+                            set: { communityStore.send(.updateCommentText($0)) }
+                        ),
+                        isSubmitting: communityStore.state.isSubmitting,
+                        onSubmit: { communityStore.send(.submitComment) }
+                    )
                 }
             }
         }
