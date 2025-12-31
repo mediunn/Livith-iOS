@@ -43,7 +43,7 @@ struct CommentInputView: View {
 
 private extension CommentInputView {
     var inputRow: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .bottom, spacing: 8) {
             textField
             submitButton
         }
@@ -53,7 +53,7 @@ private extension CommentInputView {
         TextField(Constants.placeholder, text: $text, axis: .vertical)
             .notosans(.body3Medium)
             .foregroundStyle(Color.livithColor(.white100))
-            .lineLimit(1...5)
+            .lineLimit(1...10)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(Color.livithColor(.black90))
@@ -72,7 +72,7 @@ private extension CommentInputView {
                 .foregroundStyle(
                     isSubmitEnabled
                         ? Color.livithColor(.black100)
-                        : Color.livithColor(.black60)
+                        : Color.livithColor(.black50)
                 )
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
