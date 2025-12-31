@@ -86,6 +86,13 @@ public struct ConcertView: View {
                             proxy.scrollTo("top", anchor: .top)
                         }
                     }
+                    .onChange(of: communityStore.state.toastState) { _, newValue in
+                        if case .success(let message) = newValue, message.contains("작성") {
+                            withAnimation {
+                                proxy.scrollTo("top", anchor: .top)
+                            }
+                        }
+                    }
                 }
 
                 if store.state.selectedTab == .community {
