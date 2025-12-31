@@ -184,14 +184,17 @@ private extension CommunityStore {
                     concertID: state.concertID,
                     content: content
                 )
-                send(._addComment(comment))
-                send(.updateCommentText(""))
-                send(._showToast("댓글이 작성되었어요", type: .success))
+                state.comments.insert(comment, at: 0)
+                state.totalCount += 1
+                state.commentText = ""
+                state.isSubmitting = false
+                state.toastMessage = "댓글이 작성되었어요"
+                state.toastType = .success
             } catch {
-                send(._showToast("댓글 작성에 실패했어요", type: .failure))
+                state.isSubmitting = false
+                state.toastMessage = "댓글 작성에 실패했어요"
+                state.toastType = .failure
             }
-
-            send(._setSubmitting(false))
         }
     }
 
