@@ -25,7 +25,7 @@ struct ConcertIntroductionCard: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 4) {
             Text("한 줄 소개")
                 .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.black50))

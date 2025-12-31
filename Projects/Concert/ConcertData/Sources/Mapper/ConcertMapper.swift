@@ -126,13 +126,20 @@ struct ConcertMapper {
         Artist(
             id: response.id,
             name: response.artist,
-            debutYear: response.debutYear,
+            debutYear: formatDebutYear(response.debutYear),
             category: response.category,
             imageURL: response.imageURL,
             detail: response.detail,
             keywords: response.keywords,
             instagramURL: response.instagramURL
         )
+    }
+
+    private func formatDebutYear(_ yearString: String) -> String {
+        if let doubleValue = Double(yearString) {
+            return String(Int(doubleValue))
+        }
+        return yearString
     }
 
     // MARK: - Comment

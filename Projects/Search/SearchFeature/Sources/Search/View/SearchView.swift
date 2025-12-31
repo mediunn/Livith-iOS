@@ -234,8 +234,7 @@ private extension SearchView {
                 }
             }
             .onTapGesture {
-                // TODO: 상세 화면으로 이동
-                print("상세 화면으로 이동 \(concert.id)")
+                coordinator?.showConcertDetail(concertID: concert.id)
             }
         }
     }

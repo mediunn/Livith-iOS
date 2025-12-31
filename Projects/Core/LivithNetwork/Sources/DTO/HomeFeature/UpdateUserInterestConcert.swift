@@ -14,6 +14,10 @@ public extension DTO.Request {
     struct UpdateUserInterestConcert: Encodable {
         public let concertID: Int
 
+        public init(concertID: Int) {
+            self.concertID = concertID
+        }
+
         enum CodingKeys: String, CodingKey {
             case concertID = "concertId"
         }
