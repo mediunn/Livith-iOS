@@ -31,8 +31,7 @@ struct ConcertSegmentTabBar: View {
             }
         }
         .animation(.easeInOut, value: selectedTab)
-        .frame(height: 48)
-        .background(Color.livithColor(.black100))
+        .background(.livithColor(.black100))
     }
 }
 

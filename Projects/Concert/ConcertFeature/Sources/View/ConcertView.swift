@@ -8,19 +8,16 @@
 
 import SwiftUI
 
-import Kingfisher
-
 import ConcertDomain
 import DSKit
 
 public struct ConcertView: View {
 
     // MARK: - Property
-    
+
     private let concertID: Int
     private let onDismiss: () -> Void
 
-    @State private var isPosterLoaded: Bool = false
     @ObservedObject private var store: ConcertStore
 
     // MARK: - Initializer
@@ -44,14 +41,22 @@ public struct ConcertView: View {
                 onBack: onDismiss
             )
 
-            ScrollView {
-                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    headerSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        headerSection
+                            .id("top")
 
-                    Section {
-                        tabContentView
-                    } header: {
-                        segmentTabBar
+                        Section {
+                            tabContentView
+                        } header: {
+                            segmentTabBar
+                        }
+                    }
+                }
+                .onChange(of: store.state.selectedTab) {
+                    withAnimation {
+                        proxy.scrollTo("top", anchor: .top)
                     }
                 }
             }
@@ -71,6 +76,7 @@ private extension ConcertView {
             posterSection
                 .frame(maxWidth: .infinity)
                 .frame(height: 340)
+                .clipped()
 
             concertInfoSection
                 .padding(.top, 120)
@@ -92,6 +98,8 @@ private extension ConcertView {
                 }
             }
         )
+        .frame(maxWidth: .infinity)
+        .background(Color.livithColor(.black100))
     }
 }
 
@@ -102,7 +110,12 @@ private extension ConcertView {
     var tabContentView: some View {
         switch store.state.selectedTab {
         case .artistDetail:
-            ArtistDetailTabView(introduction: store.state.concert?.introduction ?? "")
+            ArtistDetailTabView(
+                artist: store.state.artist,
+                introduction: store.state.concert?.introduction ?? "",
+                fanCultures: store.state.fanCultures
+            )
+            .background(.livithColor(.black100))
         case .concertInfo:
             ConcertInfoTabView()
         case .setlist:
@@ -119,44 +132,24 @@ private extension ConcertView {
     var posterSection: some View {
         ZStack(alignment: .topTrailing) {
             posterImage
+                .frame(height: 337)
 
             FavoriteButton {
                 store.send(.favoriteButtonTapped)
             }
+            
             .padding(.top, 16)
             .padding(.trailing, 16)
         }
+        .clipped()
     }
 
     var posterImage: some View {
-        Group {
-            if let posterURL = store.state.concert?.posterURL {
-                KFImage(posterURL)
-                    .onSuccess { _ in isPosterLoaded = true }
-                    .onFailure { _ in isPosterLoaded = false }
-                    .placeholder {
-                        Image.livithImage(.concertCardEmpty)
-                            .resizable()
-                            .scaledToFill()
-                    }
-                    .resizable()
-                    .scaledToFill()
-                    .clipped()
-                    .overlay {
-                        if isPosterLoaded {
-                            BackgroundGradient(
-                                baseColor: .livithColor(.black100),
-                                startPoint: .bottom,
-                                endPoint: .top
-                            )
-                        }
-                    }
-            } else {
-                Image.livithImage(.concertCardEmpty)
-                    .resizable()
-                    .scaledToFill()
-            }
-        }
+        AsyncImageView(
+            url: store.state.concert?.posterURL,
+            showGradient: true,
+            placeholder: Image.livithImage(.concertCardEmpty)
+        )
     }
 }
 

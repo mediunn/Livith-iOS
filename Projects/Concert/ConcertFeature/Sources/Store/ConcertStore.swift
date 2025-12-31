@@ -29,23 +29,28 @@ public enum ConcertTab: Int, CaseIterable {
 }
 
 public struct ConcertState {
+    public var artist: Artist?
     public var concert: Concert?
     public var communityCount: Int = 0
     public var isLoading: Bool = false
     public var errorMessage: String = ""
     public var formattedDateRange: String = ""
+    public var fanCultures: [ConcertCulture] = []
     public var selectedTab: ConcertTab = .artistDetail
-    
+
     public init() {}
 }
 
 public enum ConcertIntent {
-    case onAppear(concertID: Int)
     case favoriteButtonTapped
     case tabSelected(ConcertTab)
+    case onAppear(concertID: Int)
 
-    case _setConcert(Concert, formattedDateRange: String)
+    case _setError(String)
     case _setLoading(Bool)
+    case _setArtist(Artist)
+    case _setFanCultures([ConcertCulture])
+    case _setConcert(Concert, formattedDateRange: String)
 }
 
 public final class ConcertStore: ObservableObject {
@@ -55,12 +60,11 @@ public final class ConcertStore: ObservableObject {
     private var fetchTask: Task<Void, Never>?
     @Published private(set) var state = ConcertState()
 
+    @Injected private var repository: ConcertRepository
+
     // MARK: - Initializer
 
     public init() {}
-
-    // TODO: Repository 연결 시 주석 해제
-    // @Injected private var repository: ConcertRepository
 
     // MARK: - Intent Handler
 
@@ -68,7 +72,7 @@ public final class ConcertStore: ObservableObject {
     public func send(_ intent: ConcertIntent) {
         switch intent {
         case .onAppear(let concertID):
-            fetchConcertInfo(concertID: concertID)
+            fetchConcertData(concertID: concertID)
         case .favoriteButtonTapped:
             // TODO: 관심 콘서트 설정 기능 구현
             break
@@ -77,8 +81,14 @@ public final class ConcertStore: ObservableObject {
         case ._setConcert(let concert, let formattedDateRange):
             state.concert = concert
             state.formattedDateRange = formattedDateRange
+        case ._setArtist(let artist):
+            state.artist = artist
+        case ._setFanCultures(let fanCultures):
+            state.fanCultures = fanCultures
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
+        case ._setError(let message):
+            state.errorMessage = message
         }
     }
 }
@@ -86,33 +96,28 @@ public final class ConcertStore: ObservableObject {
 // MARK: - Private Methods
 
 private extension ConcertStore {
-    func fetchConcertInfo(concertID: Int) {
+    func fetchConcertData(concertID: Int) {
         fetchTask?.cancel()
 
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
 
-            // TODO: Repository 연결 시 실제 API 호출로 교체
-            // 현재는 Mock 데이터 사용
-            guard await Task.wait(for: .milliseconds(300)) else { return }
+            do {
+                async let concertResult = repository.fetchConcertInfo(concertID: concertID)
+                async let artistResult = repository.fetchConcertArtistInfo(concertID: concertID)
+                async let cultureResult = repository.fetchConcertCultureList(concertID: concertID)
 
-            let mockConcert = Concert(
-                id: concertID,
-                title: "Gen Hoshino presents MAD Asia in Seoul",
-                artist: "호시노 겐",
-                status: .upcoming,
-                daysLeft: 30,
-                startDate: Date(),
-                endDate: Date(),
-                posterURL: URL(string: "https://example.com/poster.jpg")!,
-                venue: "올림픽공원 올림픽홀",
-                ticketSite: nil,
-                ticketURL: nil,
-                introduction: "호시노 겐의 n 년만의 내한!\nKoi 열풍으로 한국에서도 인기 아티스트",
-                label: "많이 찾는 콘서트 1위"
-            )
+                let (concert, artist, cultures) = try await (concertResult, artistResult, cultureResult)
 
-            send(._setConcert(mockConcert, formattedDateRange: formatDateRange(from: mockConcert)))
+                guard await Task.wait() else { return }
+
+                send(._setConcert(concert, formattedDateRange: formatDateRange(from: concert)))
+                send(._setArtist(artist))
+                send(._setFanCultures(cultures))
+            } catch {
+                send(._setError(error.localizedDescription))
+            }
+
             send(._setLoading(false))
         }
     }

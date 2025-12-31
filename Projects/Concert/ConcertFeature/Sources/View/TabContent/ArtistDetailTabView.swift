@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import ConcertDomain
 import DSKit
 
 struct ArtistDetailTabView: View {
@@ -15,24 +16,10 @@ struct ArtistDetailTabView: View {
     // MARK: - Property
 
     @Environment(\.concertCoordinator) private var coordinator
-
+    
+    let artist: Artist?
     let introduction: String
-
-    // TODO: 실제 API 연동 시 아티스트 데이터로 교체
-    private let mockArtist = MockArtist(
-        name: "HOSINO GEN",
-        country: "일본 내한 가수",
-        description: "단순한 가수를 넘어, 연기, 음악, 글쓰기, 라디오 등 다방면에서 활약하는 일본의 대표적인 크리에이터",
-        debutYear: "1981년",
-        imageURL: URL(string: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2F5qhwt%2FbtsJMBn1RWf%2FAAAAAAAAAAAAAAAAAAAAAOvELz7uPGfEY6OIC4_JQ08HHV5mE_l0Cqu78SlQdqI5%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1767193199%26allow_ip%3D%26allow_referer%3D%26signature%3DJrAEIyExN4mhW9KDoPKLzBEt5DA%253D"),
-        instagramURL: URL(string: "https://instagram.com/iamgenhoshino"),
-        tags: ["다채로운 사운드", "팝", "재즈", "펑크", "시티팝", "R&B", "따뜻한 멜로디", "사소한 일상의 감정을 섬세하게", "독특한 \"겐 감성\""]
-    )
-
-    private let mockFanCultures = [
-        MockFanCulture(title: "겐짱 문화", description: "한줄일땐이렇게표시가됩니다!!!그"),
-        MockFanCulture(title: "Koi 단체 댄스", description: "한줄일땐이렇게표시가됩니다!!그\n줄일땐이렇게표시가!!")
-    ]
+    let fanCultures: [ConcertCulture]
 
     // MARK: - Body
 
@@ -61,62 +48,59 @@ private extension ArtistDetailTabView {
 // MARK: - Artist Info Section
 
 private extension ArtistDetailTabView {
+    @ViewBuilder
     var artistInfoSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 20) {
+        if let artist, !artist.name.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
                 SectionHeaderView(
                     firstLine: "아티스트 정보",
                     secondLine: "함께 알아볼까요?"
                 ) {
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
+                .padding(.bottom, 20)
 
-                artistInfoCard(imageURL: mockArtist.imageURL)
+                artistInfoCard(for: artist)
+                    .padding(.bottom, 10)
+
+                tagsView(keywords: artist.keywords)
             }
-            
-            tagsView
         }
     }
 
-    @ViewBuilder
-    func artistInfoCard(imageURL: URL?) -> some View {
+    func artistInfoCard(for artist: Artist) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            if let url = imageURL {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Color.livithColor(.black80)
-                }
-                .frame(height: 148)
-                .clipped()
-                .clipShape(
-                    .rect(
-                        topLeadingRadius: 8,
-                        bottomLeadingRadius: 0,
-                        bottomTrailingRadius: 0,
-                        topTrailingRadius: 8
+            if let imageURLString = artist.imageURL {
+                AsyncImageView(url: URL(string: imageURLString))
+                    .frame(height: 148)
+                    .clipShape(
+                        .rect(
+                            topLeadingRadius: 8,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 8
+                        )
                     )
-                )
             }
 
             VStack(alignment: .leading, spacing: 0) {
-                artistTag
-                    .padding(.bottom, 8)
+                if !artist.category.isEmpty {
+                    artistTag(category: artist.category)
+                        .padding(.bottom, 8)
+                }
 
-                artistNameRow
+                artistNameRow(for: artist)
                     .padding(.bottom, 12)
 
                 dashedDivider
                     .padding(.bottom, 12)
 
-                Text(mockArtist.description)
+                Text(artist.detail)
                     .notosans(.body4Regular)
                     .foregroundStyle(Color.livithColor(.black30))
                     .padding(.bottom, 20)
 
-                debutYear
+                debutYearRow(year: artist.debutYear)
             }
             .padding(20)
         }
@@ -125,8 +109,8 @@ private extension ArtistDetailTabView {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-    var artistTag: some View {
-        Text(mockArtist.country)
+    func artistTag(category: String) -> some View {
+        Text(category)
             .notosans(.caption1Semibold)
             .foregroundStyle(Color.livithColor(.black50))
             .padding(.horizontal, 9)
@@ -135,15 +119,16 @@ private extension ArtistDetailTabView {
             .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
-    var artistNameRow: some View {
+    func artistNameRow(for artist: Artist) -> some View {
         HStack {
-            Text(mockArtist.name)
+            Text(artist.name)
                 .notosans(.body2Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
 
             Spacer()
 
-            if let instagramURL = mockArtist.instagramURL {
+            if let instagramURLString = artist.instagramURL,
+               let instagramURL = URL(string: instagramURLString) {
                 Button {
                     coordinator?.present(to: .safari(instagramURL))
                 } label: {
@@ -155,22 +140,22 @@ private extension ArtistDetailTabView {
         }
     }
 
-    var debutYear: some View {
+    func debutYearRow(year: String) -> some View {
         HStack(spacing: 8) {
             Text("데뷔")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black50))
 
-            Text(mockArtist.debutYear)
+            Text(year)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
         }
     }
 
-    var tagsView: some View {
+    func tagsView(keywords: [String]) -> some View {
         FlowLayout(spacing: 4) {
-            ForEach(mockArtist.tags, id: \.self) { tag in
-                TagChipView(text: tag)
+            ForEach(keywords, id: \.self) { keyword in
+                TagChipView(text: keyword)
             }
         }
     }
@@ -190,29 +175,32 @@ private struct Line: Shape {
 // MARK: - Fan Culture Section
 
 private extension ArtistDetailTabView {
+    @ViewBuilder
     var fanCultureSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            SectionHeaderView(
-                badgeCount: mockFanCultures.count,
-                firstLine: "의 팬문화와",
-                secondLine: "꿀팁을 알아봐요"
-            ) {
-                coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
-            }
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 10) {
-                    ForEach(Array(mockFanCultures.enumerated()), id: \.offset) { index, culture in
-                        fanCultureCard(index: index + 1, culture: culture)
-                            .frame(maxHeight: .infinity, alignment: .top)
-                    }
+        if !fanCultures.isEmpty {
+            VStack(alignment: .leading, spacing: 16) {
+                SectionHeaderView(
+                    badgeCount: fanCultures.count,
+                    firstLine: "의 팬문화와",
+                    secondLine: "꿀팁을 알아봐요"
+                ) {
+                    coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
-                .fixedSize(horizontal: false, vertical: true)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 10) {
+                        ForEach(Array(fanCultures.enumerated()), id: \.element.id) { index, culture in
+                            fanCultureCard(index: index + 1, culture: culture)
+                                .padding(.trailing, index == fanCultures.count - 1 ? 16 : 0)
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
 
-    func fanCultureCard(index: Int, culture: MockFanCulture) -> some View {
+    func fanCultureCard(index: Int, culture: ConcertCulture) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("팬문화 \(index)")
                 .notosans(.caption1Bold)
@@ -231,12 +219,14 @@ private extension ArtistDetailTabView {
             dashedDivider
                 .padding(.bottom, 12)
 
-            Text(culture.description)
+            Text(culture.content)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
-                .lineLimit(2)
+
+            Spacer(minLength: 0)
         }
-        .frame(width: 200, alignment: .leading)
+        .frame(width: 200, alignment: .topLeading)
+        .frame(maxHeight: .infinity, alignment: .top)
         .padding(16)
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -254,29 +244,26 @@ private extension ArtistDetailTabView {
     }
 }
 
-// MARK: - Mock Models
-
-private struct MockArtist {
-    let name: String
-    let country: String
-    let description: String
-    let debutYear: String
-    let imageURL: URL?
-    let instagramURL: URL?
-    let tags: [String]
-}
-
-private struct MockFanCulture {
-    let title: String
-    let description: String
-}
-
 // MARK: - Preview
 
 #Preview {
     ScrollView {
         ArtistDetailTabView(
-            introduction: "호시노 겐의 n 년만의 내한!\nKoi 열풍으로 한국에서도 인기 아티스트"
+            artist: Artist(
+                id: 1,
+                name: "HOSHINO GEN",
+                debutYear: "1981년",
+                category: "일본 내한 가수",
+                imageURL: nil,
+                detail: "단순한 가수를 넘어, 연기, 음악, 글쓰기, 라디오 등 다방면에서 활약하는 일본의 대표적인 크리에이터",
+                keywords: ["다채로운 사운드", "팝", "재즈"],
+                instagramURL: "https://instagram.com/iamgenhoshino"
+            ),
+            introduction: "호시노 겐의 n 년만의 내한!\nKoi 열풍으로 한국에서도 인기 아티스트",
+            fanCultures: [
+                ConcertCulture(id: 1, concertID: 1, title: "겐짱 문화", content: "한줄일땐이렇게표시가됩니다!!!"),
+                ConcertCulture(id: 2, concertID: 1, title: "Koi 단체 댄스", content: "한줄일땐이렇게표시가됩니다!!\n줄일땐이렇게표시가!!")
+            ]
         )
     }
     .background(Color.livithColor(.black100))
