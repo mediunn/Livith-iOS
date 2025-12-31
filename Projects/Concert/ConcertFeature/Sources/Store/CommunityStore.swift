@@ -148,7 +148,7 @@ private extension CommunityStore {
             do {
                 let result = try await repository.fetchConcertComments(
                     concertID: state.concertID,
-                    cursor: cursor.createdAt,
+                    cursor: cursor,
                     size: 20
                 )
 

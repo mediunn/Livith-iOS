@@ -54,10 +54,10 @@ private extension CommentCardView {
 
     var profileImage: some View {
         Circle()
-            .fill(Color.livithColor(.black60))
+            .fill(Color.livithColor(.black50))
             .frame(width: 36, height: 36)
             .overlay {
-                Image.livithIcon(.profileDefault)
+                Image.livithIcon(.profile)
                     .resizable()
                     .frame(width: 20, height: 20)
             }
