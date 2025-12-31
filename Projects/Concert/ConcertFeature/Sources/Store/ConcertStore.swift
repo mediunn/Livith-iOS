@@ -57,6 +57,7 @@ public struct ConcertState {
     public var concertInfoList: [ConcertInfo] = []
     public var selectedTab: ConcertTab = .artistDetail
     public var merchandiseList: [ConcertMerchandise] = []
+    public var setlistList: [ConcertSetlist] = []
     public var interestStatus: InterestSettingStatus = .idle
     public var showTicketReturnBanner: Bool = false
 
@@ -78,6 +79,7 @@ public enum ConcertIntent {
     case _setSchedules([ConcertSchedule])
     case _setConcertInfoList([ConcertInfo])
     case _setMerchandiseList([ConcertMerchandise])
+    case _setSetlistList([ConcertSetlist])
     case _setConcert(Concert, formattedDateRange: String)
     case _setInterestStatus(InterestSettingStatus)
     case _setFetchError(String?)
@@ -129,6 +131,8 @@ public final class ConcertStore: ObservableObject {
             state.concertInfoList = concertInfoList
         case ._setMerchandiseList(let merchandiseList):
             state.merchandiseList = merchandiseList
+        case ._setSetlistList(let setlistList):
+            state.setlistList = setlistList
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
         case ._setInterestStatus(let status):
@@ -171,14 +175,16 @@ private extension ConcertStore {
                 async let scheduleResult = repository.fetchConcertSchedule(concertID: concertID)
                 async let concertInfoResult = repository.fetchConcertInfoList(concertID: concertID)
                 async let merchandiseResult = repository.fetchConcertMerchandiseList(concertID: concertID)
+                async let setlistResult = repository.fetchConcertSetlistList(concertID: concertID)
 
-                let (concert, artist, cultures, schedules, concertInfoList, merchandiseList) = try await (
+                let (concert, artist, cultures, schedules, concertInfoList, merchandiseList, setlistList) = try await (
                     concertResult,
                     artistResult,
                     cultureResult,
                     scheduleResult,
                     concertInfoResult,
-                    merchandiseResult
+                    merchandiseResult,
+                    setlistResult
                 )
 
                 guard await Task.wait() else { return }
@@ -189,6 +195,7 @@ private extension ConcertStore {
                 send(._setSchedules(schedules))
                 send(._setConcertInfoList(concertInfoList))
                 send(._setMerchandiseList(merchandiseList))
+                send(._setSetlistList(setlistList))
             } catch {
                 guard !Task.isCancelled else { return }
                 send(._setFetchError("데이터를 불러오는데 실패했어요"))
