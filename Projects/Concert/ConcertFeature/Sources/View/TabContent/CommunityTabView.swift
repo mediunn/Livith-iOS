@@ -24,22 +24,6 @@ struct CommunityTabView: View {
             .onTapGesture {
                 hideKeyboard()
             }
-            .livithToast(
-                isPresented: Binding(
-                    get: { store.state.toastMessage != nil && store.state.toastType == .success },
-                    set: { _ in store.send(.onToastDismiss) }
-                ),
-                type: .success,
-                message: store.state.toastMessage ?? ""
-            )
-            .livithToast(
-                isPresented: Binding(
-                    get: { store.state.toastMessage != nil && store.state.toastType == .failure },
-                    set: { _ in store.send(.onToastDismiss) }
-                ),
-                type: .failure,
-                message: store.state.toastMessage ?? ""
-            )
     }
 }
 

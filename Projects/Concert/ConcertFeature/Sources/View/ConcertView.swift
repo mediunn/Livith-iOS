@@ -119,6 +119,22 @@ public struct ConcertView: View {
             type: .failure,
             message: store.state.fetchError ?? ""
         )
+        .livithToast(
+            isPresented: Binding(
+                get: { communityStore.state.toastMessage != nil && communityStore.state.toastType == .success },
+                set: { _ in communityStore.send(.onToastDismiss) }
+            ),
+            type: .success,
+            message: communityStore.state.toastMessage ?? ""
+        )
+        .livithToast(
+            isPresented: Binding(
+                get: { communityStore.state.toastMessage != nil && communityStore.state.toastType == .failure },
+                set: { _ in communityStore.send(.onToastDismiss) }
+            ),
+            type: .failure,
+            message: communityStore.state.toastMessage ?? ""
+        )
         .overlay {
             if showInterestConfirmDialog {
                 LivithConfirmDialog(
