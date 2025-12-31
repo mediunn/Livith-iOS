@@ -52,7 +52,11 @@ private extension ScheduleRowView {
     }
 
     var formattedDate: String {
-        Self.dateFormatter.string(from: schedule.scheduledAt)
+        let components = Self.calendar.dateComponents([.hour, .minute], from: schedule.scheduledAt)
+        let hasTime = components.hour != 0 || components.minute != 0
+
+        let formatter = hasTime ? Self.dateTimeFormatter : Self.dateOnlyFormatter
+        return formatter.string(from: schedule.scheduledAt)
     }
 
     func daysUntil(_ date: Date) -> Int {
@@ -68,12 +72,19 @@ private extension ScheduleRowView {
 private extension ScheduleRowView {
     static let calendar = Calendar.current
 
-    static let dateFormatter: DateFormatter = {
+    static let dateTimeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "M/d(E) h:mma"
         formatter.amSymbol = "AM"
         formatter.pmSymbol = "PM"
+        return formatter
+    }()
+
+    static let dateOnlyFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "M/d(E)"
         return formatter
     }()
 }
