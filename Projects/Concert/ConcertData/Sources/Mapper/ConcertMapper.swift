@@ -168,6 +168,8 @@ struct ConcertMapper {
     // MARK: - Comment
 
     func toDomain(from response: DTO.Response.FetchConcertCommentList) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int) {
+        let currentUserID = getCurrentUserID()
+
         let comments = response.data.map { comment in
             ConcertComment(
                 id: comment.id,
@@ -175,13 +177,22 @@ struct ConcertMapper {
                 nickname: comment.nickname,
                 concertID: comment.concertID,
                 content: comment.content,
-                createdAt: comment.createdAt
+                createdAt: comment.createdAt,
+                isMine: comment.userID == currentUserID
             )
         }
 
         let cursor = response.cursor.map { ($0.createdAt, $0.id) }
 
         return (comments, cursor, response.totalCount)
+    }
+
+    private func getCurrentUserID() -> Int? {
+        guard let data = UserDefaults.standard.data(forKey: "currentUser"),
+              let user = try? JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: data) else {
+            return nil
+        }
+        return user.id
     }
 
     func toDomain(from response: DTO.Response.CreateConcertComment) -> ConcertComment {
@@ -191,7 +202,8 @@ struct ConcertMapper {
             nickname: response.nickname,
             concertID: response.concertID,
             content: response.content,
-            createdAt: response.createdAt
+            createdAt: response.createdAt,
+            isMine: true
         )
     }
 

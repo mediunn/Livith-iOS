@@ -81,6 +81,7 @@ private extension CommunityTabView {
                 ForEach(store.state.comments) { comment in
                     CommentCardView(
                         comment: comment,
+                        onDelete: { store.send(.deleteComment(commentID: comment.id)) },
                         onReport: { store.send(.reportComment(commentID: comment.id)) }
                     )
                     .onAppear {

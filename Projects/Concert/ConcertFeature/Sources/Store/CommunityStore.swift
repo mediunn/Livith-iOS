@@ -38,12 +38,14 @@ public enum CommunityIntent {
     case loadNextPage
     case submitComment
     case updateCommentText(String)
+    case deleteComment(commentID: Int)
     case reportComment(commentID: Int)
     case onToastDismiss
 
     case _setComments([ConcertComment], totalCount: Int, cursor: (createdAt: String, id: Int)?)
     case _appendComments([ConcertComment], cursor: (createdAt: String, id: Int)?)
     case _addComment(ConcertComment)
+    case _removeComment(commentID: Int)
     case _setLoading(Bool)
     case _setSubmitting(Bool)
     case _setLoadingMore(Bool)
@@ -79,6 +81,8 @@ public final class CommunityStore: ObservableObject {
             submitComment()
         case .updateCommentText(let text):
             state.commentText = text
+        case .deleteComment(let commentID):
+            deleteComment(commentID: commentID)
         case .reportComment(let commentID):
             reportComment(commentID: commentID)
         case .onToastDismiss:
@@ -93,6 +97,9 @@ public final class CommunityStore: ObservableObject {
         case ._addComment(let comment):
             state.comments.insert(comment, at: 0)
             state.totalCount += 1
+        case ._removeComment(let commentID):
+            state.comments.removeAll { $0.id == commentID }
+            state.totalCount -= 1
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
         case ._setSubmitting(let isSubmitting):
@@ -185,6 +192,18 @@ private extension CommunityStore {
             }
 
             send(._setSubmitting(false))
+        }
+    }
+
+    func deleteComment(commentID: Int) {
+        Task { @MainActor in
+            do {
+                try await repository.deleteComment(commentID: commentID)
+                send(._removeComment(commentID: commentID))
+                send(._showToast("댓글이 삭제되었어요", type: .success))
+            } catch {
+                send(._showToast("댓글 삭제에 실패했어요", type: .failure))
+            }
         }
     }
 

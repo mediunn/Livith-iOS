@@ -16,6 +16,7 @@ struct CommentCardView: View {
     // MARK: - Property
 
     let comment: ConcertComment
+    let onDelete: () -> Void
     let onReport: () -> Void
 
     // MARK: - Body
@@ -48,7 +49,11 @@ private extension CommentCardView {
 
             Spacer()
 
-            reportButton
+            if comment.isMine {
+                deleteButton
+            } else {
+                reportButton
+            }
         }
     }
 
@@ -61,6 +66,18 @@ private extension CommentCardView {
                     .resizable()
                     .frame(width: 20, height: 20)
             }
+    }
+
+    var deleteButton: some View {
+        Button(action: onDelete) {
+            Text("삭제")
+                .notosans(.caption1Semibold)
+                .foregroundStyle(Color.livithColor(.black50))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.livithColor(.black80))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+        }
     }
 
     var reportButton: some View {
@@ -87,8 +104,10 @@ private extension CommentCardView {
                 nickname: "라이빗",
                 concertID: 1,
                 content: "님들아 제발 이땐 [아아아~~~] 떼창 해줘라 ㅠㅠ 왜 맨날 안하고 넘어가는건지 모르겠음 ㅠㅠ 일본에서는 이 파트 꼭 다들 열심히 죽어라 하는데 왜 안하는거야!!!",
-                createdAt: "2025-01-01"
+                createdAt: "2025-01-01",
+                isMine: true
             ),
+            onDelete: {},
             onReport: {}
         )
 
@@ -99,8 +118,10 @@ private extension CommentCardView {
                 nickname: "라이빗",
                 concertID: 1,
                 content: "하 언제와 진심 개큰기대중임 제발",
-                createdAt: "2025-01-01"
+                createdAt: "2025-01-01",
+                isMine: false
             ),
+            onDelete: {},
             onReport: {}
         )
     }

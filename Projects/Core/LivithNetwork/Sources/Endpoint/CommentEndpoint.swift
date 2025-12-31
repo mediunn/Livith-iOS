@@ -23,7 +23,7 @@ extension CommentEndpoint: NetworkEndpoint {
         case .fetchConcertCommentList(let concertID, _, _):
             return "/api/v4/concerts/\(concertID)/comments"
         case .createComment(let concertID, _):
-            return "/api/v4/concerts/\(concertID)/comment"
+            return "/api/v4/concerts/\(concertID)/comments"
         case .deleteComment(let commentID):
             return "/api/v4/comments/\(commentID)"
         case .reportComment(let commentID, _):
