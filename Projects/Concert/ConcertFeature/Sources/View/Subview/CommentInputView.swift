@@ -25,40 +25,23 @@ struct CommentInputView: View {
     let isSubmitting: Bool
     let onSubmit: () -> Void
 
-    private var isOverLimit: Bool {
-        text.count > Constants.maxLength
-    }
-
     private var isSubmitEnabled: Bool {
-        !text.isEmpty && !isOverLimit && !isSubmitting
+        !text.isEmpty && !isSubmitting
     }
 
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if isOverLimit {
-                errorMessage
-            }
-
-            inputRow
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.livithColor(.black100))
+        inputRow
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.livithColor(.black100))
     }
 }
 
 // MARK: - Subviews
 
 private extension CommentInputView {
-    var errorMessage: some View {
-        Text("400자가 넘었어!")
-            .notosans(.caption1Semibold)
-            .foregroundStyle(Color.livithColor(.red))
-            .padding(.leading, 4)
-    }
-
     var inputRow: some View {
         HStack(spacing: 8) {
             textField
@@ -75,9 +58,10 @@ private extension CommentInputView {
             .padding(.vertical, 12)
             .background(Color.livithColor(.black90))
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isOverLimit ? Color.livithColor(.red) : Color.clear, lineWidth: 1)
+            .onChange(of: text) { _, newValue in
+                if newValue.count > Constants.maxLength {
+                    text = String(newValue.prefix(Constants.maxLength))
+                }
             }
     }
 
@@ -117,12 +101,6 @@ private extension CommentInputView {
 
         CommentInputView(
             text: .constant("테스트 댓글입니다"),
-            isSubmitting: false,
-            onSubmit: {}
-        )
-
-        CommentInputView(
-            text: .constant(String(repeating: "가", count: 401)),
             isSubmitting: false,
             onSubmit: {}
         )
