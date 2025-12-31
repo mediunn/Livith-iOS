@@ -10,27 +10,30 @@ import SwiftUI
 
 import DSKit
 
-struct SectionHeaderView: View {
+struct SectionHeaderView<TrailingContent: View>: View {
 
     // MARK: - Property
 
     private let badgeCount: Int?
+    private let badgeSuffix: String
     private let firstLine: String
     private let secondLine: String
-    private let onReportTapped: () -> Void
+    private let trailingContent: TrailingContent
 
     // MARK: - Initializer
 
     init(
         badgeCount: Int? = nil,
+        badgeSuffix: String = "개",
         firstLine: String,
         secondLine: String,
-        onReportTapped: @escaping () -> Void
+        @ViewBuilder trailingContent: () -> TrailingContent
     ) {
         self.badgeCount = badgeCount
+        self.badgeSuffix = badgeSuffix
         self.firstLine = firstLine
         self.secondLine = secondLine
-        self.onReportTapped = onReportTapped
+        self.trailingContent = trailingContent()
     }
 
     // MARK: - Body
@@ -55,16 +58,36 @@ struct SectionHeaderView: View {
 
             Spacer()
 
-            reportButton
+            trailingContent
         }
     }
 }
 
-// MARK: - Subviews
+// MARK: - Convenience Initializer (Report Button)
 
-private extension SectionHeaderView {
-    var reportButton: some View {
-        Button(action: onReportTapped) {
+extension SectionHeaderView where TrailingContent == ReportButton {
+    init(
+        badgeCount: Int? = nil,
+        badgeSuffix: String = "개",
+        firstLine: String,
+        secondLine: String,
+        onReportTapped: @escaping () -> Void
+    ) {
+        self.badgeCount = badgeCount
+        self.badgeSuffix = badgeSuffix
+        self.firstLine = firstLine
+        self.secondLine = secondLine
+        self.trailingContent = ReportButton(action: onReportTapped)
+    }
+}
+
+// MARK: - Report Button
+
+struct ReportButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
             Text("정보 제보")
                 .notosans(.caption1Semibold)
                 .foregroundStyle(Color.livithColor(.black50))
@@ -76,9 +99,13 @@ private extension SectionHeaderView {
                 )
         }
     }
+}
 
+// MARK: - Subviews
+
+private extension SectionHeaderView {
     func badgeText(count: Int) -> some View {
-        Text("\(count)개")
+        Text("\(count)\(badgeSuffix)")
             .notosans(.body1Semibold)
             .foregroundStyle(Color.livithColor(.black100))
             .padding(.horizontal, 8)
@@ -102,6 +129,17 @@ private extension SectionHeaderView {
             secondLine: "꿀팁을 알아봐요",
             onReportTapped: {}
         )
+
+        SectionHeaderView(
+            badgeCount: 8,
+            badgeSuffix: "건",
+            firstLine: "의 MD 정보를",
+            secondLine: "한 눈에 확인해요"
+        ) {
+            Image.livithIcon(.rightLineDefault)
+                .resizable()
+                .frame(width: 24, height: 24)
+        }
     }
     .padding()
     .background(Color.livithColor(.black100))
