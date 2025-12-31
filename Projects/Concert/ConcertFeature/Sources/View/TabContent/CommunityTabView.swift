@@ -40,19 +40,24 @@ private extension CommunityTabView {
     }
 
     var emptyContent: some View {
-        VStack(spacing: 20) {
+        Group {
             headerView
+                .padding(.horizontal, 16)
+                .padding(.top, 30)
+                .padding(.bottom, 20)
 
             LivithEmptyView(text: "첫 댓글을 달아보세요!")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
+                .frame(height: 200)
         }
-        .padding(.top, 30)
     }
 
     var commentList: some View {
-        VStack(spacing: 12) {
+        Group {
             headerView
-                .padding(.bottom, 8)
+                .padding(.horizontal, 16)
+                .padding(.top, 30)
+                .padding(.bottom, 20)
 
             ForEach(store.state.comments) { comment in
                 CommentCardView(
@@ -60,6 +65,8 @@ private extension CommunityTabView {
                     onDelete: { store.send(.showDeleteDialog(commentID: comment.id)) },
                     onReport: { store.send(.showReportDialog(commentID: comment.id)) }
                 )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
                 .onAppear {
                     if comment.id == store.state.comments.last?.id {
                         store.send(.loadNextPage)
@@ -71,11 +78,9 @@ private extension CommunityTabView {
                 ProgressView()
                     .tint(Color.livithColor(.white100))
                     .padding()
+                    .frame(maxWidth: .infinity)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 30)
-        .padding(.bottom, 20)
     }
 }
 
