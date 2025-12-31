@@ -203,6 +203,7 @@ private extension ConcertView {
                 concertInfoList: store.state.concertInfoList,
                 merchandiseList: store.state.merchandiseList
             )
+            .frame(maxWidth: UIScreen.main.bounds.width)
             .background(.livithColor(.black100))
         case .setlist:
             SetlistTabView()

@@ -34,6 +34,7 @@ struct ConcertInfoTabView: View {
                 .padding(.horizontal, 16)
 
             concertInfoSection
+                .padding(.horizontal, 16)
 
             merchandiseSection
         }
@@ -117,7 +118,6 @@ private extension ConcertInfoTabView {
                 ) {
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
-                .padding(.horizontal, 16)
 
                 ConcertInfoCarousel(
                     concertInfoList: concertInfoList,
@@ -166,81 +166,6 @@ private extension ConcertInfoTabView {
             }
         }
     }
-
-}
-
-// MARK: - Info Carousel
-
-private struct ConcertInfoCarousel: View {
-    @Environment(\.concertCoordinator) private var coordinator
-
-    let concertInfoList: [ConcertInfo]
-    let ticketingOfficeURL: URL?
-    @State private var currentIndex: Int = 0
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            ForEach(Array(concertInfoList.enumerated()), id: \.offset) { index, info in
-                concertInfoCard(info: info)
-                    .opacity(index == currentIndex ? 1 : 0)
-            }
-
-            LivithPageIndicator(currentPage: currentIndex, pageCount: concertInfoList.count)
-                .padding(.bottom, 18)
-        }
-        .frame(height: 274)
-        .padding(.horizontal, 16)
-        .gesture(
-            DragGesture(minimumDistance: 20)
-                .onEnded { value in
-                    let threshold: CGFloat = 50
-                    var newIndex = currentIndex
-
-                    if value.translation.width < -threshold {
-                        newIndex = (currentIndex + 1) % concertInfoList.count
-                    } else if value.translation.width > threshold {
-                        newIndex = (currentIndex - 1 + concertInfoList.count) % concertInfoList.count
-                    }
-
-                    if newIndex != currentIndex {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentIndex = newIndex
-                        }
-                    }
-                }
-        )
-    }
-
-    func concertInfoCard(info: ConcertInfo) -> some View {
-        Button {
-            if let url = ticketingOfficeURL {
-                coordinator?.present(to: .ticketSafari(url))
-            }
-        } label: {
-            ZStack(alignment: .bottomLeading) {
-                AsyncImageView(
-                    url: URL(string: info.imageURL),
-                    showGradient: true
-                ) {
-                    Color.livithColor(.black80)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 274)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                VStack(alignment: .leading, spacing: 10) {
-                    CardTagView(info.title, fontStyle: .caption1Semibold)
-
-                    Text(info.description)
-                        .notosans(.body2Medium)
-                        .foregroundStyle(Color.livithColor(.white100))
-                        .lineLimit(3)
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 52)
-            }
-        }
-    }
 }
 
 // MARK: - Preview
@@ -273,13 +198,13 @@ private struct ConcertInfoCarousel: View {
             concertInfoList: [
                 ConcertInfo(
                     id: 1,
-                    imageURL: "",
+                    imageURL: "https://ticketimage.interpark.com/Play/image/large/25/25012412_p.gif",
                     title: "공연 입장 안내",
                     description: "전석이 지정 좌석제로 운영\nFLOOR구역은 단차 없는 평지에 간이 의자가 설치되어있어 다른 구역은 계단식 좌석"
                 ),
                 ConcertInfo(
                     id: 1,
-                    imageURL: "",
+                    imageURL: "https://ticketimage.interpark.com/Play/image/large/25/25012412_p.gif",
                     title: "공연 입장 안내",
                     description: "전석이 지정 좌석제로 운영\nFLOOR구역은 단차 없는 평지에 간이 의자가 설치되어있어 다른 구역은 계단식 좌석"
                 )
