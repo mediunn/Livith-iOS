@@ -22,6 +22,13 @@ public enum LivithToastType {
     }
 }
 
+// MARK: - Toast Position
+
+public enum LivithToastPosition {
+    case top
+    case aboveKeyboard
+}
+
 public struct LivithToast: View {
 
     // MARK: - Property
@@ -65,17 +72,35 @@ private struct LivithToastModifier: ViewModifier {
     @Binding var isPresented: Bool
     let type: LivithToastType
     let message: String
-    let duration: TimeInterval
+    let duration: TimeInterval?
     let topPadding: CGFloat
+    let position: LivithToastPosition
+    let keyboardSpacing: CGFloat
+
+    @State private var keyboardHeight: CGFloat = KeyboardHeightObserver.shared.height
 
     func body(content: Content) -> some View {
         content
-            .overlay(alignment: .top) {
+            .overlay {
                 if isPresented {
-                    LivithToast(type: type, message: message)
-                        .padding(.top, topPadding)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .onAppear {
+                    GeometryReader { geometry in
+                        let toastHeight: CGFloat = 54
+                        let toastY: CGFloat = {
+                            if position == .top {
+                                return geometry.safeAreaInsets.top + topPadding + toastHeight / 2
+                            } else {
+                                // 토스트 하단이 키보드 상단에서 keyboardSpacing 위에 위치
+                                return geometry.size.height - keyboardHeight - keyboardSpacing - toastHeight / 2
+                            }
+                        }()
+
+                        LivithToast(type: type, message: message)
+                            .position(x: geometry.size.width / 2, y: toastY)
+                            .transition(.opacity)
+                    }
+                    .onAppear {
+                        keyboardHeight = KeyboardHeightObserver.shared.height
+                        if let duration {
                             Task {
                                 try? await Task.sleep(for: .seconds(duration))
                                 await MainActor.run {
@@ -83,9 +108,13 @@ private struct LivithToastModifier: ViewModifier {
                                 }
                             }
                         }
+                    }
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: isPresented)
+            .onReceive(KeyboardHeightObserver.shared.$height) { height in
+                keyboardHeight = height
+            }
     }
 }
 
@@ -96,15 +125,19 @@ public extension View {
         isPresented: Binding<Bool>,
         type: LivithToastType,
         message: String,
-        duration: TimeInterval = 2,
-        topPadding: CGFloat = 60
+        duration: TimeInterval? = 2,
+        topPadding: CGFloat = 60,
+        position: LivithToastPosition = .top,
+        keyboardSpacing: CGFloat = 16
     ) -> some View {
         modifier(LivithToastModifier(
             isPresented: isPresented,
             type: type,
             message: message,
             duration: duration,
-            topPadding: topPadding
+            topPadding: topPadding,
+            position: position,
+            keyboardSpacing: keyboardSpacing
         ))
     }
 }
