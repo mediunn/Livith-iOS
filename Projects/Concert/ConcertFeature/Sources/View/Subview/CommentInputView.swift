@@ -50,19 +50,31 @@ private extension CommentInputView {
     }
 
     var textField: some View {
-        TextField(Constants.placeholder, text: $text, axis: .vertical)
-            .notosans(.body3Medium)
-            .foregroundStyle(Color.livithColor(.white100))
-            .lineLimit(1...10)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color.livithColor(.black90))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onChange(of: text) { _, newValue in
-                if newValue.count > Constants.maxLength {
-                    text = String(newValue.prefix(Constants.maxLength))
-                }
+        ZStack(alignment: .topLeading) {
+            if text.isEmpty {
+                Text(Constants.placeholder)
+                    .notosans(.body3Medium)
+                    .foregroundStyle(Color.livithColor(.black50))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
             }
+
+            TextEditor(text: $text)
+                .notosans(.body3Medium)
+                .foregroundStyle(Color.livithColor(.white100))
+                .scrollContentBackground(.hidden)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .frame(minHeight: 44)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .background(Color.livithColor(.black90))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .onChange(of: text) { _, newValue in
+            if newValue.count > Constants.maxLength {
+                text = String(newValue.prefix(Constants.maxLength))
+            }
+        }
     }
 
     var submitButton: some View {
