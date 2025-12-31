@@ -87,6 +87,9 @@ public final class CommunityStore: ObservableObject {
 
     private var fetchTask: Task<Void, Never>?
     private var loadMoreTask: Task<Void, Never>?
+    private var submitTask: Task<Void, Never>?
+    private var deleteTask: Task<Void, Never>?
+    private var reportTask: Task<Void, Never>?
     @Published private(set) var state = CommunityState()
 
     @Injected private var repository: CommentRepository
@@ -220,9 +223,11 @@ private extension CommunityStore {
     func submitComment() {
         guard !state.commentText.isEmpty, !state.isSubmitting else { return }
 
+        submitTask?.cancel()
+
         let content = state.commentText
 
-        Task { @MainActor in
+        submitTask = Task { @MainActor in
             send(._setSubmitting(true))
 
             do {
@@ -230,11 +235,13 @@ private extension CommunityStore {
                     concertID: state.concertID,
                     content: content
                 )
+                guard !Task.isCancelled else { return }
                 send(._addComment(comment))
                 send(._setCommentText(""))
                 send(._setSubmitting(false))
                 send(._setToast(.success(Constants.submitSuccessMessage)))
             } catch {
+                guard !Task.isCancelled else { return }
                 send(._setSubmitting(false))
                 send(._setToast(.failure(Constants.submitErrorMessage)))
             }
@@ -242,23 +249,31 @@ private extension CommunityStore {
     }
 
     func deleteComment(commentID: Int) {
-        Task { @MainActor in
+        deleteTask?.cancel()
+
+        deleteTask = Task { @MainActor in
             do {
                 try await repository.deleteComment(commentID: commentID)
+                guard !Task.isCancelled else { return }
                 send(._removeComment(commentID: commentID))
                 send(._setToast(.success(Constants.deleteSuccessMessage)))
             } catch {
+                guard !Task.isCancelled else { return }
                 send(._setToast(.failure(Constants.deleteErrorMessage)))
             }
         }
     }
 
     func reportComment(commentID: Int, content: String) {
-        Task { @MainActor in
+        reportTask?.cancel()
+
+        reportTask = Task { @MainActor in
             do {
                 try await repository.reportComment(commentID: commentID, content: content)
+                guard !Task.isCancelled else { return }
                 send(._setToast(.success(Constants.reportSuccessMessage)))
             } catch {
+                guard !Task.isCancelled else { return }
                 send(._setToast(.failure(Constants.reportErrorMessage)))
             }
         }
