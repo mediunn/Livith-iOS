@@ -16,6 +16,7 @@ public struct ThumbnailCard: View {
     private let title: String
     private let subtitle: String?
     private let flexible: Bool
+    private let titleLineLimit: Int?
 
     // MARK: - Initializer
 
@@ -23,12 +24,14 @@ public struct ThumbnailCard: View {
         imageURL: URL?,
         title: String,
         subtitle: String? = nil,
-        flexible: Bool = false
+        flexible: Bool = false,
+        titleLineLimit: Int? = nil
     ) {
         self.imageURL = imageURL
         self.title = title
         self.subtitle = subtitle
         self.flexible = flexible
+        self.titleLineLimit = titleLineLimit
     }
 
     // MARK: - Body
@@ -40,6 +43,7 @@ public struct ThumbnailCard: View {
             Text(title)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
+                .lineLimit(titleLineLimit)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let subtitle, !subtitle.isEmpty {
@@ -65,9 +69,8 @@ private extension ThumbnailCard {
                     .aspectRatio(108/158, contentMode: .fit)
                     .overlay {
                         AsyncImageView(url: imageURL)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
-                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
             } else {
                 AsyncImageView(url: imageURL)
                     .frame(width: 108, height: 158)
