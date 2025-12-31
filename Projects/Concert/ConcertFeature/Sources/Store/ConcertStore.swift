@@ -45,19 +45,19 @@ public enum InterestSettingStatus: Equatable {
 }
 
 public struct ConcertState {
-    public var concertID: Int = 0
     public var artist: Artist?
     public var concert: Concert?
-    public var communityCount: Int = 0
-    public var isLoading: Bool = false
-    public var interestStatus: InterestSettingStatus = .idle
+    public var concertID: Int = 0
     public var fetchError: String?
+    public var isLoading: Bool = false
+    public var communityCount: Int = 0
     public var formattedDateRange: String = ""
-    public var fanCultures: [ConcertCulture] = []
     public var schedules: [ConcertSchedule] = []
+    public var fanCultures: [ConcertCulture] = []
     public var concertInfoList: [ConcertInfo] = []
-    public var merchandiseList: [ConcertMerchandise] = []
     public var selectedTab: ConcertTab = .artistDetail
+    public var merchandiseList: [ConcertMerchandise] = []
+    public var interestStatus: InterestSettingStatus = .idle
 
     public init() {}
 }

@@ -203,9 +203,11 @@ private extension ConcertView {
     var posterImage: some View {
         AsyncImageView(
             url: store.state.concert?.posterURL,
-            showGradient: true,
-            placeholder: Image.livithImage(.concertCardEmpty)
-        )
+            showGradient: true
+        ) {
+            Image.livithImage(.concertCardEmpty)
+                .resizable()
+        }
     }
 }
 
