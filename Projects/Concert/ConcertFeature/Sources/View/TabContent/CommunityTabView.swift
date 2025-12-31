@@ -68,13 +68,13 @@ private extension CommunityTabView {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
                 .onAppear {
-                    if comment.id == store.state.comments.last?.id {
+                    if comment.id == store.state.comments.last?.id, store.state.hasMorePages {
                         store.send(.loadNextPage)
                     }
                 }
             }
 
-            if store.state.isLoadingMore {
+            if store.state.isLoadingMore, store.state.hasMorePages {
                 ProgressView()
                     .tint(Color.livithColor(.white100))
                     .padding()
