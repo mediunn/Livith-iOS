@@ -38,6 +38,12 @@ final class HomeCoordinator: Coordinator {
 
         case .interest:
             return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))
+
+        case .interestComplete(posterURL: let url, title: let title):
+            return UIHostingController(
+                rootView: InteresetConcertCompleteView(concertPosterURL: url, concertTitle: title)
+                    .environment(\.homeCoordinator, self)
+            )
         }
     }
 

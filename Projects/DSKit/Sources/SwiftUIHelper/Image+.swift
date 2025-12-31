@@ -161,6 +161,7 @@ public extension Image {
         case splash, feedback
         case polygon
         case welcome
+        case interestConcertComplete
 
         public var image: Image {
             switch self {
@@ -180,6 +181,8 @@ public extension Image {
                 DSKitAsset.ImageAssets.imagePolygon.swiftUIImage
             case .welcome:
                 DSKitAsset.ImageAssets.imageWelcome.swiftUIImage
+            case .interestConcertComplete:
+                DSKitAsset.ImageAssets.imageInterestConcertComplete.swiftUIImage
             }
         }
     }

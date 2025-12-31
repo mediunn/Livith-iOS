@@ -59,6 +59,10 @@ struct InterestConcertSearchView: View {
                     }
                 }
             }
+            .onChange(of: store.state.completedConcert) { _, concert in
+                guard let concert = concert else { return }
+                coordinator?.push(to: .interestComplete(posterURL: concert.posterURL, title: concert.title))
+            }
         }
     }
 }
@@ -192,7 +196,7 @@ private extension InterestConcertSearchView {
                     store.state.selectedConcertID != nil ? Color.livithColor(.black100) : Color.livithColor(.black50)
                 )
                 .frame(maxWidth: .infinity)
-                .frame(height: 60)
+                .frame(height: 52)
                 .background(
                     store.state.selectedConcertID != nil ? Color.livithColor(.yellow30) : Color.livithColor(.black80)
                 )
