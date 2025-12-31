@@ -68,6 +68,18 @@ public enum CommunityIntent {
 
 public final class CommunityStore: ObservableObject {
 
+    // MARK: - Constants
+
+    private enum Constants {
+        static let fetchErrorMessage = "댓글을 불러오는 데 실패했어요"
+        static let submitSuccessMessage = "댓글이 작성되었어요"
+        static let submitErrorMessage = "댓글 작성에 실패했어요"
+        static let deleteSuccessMessage = "댓글이 삭제되었어요"
+        static let deleteErrorMessage = "댓글 삭제에 실패했어요"
+        static let reportSuccessMessage = "신고가 완료되었어요\n검토 후 처리까지 약 1-2일 소요될 수 있어요"
+        static let reportErrorMessage = "신고 접수에 실패했어요"
+    }
+
     // MARK: - Property
 
     private var fetchTask: Task<Void, Never>?
@@ -166,7 +178,7 @@ private extension CommunityStore {
                 send(._setHasMorePages(result.cursor != nil))
             } catch {
                 guard !Task.isCancelled else { return }
-                send(._showToast("댓글을 불러오는 데 실패했어요", type: .failure))
+                send(._showToast(Constants.fetchErrorMessage, type: .failure))
             }
 
             send(._setLoading(false))
@@ -216,10 +228,10 @@ private extension CommunityStore {
                 send(._addComment(comment))
                 send(._setCommentText(""))
                 send(._setSubmitting(false))
-                send(._showToast("댓글이 작성되었어요", type: .success))
+                send(._showToast(Constants.submitSuccessMessage, type: .success))
             } catch {
                 send(._setSubmitting(false))
-                send(._showToast("댓글 작성에 실패했어요", type: .failure))
+                send(._showToast(Constants.submitErrorMessage, type: .failure))
             }
         }
     }
@@ -229,9 +241,9 @@ private extension CommunityStore {
             do {
                 try await repository.deleteComment(commentID: commentID)
                 send(._removeComment(commentID: commentID))
-                send(._showToast("댓글이 삭제되었어요", type: .success))
+                send(._showToast(Constants.deleteSuccessMessage, type: .success))
             } catch {
-                send(._showToast("댓글 삭제에 실패했어요", type: .failure))
+                send(._showToast(Constants.deleteErrorMessage, type: .failure))
             }
         }
     }
@@ -240,9 +252,9 @@ private extension CommunityStore {
         Task { @MainActor in
             do {
                 try await repository.reportComment(commentID: commentID, content: content)
-                send(._showToast("신고가 완료되었어요\n검토 후 처리까지 약 1-2일 소요될 수 있어요", type: .success))
+                send(._showToast(Constants.reportSuccessMessage, type: .success))
             } catch {
-                send(._showToast("신고 접수에 실패했어요", type: .failure))
+                send(._showToast(Constants.reportErrorMessage, type: .failure))
             }
         }
     }
