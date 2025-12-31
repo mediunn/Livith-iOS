@@ -72,6 +72,7 @@ public final class CommunityStore: ObservableObject {
     // MARK: - Constants
 
     private enum Constants {
+        static let pageSize = 15
         static let fetchErrorMessage = "댓글을 불러오는 데 실패했어요"
         static let submitSuccessMessage = "댓글이 작성되었어요"
         static let submitErrorMessage = "댓글 작성에 실패했어요"
@@ -167,7 +168,7 @@ private extension CommunityStore {
                 let result = try await repository.fetchConcertComments(
                     concertID: state.concertID,
                     cursor: nil,
-                    size: 20
+                    size: Constants.pageSize
                 )
 
                 guard await Task.wait() else { return }
@@ -195,7 +196,7 @@ private extension CommunityStore {
                 let result = try await repository.fetchConcertComments(
                     concertID: state.concertID,
                     cursor: cursor,
-                    size: 20
+                    size: Constants.pageSize
                 )
 
                 guard await Task.wait() else { return }
