@@ -85,27 +85,7 @@ private extension SetlistTabView {
     }
 
     func formatDate(_ setlist: ConcertSetlist) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
-        let startDateString = formatter.string(from: setlist.startDate)
-
-        if setlist.startDate == setlist.endDate {
-            return startDateString
-        }
-
-        let calendar = Calendar.current
-        let startYear = calendar.component(.year, from: setlist.startDate)
-        let endYear = calendar.component(.year, from: setlist.endDate)
-
-        if startYear == endYear {
-            let shortFormatter = DateFormatter()
-            shortFormatter.dateFormat = "MM.dd"
-            let endShortString = shortFormatter.string(from: setlist.endDate)
-            return "\(startDateString)~\(endShortString)"
-        } else {
-            let endDateString = formatter.string(from: setlist.endDate)
-            return "\(startDateString)~\(endDateString)"
-        }
+        DateFormatter.formatDateRange(from: setlist.startDate, to: setlist.endDate)
     }
 }
 

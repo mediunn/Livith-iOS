@@ -143,21 +143,6 @@ public final class ConcertStore: ObservableObject {
     }
 }
 
-// MARK: - Date Formatter
-
-private extension ConcertStore {
-    static let fullDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
-        return formatter
-    }()
-
-    static let shortDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM.dd"
-        return formatter
-    }()
-}
 
 // MARK: - Private Methods
 
@@ -206,21 +191,7 @@ private extension ConcertStore {
     }
 
     func formatDateRange(from concert: Concert) -> String {
-        let calendar = Calendar.current
-        let startYear = calendar.component(.year, from: concert.startDate)
-        let endYear = calendar.component(.year, from: concert.endDate)
-
-        let startDateString = Self.fullDateFormatter.string(from: concert.startDate)
-        let endDateString = Self.fullDateFormatter.string(from: concert.endDate)
-
-        if startDateString == endDateString {
-            return startDateString
-        } else if startYear == endYear {
-            let endShortString = Self.shortDateFormatter.string(from: concert.endDate)
-            return "\(startDateString)~\(endShortString)"
-        } else {
-            return "\(startDateString)~\(endDateString)"
-        }
+        DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate)
     }
 
     func setInterestConcert() {
