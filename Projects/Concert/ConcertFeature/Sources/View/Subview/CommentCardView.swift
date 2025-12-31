@@ -84,7 +84,7 @@ private extension CommentCardView {
         Button(action: onReport) {
             Text("신고")
                 .notosans(.caption1Semibold)
-                .foregroundStyle(Color.livithColor(.black90))
+                .foregroundStyle(Color.livithColor(.black80))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 4)
                 .background(Color.livithColor(.black100))

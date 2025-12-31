@@ -50,34 +50,32 @@ private extension CommunityTabView {
     }
 
     var commentList: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                headerView
-                    .padding(.bottom, 8)
+        VStack(spacing: 12) {
+            headerView
+                .padding(.bottom, 8)
 
-                ForEach(store.state.comments) { comment in
-                    CommentCardView(
-                        comment: comment,
-                        onDelete: { store.send(.deleteComment(commentID: comment.id)) },
-                        onReport: { store.send(.reportComment(commentID: comment.id)) }
-                    )
-                    .onAppear {
-                        if comment.id == store.state.comments.last?.id {
-                            store.send(.loadNextPage)
-                        }
+            ForEach(store.state.comments) { comment in
+                CommentCardView(
+                    comment: comment,
+                    onDelete: { store.send(.showDeleteDialog(commentID: comment.id)) },
+                    onReport: { store.send(.showReportDialog(commentID: comment.id)) }
+                )
+                .onAppear {
+                    if comment.id == store.state.comments.last?.id {
+                        store.send(.loadNextPage)
                     }
                 }
-
-                if store.state.isLoadingMore {
-                    ProgressView()
-                        .tint(Color.livithColor(.white100))
-                        .padding()
-                }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 30)
-            .padding(.bottom, 20)
+
+            if store.state.isLoadingMore {
+                ProgressView()
+                    .tint(Color.livithColor(.white100))
+                    .padding()
+            }
         }
+        .padding(.horizontal, 16)
+        .padding(.top, 30)
+        .padding(.bottom, 20)
     }
 }
 
@@ -110,6 +108,8 @@ private extension CommunityTabView {
 // MARK: - Preview
 
 #Preview {
-    CommunityTabView(store: CommunityStore())
-        .background(Color.livithColor(.black100))
+    ScrollView {
+        CommunityTabView(store: CommunityStore())
+    }
+    .background(Color.livithColor(.black100))
 }

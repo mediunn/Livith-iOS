@@ -9,6 +9,7 @@
 import Foundation
 
 import ConcertDomain
+
 import DIContainer
 import LivithConcurrency
 
@@ -25,6 +26,11 @@ public struct CommunityState {
     public var toastMessage: String? = nil
     public var toastType: ToastType = .success
 
+    // Dialog states
+    public var deleteTargetCommentID: Int? = nil
+    public var reportTargetCommentID: Int? = nil
+    public var isReportTextOverLimit: Bool = false
+
     public enum ToastType {
         case success
         case failure
@@ -38,8 +44,16 @@ public enum CommunityIntent {
     case loadNextPage
     case submitComment
     case updateCommentText(String)
-    case deleteComment(commentID: Int)
-    case reportComment(commentID: Int)
+
+    // Dialog intents
+    case showDeleteDialog(commentID: Int)
+    case confirmDelete
+    case dismissDeleteDialog
+    case showReportDialog(commentID: Int)
+    case confirmReport(content: String)
+    case dismissReportDialog
+    case setReportTextOverLimit(Bool)
+
     case onToastDismiss
 
     case _setComments([ConcertComment], totalCount: Int, cursor: (createdAt: String, id: Int)?)
@@ -81,10 +95,30 @@ public final class CommunityStore: ObservableObject {
             submitComment()
         case .updateCommentText(let text):
             state.commentText = text
-        case .deleteComment(let commentID):
-            deleteComment(commentID: commentID)
-        case .reportComment(let commentID):
-            reportComment(commentID: commentID)
+
+        // Dialog handling
+        case .showDeleteDialog(let commentID):
+            state.deleteTargetCommentID = commentID
+        case .confirmDelete:
+            if let commentID = state.deleteTargetCommentID {
+                state.deleteTargetCommentID = nil
+                deleteComment(commentID: commentID)
+            }
+        case .dismissDeleteDialog:
+            state.deleteTargetCommentID = nil
+        case .showReportDialog(let commentID):
+            state.reportTargetCommentID = commentID
+        case .confirmReport(let content):
+            if let commentID = state.reportTargetCommentID {
+                state.reportTargetCommentID = nil
+                reportComment(commentID: commentID, content: content)
+            }
+        case .dismissReportDialog:
+            state.reportTargetCommentID = nil
+            state.isReportTextOverLimit = false
+        case .setReportTextOverLimit(let isOverLimit):
+            state.isReportTextOverLimit = isOverLimit
+
         case .onToastDismiss:
             state.toastMessage = nil
         case ._setComments(let comments, let totalCount, let cursor):
@@ -210,10 +244,10 @@ private extension CommunityStore {
         }
     }
 
-    func reportComment(commentID: Int) {
+    func reportComment(commentID: Int, content: String) {
         Task { @MainActor in
             do {
-                try await repository.reportComment(commentID: commentID, content: nil)
+                try await repository.reportComment(commentID: commentID, content: content)
                 send(._showToast("신고가 완료되었어요\n검토 후 처리까지 약 1-2일 소요될 수 있어요", type: .success))
             } catch {
                 send(._showToast("신고 접수에 실패했어요", type: .failure))

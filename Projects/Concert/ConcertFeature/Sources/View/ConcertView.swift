@@ -130,14 +130,6 @@ public struct ConcertView: View {
             type: .success,
             message: communityStore.state.toastMessage ?? ""
         )
-        .livithToast(
-            isPresented: Binding(
-                get: { communityStore.state.toastMessage != nil && communityStore.state.toastType == .failure },
-                set: { _ in communityStore.send(.onToastDismiss) }
-            ),
-            type: .failure,
-            message: communityStore.state.toastMessage ?? ""
-        )
         .overlay {
             if showInterestConfirmDialog {
                 LivithConfirmDialog(
@@ -156,6 +148,48 @@ public struct ConcertView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showInterestConfirmDialog)
+        .overlay {
+            if communityStore.state.deleteTargetCommentID != nil {
+                LivithConfirmDialog(
+                    message: "댓글을 삭제하시겠어요?",
+                    confirmTitle: "지금은 삭제할래요",
+                    cancelTitle: "잘못 눌렀어요",
+                    onConfirm: {
+                        communityStore.send(.confirmDelete)
+                    },
+                    onCancel: {
+                        communityStore.send(.dismissDeleteDialog)
+                    }
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: communityStore.state.deleteTargetCommentID)
+        .overlay {
+            if communityStore.state.reportTargetCommentID != nil {
+                LivithReportDialog(
+                    message: "댓글을 신고하시겠어요?",
+                    confirmTitle: "신고할래요",
+                    cancelTitle: "잘못 눌렀어요",
+                    onConfirm: { content in
+                        communityStore.send(.confirmReport(content: content))
+                    },
+                    onCancel: {
+                        communityStore.send(.dismissReportDialog)
+                    }
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: communityStore.state.reportTargetCommentID)
+        .livithToast(
+            isPresented: Binding(
+                get: { communityStore.state.toastMessage != nil && communityStore.state.toastType == .failure },
+                set: { _ in communityStore.send(.onToastDismiss) }
+            ),
+            type: .failure,
+            message: communityStore.state.toastMessage ?? ""
+        )
         .overlay {
             if store.state.showTicketReturnBanner {
                 TicketReturnBanner(
