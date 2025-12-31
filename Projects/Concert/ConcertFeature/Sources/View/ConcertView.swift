@@ -42,6 +42,18 @@ public struct ConcertView: View {
         !store.state.isLoading && store.state.concert == nil
     }
 
+    private var communityToastType: LivithToastType {
+        if case .failure = communityStore.state.toastState { return .failure }
+        return .success
+    }
+
+    private var communityToastMessage: String {
+        switch communityStore.state.toastState {
+        case .success(let msg), .failure(let msg): return msg
+        case .none: return ""
+        }
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
             ConcertNavigationBar(
@@ -176,18 +188,10 @@ public struct ConcertView: View {
         .livithToast(
             isPresented: Binding(
                 get: { communityStore.state.toastState != .none },
-                set: { _ in communityStore.send(.dismissToast) }
+                set: { if !$0 { communityStore.send(.dismissToast) } }
             ),
-            type: {
-                if case .failure = communityStore.state.toastState { return .failure }
-                return .success
-            }(),
-            message: {
-                switch communityStore.state.toastState {
-                case .success(let msg), .failure(let msg): return msg
-                case .none: return ""
-                }
-            }()
+            type: communityToastType,
+            message: communityToastMessage
         )
         .overlay {
             if store.state.showTicketReturnBanner {
