@@ -45,8 +45,6 @@ private extension ConcertSegmentTabBar {
             onTabSelected(tab)
         } label: {
             VStack(spacing: 0) {
-                Spacer()
-
                 tabLabel(for: tab, isSelected: isSelected)
 
                 ZStack {
@@ -80,7 +78,7 @@ private extension ConcertSegmentTabBar {
                     .foregroundStyle(Color.livithColor(isSelected ? .white100 : .black50))
             }
         }
-        .frame(width: 106, height: 56)
+        .frame(width: 106, height: 52)
         .notosans(.body2Semibold)
     }
 }
