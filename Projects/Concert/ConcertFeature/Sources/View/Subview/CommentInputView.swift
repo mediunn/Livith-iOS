@@ -16,6 +16,7 @@ struct CommentInputView: View {
 
     private enum Constants {
         static let maxLength = 400
+        static let maxLines = 15
         static let placeholder = "댓글은 400자까지 작성 가능해요"
     }
 
@@ -58,8 +59,11 @@ private extension CommentInputView {
             .padding(.vertical, 12)
             .background(Color.livithColor(.black90))
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onChange(of: text) { _, newValue in
-                if newValue.count > Constants.maxLength {
+            .onChange(of: text) { oldValue, newValue in
+                let lineCount = newValue.components(separatedBy: "\n").count
+                if lineCount > Constants.maxLines {
+                    text = oldValue
+                } else if newValue.count > Constants.maxLength {
                     text = String(newValue.prefix(Constants.maxLength))
                 }
             }
@@ -68,13 +72,13 @@ private extension CommentInputView {
     var submitButton: some View {
         Button(action: onSubmit) {
             Text("등록")
-                .notosans(.body2Semibold)
+                .notosans(.body3Medium)
                 .foregroundStyle(
                     isSubmitEnabled
                         ? Color.livithColor(.black100)
                         : Color.livithColor(.black50)
                 )
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 24)
                 .padding(.vertical, 12)
                 .background(
                     isSubmitEnabled

@@ -60,11 +60,11 @@ private extension CommentCardView {
     var profileImage: some View {
         Circle()
             .fill(Color.livithColor(.black50))
-            .frame(width: 36, height: 36)
+            .frame(width: 32, height: 32)
             .overlay {
                 Image.livithIcon(.profile)
                     .resizable()
-                    .frame(width: 20, height: 20)
+                    .frame(width: 32, height: 32)
             }
     }
 
@@ -72,11 +72,11 @@ private extension CommentCardView {
         Button(action: onDelete) {
             Text("삭제")
                 .notosans(.caption1Semibold)
-                .foregroundStyle(Color.livithColor(.black50))
+                .foregroundStyle(Color.livithColor(.white100))
                 .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.livithColor(.black80))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .padding(.vertical, 4)
+                .background(Color.livithColor(.black100))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
         }
     }
 
@@ -84,11 +84,11 @@ private extension CommentCardView {
         Button(action: onReport) {
             Text("신고")
                 .notosans(.caption1Semibold)
-                .foregroundStyle(Color.livithColor(.black50))
+                .foregroundStyle(Color.livithColor(.black90))
                 .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.livithColor(.black80))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .padding(.vertical, 4)
+                .background(Color.livithColor(.black100))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
         }
     }
 }

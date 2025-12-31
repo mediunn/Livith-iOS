@@ -137,7 +137,7 @@ private extension CommunityStore {
                 send(._setHasMorePages(result.cursor != nil))
             } catch {
                 guard !Task.isCancelled else { return }
-                send(._showToast("댓글을 불러오는데 실패했어요", type: .failure))
+                send(._showToast("댓글을 불러오는 데 실패했어요", type: .failure))
             }
 
             send(._setLoading(false))
@@ -186,9 +186,9 @@ private extension CommunityStore {
                 )
                 send(._addComment(comment))
                 state.commentText = ""
-                send(._showToast("댓글이 등록되었어요", type: .success))
+                send(._showToast("댓글이 작성되었어요", type: .success))
             } catch {
-                send(._showToast("댓글 등록에 실패했어요", type: .failure))
+                send(._showToast("댓글 작성에 실패했어요", type: .failure))
             }
 
             send(._setSubmitting(false))
@@ -211,7 +211,7 @@ private extension CommunityStore {
         Task { @MainActor in
             do {
                 try await repository.reportComment(commentID: commentID, content: nil)
-                send(._showToast("신고가 접수되었어요", type: .success))
+                send(._showToast("신고가 완료되었어요\n검토 후 처리까지 약 1-2일 소요될 수 있어요", type: .success))
             } catch {
                 send(._showToast("신고 접수에 실패했어요", type: .failure))
             }
