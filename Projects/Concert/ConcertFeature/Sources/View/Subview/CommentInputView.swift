@@ -43,40 +43,26 @@ struct CommentInputView: View {
 
 private extension CommentInputView {
     var inputRow: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(spacing: 8) {
             textField
             submitButton
         }
     }
 
     var textField: some View {
-        ZStack(alignment: .topLeading) {
-            TextEditor(text: $text)
-                .notosans(.body3Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-                .scrollContentBackground(.hidden)
-                .tint(Color.livithColor(.white100))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .frame(minHeight: 44)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if text.isEmpty {
-                Text(Constants.placeholder)
-                    .notosans(.body3Medium)
-                    .foregroundStyle(Color.livithColor(.black50))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .allowsHitTesting(false)
+        TextField(Constants.placeholder, text: $text, axis: .vertical)
+            .notosans(.body3Medium)
+            .foregroundStyle(Color.livithColor(.white100))
+            .lineLimit(1...5)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.livithColor(.black90))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .onChange(of: text) { _, newValue in
+                if newValue.count > Constants.maxLength {
+                    text = String(newValue.prefix(Constants.maxLength))
+                }
             }
-        }
-        .background(Color.livithColor(.black90))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .onChange(of: text) { _, newValue in
-            if newValue.count > Constants.maxLength {
-                text = String(newValue.prefix(Constants.maxLength))
-            }
-        }
     }
 
     var submitButton: some View {
