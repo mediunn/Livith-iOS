@@ -51,22 +51,28 @@ private extension CommentInputView {
     }
 
     var textField: some View {
-        TextField(Constants.placeholder, text: $text, axis: .vertical)
-            .notosans(.body3Medium)
-            .foregroundStyle(Color.livithColor(.white100))
-            .lineLimit(1...5)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color.livithColor(.black90))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onChange(of: text) { oldValue, newValue in
-                let lineCount = newValue.components(separatedBy: "\n").count
-                if lineCount > Constants.maxLines {
-                    text = oldValue
-                } else if newValue.count > Constants.maxLength {
-                    text = String(newValue.prefix(Constants.maxLength))
-                }
+        TextField(
+            "",
+            text: $text,
+            prompt: Text(Constants.placeholder)
+                .foregroundStyle(Color.livithColor(.black50)),
+            axis: .vertical
+        )
+        .notosans(.body3Medium)
+        .foregroundStyle(Color.livithColor(.white100))
+        .lineLimit(1...4)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.livithColor(.black90))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .onChange(of: text) { oldValue, newValue in
+            let lineCount = newValue.components(separatedBy: "\n").count
+            if lineCount > Constants.maxLines {
+                text = oldValue
+            } else if newValue.count > Constants.maxLength {
+                text = String(newValue.prefix(Constants.maxLength))
             }
+        }
     }
 
     var submitButton: some View {
