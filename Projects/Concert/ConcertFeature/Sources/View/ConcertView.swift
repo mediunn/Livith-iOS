@@ -83,7 +83,10 @@ public struct ConcertView: View {
                             set: { communityStore.send(.updateCommentText($0)) }
                         ),
                         isSubmitting: communityStore.state.isSubmitting,
-                        onSubmit: { communityStore.send(.submitComment) }
+                        onSubmit: {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            communityStore.send(.submitComment)
+                        }
                     )
                 }
             }

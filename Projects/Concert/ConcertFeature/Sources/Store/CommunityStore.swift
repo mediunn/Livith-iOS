@@ -185,7 +185,7 @@ private extension CommunityStore {
                     content: content
                 )
                 send(._addComment(comment))
-                state.commentText = ""
+                send(.updateCommentText(""))
                 send(._showToast("댓글이 작성되었어요", type: .success))
             } catch {
                 send(._showToast("댓글 작성에 실패했어요", type: .failure))
