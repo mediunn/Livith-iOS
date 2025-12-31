@@ -27,12 +27,18 @@ public struct NotchedConcertPosterImage: View {
         .overlay(content: {
             BackgroundGradient()
         })
-        .clipShape(NotchedRectangleShape(cornerRadius: 8, notchHeight: 20, notchDepth: 10, notchBottomOffset: 40))
+        .mask { notchedCardShape }
         .overlay(
-            NotchedRectangleShape(cornerRadius: 8, notchHeight: 20, notchDepth: 10, notchBottomOffset: 40)
-                .stroke(Color(hex: "2f3745"), lineWidth: 0.5)
+            notchedCardShape
+                .stroke(Color(hex: "2f3745"), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+        .shadow(radius: 5)
+    }
+}
+
+private extension NotchedConcertPosterImage {
+    var notchedCardShape: some Shape {
+        NotchedCardShape(cornerRadius: 8, notchSize: .init(width: 10, height: 20), notchBottomOffset: 28)
     }
 }
 
