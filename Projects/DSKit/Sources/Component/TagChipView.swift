@@ -13,11 +13,19 @@ public struct TagChipView: View {
     // MARK: - Property
 
     private let text: String
+    private let backgroundColor: Color
+    private let textColor: Color
 
     // MARK: - Initializer
 
-    public init(text: String) {
+    public init(
+        text: String,
+        backgroundColor: Color = Color.livithColor(.black80),
+        textColor: Color = Color.livithColor(.black30)
+    ) {
         self.text = text
+        self.backgroundColor = backgroundColor
+        self.textColor = textColor
     }
 
     // MARK: - Body
@@ -25,10 +33,10 @@ public struct TagChipView: View {
     public var body: some View {
         Text(text)
             .notosans(.caption1Bold)
-            .foregroundStyle(Color.livithColor(.black30))
+            .foregroundStyle(textColor)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(Color.livithColor(.black80))
+            .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }

@@ -1,6 +1,6 @@
 //
 //  SectionHeaderView.swift
-//  ConcertFeature
+//  DSKit
 //
 //  Created by Youjin Lee on 12/31/25.
 //  Copyright © 2025 Livith. All rights reserved.
@@ -8,25 +8,23 @@
 
 import SwiftUI
 
-import DSKit
-
-struct SectionHeaderView<TrailingContent: View>: View {
+public struct SectionHeaderView<TrailingContent: View>: View {
 
     // MARK: - Property
 
     private let badgeCount: Int?
     private let badgeSuffix: String
     private let firstLine: String
-    private let secondLine: String
+    private let secondLine: String?
     private let trailingContent: TrailingContent
 
     // MARK: - Initializer
 
-    init(
+    public init(
         badgeCount: Int? = nil,
         badgeSuffix: String = "개",
         firstLine: String,
-        secondLine: String,
+        secondLine: String? = nil,
         @ViewBuilder trailingContent: () -> TrailingContent
     ) {
         self.badgeCount = badgeCount
@@ -38,7 +36,7 @@ struct SectionHeaderView<TrailingContent: View>: View {
 
     // MARK: - Body
 
-    var body: some View {
+    public var body: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .center, spacing: 4) {
@@ -51,9 +49,11 @@ struct SectionHeaderView<TrailingContent: View>: View {
                         .foregroundStyle(Color.livithColor(.white100))
                 }
 
-                Text(secondLine)
-                    .notosans(.body1Semibold)
-                    .foregroundStyle(Color.livithColor(.white100))
+                if let secondLine, !secondLine.isEmpty {
+                    Text(secondLine)
+                        .notosans(.body1Semibold)
+                        .foregroundStyle(Color.livithColor(.white100))
+                }
             }
 
             Spacer()
@@ -65,12 +65,12 @@ struct SectionHeaderView<TrailingContent: View>: View {
 
 // MARK: - Convenience Initializer (Report Button)
 
-extension SectionHeaderView where TrailingContent == ReportButton {
+public extension SectionHeaderView where TrailingContent == ReportButton {
     init(
         badgeCount: Int? = nil,
         badgeSuffix: String = "개",
         firstLine: String,
-        secondLine: String,
+        secondLine: String? = nil,
         onReportTapped: @escaping () -> Void
     ) {
         self.badgeCount = badgeCount
@@ -83,10 +83,14 @@ extension SectionHeaderView where TrailingContent == ReportButton {
 
 // MARK: - Report Button
 
-struct ReportButton: View {
+public struct ReportButton: View {
     let action: () -> Void
 
-    var body: some View {
+    public init(action: @escaping () -> Void) {
+        self.action = action
+    }
+
+    public var body: some View {
         Button(action: action) {
             Text("정보 제보")
                 .notosans(.caption1Semibold)
@@ -127,6 +131,11 @@ private extension SectionHeaderView {
             badgeCount: 5,
             firstLine: "의 팬문화와",
             secondLine: "꿀팁을 알아봐요",
+            onReportTapped: {}
+        )
+
+        SectionHeaderView(
+            firstLine: "예상",
             onReportTapped: {}
         )
 

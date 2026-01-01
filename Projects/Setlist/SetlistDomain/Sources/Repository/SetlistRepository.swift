@@ -9,6 +9,6 @@
 import Foundation
 
 public protocol SetlistRepository {
-    func fetchSetlist(setlistID: Int) async throws(SetlistError) -> Setlist
+    func fetchSetlist(concertID: Int, setlistID: Int) async throws(SetlistError) -> Setlist
     func fetchSetlistSongs(setlistID: Int) async throws(SetlistError) -> [SetlistSong]
 }

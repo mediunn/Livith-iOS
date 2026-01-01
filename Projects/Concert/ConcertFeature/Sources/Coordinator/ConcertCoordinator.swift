@@ -10,6 +10,7 @@ import SwiftUI
 import UIKit
 
 import DSKit
+import SetlistFeature
 
 public final class ConcertCoordinator: Coordinator {
     public typealias R = ConcertRoute
@@ -72,6 +73,17 @@ public final class ConcertCoordinator: Coordinator {
                 merchandiseList: merchandiseList,
                 onDismiss: { [weak self] in
                     self?.pop()
+                }
+            )
+
+            return UIHostingController(rootView: view)
+
+        case .setlistDetail(let concertID, let setlistID):
+            let view = SetlistDetailView(
+                concertID: concertID,
+                setlistID: setlistID,
+                onReportTapped: { [weak self] in
+                    self?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
             )
 

@@ -12,6 +12,7 @@ public typealias SetlistService = NetworkService<SetlistEndpoint>
 
 public enum SetlistEndpoint {
     case fetchConcertSetlist(setlistID: Int)
+    case fetchSetlistDetail(concertID: Int, setlistID: Int)
     case fetchSetlistSongList(setlistID: Int)
 }
 
@@ -20,6 +21,8 @@ extension SetlistEndpoint: NetworkEndpoint {
         switch self {
         case .fetchConcertSetlist(let setlistID):
             return "/api/v4/setlists/\(setlistID)"
+        case .fetchSetlistDetail(let concertID, let setlistID):
+            return "/api/v4/concerts/\(concertID)/setlists/\(setlistID)"
         case .fetchSetlistSongList(let setlistID):
             return "/api/v4/setlists/\(setlistID)/songs"
         }

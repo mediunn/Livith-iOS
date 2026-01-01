@@ -12,7 +12,6 @@ public struct ConcertSetlist: Identifiable, Hashable {
     public let id: Int
     public let title: String
     public let imageURL: String?
-    public let type: ConcertStatus
     public let startDate: Date
     public let endDate: Date
     public let status: SetlistType
@@ -23,7 +22,6 @@ public struct ConcertSetlist: Identifiable, Hashable {
         id: Int,
         title: String,
         imageURL: String?,
-        type: ConcertStatus,
         startDate: Date,
         endDate: Date,
         status: SetlistType,
@@ -33,7 +31,6 @@ public struct ConcertSetlist: Identifiable, Hashable {
         self.id = id
         self.title = title
         self.imageURL = imageURL
-        self.type = type
         self.startDate = startDate
         self.endDate = endDate
         self.status = status
