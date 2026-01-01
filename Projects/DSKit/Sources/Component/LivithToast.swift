@@ -89,7 +89,7 @@ private struct LivithToastModifier: ViewModifier {
                         let toastY: CGFloat = {
                             switch position {
                             case .top:
-                                return geometry.safeAreaInsets.top + 60
+                                return geometry.safeAreaInsets.top + topPadding
                             case .safeAreaTop:
                                 return geometry.safeAreaInsets.top
                             case .aboveKeyboard:

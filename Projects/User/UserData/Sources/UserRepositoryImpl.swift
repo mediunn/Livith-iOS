@@ -62,17 +62,18 @@ extension UserRepositoryImpl: UserRepository {
     public func deleteUser(reason: String) async throws(UserError) {
         do {
             let request = DTO.Request.DeleteUser(reason: reason)
-            
+
             let _: DTO.Response.DeleteUser = try await userService.request(
                 UserEndpoint.deleteUser(request: request)
             )
-
-            try await tokenService.removeToken()
-            localStorage.remove(for: LocalStorageKeys.currentUser)
-            localStorage.remove(for: LocalStorageKeys.lastLoginPlatform)
         } catch {
             throw userErrorMapper.mapToUserError(error)
         }
+
+        // 백엔드 삭제 성공 후에는 로컬 정리가 반드시 실행되어야 함
+        try? await tokenService.removeToken()
+        localStorage.remove(for: LocalStorageKeys.currentUser)
+        localStorage.remove(for: LocalStorageKeys.lastLoginPlatform)
     }
     
     public func logoutSession() async throws(UserError) {
@@ -83,12 +84,13 @@ extension UserRepositoryImpl: UserRepository {
             let _: DTO.Response.RequestLogout = try await logoutService.request(
                 LogoutEndpoint.logoutSession(request: request)
             )
-
-            try await tokenService.removeToken()
-            localStorage.remove(for: LocalStorageKeys.currentUser)
         } catch {
             throw userErrorMapper.mapToUserError(error)
         }
+
+        // 백엔드 로그아웃 성공 후에는 로컬 정리가 반드시 실행되어야 함
+        try? await tokenService.removeToken()
+        localStorage.remove(for: LocalStorageKeys.currentUser)
     }
 }
 
