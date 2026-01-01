@@ -37,15 +37,4 @@ extension SetlistRepositoryImpl: SetlistRepository {
             throw errorMapper.mapToConcertError(error)
         }
     }
-
-    public func fetchSetlistSongList(setlistID: Int) async throws(ConcertError) -> [SetlistSong] {
-        do {
-            let response: DTO.Response.FetchSetlistSongList = try await service.request(
-                .fetchSetlistSongList(setlistID: setlistID)
-            )
-            return entityMapper.toDomain(from: response)
-        } catch {
-            throw errorMapper.mapToConcertError(error)
-        }
-    }
 }

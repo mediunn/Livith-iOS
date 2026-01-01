@@ -68,6 +68,15 @@ public enum ConcertModule: String {
     case concertTests = "ConcertTests"
 }
 
+
+// MARK: - Setlist Module
+
+public enum SetlistModule: String {
+    case setlistData = "SetlistData"
+    case setlistDomain = "SetlistDomain"
+    case setlistFeature = "SetlistFeature"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {

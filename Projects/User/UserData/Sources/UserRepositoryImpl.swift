@@ -9,20 +9,26 @@
 import Foundation
 
 import LivithNetwork
+import Persistence
 import UserDomain
 
 public final class UserRepositoryImpl {
-    // TODO: 토큰 서비스 선언
     private let userService: NetworkService<UserEndpoint>
     private let logoutService: NetworkService<LogoutEndpoint>
+    private let tokenService: TokenService
+    private let localStorage: LocalKeyValueStorage
     private let userErrorMapper: UserErrorMapper = .init()
 
     public init(
         userService: NetworkService<UserEndpoint> = .init(),
-        logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil)
+        logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil),
+        tokenService: TokenService = TokenServiceImpl(),
+        localStorage: LocalKeyValueStorage = UserDefaultsStorage()
     ) {
         self.userService = userService
         self.logoutService = logoutService
+        self.tokenService = tokenService
+        self.localStorage = localStorage
     }
 }
 
@@ -56,16 +62,41 @@ extension UserRepositoryImpl: UserRepository {
     public func deleteUser(reason: String) async throws(UserError) {
         do {
             let request = DTO.Request.DeleteUser(reason: reason)
-            
+
             let _: DTO.Response.DeleteUser = try await userService.request(
                 UserEndpoint.deleteUser(request: request)
             )
-        } catch let error {
+        } catch {
             throw userErrorMapper.mapToUserError(error)
         }
+
+        // 백엔드 삭제 성공 후에는 로컬 정리가 반드시 실행되어야 함
+        try? await tokenService.removeToken()
+        localStorage.remove(for: LocalStorageKeys.currentUser)
+        localStorage.remove(for: LocalStorageKeys.lastLoginPlatform)
     }
     
     public func logoutSession() async throws(UserError) {
-        // TODO: 토큰 서비스로 토큰 받아서 로그아웃 처리하기
+        do {
+            let refreshToken = try await tokenService.getRefreshToken()
+            let request = DTO.Request.RequestLogout(refreshToken: refreshToken)
+
+            let _: DTO.Response.RequestLogout = try await logoutService.request(
+                LogoutEndpoint.logoutSession(request: request)
+            )
+        } catch {
+            throw userErrorMapper.mapToUserError(error)
+        }
+
+        // 백엔드 로그아웃 성공 후에는 로컬 정리가 반드시 실행되어야 함
+        try? await tokenService.removeToken()
+        localStorage.remove(for: LocalStorageKeys.currentUser)
     }
+}
+
+// MARK: - LocalStorageKeys
+
+private enum LocalStorageKeys {
+    static let currentUser = "currentUser"
+    static let lastLoginPlatform = "lastLoginPlatform"
 }

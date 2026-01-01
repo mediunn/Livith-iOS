@@ -7,31 +7,29 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.make(
-    project: .user,
+    project: .setlist,
     targets: [
         .make(
-            target: .user(.userData),
+            target: .setlist(.setlistData),
             product: .framework,
             dependencies: [
-                .user(.userDomain),
+                .setlist(.setlistDomain),
                 .core(.livithNetwork),
-                .core(.diContainer),
-                .core(.persistence)
+                .core(.diContainer)
             ]
         ),
         .make(
-            target: .user(.userDomain),
+            target: .setlist(.setlistDomain),
             product: .framework
         ),
         .make(
-            target: .user(.userFeature),
+            target: .setlist(.setlistFeature),
             product: .framework,
             dependencies: [
-                .user(.userDomain),
+                .setlist(.setlistDomain),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency),
-                .core(.livithNetwork)
+                .core(.livithConcurrency)
             ]
         )
     ]

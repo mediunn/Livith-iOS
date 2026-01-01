@@ -42,11 +42,16 @@ public struct UserView: View {
     @State private var path = NavigationPath()
     @State private var overlayType: OverlayType = .none
     @State private var showSuccessToast: Bool = false
+    @State private var showLogoutToast: Bool = false
+    @State private var logoutToastType: LivithToastType = .success
+    @State private var logoutToastMessage: String = ""
 
     @Binding private var isTabBarHidden: Bool
-    
+
+    @StateObject private var logoutStore = LogoutStore()
+
     // MARK: - LifeCycle
-    
+
     public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
         self._nickname = nickname
         self._isTabBarHidden = isTabBarHidden
@@ -114,8 +119,18 @@ public struct UserView: View {
             .livithToast(
                 isPresented: $showSuccessToast,
                 type: .success,
-                message: Literals.toastSuccess
+                message: Literals.toastSuccess,
+                position: .safeAreaTop
             )
+            .livithToast(
+                isPresented: $showLogoutToast,
+                type: logoutToastType,
+                message: logoutToastMessage,
+                position: .safeAreaTop
+            )
+        }
+        .onChange(of: logoutStore.state.logoutResult) { _, newResult in
+            handleLogoutResult(newResult)
         }
         .sheet(isPresented: isSheetPresented) {
             if let url = overlayType.sheetURL {
@@ -251,13 +266,29 @@ private extension UserView {
     }
 
     func performLogout() {
-        // TODO: 로그아웃 처리
+        logoutStore.send(.logout)
     }
 
     func deleteAccount() {
         path.append(Path.deleteUser)
     }
 
+    func handleLogoutResult(_ result: LogoutResult) {
+        switch result {
+        case .idle:
+            break
+        case .success:
+            NotificationCenter.default.post(
+                name: .reloginRequired,
+                object: nil,
+                userInfo: ["toastMessage": Literals.logoutSuccessMessage]
+            )
+        case .failure(let message):
+            logoutToastType = .failure
+            logoutToastMessage = message
+            showLogoutToast = true
+        }
+    }
 }
 
 // MARK: - Constants
@@ -287,5 +318,6 @@ private extension UserView {
         static let logoutAlertMessage = "정말 로그아웃 하시겠어요?"
         static let logoutAlertCancel = "취소할래요"
         static let logoutAlertConfirm = "로그아웃 할래요"
+        static let logoutSuccessMessage = "로그아웃이 완료되었어요"
     }
 }
