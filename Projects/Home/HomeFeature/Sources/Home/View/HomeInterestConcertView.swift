@@ -13,6 +13,7 @@ import HomeDomain
 
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
+    @State private var selectedTab: InterestConcertTab = .schedule
 
     private let posterURL: URL? = URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")
     private let remainDays: Int = 10
@@ -35,14 +36,23 @@ struct HomeInterestConcertView: View {
                         location: location,
                         title: title
                     )
+
+                    SegmentTabBar(
+                        segmentTitles: InterestConcertTab.allCases.map { $0.title },
+                        selectedIndex: selectedTab.rawValue,
+                        onTabSelected: updateSelectedTab(from:)
+                    )
                     
                     Spacer()
+                        .frame(height: 1000)
                 }
             }
         }
         .background(.livithColor(.black100))
     }
 }
+
+// MARK: - Subviews
 
 private extension HomeInterestConcertView {
     var textHeaderView: some View {
@@ -64,6 +74,16 @@ private extension HomeInterestConcertView {
             }
             .padding(.top, 20)
             .padding([.bottom, .trailing], 16)
+        }
+    }
+}
+
+// MARK: - Helpers
+
+private extension HomeInterestConcertView {
+    func updateSelectedTab(from index: Int) {
+        if let tab = InterestConcertTab(rawValue: index) {
+            selectedTab = tab
         }
     }
 }
