@@ -15,7 +15,7 @@ struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @State private var selectedTab: InterestConcertTab = .schedule
     @State private var showBottomSheet: Bool = false
-    
+    @State private var showDeleteDialog: Bool = false
     
     private let posterURL: URL? = URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")
     private let remainDays: Int = 10
@@ -71,6 +71,22 @@ struct HomeInterestConcertView: View {
                 .frame(width: UIScreen.main.bounds.width)
                 .ignoresSafeArea()
         }
+        .overlay {
+            if showDeleteDialog {
+                LivithConfirmDialog(
+                    message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
+                    confirmTitle: "지금은 삭제할래요",
+                    cancelTitle: "잘못 눌렀어요",
+                    onConfirm: {
+                        dismissDeleteDialog()
+                        // TODO: 관심 콘서트 삭제 요청
+                    },
+                    onCancel: dismissDeleteDialog
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: showDeleteDialog)
     }
 }
 
@@ -96,6 +112,7 @@ private extension HomeInterestConcertView {
                     },
                     onDeleteConcert: {
                         showBottomSheet = false
+                        showDeleteDialog = true
                         // TODO: Delete concert logic
                     }
                 )
@@ -144,6 +161,14 @@ private extension HomeInterestConcertView {
         if let tab = InterestConcertTab(rawValue: index) {
             selectedTab = tab
         }
+    }
+    
+    func dismissBottomSheet() {
+        showBottomSheet = false
+    }
+    
+    func dismissDeleteDialog() {
+        showDeleteDialog = false
     }
 }
 
