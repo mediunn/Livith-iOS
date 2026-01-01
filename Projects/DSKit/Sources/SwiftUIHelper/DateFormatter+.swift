@@ -1,6 +1,6 @@
 //
-//  DateFormatter+DateRange.swift
-//  SetlistFeature
+//  DateFormatter+.swift
+//  DSKit
 //
 //  Created by Youjin Lee on 12/30/25.
 //  Copyright © 2025 Livith. All rights reserved.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension DateFormatter {
+public extension DateFormatter {
     static let fullDate: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy.MM.dd"

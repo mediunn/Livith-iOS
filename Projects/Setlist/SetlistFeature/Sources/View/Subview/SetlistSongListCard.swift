@@ -1,5 +1,5 @@
 //
-//  SetlistSongCardView.swift
+//  SetlistSongListCard.swift
 //  SetlistFeature
 //
 //  Created by Youjin Lee on 12/30/25.
@@ -10,52 +10,6 @@ import SwiftUI
 
 import DSKit
 import SetlistDomain
-
-struct SetlistSongRowView: View {
-
-    // MARK: - Property
-
-    let song: SetlistSong
-    let onPlayTapped: () -> Void
-    
-    // MARK: - Body
-
-    var body: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(String(format: "%02d. %@", song.orderIndex, song.title))
-                    .notosans(.body2Medium)
-                    .foregroundStyle(Color.livithColor(.white100))
-                    .lineLimit(1)
-
-                Text(song.artist)
-                    .notosans(.caption1Regular)
-                    .foregroundStyle(Color.livithColor(.black50))
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            playButton
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 11)
-    }
-}
-
-// MARK: - Subviews
-
-private extension SetlistSongRowView {
-    var playButton: some View {
-        Button(action: onPlayTapped) {
-            Image.livithIcon(.playFillDefault)
-                .resizable()
-                .frame(width: 32, height: 32)
-        }
-    }
-}
-
-// MARK: - Song List Card
 
 struct SetlistSongListCard: View {
 
@@ -69,7 +23,11 @@ struct SetlistSongListCard: View {
     var body: some View {
         VStack(spacing: 10) {
             ForEach(songs) { song in
-                SetlistSongRowView(song: song) {
+                SongRowView(
+                    orderIndex: song.orderIndex,
+                    title: song.title,
+                    artist: song.artist
+                ) {
                     onPlaySong?(song)
                 }
             }

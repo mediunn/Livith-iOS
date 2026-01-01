@@ -75,16 +75,6 @@ private extension SetlistHeaderView {
         .padding(.horizontal, 16)
         .padding(.bottom, 36)
     }
-
-    func badgeView(text: String) -> some View {
-        Text(text)
-            .notosans(.body2Semibold)
-            .foregroundStyle(Color.livithColor(.black100))
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Color.livithColor(.white100))
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-    }
 }
 
 #Preview {
