@@ -9,6 +9,7 @@
 import SwiftUI
 
 import DSKit
+import Kingfisher
 
 struct InterestConcertCardView: View {
     let posterURL: URL?
@@ -38,17 +39,17 @@ struct InterestConcertCardView: View {
         ZStack {
             Color.livithColor(.black90)
             
-            ZStack {
+            InterestConcertCardContentView(
+                remainDays: remainDays,
+                date: date,
+                location: location,
+                title: title,
+                onMoreInfoTap: onMoreInfoTap
+            )
+            .background(
                 concertPosterImageView()
-                
-                InterestConcertCardContentView(
-                    remainDays: remainDays,
-                    date: date,
-                    location: location,
-                    title: title,
-                    onMoreInfoTap: onMoreInfoTap
-                )
-            }
+            )
+            .frame(height: 438)
             .padding(24)
         }
     }
@@ -58,19 +59,14 @@ private extension InterestConcertCardView {
     @ViewBuilder
     func concertPosterImageView() -> some View {
         ZStack{
-            AsyncImage(url: posterURL) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .clipped()
-                    .frame(minWidth: 375, minHeight: 438)
-                
-            } placeholder: {
-                Color.livithColor(.black80)
-            }
-            .overlay {
-                BackgroundGradient()
-            }
+            KFImage(posterURL)
+                .resizable()
+                .placeholder {
+                    Color.livithColor(.black80)
+                }
+                .overlay {
+                    BackgroundGradient()
+                }
             
             VStack {
                 Spacer()

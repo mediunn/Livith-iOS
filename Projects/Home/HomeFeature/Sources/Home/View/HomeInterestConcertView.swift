@@ -60,7 +60,6 @@ private extension HomeInterestConcertView {
                         location: location,
                         title: title
                     )
-                    .frame(height: 484)
                     
                     SegmentTabBar(
                         segmentTitles: InterestConcertTab.allCases.map { $0.title },

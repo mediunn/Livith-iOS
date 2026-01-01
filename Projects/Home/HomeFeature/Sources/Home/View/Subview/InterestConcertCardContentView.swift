@@ -17,38 +17,36 @@ struct InterestConcertCardContentView: View {
     let title: String
     let onMoreInfoTap: () -> Void
     
-    var body: some View {        
-        ZStack(alignment: .topTrailing) {
-            VStack(alignment: .leading, spacing: .zero) {
-                HStack {
-                    Spacer()
-                    moreInfoButton()
-                }
-                .padding(.top, 16)
-                
+    var body: some View {
+        VStack(alignment: .leading, spacing: .zero) {
+            HStack {
                 Spacer()
-                    .frame(minHeight: 148)
-                
-                remainDaysText()
-                    .padding(.bottom, 16)
-                
-                infoSection(icon: Image.livithIcon(.durationLine), text: date)
-                    .padding(.bottom, 4)
-                
-                infoSection(icon: Image.livithIcon(.locationLine), text: location)
-                
-                Spacer()
-                    .frame(height: 40)
-                
+                moreInfoButton()
+            }
+            .padding(.top, 16)
+            
+            Spacer()
+                .frame(minHeight: 148)
+            
+            remainDaysText()
+                .padding(.bottom, 16)
+            
+            infoSection(icon: Image.livithIcon(.durationLine), text: date)
+                .padding(.bottom, 4)
+            
+            infoSection(icon: Image.livithIcon(.locationLine), text: location)
+            
+            Spacer()
+                .frame(height: 16)
+            
+            HStack {
                 Text(title)
                     .notosans(.body3Medium)
                     .foregroundStyle(.livithColor(.black50))
                     .lineLimit(2)
                     .truncationMode(.tail)
-
-                Spacer()
-                    .frame(minHeight: 24, maxHeight: 32)
             }
+            .frame(height: 88)
         }
         .padding(.horizontal, 16)
     }
