@@ -15,7 +15,7 @@ public struct SongRowView: View {
     private let orderIndex: Int
     private let title: String
     private let artist: String
-    private let onPlayTapped: () -> Void
+    private let onTapped: () -> Void
 
     // MARK: - Initializer
 
@@ -23,48 +23,41 @@ public struct SongRowView: View {
         orderIndex: Int,
         title: String,
         artist: String,
-        onPlayTapped: @escaping () -> Void
+        onTapped: @escaping () -> Void
     ) {
         self.orderIndex = orderIndex
         self.title = title
         self.artist = artist
-        self.onPlayTapped = onPlayTapped
+        self.onTapped = onTapped
     }
 
     // MARK: - Body
 
     public var body: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(String(format: "%02d. %@", orderIndex, title))
-                    .notosans(.body2Medium)
-                    .foregroundStyle(Color.livithColor(.white100))
-                    .lineLimit(1)
+        Button(action: onTapped) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(format: "%02d. %@", orderIndex, title))
+                        .notosans(.body2Medium)
+                        .foregroundStyle(Color.livithColor(.white100))
+                        .lineLimit(1)
 
-                Text(artist)
-                    .notosans(.caption1Regular)
-                    .foregroundStyle(Color.livithColor(.black50))
-                    .lineLimit(1)
+                    Text(artist)
+                        .notosans(.caption1Regular)
+                        .foregroundStyle(Color.livithColor(.black50))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Image.livithIcon(.playFillDefault)
+                    .resizable()
+                    .frame(width: 32, height: 32)
             }
-
-            Spacer()
-
-            playButton
+            .padding(.horizontal, 20)
+            .padding(.vertical, 11)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 11)
-    }
-}
-
-// MARK: - Subviews
-
-private extension SongRowView {
-    var playButton: some View {
-        Button(action: onPlayTapped) {
-            Image.livithIcon(.playFillDefault)
-                .resizable()
-                .frame(width: 32, height: 32)
-        }
+        .buttonStyle(.plain)
     }
 }
 
