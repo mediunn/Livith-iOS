@@ -27,7 +27,7 @@ struct SetlistMapperTests {
                 id: 1,
                 title: "2025 콘서트 Day1",
                 imageURL: "https://example.com/setlist.jpg",
-                type: "ONGOING",
+                type: "EXPECTED",
                 startDate: "2025.01.01",
                 endDate: "2025.01.01",
                 status: "예상",
@@ -43,7 +43,6 @@ struct SetlistMapperTests {
         #expect(result.count == 1)
         #expect(result[0].id == 1)
         #expect(result[0].title == "2025 콘서트 Day1")
-        #expect(result[0].type == .ongoing)
         #expect(result[0].status == .expected)
     }
 
@@ -55,7 +54,7 @@ struct SetlistMapperTests {
                 id: 1,
                 title: "2025 콘서트",
                 imageURL: nil,
-                type: "ONGOING",
+                type: "EXPECTED",
                 startDate: "2025.01.01",
                 endDate: "2025.01.01",
                 status: nil,
@@ -72,16 +71,16 @@ struct SetlistMapperTests {
         #expect(result[0].status == .none)
     }
 
-    @Test("잘못된 타입으로 셋리스트 매핑 실패")
-    func test_셋리스트목록매핑_잘못된타입_빈목록반환() {
+    @Test("잘못된 날짜로 셋리스트 목록 매핑 실패")
+    func test_셋리스트목록매핑_잘못된날짜_빈목록반환() {
         // Given
         let response: DTO.Response.FetchConcertSetlistList = [
             DTO.Response.ConcertSetlist(
                 id: 1,
                 title: "2025 콘서트",
                 imageURL: nil,
-                type: "INVALID_TYPE",
-                startDate: "2025.01.01",
+                type: "EXPECTED",
+                startDate: "invalid-date",
                 endDate: "2025.01.01",
                 status: "예상",
                 venue: "올림픽공원",
@@ -105,7 +104,7 @@ struct SetlistMapperTests {
             id: 1,
             title: "2025 콘서트 Day1",
             imageURL: "https://example.com/setlist.jpg",
-            type: "ONGOING",
+            type: "EXPECTED",
             startDate: "2025.01.01",
             endDate: "2025.01.01",
             status: "최근",
@@ -119,7 +118,6 @@ struct SetlistMapperTests {
         // Then
         #expect(result != nil)
         #expect(result?.id == 1)
-        #expect(result?.type == .ongoing)
         #expect(result?.status == .recent)
     }
 
@@ -130,7 +128,7 @@ struct SetlistMapperTests {
             id: 1,
             title: "2025 콘서트",
             imageURL: nil,
-            type: "ONGOING",
+            type: "EXPECTED",
             startDate: "invalid-date",
             endDate: "2025.01.01",
             status: "예상",

@@ -122,8 +122,7 @@ struct ConcertMapper {
     func toDomain(from response: DTO.Response.FetchConcertSetlistList) -> [ConcertSetlist] {
         response.compactMap { setlist in
             guard let startDate = Self.dotDateFormatter.date(from: setlist.startDate),
-                  let endDate = Self.dotDateFormatter.date(from: setlist.endDate),
-                  let type = ConcertStatus(rawValue: setlist.type) else {
+                  let endDate = Self.dotDateFormatter.date(from: setlist.endDate) else {
                 return nil
             }
 
@@ -133,7 +132,6 @@ struct ConcertMapper {
                 id: setlist.id,
                 title: setlist.title,
                 imageURL: setlist.imageURL,
-                type: type,
                 startDate: startDate,
                 endDate: endDate,
                 status: status,
@@ -211,8 +209,7 @@ struct ConcertMapper {
 
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> ConcertSetlist? {
         guard let startDate = Self.dotDateFormatter.date(from: response.startDate),
-              let endDate = Self.dotDateFormatter.date(from: response.endDate),
-              let type = ConcertStatus(rawValue: response.type) else {
+              let endDate = Self.dotDateFormatter.date(from: response.endDate) else {
             return nil
         }
 
@@ -222,7 +219,6 @@ struct ConcertMapper {
             id: response.id,
             title: response.title,
             imageURL: response.imageURL,
-            type: type,
             startDate: startDate,
             endDate: endDate,
             status: status,
