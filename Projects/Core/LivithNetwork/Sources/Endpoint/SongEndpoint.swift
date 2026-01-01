@@ -19,7 +19,7 @@ extension SongEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .fetchSongLyrics(let songID):
-            return "/api/v4/songs/\(songID)/lyrics"
+            return "/api/v4/songs/\(songID)"
         case .fetchSongFanchant(let setlistID, let songID):
             return "/api/v4/setlists/\(setlistID)/songs/\(songID)/fanchant"
         }
