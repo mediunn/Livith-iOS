@@ -26,6 +26,7 @@ public enum LivithToastType {
 
 public enum LivithToastPosition {
     case top
+    case safeAreaTop
     case aboveKeyboard
 }
 
@@ -86,10 +87,12 @@ private struct LivithToastModifier: ViewModifier {
                     GeometryReader { geometry in
                         let toastHeight: CGFloat = 54
                         let toastY: CGFloat = {
-                            if position == .top {
-                                return geometry.safeAreaInsets.top + topPadding + toastHeight / 2
-                            } else {
-                                // 토스트 하단이 키보드 상단에서 keyboardSpacing 위에 위치
+                            switch position {
+                            case .top:
+                                return geometry.safeAreaInsets.top + topPadding
+                            case .safeAreaTop:
+                                return geometry.safeAreaInsets.top
+                            case .aboveKeyboard:
                                 return geometry.size.height - keyboardHeight - keyboardSpacing - toastHeight / 2
                             }
                         }()

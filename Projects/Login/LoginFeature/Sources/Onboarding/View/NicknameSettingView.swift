@@ -59,7 +59,8 @@ struct NicknameSettingView: View {
             ),
             type: .failure,
             message: store.state.errorMessage,
-            duration: 2
+            duration: 2,
+            position: .safeAreaTop
         )
         .ignoresSafeArea(.all, edges: .bottom)
         .onChange(of: store.state.signupStatus) {

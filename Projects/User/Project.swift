@@ -15,7 +15,8 @@ let project = Project.make(
             dependencies: [
                 .user(.userDomain),
                 .core(.livithNetwork),
-                .core(.diContainer)
+                .core(.diContainer),
+                .core(.persistence)
             ]
         ),
         .make(
@@ -29,7 +30,8 @@ let project = Project.make(
                 .user(.userDomain),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency)
+                .core(.livithConcurrency),
+                .core(.livithNetwork)
             ]
         )
     ]

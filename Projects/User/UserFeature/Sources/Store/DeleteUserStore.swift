@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import LivithNetwork
 import UserDomain
 
 enum DeleteUserReason: String, CaseIterable {
@@ -40,6 +41,7 @@ enum DeleteUserIntent {
 
 final class DeleteUserStore: ObservableObject {
     @Published private(set) var state = DeleteUserState()
+    @Injected private var repository: UserRepository
 
     private let maxOtherReasonLength = 200
 
@@ -90,8 +92,9 @@ private extension DeleteUserStore {
 
         Task {
             do {
-                // TODO: 실제 탈퇴 API 호출
-                try await Task.sleep(for: .seconds(1))
+                let reason = buildReasonString()
+                try await repository.deleteUser(reason: reason)
+
                 await MainActor.run {
                     send(._setDeleteUserResult(.success))
                 }
@@ -101,5 +104,17 @@ private extension DeleteUserStore {
                 }
             }
         }
+    }
+
+    func buildReasonString() -> String {
+        var reasons = state.selectedReasons
+            .filter { $0 != .other }
+            .map { $0.rawValue }
+
+        if state.selectedReasons.contains(.other), !state.otherReasonText.isEmpty {
+            reasons.append(state.otherReasonText)
+        }
+
+        return reasons.joined(separator: ", ")
     }
 }

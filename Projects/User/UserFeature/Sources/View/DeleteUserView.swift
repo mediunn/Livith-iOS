@@ -18,6 +18,8 @@ struct DeleteUserView: View {
     @State private var isConfirmed: Bool = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var showConfirmSheet: Bool = false
+    @State private var showErrorToast: Bool = false
+    @State private var errorMessage: String = ""
 
     @ObservedObject private var store: DeleteUserStore
 
@@ -87,13 +89,17 @@ struct DeleteUserView: View {
                 case .idle:
                     break
                 case .success:
-                    // TODO: 로그인 화면으로 이동
-                    break
-                case .failure:
-                    // TODO: 에러 토스트 표시
-                    break
+                    NotificationCenter.default.post(
+                        name: .reloginRequired,
+                        object: nil,
+                        userInfo: ["toastMessage": Literals.deleteSuccessMessage]
+                    )
+                case .failure(let message):
+                    errorMessage = message
+                    showErrorToast = true
                 }
             }
+            .livithToast(isPresented: $showErrorToast, type: .failure, message: errorMessage, position: .safeAreaTop)
             .overlay {
                 customFilterSheet.ignoresSafeArea()
             }
@@ -294,6 +300,7 @@ private extension DeleteUserView {
         static let subtitle = "탈퇴 이유를 알려주시면,\n서비스 개선에 반영해 더 좋은 서비스로 찾아뵐게요"
         static let textFieldPlaceholder = "10자 이상의 사유를 작성해주세요"
         static let confirmButtonText = "탈퇴하기"
+        static let deleteSuccessMessage = "탈퇴가 완료되었어요.\n더 좋은 서비스로 다시 만나요!"
     }
 }
 

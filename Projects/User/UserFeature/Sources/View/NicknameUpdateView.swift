@@ -67,7 +67,8 @@ struct NicknameUpdateView: View {
         .livithToast(
             isPresented: $showFailureToast,
             type: .failure,
-            message: Literals.toastFailure
+            message: Literals.toastFailure,
+            position: .safeAreaTop
         )
         .onChange(of: store.state.updateResult) { _, result in
             switch result {
