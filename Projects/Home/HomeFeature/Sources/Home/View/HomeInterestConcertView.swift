@@ -14,6 +14,8 @@ import HomeDomain
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @State private var selectedTab: InterestConcertTab = .schedule
+    @State private var showBottomSheet: Bool = false
+    
     
     private let posterURL: URL? = URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")
     private let remainDays: Int = 10
@@ -64,12 +66,54 @@ struct HomeInterestConcertView: View {
             }
         }
         .background(.livithColor(.black100))
+        .overlay {
+            customBottomSheet
+                .frame(width: UIScreen.main.bounds.width)
+                .ignoresSafeArea()
+        }
     }
 }
 
 // MARK: - Subviews
 
 private extension HomeInterestConcertView {
+    var customBottomSheet: some View {
+        ZStack(alignment: .bottom) {
+            Color.black
+                .opacity(showBottomSheet ? 0.4 : 0)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    showBottomSheet = false
+                }
+                .allowsHitTesting(showBottomSheet)
+                .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
+            
+            VStack(spacing: 0) {
+                HomeInterestConcertBottomSheetView(
+                    onChangeMainConcert: {
+                        showBottomSheet = false
+                        // TODO: 코디네이터로 관심콘서트 설정 화면 이동하기
+                    },
+                    onDeleteConcert: {
+                        showBottomSheet = false
+                        // TODO: Delete concert logic
+                    }
+                )
+            }
+            .background(.livithColor(.black90))
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 24,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 24
+                )
+            )
+            .offset(y: showBottomSheet ? 0 : UIScreen.main.bounds.height)
+            .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
+        }
+    }
+    
     var textHeaderView: some View {
         HStack(spacing: .zero) {
             Text("나의 관심 콘서트")
@@ -80,7 +124,7 @@ private extension HomeInterestConcertView {
             Spacer()
             
             Button {
-                
+                showBottomSheet = true
             } label: {
                 Text("수정하기")
                     .notosans(.body4Regular)
