@@ -17,26 +17,14 @@ struct SetlistSongRowView: View {
 
     let song: SetlistSong
     let onPlayTapped: () -> Void
-
-    private var isEncore: Bool {
-        song.orderIndex == 0
-    }
-
-    private var displayTitle: String {
-        if isEncore {
-            return "Ancore. \(song.title)"
-        } else {
-            return String(format: "%02d. %@", song.orderIndex, song.title)
-        }
-    }
-
+    
     // MARK: - Body
 
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(displayTitle)
-                    .notosans(.body1Semibold)
+                Text(String(format: "%02d. %@", song.orderIndex, song.title))
+                    .notosans(.body2Medium)
                     .foregroundStyle(Color.livithColor(.white100))
                     .lineLimit(1)
 
@@ -51,7 +39,7 @@ struct SetlistSongRowView: View {
             playButton
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.vertical, 11)
     }
 }
 
@@ -60,15 +48,9 @@ struct SetlistSongRowView: View {
 private extension SetlistSongRowView {
     var playButton: some View {
         Button(action: onPlayTapped) {
-            Circle()
-                .fill(Color.livithColor(.black100))
-                .frame(width: 40, height: 40)
-                .overlay {
-                    Image.livithIcon(.playFillDefault)
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .foregroundStyle(Color.livithColor(.yellow60))
-                }
+            Image.livithIcon(.playFillDefault)
+                .resizable()
+                .frame(width: 32, height: 32)
         }
     }
 }
@@ -85,13 +67,14 @@ struct SetlistSongListCard: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 10) {
             ForEach(songs) { song in
                 SetlistSongRowView(song: song) {
                     onPlaySong?(song)
                 }
             }
         }
+        .padding(.vertical, 16)
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal, 16)
