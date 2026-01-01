@@ -27,6 +27,8 @@ let project = Project.make(
                 .login(.loginFeature),
                 .search(.searchData),
                 .search(.searchFeature),
+                .setlist(.setlistData),
+                .setlist(.setlistFeature),
                 .user(.userData),
                 .user(.userFeature),
             ]
