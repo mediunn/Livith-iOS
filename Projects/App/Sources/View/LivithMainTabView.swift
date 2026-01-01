@@ -113,7 +113,12 @@ private extension LivithMainTabView {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 12)
-        .padding(.bottom, 24)
+        .padding(.bottom, 28)
         .background(Color.livithColor(.black100))
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color.livithColor(.black80))
+                .frame(height: 1)
+        }
     }
 }
