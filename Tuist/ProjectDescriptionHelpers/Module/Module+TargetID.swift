@@ -15,6 +15,7 @@ public enum TargetID {
     case login(LoginModule)
     case dsKit
     case search(SearchModule)
+    case song(SongModule)
     case setlist(SetlistModule)
     case concert(ConcertModule)
     case home(HomeModule)
@@ -27,6 +28,7 @@ public enum TargetID {
         case .dsKit: return "DSKit"
         case .login(let module): return module.rawValue
         case .search(let module): return module.rawValue
+        case .song(let module): return module.rawValue
         case .setlist(let module): return module.rawValue
         case .concert(let module): return module.rawValue
         case .home(let module): return module.rawValue
@@ -54,6 +56,8 @@ public enum TargetID {
         case .login(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .search(let module):
+            return ["\(module.rawValue)/Sources/**"]
+        case .song(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .setlist(let module):
             return ["\(module.rawValue)/Sources/**"]
