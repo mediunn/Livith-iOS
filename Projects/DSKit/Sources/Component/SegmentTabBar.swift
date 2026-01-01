@@ -15,11 +15,21 @@ import SwiftUI
 ///   - onTabSelected: 탭 선택 시 콜백 (선택된 인덱스 전달)
 public struct SegmentTabBar: View {
     
-    public let segmentTitles: [String]
-    public let selectedIndex: Int
-    public let onTabSelected: (Int) -> Void
+    let segmentTitles: [String]
+    let selectedIndex: Int
+    let onTabSelected: (Int) -> Void
     
     @Namespace private var tabNamespace
+    
+    public init(
+        segmentTitles: [String],
+        selectedIndex: Int,
+        onTabSelected: @escaping (Int) -> Void,
+    ) {
+        self.segmentTitles = segmentTitles
+        self.selectedIndex = selectedIndex
+        self.onTabSelected = onTabSelected
+    }
     
     public var body: some View {
         ZStack(alignment: .bottom) {
