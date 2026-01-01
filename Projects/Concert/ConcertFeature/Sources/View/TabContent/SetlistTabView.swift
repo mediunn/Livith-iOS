@@ -82,7 +82,7 @@ private extension SetlistTabView {
             )
             .overlay(alignment: .topLeading) {
                 if setlist.status != .none {
-                    SetlistTagView(type: setlist.status)
+                    TagChipView(text: setlist.status.displayText)
                         .padding(10)
                 }
             }
@@ -104,7 +104,6 @@ private extension SetlistTabView {
                     id: 1,
                     title: "Gen Hoshino presents MAD HOPE 202",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date(),
                     status: .expected,
@@ -115,7 +114,6 @@ private extension SetlistTabView {
                     id: 2,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
                     status: .recent,
@@ -126,7 +124,6 @@ private extension SetlistTabView {
                     id: 3,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
                     status: .recent,
@@ -137,7 +134,6 @@ private extension SetlistTabView {
                     id: 4,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
                     status: .none,

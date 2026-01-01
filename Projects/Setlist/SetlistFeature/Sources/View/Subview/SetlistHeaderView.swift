@@ -45,35 +45,35 @@ private extension SetlistHeaderView {
     var posterImage: some View {
         AsyncImageView(url: URL(string: setlist.imageURL ?? "")) {
             Rectangle()
-                .fill(Color.livithColor(.black80))
         }
-        .aspectRatio(1, contentMode: .fit)
+        .frame(height: 337)
+        .scaledToFill()
+        .clipped()
+        
     }
 
     var concertInfoOverlay: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let badgeText = setlist.type.badgeText {
-                badgeView(text: badgeText)
-                    .padding(.bottom, 16)
+                TagChipView(text: badgeText)
             }
 
             Text(setlist.title)
                 .notosans(.headSemibold)
                 .foregroundStyle(Color.livithColor(.white100))
-                .lineLimit(2)
-                .padding(.bottom, 10)
+                .padding(.bottom, 6)
 
             Text(formattedDateRange)
-                .notosans(.body2Medium)
+                .notosans(.body4Regular)
                 .foregroundStyle(Color.livithColor(.black30))
-                .padding(.bottom, 4)
+                .padding(.bottom, 2)
 
             Text(setlist.artist)
-                .notosans(.body2Medium)
+                .notosans(.caption1Regular)
                 .foregroundStyle(Color.livithColor(.black30))
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 24)
+        .padding(.bottom, 36)
     }
 
     func badgeView(text: String) -> some View {
