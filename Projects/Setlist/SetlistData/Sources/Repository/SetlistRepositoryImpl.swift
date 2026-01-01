@@ -22,10 +22,10 @@ public struct SetlistRepositoryImpl {
 }
 
 extension SetlistRepositoryImpl: SetlistRepository {
-    public func fetchSetlist(setlistID: Int) async throws(SetlistError) -> Setlist {
+    public func fetchSetlist(concertID: Int, setlistID: Int) async throws(SetlistError) -> Setlist {
         do {
             let response: DTO.Response.FetchConcertSetlist = try await service.request(
-                .fetchConcertSetlist(setlistID: setlistID)
+                .fetchSetlistDetail(concertID: concertID, setlistID: setlistID)
             )
             guard let setlist = mapper.toDomain(from: response) else {
                 throw SetlistError.invalidResponse

@@ -290,7 +290,7 @@ private extension ConcertView {
             .frame(maxWidth: UIScreen.main.bounds.width)
             .background(.livithColor(.black100))
         case .setlist:
-            SetlistTabView(setlistList: store.state.setlistList)
+            SetlistTabView(concertID: store.state.concertID, setlistList: store.state.setlistList)
                 .frame(maxWidth: UIScreen.main.bounds.width)
                 .background(.livithColor(.black100))
         case .community:

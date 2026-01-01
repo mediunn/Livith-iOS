@@ -17,6 +17,7 @@ struct SetlistTabView: View {
 
     @Environment(\.concertCoordinator) private var coordinator
 
+    let concertID: Int
     let setlistList: [ConcertSetlist]
 
     private let columns = Array(
@@ -69,19 +70,24 @@ private extension SetlistTabView {
     }
 
     func setlistCard(for setlist: ConcertSetlist) -> some View {
-        ThumbnailCard(
-            imageURL: setlist.imageURL.flatMap { URL(string: $0) },
-            title: setlist.title,
-            subtitle: formatDate(setlist),
-            flexible: true,
-            titleLineLimit: 2
-        )
-        .overlay(alignment: .topLeading) {
-            if setlist.status != .none {
-                SetlistTagView(type: setlist.status)
-                    .padding(10)
+        Button {
+            coordinator?.push(to: .setlistDetail(concertID: concertID, setlistID: setlist.id))
+        } label: {
+            ThumbnailCard(
+                imageURL: setlist.imageURL.flatMap { URL(string: $0) },
+                title: setlist.title,
+                subtitle: formatDate(setlist),
+                flexible: true,
+                titleLineLimit: 2
+            )
+            .overlay(alignment: .topLeading) {
+                if setlist.status != .none {
+                    TagChipView(text: setlist.status.displayText)
+                        .padding(10)
+                }
             }
         }
+        .buttonStyle(.plain)
     }
 
     func formatDate(_ setlist: ConcertSetlist) -> String {
@@ -92,12 +98,12 @@ private extension SetlistTabView {
 #Preview {
     ScrollView {
         SetlistTabView(
+            concertID: 1,
             setlistList: [
                 ConcertSetlist(
                     id: 1,
                     title: "Gen Hoshino presents MAD HOPE 202",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date(),
                     status: .expected,
@@ -108,7 +114,6 @@ private extension SetlistTabView {
                     id: 2,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
                     status: .recent,
@@ -119,7 +124,6 @@ private extension SetlistTabView {
                     id: 3,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
                     status: .recent,
@@ -130,7 +134,6 @@ private extension SetlistTabView {
                     id: 4,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
-                    type: .upcoming,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
                     status: .none,
@@ -144,6 +147,6 @@ private extension SetlistTabView {
 }
 
 #Preview("Empty") {
-    SetlistTabView(setlistList: [])
+    SetlistTabView(concertID: 1, setlistList: [])
         .background(Color.livithColor(.black100))
 }
