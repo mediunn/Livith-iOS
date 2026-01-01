@@ -73,7 +73,7 @@ private extension InterestConcertCardContentView {
                     .padding(.horizontal, 12)
                     .background(.livithColor(.black100))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .shadow(color: .livithColor(.white100), radius: 8)
+                    .shadow(color: .livithColor(.white100).opacity(0.3), radius: 8)
                 }
             }
             
