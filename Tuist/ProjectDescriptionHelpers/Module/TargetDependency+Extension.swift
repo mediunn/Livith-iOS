@@ -41,4 +41,8 @@ extension TargetDependency {
     public static func concert(_ module: ConcertModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.concert.path)
     }
+
+    public static func setlist(_ module: SetlistModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.setlist.path)
+    }
 }
