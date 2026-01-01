@@ -27,6 +27,23 @@ struct HomeInterestConcertView: View {
     private let songs: SongList = .sample
     
     var body: some View {
+        ZStack(alignment: .bottom) {
+            mainContent
+                .background(.livithColor(.black100))
+            
+            customBottomSheet
+                .ignoresSafeArea()
+            
+            deleteDialog
+        }
+        .animation(.easeInOut, value: showDeleteDialog)
+    }
+}
+
+// MARK: - Subviews
+
+private extension HomeInterestConcertView {
+    var mainContent: some View {
         VStack(spacing: .zero) {
             LivithLogoHeaderView()
             
@@ -65,58 +82,21 @@ struct HomeInterestConcertView: View {
                 }
             }
         }
-        .background(.livithColor(.black100))
-        .overlay {
-            customBottomSheet
-                .frame(width: UIScreen.main.bounds.width)
-                .ignoresSafeArea()
-        }
-        .overlay {
-            if showDeleteDialog {
-                LivithConfirmDialog(
-                    message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
-                    confirmTitle: "지금은 삭제할래요",
-                    cancelTitle: "잘못 눌렀어요",
-                    onConfirm: {
-                        dismissDeleteDialog()
-                        // TODO: 관심 콘서트 삭제 요청
-                    },
-                    onCancel: dismissDeleteDialog
-                )
-                .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut, value: showDeleteDialog)
     }
-}
-
-// MARK: - Subviews
-
-private extension HomeInterestConcertView {
+    
     var customBottomSheet: some View {
         ZStack(alignment: .bottom) {
             Color.black
                 .opacity(showBottomSheet ? 0.4 : 0)
                 .ignoresSafeArea()
-                .onTapGesture {
-                    showBottomSheet = false
-                }
+                .onTapGesture { showBottomSheet = false }
                 .allowsHitTesting(showBottomSheet)
                 .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
             
-            VStack(spacing: 0) {
-                HomeInterestConcertBottomSheetView(
-                    onChangeMainConcert: {
-                        showBottomSheet = false
-                        // TODO: 코디네이터로 관심콘서트 설정 화면 이동하기
-                    },
-                    onDeleteConcert: {
-                        showBottomSheet = false
-                        showDeleteDialog = true
-                        // TODO: Delete concert logic
-                    }
-                )
-            }
+            HomeInterestConcertBottomSheetView(
+                onChangeMainConcert: handleChangeMainConcert,
+                onDeleteConcert: handleDeleteConcert
+            )
             .background(.livithColor(.black90))
             .clipShape(
                 UnevenRoundedRectangle(
@@ -131,6 +111,21 @@ private extension HomeInterestConcertView {
         }
     }
     
+    var deleteDialog: some View {
+        Group {
+            if showDeleteDialog {
+                LivithConfirmDialog(
+                    message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
+                    confirmTitle: "지금은 삭제할래요",
+                    cancelTitle: "잘못 눌렀어요",
+                    onConfirm: handleDeleteConfirm,
+                    onCancel: { showDeleteDialog = false }
+                )
+                .transition(.opacity)
+            }
+        }
+    }
+    
     var textHeaderView: some View {
         HStack(spacing: .zero) {
             Text("나의 관심 콘서트")
@@ -140,9 +135,7 @@ private extension HomeInterestConcertView {
             
             Spacer()
             
-            Button {
-                showBottomSheet = true
-            } label: {
+            Button { showBottomSheet = true } label: {
                 Text("수정하기")
                     .notosans(.body4Regular)
                     .foregroundStyle(.livithColor(.black50))
@@ -157,18 +150,25 @@ private extension HomeInterestConcertView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertView {
+    func handleChangeMainConcert() {
+        showBottomSheet = false
+        // TODO: 코디네이터로 관심콘서트 설정 화면 이동하기
+    }
+    
+    func handleDeleteConcert() {
+        showBottomSheet = false
+        showDeleteDialog = true
+    }
+    
+    func handleDeleteConfirm() {
+        showDeleteDialog = false
+        // TODO: 관심 콘서트 삭제 요청
+    }
+    
     func updateSelectedTab(from index: Int) {
         if let tab = InterestConcertTab(rawValue: index) {
             selectedTab = tab
         }
-    }
-    
-    func dismissBottomSheet() {
-        showBottomSheet = false
-    }
-    
-    func dismissDeleteDialog() {
-        showDeleteDialog = false
     }
 }
 
