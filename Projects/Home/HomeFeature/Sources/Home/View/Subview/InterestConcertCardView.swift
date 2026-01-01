@@ -79,7 +79,6 @@ private extension InterestConcertCardView {
                     .padding(.bottom, 82)
             }
         }
-        .clipped()
         .mask { notchedCardShape }
         .overlay(
             notchedCardShape
@@ -98,12 +97,20 @@ private extension InterestConcertCardView {
             .stroke(
                 Color.livithColor(.black50),
                 style: StrokeStyle(
-                    lineWidth: 1.5,
+                    lineWidth: Constants.lineWidth,
                     lineCap: .butt,
                     dash: [4, 4]
                 )
             )
-            .frame(height: 1.5)
+            .frame(height: Constants.lineWidth)
+    }
+}
+
+// MARK: - Constants
+
+private extension InterestConcertCardView {
+    enum Constants {
+        static let lineWidth: CGFloat = 1.5
     }
 }
 

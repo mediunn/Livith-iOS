@@ -18,25 +18,37 @@ struct InterestConcertCardContentView: View {
     let onMoreInfoTap: () -> Void
     
     var body: some View {        
-        ZStack {
-            moreInfoButton()
-                .padding(.top, 16)
-            
+        ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: .zero) {
+                HStack {
+                    Spacer()
+                    moreInfoButton()
+                }
+                .padding(.top, 16)
+                
                 Spacer()
+                    .frame(minHeight: 148)
                 
                 remainDaysText()
+                    .padding(.bottom, 16)
                 
-                dateSection()
-                    .padding(.top, 16)
+                infoSection(icon: Image.livithIcon(.durationLine), text: date)
+                    .padding(.bottom, 4)
                 
-                locationSection()
-                    .padding(.top, 4)
-                    .padding(.bottom, 105)
+                infoSection(icon: Image.livithIcon(.locationLine), text: location)
+                
+                Spacer()
+                    .frame(height: 40)
+                
+                Text(title)
+                    .notosans(.body3Medium)
+                    .foregroundStyle(.livithColor(.black50))
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+
+                Spacer()
+                    .frame(minHeight: 24, maxHeight: 32)
             }
-            
-            titleText()
-                .padding(.bottom, 24)
         }
         .padding(.horizontal, 16)
     }
@@ -79,55 +91,24 @@ private extension InterestConcertCardContentView {
                 .notosans(.headSemibold)
                 .foregroundStyle(.livithColor(.white100))
                 .multilineTextAlignment(.leading)
+                .lineLimit(2)
             
             Spacer()
         }
     }
     
     @ViewBuilder
-    func dateSection() -> some View {
+    func infoSection(icon: Image, text: String) -> some View {
         HStack(spacing: 4) {
-            Image.livithIcon(.durationLine)
+            icon
                 .resizable()
                 .frame(width: Constants.iconSize, height: Constants.iconSize)
             
-            Text(date)
+            Text(text)
                 .notosans(.body4Regular)
                 .foregroundStyle(.livithColor(.black30))
                 .lineLimit(1)
                 .truncationMode(.tail)
-        }
-    }
-    
-    @ViewBuilder
-    func locationSection() -> some View {
-        HStack(spacing: 4) {
-            Image.livithIcon(.locationLine)
-                .resizable()
-                .frame(width: Constants.iconSize, height: Constants.iconSize)
-            
-            Text(location)
-                .notosans(.body4Regular)
-                .foregroundStyle(.livithColor(.black30))
-                .lineLimit(1)
-                .truncationMode(.tail)
-        }
-    }
-    
-    @ViewBuilder
-    func titleText() -> some View {
-        VStack(alignment: .leading, spacing: .zero) {
-            Spacer()
-            
-            HStack {
-                Text(title)
-                    .notosans(.body3Medium)
-                    .foregroundStyle(.livithColor(.black50))
-                    .lineLimit(2)
-                    .truncationMode(.tail)
-                
-                Spacer()
-            }
         }
     }
 }
@@ -146,7 +127,7 @@ private extension InterestConcertCardContentView {
             remainDays: 10,
             date: "2025.11.01~11.02",
             location: "올림픽공원 올림픽홀",
-            title: "Gen Hoshino presents\nMAD HOPE Asia Tour in SEOUL",
+            title: "Gen Hoshino presents MAD HOPE Asia Tour in SEOUL",
             onMoreInfoTap: { print("버튼이 눌렸다.") }
         )
         .frame(height: 438)

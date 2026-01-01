@@ -18,7 +18,7 @@ struct HomeInterestConcertView: View {
     private let remainDays: Int = 10
     private let date: String = "2025.11.01~11.02"
     private let location: String = "올림픽공원 올림픽홀"
-    private let title: String = "Gen Hoshino presentsMAD HOPE Asia Tour in SEOUL"
+    private let title: String = "Gen Hoshino presents MAD HOPEAsia Tour in SEOUL"
 
     var body: some View {
         VStack(spacing: .zero) {
@@ -35,7 +35,6 @@ struct HomeInterestConcertView: View {
                         location: location,
                         title: title
                     )
-//                    .frame(height: 486)
                     
                     Spacer()
                 }
