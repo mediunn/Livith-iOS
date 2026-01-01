@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import DSKit
 import LoginFeature
 import LivithNetwork
 import Persistence
@@ -17,7 +18,9 @@ struct AppRootView: View {
     @State private var isLaunchScreenVisible: Bool = true
     @State private var nickname: String = ""
     @State private var isWelcomeSheetVisible: Bool = false
-    
+    @State private var showToast: Bool = false
+    @State private var toastMessage: String = ""
+
     private let localKeyValueStorage: LocalKeyValueStorage
     
     init(localKeyValueStorage: LocalKeyValueStorage = UserDefaultsStorage()) {
@@ -33,9 +36,18 @@ struct AppRootView: View {
         .animation(.easeInOut(duration: Constants.animationDuration), value: isLaunchScreenVisible)
         .animation(.easeInOut(duration: Constants.animationDuration), value: currentRoute)
         .animation(.easeInOut(duration: Constants.animationDuration), value: isWelcomeSheetVisible)
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { _ in
-            transition(to: .login)
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { notification in
+            if let message = notification.userInfo?["toastMessage"] as? String {
+                toastMessage = message
+                transition(to: .login)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showToast = true
+                }
+            } else {
+                transition(to: .login)
+            }
         }
+        .livithToast(isPresented: $showToast, type: .success, message: toastMessage, position: .safeAreaTop)
         .onAppear {
             handleOnAppear()
         }

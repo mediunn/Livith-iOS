@@ -28,6 +28,13 @@ public struct UserErrorMapper {
             return .unknown
         }
     }
+
+    func mapToUserError(_ error: any Error) -> UserError {
+        if let networkError = error as? NetworkError {
+            return mapToUserError(networkError)
+        }
+        return .unknown
+    }
 }
 
 private extension UserErrorMapper {
