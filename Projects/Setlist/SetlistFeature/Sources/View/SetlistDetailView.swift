@@ -120,9 +120,11 @@ private extension SetlistDetailView {
                 SetlistHeaderView(setlist: setlist)
 
                 VStack(spacing: 16) {
-                    SetlistSectionHeaderView(type: setlist.type) {
-                        onReportTapped?()
-                    }
+                    SectionHeaderView(
+                        firstLine: setlist.type.displayText,
+                        onReportTapped: { onReportTapped?() }
+                    )
+                    .padding(.horizontal, 16)
                     .padding(.top, 24)
 
                     songListView
