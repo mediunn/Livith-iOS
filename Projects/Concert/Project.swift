@@ -27,6 +27,7 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .concert(.concertDomain),
+                .setlist(.setlistFeature),
                 .dsKit(),
                 .core(.diContainer),
                 .core(.livithConcurrency)
