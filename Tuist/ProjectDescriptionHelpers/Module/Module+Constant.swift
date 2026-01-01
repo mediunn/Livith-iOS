@@ -77,6 +77,15 @@ public enum SetlistModule: String {
     case setlistFeature = "SetlistFeature"
 }
 
+
+// MARK: - Song Module
+
+public enum SongModule: String {
+    case songData = "SongData"
+    case songDomain = "SongDomain"
+    case songFeature = "SongFeature"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {
@@ -85,4 +94,5 @@ public enum ExternalDependency: String {
     case kakaoSDKCommon = "KakaoSDKCommon"
     case kakaoSDKAuth = "KakaoSDKAuth"
     case kakaoSDKUser = "KakaoSDKUser"
+    case youTubePlayerKit = "YouTubePlayerKit"
 }
