@@ -46,12 +46,10 @@ private extension HomeInterestConcertView {
     var mainContent: some View {
         VStack(spacing: .zero) {
             LivithLogoHeaderView()
-                .padding(.horizontal, 16)
             
             ScrollView {
                 VStack(spacing: .zero) {
                     textHeaderView
-                        .padding(.leading, 16)
                     
                     InterestConcertCardView(
                         posterURL: posterURL,

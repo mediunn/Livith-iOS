@@ -40,7 +40,6 @@ struct ConcertScheduleTabView: View {
                 .frame(minHeight: 280)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
         .padding(.top, 20)
     }
 }

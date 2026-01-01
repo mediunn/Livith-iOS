@@ -64,7 +64,6 @@ private extension ConcertSetlistTabView {
             Spacer()
                 .frame(height: 232)
         }
-        .padding(.horizontal, 16)
     }
     
     func titleText() -> some View {
