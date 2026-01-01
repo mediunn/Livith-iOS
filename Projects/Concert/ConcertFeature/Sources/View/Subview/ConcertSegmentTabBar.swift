@@ -23,10 +23,18 @@ struct ConcertSegmentTabBar: View {
     // MARK: - Body
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 0) {
-                ForEach(ConcertTab.allCases, id: \.self) { tab in
-                    tabButton(for: tab)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(ConcertTab.allCases, id: \.self) { tab in
+                        tabButton(for: tab)
+                            .id(tab)
+                    }
+                }
+            }
+            .onChange(of: selectedTab) { _, newTab in
+                withAnimation(.easeInOut) {
+                    proxy.scrollTo(newTab, anchor: .center)
                 }
             }
         }

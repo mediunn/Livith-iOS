@@ -15,5 +15,6 @@ public struct ConcertAssembler: DependencyAssembler {
 
     public func assemble(to container: any DependencyContainer) {
         container.register(ConcertRepositoryImpl(), for: ConcertRepository.self)
+        container.register(CommentRepositoryImpl(), for: CommentRepository.self)
     }
 }

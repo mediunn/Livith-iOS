@@ -11,7 +11,7 @@ import Foundation
 public protocol CommentRepository {
     func fetchConcertComments(
         concertID: Int,
-        cursor: String?,
+        cursor: (createdAt: String, id: Int)?,
         size: Int?
     ) async throws(ConcertError) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int)
 

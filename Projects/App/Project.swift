@@ -20,6 +20,7 @@ let project = Project.make(
             entitlements: .file(path: "Resources/Livith-iOS.entitlements"),
             dependencies: [
                 .concert(.concertData),
+                .concert(.concertFeature),
                 .home(.homeData),
                 .home(.homeFeature),
                 .login(.loginData),

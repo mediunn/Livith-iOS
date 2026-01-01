@@ -20,10 +20,15 @@ extension Scheme {
         targetName: String,
         configuration: ConfigurationName
     ) -> Scheme {
+        let isDebug = configuration == .debug
+
         return Scheme.scheme(
             name: name,
             buildAction: .buildAction(targets: [.target(targetName)]),
-            runAction: .runAction(configuration: configuration),
+            runAction: .runAction(
+                configuration: configuration,
+                attachDebugger: isDebug
+            ),
             archiveAction: .archiveAction(configuration: configuration),
             profileAction: .profileAction(configuration: configuration),
             analyzeAction: .analyzeAction(configuration: configuration)

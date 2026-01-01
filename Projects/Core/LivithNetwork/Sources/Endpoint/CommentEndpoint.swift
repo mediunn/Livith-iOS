@@ -11,7 +11,7 @@ import Foundation
 public typealias CommentService = NetworkService<CommentEndpoint>
 
 public enum CommentEndpoint {
-    case fetchConcertCommentList(concertID: Int, cursor: String?, size: Int?)
+    case fetchConcertCommentList(concertID: Int, cursor: (createdAt: String, id: Int)?, size: Int?)
     case createComment(concertID: Int, content: String)
     case deleteComment(commentID: Int)
     case reportComment(commentID: Int, content: String?)
@@ -23,7 +23,7 @@ extension CommentEndpoint: NetworkEndpoint {
         case .fetchConcertCommentList(let concertID, _, _):
             return "/api/v4/concerts/\(concertID)/comments"
         case .createComment(let concertID, _):
-            return "/api/v4/concerts/\(concertID)/comment"
+            return "/api/v4/concerts/\(concertID)/comments"
         case .deleteComment(let commentID):
             return "/api/v4/comments/\(commentID)"
         case .reportComment(let commentID, _):
@@ -34,11 +34,24 @@ extension CommentEndpoint: NetworkEndpoint {
     public var query: [String: Any]? {
         switch self {
         case .fetchConcertCommentList(_, let cursor, let size):
-            let params: [String: Any?] = [
-                "cursor": cursor,
-                "size": size
-            ]
-            return params.compactMapValues { $0 }
+            var params: [String: Any] = [:]
+
+            if let cursor = cursor {
+                let cursorDict: [String: Any] = [
+                    "createdAt": cursor.createdAt,
+                    "id": cursor.id
+                ]
+                if let jsonData = try? JSONSerialization.data(withJSONObject: cursorDict),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    params["cursor"] = jsonString
+                }
+            }
+
+            if let size = size {
+                params["size"] = size
+            }
+
+            return params.isEmpty ? nil : params
         default:
             return nil
         }

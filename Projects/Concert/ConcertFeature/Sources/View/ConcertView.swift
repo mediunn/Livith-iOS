@@ -21,6 +21,7 @@ public struct ConcertView: View {
     @Environment(\.concertCoordinator) private var coordinator
 
     @ObservedObject private var store: ConcertStore
+    @StateObject private var communityStore: CommunityStore = CommunityStore()
     @State private var showInterestConfirmDialog: Bool = false
 
     // MARK: - Initializer
@@ -39,6 +40,18 @@ public struct ConcertView: View {
 
     private var showEmptyView: Bool {
         !store.state.isLoading && store.state.concert == nil
+    }
+
+    private var communityToastType: LivithToastType {
+        if case .failure = communityStore.state.toastState { return .failure }
+        return .success
+    }
+
+    private var communityToastMessage: String {
+        switch communityStore.state.toastState {
+        case .success(let msg), .failure(let msg): return msg
+        case .none: return ""
+        }
     }
 
     public var body: some View {
@@ -67,11 +80,33 @@ public struct ConcertView: View {
                         .opacity(store.state.concert != nil ? 1 : 0)
                         .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
                     }
+                    .scrollDismissesKeyboard(.interactively)
                     .onChange(of: store.state.selectedTab) {
                         withAnimation {
                             proxy.scrollTo("top", anchor: .top)
                         }
                     }
+                    .onChange(of: communityStore.state.toastState) { _, newValue in
+                        if case .success(let message) = newValue, message.contains("작성") {
+                            withAnimation {
+                                proxy.scrollTo("top", anchor: .top)
+                            }
+                        }
+                    }
+                }
+
+                if store.state.selectedTab == .community {
+                    CommentInputView(
+                        text: Binding(
+                            get: { communityStore.state.commentText },
+                            set: { communityStore.send(.updateCommentText($0)) }
+                        ),
+                        isSubmitting: communityStore.state.isSubmitting,
+                        onSubmit: {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            communityStore.send(.submitComment)
+                        }
+                    )
                 }
             }
         }
@@ -85,7 +120,8 @@ public struct ConcertView: View {
                 set: { _ in store.send(.onToastDisappear) }
             ),
             type: .failure,
-            message: store.state.interestStatus.message
+            message: store.state.interestStatus.message,
+            topPadding: 16
         )
         .livithToast(
             isPresented: Binding(
@@ -96,7 +132,8 @@ public struct ConcertView: View {
                 set: { _ in store.send(.onToastDisappear) }
             ),
             type: .success,
-            message: store.state.interestStatus.message
+            message: store.state.interestStatus.message,
+            topPadding: 16
         )
         .livithToast(
             isPresented: Binding(
@@ -104,7 +141,8 @@ public struct ConcertView: View {
                 set: { _ in store.send(.onFetchErrorDismiss) }
             ),
             type: .failure,
-            message: store.state.fetchError ?? ""
+            message: store.state.fetchError ?? "",
+            topPadding: 16
         )
         .overlay {
             if showInterestConfirmDialog {
@@ -125,6 +163,48 @@ public struct ConcertView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: showInterestConfirmDialog)
         .overlay {
+            switch communityStore.state.dialogState {
+            case .delete:
+                LivithConfirmDialog(
+                    message: "댓글을 삭제하시겠어요?",
+                    confirmTitle: "지금은 삭제할래요",
+                    cancelTitle: "잘못 눌렀어요",
+                    onConfirm: {
+                        communityStore.send(.confirmDelete)
+                    },
+                    onCancel: {
+                        communityStore.send(.dismissDialog)
+                    }
+                )
+                .transition(.opacity)
+            case .report:
+                LivithReportDialog(
+                    message: "댓글을 신고하시겠어요?",
+                    confirmTitle: "신고할래요",
+                    cancelTitle: "잘못 눌렀어요",
+                    onConfirm: { content in
+                        communityStore.send(.confirmReport(content: content))
+                    },
+                    onCancel: {
+                        communityStore.send(.dismissDialog)
+                    }
+                )
+                .transition(.opacity)
+            case .none:
+                EmptyView()
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: communityStore.state.dialogState)
+        .livithToast(
+            isPresented: Binding(
+                get: { communityStore.state.toastState != .none },
+                set: { if !$0 { communityStore.send(.dismissToast) } }
+            ),
+            type: communityToastType,
+            message: communityToastMessage,
+            topPadding: 16
+        )
+        .overlay {
             if store.state.showTicketReturnBanner {
                 TicketReturnBanner(
                     onSettingTapped: {
@@ -141,6 +221,7 @@ public struct ConcertView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
         .onAppear {
             store.send(.onAppear(concertID: concertID))
+            communityStore.send(.onAppear(concertID: concertID))
             coordinator?.onTicketSiteReturn = { [weak store] in
                 store?.send(.onTicketSiteReturn)
             }
@@ -173,7 +254,7 @@ private extension ConcertView {
     var segmentTabBar: some View {
         ConcertSegmentTabBar(
             selectedTab: store.state.selectedTab,
-            communityCount: store.state.communityCount,
+            communityCount: communityStore.state.totalCount,
             onTabSelected: { tab in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     store.send(.tabSelected(tab))
@@ -213,7 +294,7 @@ private extension ConcertView {
                 .frame(maxWidth: UIScreen.main.bounds.width)
                 .background(.livithColor(.black100))
         case .community:
-            CommunityTabView()
+            CommunityTabView(store: communityStore)
         }
     }
 }
