@@ -21,7 +21,7 @@ struct HomeInterestConcertView: View {
     private let remainDays: Int = 10
     private let date: String = "2025.11.01~11.02"
     private let location: String = "올림픽공원 올림픽홀"
-    private let title: String = "Gen Hoshino presents MAD HOPEAsia Tour in SEOUL"
+    private let title: String = "Gen Hoshino presents \n MAD HOPEAsia Tour in SEOUL"
     private let concertScheduleList: ConcertScheduleList = .mock()
     private let setlist: SetlistItem = .sample
     private let songs: SongList = .sample
@@ -46,10 +46,12 @@ private extension HomeInterestConcertView {
     var mainContent: some View {
         VStack(spacing: .zero) {
             LivithLogoHeaderView()
+                .padding(.horizontal, 16)
             
             ScrollView {
                 VStack(spacing: .zero) {
                     textHeaderView
+                        .padding(.leading, 16)
                     
                     InterestConcertCardView(
                         posterURL: posterURL,
@@ -80,6 +82,9 @@ private extension HomeInterestConcertView {
                     }
                     .padding(.horizontal, 16)
                 }
+            }
+            .refreshable {
+                
             }
         }
     }
