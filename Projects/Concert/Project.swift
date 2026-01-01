@@ -14,6 +14,7 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .concert(.concertDomain),
+                .core(.diContainer),
                 .core(.livithNetwork)
             ]
         ),

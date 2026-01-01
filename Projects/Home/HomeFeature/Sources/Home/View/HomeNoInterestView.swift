@@ -8,8 +8,9 @@
 
 import SwiftUI
 
-import DSKit
 import HomeDomain
+
+import DSKit
 
 struct HomeNoInterestView: View {
     @Binding var nickname: String
@@ -44,6 +45,7 @@ struct HomeNoInterestView: View {
             }
             .refreshable { store.send(.onRefresh) }
             .ignoresSafeArea(edges: .bottom)
+            .onAppear { store.send(.onAppear) }
         }
         .background(.livithColor(.black90))
     }
@@ -60,7 +62,7 @@ private extension HomeNoInterestView {
         ConcertSectionView(
             concertSection: section,
             onConcertTap: { concert in
-                coordinator?.push(to: .concertDetail(concertID: concert.id))
+                coordinator?.showConcertDetail(concertID: concert.id)
             }
         )
     }

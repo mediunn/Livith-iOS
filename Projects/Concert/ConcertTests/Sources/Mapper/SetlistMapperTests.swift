@@ -28,9 +28,9 @@ struct SetlistMapperTests {
                 title: "2025 콘서트 Day1",
                 imageURL: "https://example.com/setlist.jpg",
                 type: "ONGOING",
-                startDate: "2025-01-01T18:00:00Z",
-                endDate: "2025-01-01T21:00:00Z",
-                status: "expected",
+                startDate: "2025.01.01",
+                endDate: "2025.01.01",
+                status: "예상",
                 venue: "올림픽공원",
                 artist: "아티스트"
             )
@@ -56,8 +56,8 @@ struct SetlistMapperTests {
                 title: "2025 콘서트",
                 imageURL: nil,
                 type: "ONGOING",
-                startDate: "2025-01-01T18:00:00Z",
-                endDate: "2025-01-01T21:00:00Z",
+                startDate: "2025.01.01",
+                endDate: "2025.01.01",
                 status: nil,
                 venue: "올림픽공원",
                 artist: "아티스트"
@@ -81,9 +81,9 @@ struct SetlistMapperTests {
                 title: "2025 콘서트",
                 imageURL: nil,
                 type: "INVALID_TYPE",
-                startDate: "2025-01-01T18:00:00Z",
-                endDate: "2025-01-01T21:00:00Z",
-                status: "expected",
+                startDate: "2025.01.01",
+                endDate: "2025.01.01",
+                status: "예상",
                 venue: "올림픽공원",
                 artist: "아티스트"
             )
@@ -106,8 +106,8 @@ struct SetlistMapperTests {
             title: "2025 콘서트 Day1",
             imageURL: "https://example.com/setlist.jpg",
             type: "ONGOING",
-            startDate: "2025-01-01T18:00:00Z",
-            endDate: "2025-01-01T21:00:00Z",
+            startDate: "2025.01.01",
+            endDate: "2025.01.01",
             status: "최근",
             venue: "올림픽공원",
             artist: "아티스트"
@@ -132,8 +132,8 @@ struct SetlistMapperTests {
             imageURL: nil,
             type: "ONGOING",
             startDate: "invalid-date",
-            endDate: "2025-01-01T21:00:00Z",
-            status: "expected",
+            endDate: "2025.01.01",
+            status: "예상",
             venue: "올림픽공원",
             artist: "아티스트"
         )

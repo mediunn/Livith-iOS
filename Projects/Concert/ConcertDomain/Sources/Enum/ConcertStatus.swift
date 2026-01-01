@@ -13,6 +13,7 @@ public enum ConcertStatus: String, CaseIterable {
     case upcoming = "UPCOMING"
     case completed = "COMPLETED"
     case canceled = "CANCELED"
+    case past = "PAST"
 }
 
 public extension ConcertStatus {
@@ -22,7 +23,7 @@ public extension ConcertStatus {
             return "진행중"
         case .upcoming:
             return "D-"
-        case .completed:
+        case .completed, .past:
             return "종료"
         case .canceled:
             return "공연취소"
@@ -35,7 +36,7 @@ public extension ConcertStatus {
             return "진행중"
         case .upcoming:
             return "진행예정"
-        case .completed:
+        case .completed, .past:
             return "진행완료"
         case .canceled:
             return "공연취소"

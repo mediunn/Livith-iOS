@@ -19,8 +19,18 @@ struct ConcertMapper {
         return formatter
     }()
 
-    private static let iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
+    private static let iso8601Formatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        return formatter
+    }()
+
+    private static let dotDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter
     }()
 
@@ -81,6 +91,19 @@ struct ConcertMapper {
         }
     }
 
+    // MARK: - Concert Info
+
+    func toDomain(from response: DTO.Response.FetchConcertInfoList) -> [ConcertInfo] {
+        response.map { info in
+            ConcertInfo(
+                id: info.id,
+                imageURL: info.imageURL ?? "",
+                title: info.category,
+                description: info.content
+            )
+        }
+    }
+
     // MARK: - Merchandise
 
     func toDomain(from response: DTO.Response.FetchConcertMerchandiseList) -> [ConcertMerchandise] {
@@ -98,8 +121,8 @@ struct ConcertMapper {
 
     func toDomain(from response: DTO.Response.FetchConcertSetlistList) -> [ConcertSetlist] {
         response.compactMap { setlist in
-            guard let startDate = Self.iso8601Formatter.date(from: setlist.startDate),
-                  let endDate = Self.iso8601Formatter.date(from: setlist.endDate),
+            guard let startDate = Self.dotDateFormatter.date(from: setlist.startDate),
+                  let endDate = Self.dotDateFormatter.date(from: setlist.endDate),
                   let type = ConcertStatus(rawValue: setlist.type) else {
                 return nil
             }
@@ -126,7 +149,7 @@ struct ConcertMapper {
         Artist(
             id: response.id,
             name: response.artist,
-            debutYear: response.debutYear,
+            debutYear: formatDebutYear(response.debutYear),
             category: response.category,
             imageURL: response.imageURL,
             detail: response.detail,
@@ -135,9 +158,18 @@ struct ConcertMapper {
         )
     }
 
+    private func formatDebutYear(_ yearString: String) -> String {
+        if let doubleValue = Double(yearString) {
+            return String(Int(doubleValue))
+        }
+        return yearString
+    }
+
     // MARK: - Comment
 
     func toDomain(from response: DTO.Response.FetchConcertCommentList) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int) {
+        let currentUserID = getCurrentUserID()
+
         let comments = response.data.map { comment in
             ConcertComment(
                 id: comment.id,
@@ -145,13 +177,22 @@ struct ConcertMapper {
                 nickname: comment.nickname,
                 concertID: comment.concertID,
                 content: comment.content,
-                createdAt: comment.createdAt
+                createdAt: comment.createdAt,
+                isMine: comment.userID == currentUserID
             )
         }
 
         let cursor = response.cursor.map { ($0.createdAt, $0.id) }
 
         return (comments, cursor, response.totalCount)
+    }
+
+    private func getCurrentUserID() -> Int? {
+        guard let data = UserDefaults.standard.data(forKey: "currentUser"),
+              let user = try? JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: data) else {
+            return nil
+        }
+        return user.id
     }
 
     func toDomain(from response: DTO.Response.CreateConcertComment) -> ConcertComment {
@@ -161,15 +202,16 @@ struct ConcertMapper {
             nickname: response.nickname,
             concertID: response.concertID,
             content: response.content,
-            createdAt: response.createdAt
+            createdAt: response.createdAt,
+            isMine: true
         )
     }
 
     // MARK: - Setlist Detail
 
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> ConcertSetlist? {
-        guard let startDate = Self.iso8601Formatter.date(from: response.startDate),
-              let endDate = Self.iso8601Formatter.date(from: response.endDate),
+        guard let startDate = Self.dotDateFormatter.date(from: response.startDate),
+              let endDate = Self.dotDateFormatter.date(from: response.endDate),
               let type = ConcertStatus(rawValue: response.type) else {
             return nil
         }

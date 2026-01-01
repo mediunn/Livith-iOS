@@ -15,6 +15,7 @@ public struct ConcertComment: Identifiable, Hashable {
     public let concertID: Int
     public let content: String
     public let createdAt: String
+    public let isMine: Bool
 
     public init(
         id: Int,
@@ -22,7 +23,8 @@ public struct ConcertComment: Identifiable, Hashable {
         nickname: String,
         concertID: Int,
         content: String,
-        createdAt: String
+        createdAt: String,
+        isMine: Bool = false
     ) {
         self.id = id
         self.userID = userID
@@ -30,5 +32,6 @@ public struct ConcertComment: Identifiable, Hashable {
         self.concertID = concertID
         self.content = content
         self.createdAt = createdAt
+        self.isMine = isMine
     }
 }
