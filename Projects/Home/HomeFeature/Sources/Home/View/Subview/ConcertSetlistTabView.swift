@@ -12,6 +12,9 @@ import DSKit
 
 struct ConcertSetlistTabView: View {
     let selist: SetlistItem
+    let songs: SongList
+    let onSongTap: (Int) -> Void
+    let onMoreTap: (Int) -> Void
     
     var body: some View {
         contentView()
@@ -39,11 +42,27 @@ private extension ConcertSetlistTabView {
             titleText()
                 .padding(.top, 24)
             
-            concertCard(concert: .sample)
+            setlistCard(concert: .sample)
                 .padding(.top, 20)
             
+            VStack(spacing: .zero) {
+                ForEach(songs, id: \.self) { song in
+                    SongRowView(
+                        orderIndex: song.orderIndex,
+                        title: song.title,
+                        artist: song.artist,
+                        onPlayTapped: { onSongTap(song.id) }
+                    )
+                    .padding(.vertical, 12)
+                }
+                moreButton()
+            }
+            .background(.livithColor(.black90))
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .padding(.top, 20)
+            
             Spacer()
-                .frame(height: 1000)
+                .frame(height: 232)
         }
         .padding(.horizontal, 16)
     }
@@ -56,7 +75,7 @@ private extension ConcertSetlistTabView {
             .lineLimit(2)
     }
     
-    func concertCard(concert: SetlistItem) -> some View {
+    func setlistCard(concert: SetlistItem) -> some View {
         HStack(spacing: 16) {
             posterImageView(urlString: concert.posterURL)
                 .padding([.vertical, .leading], 12)
@@ -109,6 +128,25 @@ private extension ConcertSetlistTabView {
                     .fill(.livithColor(.black100))
             )
     }
+    
+    func moreButton() -> some View {
+        Button {
+            onMoreTap(selist.id)
+        } label: {
+            HStack(spacing: 8) {
+                Text("더 많은 노래를 확인해 보세요")
+                    .notosans(.body4Regular)
+                    .foregroundStyle(.livithColor(.black50))
+
+                Image.livithIcon(.linkGrayFill)
+                    .resizable()
+                    .frame(width: 12, height: 12)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+        }
+        .background(.livithColor(.black80))
+    }
 }
 // MARK: - Constants
 
@@ -120,7 +158,12 @@ private extension ConcertSetlistTabView {
 
 #Preview {
     ScrollView {
-        ConcertSetlistTabView(selist: .sample)
+        ConcertSetlistTabView(
+            selist: .sample,
+            songs: .sample,
+            onSongTap: { id in print("눌렸다. \(id)") },
+            onMoreTap: { id in print("더보기. \(id)") }
+        )
     }
     .background(.livithColor(.black100))
 }

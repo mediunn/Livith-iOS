@@ -22,6 +22,7 @@ struct HomeInterestConcertView: View {
     private let title: String = "Gen Hoshino presents MAD HOPEAsia Tour in SEOUL"
     private let concertScheduleList: ConcertScheduleList = .mock()
     private let setlist: SetlistItem = .sample
+    private let songs: SongList = .sample
     
     var body: some View {
         VStack(spacing: .zero) {
@@ -50,7 +51,12 @@ struct HomeInterestConcertView: View {
                         if selectedTab == .schedule {
                             ConcertScheduleTabView(schedules: concertScheduleList)
                         } else {
-                            ConcertSetlistTabView(selist: setlist)
+                            ConcertSetlistTabView(
+                                selist: setlist,
+                                songs: songs,
+                                onSongTap: { _ in },
+                                onMoreTap: { _ in }
+                            )
                         }
                     }
                     .padding(.horizontal, 16)
