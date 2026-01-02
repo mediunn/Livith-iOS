@@ -84,22 +84,22 @@ private extension ConcertSetlistTabView {
     func setlistCard(setlist: Setlist) -> some View {
         HStack(spacing: 16) {
             posterImageView(urlString: setlist.imageURL ?? "")
-                .padding([.vertical, .leading], 12)
+                .padding([.vertical, .leading], 16)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(setlist.title)
-                    .notosans(.body1Semibold)
+                    .notosans(.body2Medium)
                     .foregroundStyle(.livithColor(.black100))
                     .lineLimit(1)
                 
                 Text(setlist.artist)
-                    .notosans(.body2Regular)
+                    .notosans(.body4Regular)
                     .foregroundStyle(.livithColor(.black80))
                     .lineLimit(1)
                 
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     tagView(text: setlist.venue)
-                    tagView(text: formatDateRange(start: setlist.startDate, end: setlist.endDate))
+                    tagView(text: formatDate(setlist.startDate))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,23 +158,14 @@ private extension ConcertSetlistTabView {
 // MARK: - Helpers
 
 private extension ConcertSetlistTabView {
-    static let yearFormatter: DateFormatter = {
+    static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
-        f.dateFormat = "yyyy.MM.dd"
+        f.dateFormat = "yyyy년 M월 d일"
         return f
     }()
 
-    static let noYearFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "MM.dd"
-        return f
-    }()
-
-    func formatDateRange(start: Date, end: Date) -> String {
-        let startDateString = Self.yearFormatter.string(from: start)
-        let endDateString = Self.noYearFormatter.string(from: end)
-
-        return "\(startDateString) ~ \(endDateString)"
+    func formatDate(_ date: Date) -> String {
+        Self.dateFormatter.string(from: date)
     }
 }
 
