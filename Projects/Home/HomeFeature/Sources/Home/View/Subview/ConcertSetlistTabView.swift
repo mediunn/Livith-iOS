@@ -53,7 +53,7 @@ private extension ConcertSetlistTabView {
             }
             
             VStack(spacing: .zero) {
-                ForEach(songs, id: \.self) { song in
+                ForEach(songs.prefix(3), id: \.self) { song in
                     SongRowView(
                         orderIndex: song.orderIndex,
                         title: song.title,
