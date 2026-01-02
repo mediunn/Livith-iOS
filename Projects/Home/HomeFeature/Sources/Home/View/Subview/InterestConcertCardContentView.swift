@@ -83,14 +83,32 @@ private extension InterestConcertCardContentView {
     
     @ViewBuilder
     func remainDaysText() -> some View {
-        let text = "콘서트까지 D-\(remainDays)\n알차게 즐기고 오셨나요?"
+        let condition = remainDays >= 0
+        let dDayText = condition ? "D-\(remainDays)" : "D+\(abs(remainDays))"
+        let composed: Text = {
+            if condition {
+                Text("콘서트까지 ")
+                    .foregroundStyle(.livithColor(.white100))
+                + Text(dDayText)
+                    .foregroundStyle(.livithColor(.yellow30))
+                + Text("\n준비를 시작해 볼까요?")
+                    .foregroundStyle(.livithColor(.white100))
+            } else {
+                Text("콘서트 ")
+                    .foregroundStyle(.livithColor(.white100))
+                + Text(dDayText)
+                    .foregroundStyle(.livithColor(.yellow30))
+                + Text("\n알차게 즐기고 오셨나요?")
+                    .foregroundStyle(.livithColor(.white100))
+            }
+        }()
+
         HStack {
-            Text(text)
+            composed
                 .notosans(.headSemibold)
-                .foregroundStyle(.livithColor(.white100))
                 .multilineTextAlignment(.leading)
                 .lineLimit(2)
-            
+
             Spacer()
         }
     }
