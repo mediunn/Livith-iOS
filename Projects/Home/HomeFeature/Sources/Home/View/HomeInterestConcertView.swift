@@ -14,13 +14,15 @@ import HomeDomain
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeInterestConcertStore
-    
+    @Binding private var isTabBarHidden: Bool
+
     @State private var selectedTab: InterestConcertTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
-    init(store: HomeInterestConcertStore) {
+    init(store: HomeInterestConcertStore, isTabBarHidden: Binding<Bool>) {
         self.store = store
+        self._isTabBarHidden = isTabBarHidden
     }
     
     var body: some View {
@@ -72,8 +74,12 @@ private extension HomeInterestConcertView {
                             ConcertSetlistTabView(
                                 setlist: store.state.setlist,
                                 songs: store.state.songList,
-                                onSongTap: { _ in },
-                                onMoreTap: { _ in }
+                                onSongTap: { _ in
+                                    // TODO: 곡 상세 화면으로 이동
+                                },
+                                onMoreTap: { _ in
+                                    // TODO: 셋리스트 상세 화면으로 이동
+                                }
                             )
                         }
                     }
@@ -91,7 +97,7 @@ private extension HomeInterestConcertView {
             Color.black
                 .opacity(showBottomSheet ? 0.4 : 0)
                 .ignoresSafeArea()
-                .onTapGesture { showBottomSheet = false }
+                .onTapGesture { showBottomSheet(flag: false) }
                 .allowsHitTesting(showBottomSheet)
                 .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
             
@@ -121,7 +127,10 @@ private extension HomeInterestConcertView {
                     confirmTitle: "지금은 삭제할래요",
                     cancelTitle: "잘못 눌렀어요",
                     onConfirm: handleDeleteConfirm,
-                    onCancel: { showDeleteDialog = false }
+                    onCancel: {
+                        showDeleteDialog = false
+                        isTabBarHidden = false
+                    }
                 )
                 .transition(.opacity)
             }
@@ -137,7 +146,9 @@ private extension HomeInterestConcertView {
             
             Spacer()
             
-            Button { showBottomSheet = true } label: {
+            Button {
+                showBottomSheet(flag: true)
+            } label: {
                 Text("수정하기")
                     .notosans(.body4Regular)
                     .foregroundStyle(.livithColor(.black50))
@@ -152,9 +163,14 @@ private extension HomeInterestConcertView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertView {
+    func showBottomSheet(flag: Bool) {
+        self.isTabBarHidden = flag
+        self.showBottomSheet = flag
+    }
+    
     func handleChangeMainConcert() {
-        showBottomSheet = false
-        // TODO: 코디네이터로 관심콘서트 설정 화면 이동하기
+        showBottomSheet(flag: false)
+        coordinator?.push(to: .interest)
     }
     
     func handleDeleteConcert() {
@@ -164,7 +180,9 @@ private extension HomeInterestConcertView {
     
     func handleDeleteConfirm() {
         showDeleteDialog = false
-        // TODO: 관심 콘서트 삭제 요청
+        isTabBarHidden = false
+        
+        store.send(.onDelete)
     }
     
     func updateSelectedTab(from index: Int) {

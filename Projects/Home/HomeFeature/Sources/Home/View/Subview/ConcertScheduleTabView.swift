@@ -15,11 +15,11 @@ struct ConcertScheduleTabView: View {
     private let schedules: ConcertScheduleList
     
     init(schedules: ConcertScheduleList) {
+        print(">>> [\(#line): \(#function)] - \(schedules)")
         self.schedules = schedules
     }
     
     var body: some View {
-        
         if schedules.isEmpty {
             emptyView()
         } else {

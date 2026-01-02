@@ -13,12 +13,15 @@ import HomeDomain
 
 enum HomeIntent {
     case onAppear
+    case onErrorToastDisappear
     case onToastDisappear
+    case onDeleteInterestConcert
     case _fetchUserInterestConcertResult(Result<Concert?, Error>)
 }
 
 struct HomeState {
     var mode: HomeMode = .noInterestedConcert
+    var toastMessage: String = ""
     var errorMessage: String = ""
 }
 
@@ -27,15 +30,24 @@ final class HomeStore: ObservableObject {
 
     @Injected private var repository: HomeRepository
 
+
+
     @MainActor
     func send(_ intent: HomeIntent) {
         switch intent {
         case .onAppear:
             performFetchUserInterestedConcert()
             
-        case .onToastDisappear:
+        case .onErrorToastDisappear:
             state.errorMessage = ""
-            
+        
+        case .onToastDisappear:
+            state.toastMessage = ""
+
+        case .onDeleteInterestConcert:
+            state.mode = .noInterestedConcert
+            state.toastMessage = "관심 콘서트가 삭제되었어요"
+
         case ._fetchUserInterestConcertResult(let result):
             switch result {
             case .success(let concert):
@@ -54,11 +66,11 @@ private extension HomeStore {
         Task {
             do {
                 let result = try await repository.fetchInterestedConcert()
-                await send(. _fetchUserInterestConcertResult(.success(result)))
+                await send(._fetchUserInterestConcertResult(.success(result)))
             } catch {
                 await send(._fetchUserInterestConcertResult(.failure(error)))
             }
-        }      
+        }
     }
 }
 

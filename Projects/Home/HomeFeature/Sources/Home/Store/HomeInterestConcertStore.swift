@@ -13,9 +13,11 @@ import DIContainer
 
 enum HomeInterestConcertIntent {
     case onAppear
+    case onDelete
     case _fetchScheduleListResult(Result<ConcertScheduleList, Error>)
     case _fetchMainSetlistResult(Result<Setlist, Error>)
     case _fetchSetlistSongListResult(Result<SetlistSongList, Error>)
+    case _deleteInterestConcertResult(Result<Void, Error>)
 }
 
 struct HomeInterestConcertState {
@@ -30,16 +32,24 @@ final class HomeInterestConcertStore: ObservableObject {
     @Published private(set) var state: HomeInterestConcertState
     
     @Injected private var repository: HomeRepository
+
+    private var onDeleteConcert: (() -> Void)?
     
-    init(interestConcert: Concert) {
+    init(interestConcert: Concert, onDeleteConcert: (() -> Void)? = nil) {
+        print(">>> [\(#line): \(#function)] - \(interestConcert)")
         self.state = HomeInterestConcertState(interestConcert: interestConcert)
+        self.onDeleteConcert = onDeleteConcert
     }
     
     @MainActor
     func send(_ intent: HomeInterestConcertIntent) {
         switch intent {
         case .onAppear:
-            performFetchContents()
+            performFetchScheduleList(concertID: state.interestConcert.id)
+            performFetchMainSetlist(concertID: state.interestConcert.id)
+        
+        case .onDelete:
+            performDeleteInterestConcert()
 
         case ._fetchScheduleListResult(let result):
             switch result {
@@ -64,6 +74,14 @@ final class HomeInterestConcertStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
+
+        case ._deleteInterestConcertResult(let result):
+            switch result {
+            case .success:
+                onDeleteConcert?()
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+            }
         }
     }
 }
@@ -71,46 +89,51 @@ final class HomeInterestConcertStore: ObservableObject {
 // MARK: - Helpers
 
 private extension HomeInterestConcertStore {
-    func performFetchContents() {
-        let concertID = state.interestConcert.id
+    func performFetchScheduleList(concertID: Int) {
         Task {
-            async let scheduleListTask: () = performFetchScheduleList(concertID: concertID)
-            async let mainSetlistTask: () = performFetchMainSetlist(concertID: concertID)
-            
-            await scheduleListTask
-            await mainSetlistTask
-
-            let setlistID: Int? = await MainActor.run { state.setlist?.id }
-            if let id = setlistID {
-                await performFetchSetlistSongList(setlistID: id)
+            do {
+                let schedules = try await repository.fetchScheduleList(for: concertID)
+                print(">>> [HomeInterestConcertStore] fetched schedules for concertID \(concertID): \(schedules.count)")
+                await send(._fetchScheduleListResult(.success(schedules)))
+            } catch {
+                print(">>> [HomeInterestConcertStore] failed to fetch schedules for concertID \(concertID): \(error)")
+                await send(._fetchScheduleListResult(.failure(error)))
             }
         }
     }
 
-    func performFetchScheduleList(concertID: Int) async {
-        do {
-            let schedules = try await repository.fetchScheduleList(for: concertID)
-            await send(._fetchScheduleListResult(.success(schedules)))
-        } catch {
-            await send(._fetchScheduleListResult(.failure(error)))
+    func performFetchMainSetlist(concertID: Int) {
+        Task {
+            do {
+                let setlist = try await repository.fetchMainSetlist(for: concertID)
+                let songList = try await repository.fetchSongList(for: setlist.id)
+                await send(._fetchMainSetlistResult(.success(setlist)))
+                await send(._fetchSetlistSongListResult(.success(songList)))
+            } catch {
+                await send(._fetchMainSetlistResult(.failure(error)))
+            }
         }
     }
 
-    func performFetchMainSetlist(concertID: Int) async {
-        do {
-            let setlist = try await repository.fetchMainSetlist(for: concertID)
-            await send(._fetchMainSetlistResult(.success(setlist)))
-        } catch {
-            await send(._fetchMainSetlistResult(.failure(error)))
+    func performFetchSetlistSongList(setlistID: Int) {
+        Task {
+            do {
+                let songList = try await repository.fetchSongList(for: setlistID)
+                await send(._fetchSetlistSongListResult(.success(songList)))
+            } catch {
+                await send(._fetchSetlistSongListResult(.failure(error)))
+            }
         }
     }
-
-    func performFetchSetlistSongList(setlistID: Int) async {
-        do {
-            let songList = try await repository.fetchSongList(for: setlistID)
-            await send(._fetchSetlistSongListResult(.success(songList)))
-        } catch {
-            await send(._fetchSetlistSongListResult(.failure(error)))
+    
+    func performDeleteInterestConcert() {
+        Task {
+            do {
+                try await repository.deleteInterestedConcert()
+                await send(._deleteInterestConcertResult(.success(())))
+            } catch {
+                await send(._deleteInterestConcertResult(.failure(error)))
+            }
         }
     }
 }
