@@ -75,11 +75,11 @@ private extension HomeInterestConcertView {
                             ConcertSetlistTabView(
                                 setlist: store.state.setlist,
                                 songs: store.state.songList,
-                                onSongTap: { _ in
-                                    // TODO: 곡 상세 화면으로 이동
+                                onSongTap: { songID in
+                                    handleSongTap(songID: songID)
                                 },
-                                onMoreTap: { _ in
-                                    // TODO: 셋리스트 상세 화면으로 이동
+                                onMoreTap: { setlistID in
+                                    handleSetlistMoreTap(setlistID: setlistID)
                                 }
                             )
                         }
@@ -174,6 +174,17 @@ private extension HomeInterestConcertView {
     func handleMoreInfoTap() {
         guard let concertID = store.state.interestConcert?.id else { return }
         coordinator?.showConcertDetail(concertID: concertID)
+    }
+
+    func handleSongTap(songID: Int) {
+        guard let setlistID = store.state.setlist?.id,
+              let song = store.state.songList.first(where: { $0.id == songID }) else { return }
+        coordinator?.showSongDetail(songID: songID, setlistID: setlistID, songTitle: song.title)
+    }
+
+    func handleSetlistMoreTap(setlistID: Int) {
+        guard let concertID = store.state.interestConcert?.id else { return }
+        coordinator?.showSetlistDetail(concertID: concertID, setlistID: setlistID)
     }
 
     func handleChangeMainConcert() {
