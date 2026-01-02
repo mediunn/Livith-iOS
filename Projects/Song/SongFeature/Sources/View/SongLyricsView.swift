@@ -144,7 +144,9 @@ private extension SongLyricsView {
     }
 
     func contentView(geometry: GeometryProxy) -> some View {
-        let videoHeight = geometry.size.width * 9 / 16
+        let screenWidth = geometry.size.width
+        let screenHeight = geometry.size.height
+        let videoHeight = screenWidth > 0 ? screenWidth * 9 / 16 : 200
         let toggleHeight: CGFloat = 70
 
         return ZStack(alignment: .top) {
@@ -160,7 +162,7 @@ private extension SongLyricsView {
                 }
             }
 
-            if store.state.hasLyrics, geometry.size.height > 0 {
+            if store.state.hasLyrics, screenHeight > 0, screenWidth > 0 {
                 Color.livithColor(.black100)
                     .opacity(overlayOpacity)
                     .allowsHitTesting(false)
@@ -168,7 +170,7 @@ private extension SongLyricsView {
 
                 LyricsBottomSheetView(
                     store: store,
-                    screenHeight: geometry.size.height,
+                    screenHeight: screenHeight,
                     videoHeight: videoHeight,
                     toggleHeight: toggleHeight,
                     currentPosition: $sheetPosition

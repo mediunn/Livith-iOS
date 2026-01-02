@@ -20,14 +20,16 @@ struct LyricsBottomSheetView: View {
         case top
 
         func offset(screenHeight: CGFloat, videoHeight: CGFloat, toggleHeight: CGFloat) -> CGFloat {
+            let result: CGFloat
             switch self {
             case .bottom:
-                return screenHeight - 150
+                result = screenHeight - 150
             case .middle:
-                return videoHeight + toggleHeight
+                result = videoHeight + toggleHeight
             case .top:
-                return 0
+                result = 0
             }
+            return result.isFinite ? result : 0
         }
     }
 
@@ -44,18 +46,21 @@ struct LyricsBottomSheetView: View {
     @State private var isAppeared: Bool = false
 
     private var sheetOffset: CGFloat {
-        currentPosition.offset(screenHeight: screenHeight, videoHeight: videoHeight, toggleHeight: toggleHeight) + dragOffset
+        let offset = currentPosition.offset(screenHeight: screenHeight, videoHeight: videoHeight, toggleHeight: toggleHeight) + dragOffset
+        return offset.isFinite ? offset : 0
     }
 
     private var sheetHeight: CGFloat {
+        let height: CGFloat
         switch currentPosition {
         case .top:
-            return max(screenHeight, 150)
+            height = max(screenHeight, 150)
         case .middle:
-            return max(screenHeight - videoHeight - toggleHeight, 150)
+            height = max(screenHeight - videoHeight - toggleHeight, 150)
         case .bottom:
-            return 150
+            height = 150
         }
+        return height.isFinite ? height : 150
     }
 
     // MARK: - Body
