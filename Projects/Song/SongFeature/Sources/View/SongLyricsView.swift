@@ -247,18 +247,22 @@ private extension SongLyricsView {
     }
 
     func toggleWarningPopup(message: String) -> some View {
-        Text(message)
-            .notosans(.body2Medium)
-            .foregroundStyle(Color.livithColor(.white100))
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 40)
-            .padding(.vertical, 24)
-            .background(.ultraThinMaterial)
-            .background(Color.livithColor(.black100).opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .transition(.opacity)
-            .animation(.easeInOut(duration: 0.2), value: store.state.toggleWarningMessage)
+        VStack {
+            Spacer()
+            Text(message)
+                .notosans(.body2Medium)
+                .foregroundStyle(Color.livithColor(.white100))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+                .padding(.vertical, 24)
+                .background(.ultraThinMaterial)
+                .background(Color.livithColor(.black100).opacity(0.5))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity)
+        .animation(.easeInOut(duration: 0.2), value: store.state.toggleWarningMessage)
     }
 }
 
