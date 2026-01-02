@@ -14,6 +14,7 @@ public enum SetlistEndpoint {
     case fetchConcertSetlist(setlistID: Int)
     case fetchSetlistDetail(concertID: Int, setlistID: Int)
     case fetchSetlistSongList(setlistID: Int)
+    case fetchConcertMainSetlist(concertID: Int)
 }
 
 extension SetlistEndpoint: NetworkEndpoint {
@@ -25,6 +26,8 @@ extension SetlistEndpoint: NetworkEndpoint {
             return "/api/v4/concerts/\(concertID)/setlists/\(setlistID)"
         case .fetchSetlistSongList(let setlistID):
             return "/api/v4/setlists/\(setlistID)/songs"
+        case .fetchConcertMainSetlist(let concertID):
+            return "/api/v4/concerts/\(concertID)/main-setlist"
         }
     }
 

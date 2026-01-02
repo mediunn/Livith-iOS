@@ -14,7 +14,7 @@ public struct HomeContentView: View {
     @Binding private var isTabBarHidden: Bool
     
     public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
-        self._coordinator = State(initialValue: HomeCoordinator(nickname: nickname))
+        self._coordinator = State(initialValue: HomeCoordinator(nickname: nickname, isTabBarHidden: isTabBarHidden))
         self._isTabBarHidden = isTabBarHidden
     }
     

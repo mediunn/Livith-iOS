@@ -13,18 +13,17 @@ import HomeDomain
 
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
+    @ObservedObject private var store: HomeStore
+    @Binding private var isTabBarHidden: Bool
+
     @State private var selectedTab: InterestConcertTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
-    private let posterURL: URL? = URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")
-    private let remainDays: Int = 10
-    private let date: String = "2025.11.01~11.02"
-    private let location: String = "올림픽공원 올림픽홀"
-    private let title: String = "Gen Hoshino presents \n MAD HOPEAsia Tour in SEOUL"
-    private let concertScheduleList: ConcertScheduleList = .mock()
-    private let setlist: SetlistItem = .sample
-    private let songs: SongList = .sample
+    init(store: HomeStore, isTabBarHidden: Binding<Bool>) {
+        self.store = store
+        self._isTabBarHidden = isTabBarHidden
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -37,6 +36,9 @@ struct HomeInterestConcertView: View {
             deleteDialog
         }
         .animation(.easeInOut, value: showDeleteDialog)
+        .onAppear {
+            store.send(.onAppearInterestConcert)
+        }
     }
 }
 
@@ -52,11 +54,11 @@ private extension HomeInterestConcertView {
                     textHeaderView
                     
                     InterestConcertCardView(
-                        posterURL: posterURL,
-                        remainDays: remainDays,
-                        date: date,
-                        location: location,
-                        title: title
+                        posterURL: store.state.interestConcert?.posterURL,
+                        remainDays: store.state.interestConcert?.daysLeft ?? 0,
+                        date: store.state.interestConcert?.startDate ?? "",
+                        location: store.state.interestConcert?.venue ?? "",
+                        title: store.state.interestConcert?.title ?? ""
                     )
                     
                     SegmentTabBar(
@@ -67,13 +69,17 @@ private extension HomeInterestConcertView {
                     
                     Group {
                         if selectedTab == .schedule {
-                            ConcertScheduleTabView(schedules: concertScheduleList)
+                            ConcertScheduleTabView(schedules: store.state.scheduleList)
                         } else {
                             ConcertSetlistTabView(
-                                selist: setlist,
-                                songs: songs,
-                                onSongTap: { _ in },
-                                onMoreTap: { _ in }
+                                setlist: store.state.setlist,
+                                songs: store.state.songList,
+                                onSongTap: { _ in
+                                    // TODO: 곡 상세 화면으로 이동
+                                },
+                                onMoreTap: { _ in
+                                    // TODO: 셋리스트 상세 화면으로 이동
+                                }
                             )
                         }
                     }
@@ -81,7 +87,9 @@ private extension HomeInterestConcertView {
                 }
             }
             .refreshable {
-                
+                await MainActor.run {
+                    store.send(.onRefreshInterestConcert)
+                }
             }
         }
     }
@@ -91,7 +99,7 @@ private extension HomeInterestConcertView {
             Color.black
                 .opacity(showBottomSheet ? 0.4 : 0)
                 .ignoresSafeArea()
-                .onTapGesture { showBottomSheet = false }
+                .onTapGesture { showBottomSheet(flag: false) }
                 .allowsHitTesting(showBottomSheet)
                 .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
             
@@ -121,7 +129,10 @@ private extension HomeInterestConcertView {
                     confirmTitle: "지금은 삭제할래요",
                     cancelTitle: "잘못 눌렀어요",
                     onConfirm: handleDeleteConfirm,
-                    onCancel: { showDeleteDialog = false }
+                    onCancel: {
+                        showDeleteDialog = false
+                        isTabBarHidden = false
+                    }
                 )
                 .transition(.opacity)
             }
@@ -137,7 +148,9 @@ private extension HomeInterestConcertView {
             
             Spacer()
             
-            Button { showBottomSheet = true } label: {
+            Button {
+                showBottomSheet(flag: true)
+            } label: {
                 Text("수정하기")
                     .notosans(.body4Regular)
                     .foregroundStyle(.livithColor(.black50))
@@ -152,9 +165,14 @@ private extension HomeInterestConcertView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertView {
+    func showBottomSheet(flag: Bool) {
+        self.isTabBarHidden = flag
+        self.showBottomSheet = flag
+    }
+    
     func handleChangeMainConcert() {
-        showBottomSheet = false
-        // TODO: 코디네이터로 관심콘서트 설정 화면 이동하기
+        showBottomSheet(flag: false)
+        coordinator?.push(to: .interest)
     }
     
     func handleDeleteConcert() {
@@ -164,7 +182,9 @@ private extension HomeInterestConcertView {
     
     func handleDeleteConfirm() {
         showDeleteDialog = false
-        // TODO: 관심 콘서트 삭제 요청
+        isTabBarHidden = false
+        
+        store.send(.onDelete)
     }
     
     func updateSelectedTab(from index: Int) {
@@ -172,8 +192,4 @@ private extension HomeInterestConcertView {
             selectedTab = tab
         }
     }
-}
-
-#Preview {
-    HomeInterestConcertView()
 }

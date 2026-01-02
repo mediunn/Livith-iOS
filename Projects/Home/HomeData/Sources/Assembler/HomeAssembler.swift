@@ -11,6 +11,7 @@ import Foundation
 import DIContainer
 import HomeDomain
 import LivithNetwork
+import Persistence
 
 public struct HomeAssembler: DependencyAssembler {
     public init() {}
@@ -18,9 +19,20 @@ public struct HomeAssembler: DependencyAssembler {
     public func assemble(to container: any DependencyContainer) {
         let homeService = HomeService()
         let searchService = SearchService()
-        
-        container.register({
-            HomeRepositoryImpl(homeService: homeService, searchService: searchService)
-        }, for: HomeRepository.self)
+        let setlistService = SetlistService()
+        let concertService = ConcertService()
+        let localStorage = UserDefaultsStorage()
+
+        container.register(
+            {
+                HomeRepositoryImpl(
+                    homeService: homeService,
+                    searchService: searchService,
+                    setlistService: setlistService,
+                    concertService: concertService,
+                    localStorage: localStorage
+                )
+            },
+            for: HomeRepository.self)
     }
 }

@@ -20,6 +20,24 @@ public extension DTO.Response {
         public let nickname: String
         public let marketingConsent: Bool
         
+        public init(
+            id: Int,
+            interestConcertID: Int?,
+            provider: String,
+            providerID: String,
+            email: String?,
+            nickname: String,
+            marketingConsent: Bool
+        ) {
+            self.id = id
+            self.interestConcertID = interestConcertID
+            self.provider = provider
+            self.providerID = providerID
+            self.email = email
+            self.nickname = nickname
+            self.marketingConsent = marketingConsent
+        }
+        
         enum CodingKeys: String, CodingKey {
             case id
             case interestConcertID = "interestConcertId"

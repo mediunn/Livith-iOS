@@ -9,15 +9,20 @@
 import SwiftUI
 
 import DSKit
+import HomeDomain
 
 struct ConcertSetlistTabView: View {
-    let selist: SetlistItem
-    let songs: SongList
+    let setlist: Setlist?
+    let songs: SetlistSongList
     let onSongTap: (Int) -> Void
     let onMoreTap: (Int) -> Void
     
     var body: some View {
-        contentView()
+        if songs.isEmpty {
+            emptyView()
+        } else {
+            contentView()
+        }
     }
 }
 
@@ -42,8 +47,10 @@ private extension ConcertSetlistTabView {
             titleText()
                 .padding(.top, 24)
             
-            setlistCard(concert: .sample)
-                .padding(.top, 20)
+            if let setlist = self.setlist, setlist.type == .recent {
+                setlistCard(setlist: setlist)
+                    .padding(.top, 20)
+            }
             
             VStack(spacing: .zero) {
                 ForEach(songs, id: \.self) { song in
@@ -51,7 +58,7 @@ private extension ConcertSetlistTabView {
                         orderIndex: song.orderIndex,
                         title: song.title,
                         artist: song.artist,
-                        onPlayTapped: { onSongTap(song.id) }
+                        onTapped: { onSongTap(song.id) }
                     )
                     .padding(.vertical, 12)
                 }
@@ -67,32 +74,32 @@ private extension ConcertSetlistTabView {
     }
     
     func titleText() -> some View {
-        Text("이전 콘서트에서\n어떤 노래를 불렀을까요?")
+        Text(setlist?.type == .recent ? "이전 콘서트에서\n어떤 노래를 불렀을까요?" : "이전 콘서트를 기반으로\n이런 노래를 예상해요")
             .notosans(.body1Semibold)
             .foregroundStyle(.livithColor(.white100))
             .multilineTextAlignment(.leading)
             .lineLimit(2)
     }
     
-    func setlistCard(concert: SetlistItem) -> some View {
+    func setlistCard(setlist: Setlist) -> some View {
         HStack(spacing: 16) {
-            posterImageView(urlString: concert.posterURL)
+            posterImageView(urlString: setlist.imageURL ?? "")
                 .padding([.vertical, .leading], 12)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text(concert.title)
+                Text(setlist.title)
                     .notosans(.body1Semibold)
                     .foregroundStyle(.livithColor(.black100))
                     .lineLimit(1)
                 
-                Text(concert.singer)
+                Text(setlist.artist)
                     .notosans(.body2Regular)
                     .foregroundStyle(.livithColor(.black80))
                     .lineLimit(1)
                 
                 HStack(spacing: 8) {
-                    tagView(text: concert.location)
-                    tagView(text: concert.date)
+                    tagView(text: setlist.venue)
+                    tagView(text: formatDateRange(start: setlist.startDate, end: setlist.endDate))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -130,7 +137,7 @@ private extension ConcertSetlistTabView {
     
     func moreButton() -> some View {
         Button {
-            onMoreTap(selist.id)
+            onMoreTap(setlist?.id ?? .zero)
         } label: {
             HStack(spacing: 8) {
                 Text("더 많은 노래를 확인해 보세요")
@@ -147,22 +154,34 @@ private extension ConcertSetlistTabView {
         .background(.livithColor(.black80))
     }
 }
+
+// MARK: - Helpers
+
+private extension ConcertSetlistTabView {
+    static let yearFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy.MM.dd"
+        return f
+    }()
+
+    static let noYearFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MM.dd"
+        return f
+    }()
+
+    func formatDateRange(start: Date, end: Date) -> String {
+        let startDateString = Self.yearFormatter.string(from: start)
+        let endDateString = Self.noYearFormatter.string(from: end)
+
+        return "\(startDateString) ~ \(endDateString)"
+    }
+}
+
 // MARK: - Constants
 
 private extension ConcertSetlistTabView {
     enum Constants {
         static let imageSize: CGFloat = 92
     }
-}
-
-#Preview {
-    ScrollView {
-        ConcertSetlistTabView(
-            selist: .sample,
-            songs: .sample,
-            onSongTap: { id in print("눌렸다. \(id)") },
-            onMoreTap: { id in print("더보기. \(id)") }
-        )
-    }
-    .background(.livithColor(.black100))
 }

@@ -12,139 +12,184 @@ import LivithNetwork
 import HomeDomain
 
 struct HomeMapper {
-	func toDomain(from response: DTO.Response.FetchHomeSectionList) -> [ConcertSection] {
-		response.map { section in
-			let concerts = section.concerts.compactMap { concert -> Concert? in
-				guard let status = ConcertStatus(rawValue: concert.status),
-					  let posterURL = URL(string: concert.posterURL)
+    private static let iso8601Formatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        return formatter
+    }()
+    
+    func toDomain(from response: DTO.Response.FetchHomeSectionList) -> [ConcertSection] {
+        response.map { section in
+            let concerts = section.concerts.compactMap { concert -> Concert? in
+                guard let status = ConcertStatus(rawValue: concert.status),
+                      let posterURL = URL(string: concert.posterURL)
                 else {
-					return nil
-				}
-
-				return Concert(
-					id: concert.id,
-					title: concert.title,
-					artist: concert.artist,
-					status: status,
-					daysLeft: concert.daysLeft,
-					startDate: concert.startDate,
-					endDate: concert.endDate,
-					posterURL: posterURL,
-					venue: concert.venue,
-					ticketSite: concert.ticketSite,
-					ticketURL: URL(string: concert.ticketURL ?? ""),
-					introduction: concert.introduction,
-					label: concert.label
-				)
-			}
-
-			return ConcertSection(
-				id: section.id,
-				title: section.sectionTitle,
-				concerts: concerts
-			)
-		}
-	}
-
-	func toDomain(from response: DTO.Response.FetchUserInterestConcert) -> Concert? {
-		guard let status = ConcertStatus(rawValue: response.status),
-			  let posterURL = URL(string: response.posterURL)
+                    return nil
+                }
+                
+                return Concert(
+                    id: concert.id,
+                    title: concert.title,
+                    artist: concert.artist,
+                    status: status,
+                    daysLeft: concert.daysLeft,
+                    startDate: concert.startDate,
+                    endDate: concert.endDate,
+                    posterURL: posterURL,
+                    venue: concert.venue,
+                    ticketSite: concert.ticketSite,
+                    ticketURL: URL(string: concert.ticketURL ?? ""),
+                    introduction: concert.introduction,
+                    label: concert.label
+                )
+            }
+            
+            return ConcertSection(
+                id: section.id,
+                title: section.sectionTitle,
+                concerts: concerts
+            )
+        }
+    }
+    
+    func toDomain(from response: DTO.Response.FetchUserInterestConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: response.status),
+              let posterURL = URL(string: response.posterURL)
         else {
-			return nil
-		}
-
-		return Concert(
-			id: response.id,
-			title: response.title,
-			artist: response.artist,
-			status: status,
-			daysLeft: response.daysLeft,
-			startDate: response.startDate,
-			endDate: response.endDate,
-			posterURL: posterURL,
-			venue: response.venue,
-			ticketSite: response.ticketSite,
-			ticketURL: URL(string: response.ticketURL ?? ""),
-			introduction: response.introduction,
-			label: response.label
-		)
-	}
-
-	func toDomain(from response: DTO.Response.UpdateUserInterestConcert) -> Concert? {
-		guard let status = ConcertStatus(rawValue: response.status),
-			  let posterURL = URL(string: response.posterURL) 
+            return nil
+        }
+        
+        return Concert(
+            id: response.id,
+            title: response.title,
+            artist: response.artist,
+            status: status,
+            daysLeft: response.daysLeft,
+            startDate: response.startDate,
+            endDate: response.endDate,
+            posterURL: posterURL,
+            venue: response.venue,
+            ticketSite: response.ticketSite,
+            ticketURL: URL(string: response.ticketURL ?? ""),
+            introduction: response.introduction,
+            label: response.label
+        )
+    }
+    
+    func toDomain(from response: DTO.Response.UpdateUserInterestConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: response.status),
+              let posterURL = URL(string: response.posterURL)
         else {
-			return nil
-		}
-
-		return Concert(
-			id: response.id,
-			title: response.title,
-			artist: response.artist,
-			status: status,
+            return nil
+        }
+        
+        return Concert(
+            id: response.id,
+            title: response.title,
+            artist: response.artist,
+            status: status,
             daysLeft: .zero,
-			startDate: response.startDate,
-			endDate: response.endDate,
-			posterURL: posterURL,
-			venue: response.venue,
-			ticketSite: response.ticketSite,
-			ticketURL: URL(string: response.ticketURL ?? ""),
-			introduction: response.introduction,
-			label: response.label
-		)
-	}
-
-	func toDomain(from response: DTO.Response.FetchConcertList) -> [Concert] {
+            startDate: response.startDate,
+            endDate: response.endDate,
+            posterURL: posterURL,
+            venue: response.venue,
+            ticketSite: response.ticketSite,
+            ticketURL: URL(string: response.ticketURL ?? ""),
+            introduction: response.introduction,
+            label: response.label
+        )
+    }
+    
+    func toDomain(from response: DTO.Response.FetchConcertList) -> [Concert] {
         return response.data.map { concert in
-			guard let status = ConcertStatus(rawValue: concert.status),
-				  let posterURL = URL(string: concert.posterURL)
-			else {
-				return nil
-			}
+            guard let status = ConcertStatus(rawValue: concert.status),
+                  let posterURL = URL(string: concert.posterURL)
+            else {
+                return nil
+            }
+            
+            return Concert(
+                id: concert.id,
+                title: concert.title,
+                artist: concert.artist,
+                status: status,
+                daysLeft: concert.daysLeft,
+                startDate: concert.startDate,
+                endDate: concert.endDate,
+                posterURL: posterURL,
+                venue: concert.venue,
+                ticketSite: concert.ticketSite,
+                ticketURL: URL(string: concert.ticketURL ?? ""),
+                introduction: concert.introduction,
+                label: concert.label
+            )
+        }
+        .compactMap { $0 }
+    }
+    
+    func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> [Concert] {
+        return response.data.map { concert in
+            guard let status = ConcertStatus(rawValue: concert.status),
+                  let posterURL = URL(string: concert.posterURL)
+            else {
+                return nil
+            }
+            
+            return Concert(
+                id: concert.id,
+                title: concert.title,
+                artist: concert.artist,
+                status: status,
+                daysLeft: concert.daysLeft,
+                startDate: concert.startDate,
+                endDate: concert.endDate,
+                posterURL: posterURL,
+                venue: concert.venue,
+                ticketSite: concert.ticketSite,
+                ticketURL: URL(string: concert.ticketURL ?? ""),
+                introduction: concert.introduction,
+                label: concert.label
+            )
+        }
+        .compactMap { $0 }
+    }
+    
+    func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist {
+        let startDate = Self.iso8601Formatter.date(from: response.startDate) ?? Date()
+		let endDate = Self.iso8601Formatter.date(from: response.endDate) ?? Date()
+		
+        return Setlist(
+            id: response.id,
+            title: response.title,
+            imageURL: response.imageURL,
+            type: SetlistType(rawValue: response.type) ?? .none,
+            startDate: startDate,
+            endDate: endDate,
+            venue: response.venue,
+            artist: response.artist
+        )
+    }
+    
+    func toDomain(from response: DTO.Response.FetchSetlistSongList) -> SetlistSongList {
+        return response.map { song in
+            SetlistSong(
+                id: song.id,
+                title: song.title,
+                artist: song.artist,
+                orderIndex: song.orderIndex
+            )
+        }
+    }
 
-			return Concert(
-				id: concert.id,
-				title: concert.title,
-				artist: concert.artist,
-				status: status,
-				daysLeft: concert.daysLeft,
-				startDate: concert.startDate,
-				endDate: concert.endDate,
-				posterURL: posterURL,
-				venue: concert.venue,
-				ticketSite: concert.ticketSite,
-				ticketURL: URL(string: concert.ticketURL ?? ""),
-				introduction: concert.introduction,
-				label: concert.label
-			)
+	func toDomain(from response: DTO.Response.FetchConcertSchedule) -> ConcertScheduleList {
+		return response.map { schedule in
+            ConcertSchedule(
+                id: schedule.id,
+                category: schedule.category,
+                schduledAt: Self.iso8601Formatter.date(from: schedule.scheduledAt) ?? .now
+            )
 		}
-		.compactMap { $0 }
-	}
-
-	func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> [Concert] {
-		return response.data.map { concert in
-			guard let status = ConcertStatus(rawValue: concert.status),
-				  let posterURL = URL(string: concert.posterURL)
-			else {
-				return nil
-			}
-
-			return Concert(
-				id: concert.id,
-				title: concert.title,
-				artist: concert.artist,
-				status: status,
-				daysLeft: concert.daysLeft,
-				startDate: concert.startDate,
-				endDate: concert.endDate,
-				posterURL: posterURL,
-				venue: concert.venue,
-				ticketSite: concert.ticketSite,
-				ticketURL: URL(string: concert.ticketURL ?? ""),
-				introduction: concert.introduction,
-				label: concert.label
-			)
-		}
-		.compactMap { $0 }
 	}
 }

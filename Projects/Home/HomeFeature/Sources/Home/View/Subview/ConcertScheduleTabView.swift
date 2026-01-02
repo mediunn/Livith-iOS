@@ -9,6 +9,7 @@
 import SwiftUI
 
 import DSKit
+import HomeDomain
 
 struct ConcertScheduleTabView: View {
     private let schedules: ConcertScheduleList
@@ -18,35 +19,52 @@ struct ConcertScheduleTabView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("날짜와 시간을\n잊지 말고 확인해요")
-                .notosans(.body1Semibold)
-                .foregroundStyle(.livithColor(.white100))
-                .multilineTextAlignment(.leading)
-            
-            VStack(spacing: .zero) {
-                ForEach(schedules) { schedule in
-                    scheduleItem(
-                        daysLeft: daysLeftText(from: schedule.date),
-                        title: schedule.title,
-                        dateTime: formatDateTime(schedule.date),
-                        isActive: isActiveDate(schedule.date)
-                    )
-                    .frame(height: 64)
+        if schedules.isEmpty {
+            emptyView()
+        } else {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("날짜와 시간을\n잊지 말고 확인해요")
+                    .notosans(.body1Semibold)
+                    .foregroundStyle(.livithColor(.white100))
+                    .multilineTextAlignment(.leading)
+                
+                VStack(spacing: .zero) {
+                    ForEach(schedules) { schedule in
+                        scheduleItem(
+                            daysLeft: daysLeftText(from: schedule.schduledAt),
+                            title: schedule.category,
+                            dateTime: formatDateTime(schedule.schduledAt),
+                            isActive: isActiveDate(schedule.schduledAt)
+                        )
+                        .frame(height: 64)
+                    }
                 }
+                
+                Spacer()
+                    .frame(minHeight: 280)
             }
-            
-            Spacer()
-                .frame(minHeight: 280)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 20)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 20)
     }
 }
 
 // MARK: - Subviews
 
 private extension ConcertScheduleTabView {
+    func emptyView() -> some View {
+        VStack {
+            Spacer()
+                .frame(height: 200)
+            
+            LivithEmptyView(text: "일정이 따로 없어요")
+                .frame(maxWidth: .infinity)
+            
+            Spacer()
+                .frame(height: 360)
+        }
+    }
+    
     func scheduleItem(
         daysLeft: String,
         title: String,
@@ -118,11 +136,4 @@ private extension ConcertScheduleTabView {
         
         return formatter.string(from: date) + ampmFormatter.string(from: date).uppercased()
     }
-}
-
-#Preview {
-    ConcertScheduleTabView(
-        schedules: .mock()
-    )
-    .background(.livithColor(.black100))
 }
