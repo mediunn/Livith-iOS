@@ -25,7 +25,7 @@ public struct SongLyricsState {
     public var fetchError: String?
 
     public var showOriginal: Bool = true
-    public var showFanchant: Bool = true
+    public var showFanchant: Bool = false
     public var showTranslation: Bool = true
     public var showPronunciation: Bool = true
 
@@ -60,6 +60,7 @@ public enum SongLyricsIntent {
     case togglePronunciation
     case toggleTranslation
     case toggleFanchant
+    case clearToggleWarning
 
     case _setLoading(Bool)
     case _setLyrics(SongLyrics?)
@@ -104,12 +105,15 @@ public final class SongLyricsStore: ObservableObject {
             handleToggleTranslation()
         case .toggleFanchant:
             handleToggleFanchant()
+        case .clearToggleWarning:
+            state.toggleWarningMessage = nil
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
         case ._setLyrics(let lyrics):
             state.lyrics = lyrics
         case ._setFanchant(let fanchant):
             state.fanchant = fanchant
+            state.showFanchant = fanchant != nil && !(fanchant?.fanchant.isEmpty ?? true)
         case ._setFetchError(let error):
             state.fetchError = error
         }
@@ -120,12 +124,6 @@ public final class SongLyricsStore: ObservableObject {
 
 @MainActor
 private extension SongLyricsStore {
-    var activeToggleCount: Int {
-        [state.showOriginal, state.showPronunciation, state.showTranslation, state.showFanchant]
-            .filter { $0 }
-            .count
-    }
-
     var mainToggleCount: Int {
         [state.showOriginal, state.showPronunciation, state.showTranslation]
             .filter { $0 }
@@ -202,6 +200,7 @@ private extension SongLyricsStore {
             } catch {
                 guard !Task.isCancelled else { return }
                 send(._setLyrics(nil))
+                send(._setFetchError("가사를 불러오는데 실패했어요"))
             }
 
             if let setlistID {

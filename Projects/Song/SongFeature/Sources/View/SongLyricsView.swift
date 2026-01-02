@@ -75,7 +75,6 @@ public struct SongLyricsView: View {
                     toggleWarningPopup(message: message)
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: warningMessage)
         }
         .background(Color.livithColor(.black100))
         .navigationBarBackButtonHidden()
@@ -97,12 +96,14 @@ public struct SongLyricsView: View {
             if let message = newValue {
                 warningMessage = message
                 warningDismissTask?.cancel()
-                warningDismissTask = Task {
+                warningDismissTask = Task { @MainActor in
                     try? await Task.sleep(for: .seconds(1.5))
                     guard !Task.isCancelled else { return }
                     withAnimation(.easeInOut(duration: 0.3)) {
                         warningMessage = nil
                     }
+                    try? await Task.sleep(for: .seconds(0.3))
+                    store.send(.clearToggleWarning)
                 }
             }
         }
@@ -279,7 +280,7 @@ private extension SongLyricsView {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .transition(.opacity)
+        .transition(.opacity.animation(.easeInOut(duration: 0.3)))
     }
 }
 

@@ -89,7 +89,6 @@ private extension LyricsContentView {
 
     func lyricsLineView(at index: Int) -> some View {
         VStack(alignment: .leading, spacing: 20) {
-            // 원어 + 응원법 (응원법에 원어가 포함되어 있고, ##...## 부분만 노란색)
             if store.state.showOriginal, index < lyrics.count {
                 if store.state.showFanchant, index < fanchant.count {
                     originalWithFanchantText(fanchant: fanchant[index])
@@ -108,6 +107,7 @@ private extension LyricsContentView {
                 translationText(translation[index])
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     func originalWithFanchantText(fanchant: String) -> some View {
@@ -169,43 +169,6 @@ private extension LyricsContentView {
 
     struct ParsedText {
         let segments: [TextSegment]
-    }
-
-    func parseParenthesisText(_ text: String) -> ParsedText {
-        var segments: [TextSegment] = []
-        var currentIndex = text.startIndex
-        var inParenthesis = false
-        var currentText = ""
-
-        while currentIndex < text.endIndex {
-            let char = text[currentIndex]
-
-            if char == "(" {
-                if !currentText.isEmpty {
-                    segments.append(TextSegment(text: currentText, isHighlighted: false))
-                    currentText = ""
-                }
-                inParenthesis = true
-                currentText.append(char)
-            } else if char == ")" {
-                currentText.append(char)
-                if inParenthesis {
-                    segments.append(TextSegment(text: currentText, isHighlighted: true))
-                    currentText = ""
-                    inParenthesis = false
-                }
-            } else {
-                currentText.append(char)
-            }
-
-            currentIndex = text.index(after: currentIndex)
-        }
-
-        if !currentText.isEmpty {
-            segments.append(TextSegment(text: currentText, isHighlighted: inParenthesis))
-        }
-
-        return ParsedText(segments: segments)
     }
 
     func parseHashText(_ text: String) -> ParsedText {
