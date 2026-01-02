@@ -21,11 +21,12 @@ public struct SongLyricsView: View {
     @State private var sheetPosition: LyricsBottomSheetView.SheetPosition = .middle
     @State private var warningMessage: String?
     @State private var errorMessage: String?
+    @State private var warningDismissTask: Task<Void, Never>?
 
     private let songID: Int
     private let setlistID: Int?
     private let songTitle: String
-    private let onReportTapped: (() -> Void)?
+    private let onReportTapped: () -> Void
 
     // MARK: - Initializer
 
@@ -33,7 +34,7 @@ public struct SongLyricsView: View {
         songID: Int,
         setlistID: Int? = nil,
         songTitle: String,
-        onReportTapped: (() -> Void)? = nil
+        onReportTapped: @escaping () -> Void = {}
     ) {
         self.songID = songID
         self.setlistID = setlistID
@@ -95,13 +96,18 @@ public struct SongLyricsView: View {
         .onChange(of: store.state.toggleWarningMessage) { _, newValue in
             if let message = newValue {
                 warningMessage = message
-                Task {
+                warningDismissTask?.cancel()
+                warningDismissTask = Task {
                     try? await Task.sleep(for: .seconds(1.5))
+                    guard !Task.isCancelled else { return }
                     withAnimation(.easeInOut(duration: 0.3)) {
                         warningMessage = nil
                     }
                 }
             }
+        }
+        .onDisappear {
+            warningDismissTask?.cancel()
         }
     }
 }
@@ -128,7 +134,7 @@ private extension SongLyricsView {
             Spacer()
 
             Button {
-                onReportTapped?()
+                onReportTapped()
             } label: {
                 Text("정보 제보")
                     .notosans(.caption1Semibold)
@@ -284,6 +290,7 @@ private struct YouTubePlayerView: View {
     @State private var player: YouTubePlayer?
     @State private var isLoading = true
     @State private var hasError = false
+    @State private var isViewActive = false
 
     init(youtubeID: String) {
         self.youtubeID = youtubeID
@@ -307,9 +314,10 @@ private struct YouTubePlayerView: View {
         ZStack {
             if hasError {
                 videoErrorView
-            } else if let player {
+            } else if let player, isViewActive {
                 YouTubePlayerKit.YouTubePlayerView(player)
                     .onReceive(player.statePublisher) { state in
+                        guard isViewActive else { return }
                         switch state {
                         case .ready:
                             isLoading = false
@@ -333,9 +341,13 @@ private struct YouTubePlayerView: View {
             }
         }
         .onAppear {
+            isViewActive = true
             if player == nil {
                 player = createPlayer()
             }
+        }
+        .onDisappear {
+            isViewActive = false
         }
     }
 

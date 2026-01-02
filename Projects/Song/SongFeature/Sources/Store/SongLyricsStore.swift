@@ -28,7 +28,7 @@ public struct SongLyricsState {
     public var showFanchant: Bool = true
     public var showTranslation: Bool = true
     public var showPronunciation: Bool = true
-    
+
     public var toggleWarningMessage: String?
 
     public var hasLyrics: Bool {
@@ -39,11 +39,11 @@ public struct SongLyricsState {
     public var hasFanchant: Bool {
         fanchant != nil && !(fanchant?.fanchant.isEmpty ?? true)
     }
-    
+
     public var hasYouTubeVideo: Bool {
         lyrics?.youtubeID != nil && !(lyrics?.youtubeID?.isEmpty ?? true)
     }
-    
+
     public var hasFanchantPoint: Bool {
         fanchant?.fanchantPoint != nil && !(fanchant?.fanchantPoint?.isEmpty ?? true)
     }
@@ -65,11 +65,6 @@ public enum SongLyricsIntent {
     case _setLyrics(SongLyrics?)
     case _setFanchant(SongFanchant?)
     case _setFetchError(String?)
-    case _setToggleWarning(String?)
-    case _setShowOriginal(Bool)
-    case _setShowPronunciation(Bool)
-    case _setShowTranslation(Bool)
-    case _setShowFanchant(Bool)
 }
 
 // MARK: - Store
@@ -86,6 +81,10 @@ public final class SongLyricsStore: ObservableObject {
     // MARK: - Initializer
 
     public init() {}
+
+    deinit {
+        fetchTask?.cancel()
+    }
 
     // MARK: - Intent Handler
 
@@ -113,16 +112,6 @@ public final class SongLyricsStore: ObservableObject {
             state.fanchant = fanchant
         case ._setFetchError(let error):
             state.fetchError = error
-        case ._setToggleWarning(let message):
-            state.toggleWarningMessage = message
-        case ._setShowOriginal(let value):
-            state.showOriginal = value
-        case ._setShowPronunciation(let value):
-            state.showPronunciation = value
-        case ._setShowTranslation(let value):
-            state.showTranslation = value
-        case ._setShowFanchant(let value):
-            state.showFanchant = value
         }
     }
 }
@@ -148,34 +137,34 @@ private extension SongLyricsStore {
         if state.showOriginal {
             // 응원법이 켜져 있으면 불가능
             if state.showFanchant {
-                showWarning("응원법은 원어에서만\n표시가 돼요")
+                state.toggleWarningMessage = "응원법은 원어에서만\n표시가 돼요"
                 return
             }
             // 마지막 하나 남은 토글이면 불가능 (응원법 제외)
             if mainToggleCount <= 1 {
-                showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
+                state.toggleWarningMessage = "원어, 발음, 해석 중\n하나는 켜져야 해요"
                 return
             }
         }
-        send(._setShowOriginal(!state.showOriginal))
+        state.showOriginal.toggle()
     }
 
     func handleTogglePronunciation() {
         // 끄려고 할 때 마지막 하나면 불가능 (응원법 제외)
         if state.showPronunciation && mainToggleCount <= 1 {
-            showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
+            state.toggleWarningMessage = "원어, 발음, 해석 중\n하나는 켜져야 해요"
             return
         }
-        send(._setShowPronunciation(!state.showPronunciation))
+        state.showPronunciation.toggle()
     }
 
     func handleToggleTranslation() {
         // 끄려고 할 때 마지막 하나면 불가능 (응원법 제외)
         if state.showTranslation && mainToggleCount <= 1 {
-            showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
+            state.toggleWarningMessage = "원어, 발음, 해석 중\n하나는 켜져야 해요"
             return
         }
-        send(._setShowTranslation(!state.showTranslation))
+        state.showTranslation.toggle()
     }
 
     func handleToggleFanchant() {
@@ -183,20 +172,16 @@ private extension SongLyricsStore {
         if !state.showFanchant {
             // 해석만 켜져 있는 경우
             if state.showTranslation && !state.showOriginal && !state.showPronunciation {
-                showWarning("해석에는 응원법이\n표시되지 않아요")
+                state.toggleWarningMessage = "해석에는 응원법이\n표시되지 않아요"
                 return
             }
             // 원어가 꺼져 있으면 불가능
             if !state.showOriginal {
-                showWarning("응원법은 원어에서만\n표시가 돼요")
+                state.toggleWarningMessage = "응원법은 원어에서만\n표시가 돼요"
                 return
             }
         }
-        send(._setShowFanchant(!state.showFanchant))
-    }
-
-    func showWarning(_ message: String) {
-        send(._setToggleWarning(message))
+        state.showFanchant.toggle()
     }
 }
 
