@@ -15,37 +15,31 @@ struct HomeView: View {
 
     @Binding private var isTabBarHidden: Bool
     private let nickname: Binding<String>
+    private let showToast: ((LivithToastType, String) -> Void)?
 
-    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
+    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
         self.nickname = nickname
         self._isTabBarHidden = isTabBarHidden
+        self.showToast = showToast
     }
     
     var body: some View {
         content()
-            .livithToast(
-                isPresented: Binding(
-                    get: { !store.state.errorMessage.isEmpty },
-                    set: { _ in store.send(.onErrorToastDisappear) }
-                ),
-                type: .failure,
-                message: store.state.errorMessage,
-                duration: 2,
-                position: .safeAreaTop
-            )
-            .livithToast(
-                isPresented: Binding(
-                    get: { !store.state.toastMessage.isEmpty },
-                    set: { _ in store.send(.onToastDisappear) }
-                ),
-                type: .success,
-                message: store.state.toastMessage,
-                duration: 2,
-                position: .safeAreaTop
-            )
             .background(.livithColor(.black90))
             .onAppear {
                 store.send(.onAppear)
+            }
+            .onChange(of: store.state.errorMessage) { _, newValue in
+                if !newValue.isEmpty {
+                    showToast?(.failure, newValue)
+                    store.send(.onErrorToastDisappear)
+                }
+            }
+            .onChange(of: store.state.toastMessage) { _, newValue in
+                if !newValue.isEmpty {
+                    showToast?(.deletionSuccess, newValue)
+                    store.send(.onToastDisappear)
+                }
             }
     }
 
