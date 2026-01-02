@@ -20,10 +20,6 @@ struct LyricsToggleButton: View {
     var activeTextColor: Color = Color.livithColor(.black100)
     let action: () -> Void
 
-    private var backgroundColor: Color {
-        isOn ? activeBackgroundColor : Color.livithColor(.black80)
-    }
-
     private var textColor: Color {
         isOn ? activeTextColor : Color.livithColor(.black50)
     }
@@ -37,8 +33,12 @@ struct LyricsToggleButton: View {
                 .foregroundStyle(textColor)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(backgroundColor)
+                .background(isOn ? activeBackgroundColor : Color.clear)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.livithColor(.black80), lineWidth: isOn ? 0 : 1)
+                )
         }
     }
 }
