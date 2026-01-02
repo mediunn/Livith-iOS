@@ -307,11 +307,13 @@ private extension ConcertView {
             posterImage
                 .frame(height: 337)
 
-            InterestButton {
-                showInterestConfirmDialog = true
+            if !store.state.isCurrentConcertInterested {
+                InterestButton {
+                    showInterestConfirmDialog = true
+                }
+                .padding(.top, 16)
+                .padding(.trailing, 16)
             }
-            .padding(.top, 16)
-            .padding(.trailing, 16)
         }
         .clipped()
     }

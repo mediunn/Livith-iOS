@@ -10,6 +10,15 @@ import SwiftUI
 
 import DSKit
 
+struct TextSegment {
+    let text: String
+    let isHighlighted: Bool
+}
+
+struct ParsedText {
+    let segments: [TextSegment]
+}
+
 struct LyricsContentView: View {
 
     // MARK: - Property
@@ -91,57 +100,37 @@ private extension LyricsContentView {
         VStack(alignment: .leading, spacing: 20) {
             if store.state.showOriginal, index < lyrics.count {
                 if store.state.showFanchant, index < fanchant.count {
-                    originalWithFanchantText(fanchant: fanchant[index])
+                    hashHighlightedText(
+                        fanchant[index],
+                        defaultColor: Color.livithColor(.original),
+                        highlightColor: Color.livithColor(.yellow30)
+                    )
                 } else {
-                    originalLyricsText(lyrics[index])
+                    lyricsText(lyrics[index], color: Color.livithColor(.original))
                 }
             } else if store.state.showFanchant, index < fanchant.count {
-                fanchantText(fanchant[index])
+                hashHighlightedText(
+                    fanchant[index],
+                    defaultColor: Color.livithColor(.yellow30),
+                    highlightColor: Color.livithColor(.white100)
+                )
             }
 
             if store.state.showPronunciation, index < pronunciation.count {
-                pronunciationText(pronunciation[index])
+                lyricsText(pronunciation[index], color: Color.livithColor(.white100))
             }
 
             if store.state.showTranslation, index < translation.count {
-                translationText(translation[index])
+                lyricsText(translation[index], color: Color.livithColor(.translation))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    func originalWithFanchantText(fanchant: String) -> some View {
-        hashHighlightedText(
-            fanchant,
-            defaultColor: Color.livithColor(.original),
-            highlightColor: Color.livithColor(.yellow30)
-        )
-    }
-
-    func fanchantText(_ text: String) -> some View {
-        hashHighlightedText(
-            text,
-            defaultColor: Color.livithColor(.yellow30),
-            highlightColor: Color.livithColor(.white100)
-        )
-    }
-
-    func originalLyricsText(_ text: String) -> some View {
-        Text(text)
-            .notosans(.body2Regular)
-            .foregroundStyle(Color.livithColor(.original))
-    }
-
-    func pronunciationText(_ text: String) -> some View {
+    func lyricsText(_ text: String, color: Color) -> some View {
         Text(text)
             .notosans(.body2Medium)
-            .foregroundStyle(Color.livithColor(.white100))
-    }
-
-    func translationText(_ text: String) -> some View {
-        Text(text)
-            .notosans(.body2Medium)
-            .foregroundStyle(.livithColor(.translation))
+            .foregroundStyle(color)
     }
 
     @ViewBuilder
@@ -161,16 +150,11 @@ private extension LyricsContentView {
             .notosans(.body2Regular)
         }
     }
+}
 
-    struct TextSegment {
-        let text: String
-        let isHighlighted: Bool
-    }
+// MARK: - Helper Method
 
-    struct ParsedText {
-        let segments: [TextSegment]
-    }
-
+private extension LyricsContentView {
     func parseHashText(_ text: String) -> ParsedText {
         var segments: [TextSegment] = []
         var remaining = text
@@ -200,6 +184,7 @@ private extension LyricsContentView {
         return ParsedText(segments: segments)
     }
 }
+
 
 #Preview {
     LyricsContentView(store: SongLyricsStore())

@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import YouTubePlayerKit
 
 import DSKit
 import SongDomain
@@ -72,7 +71,7 @@ public struct SongLyricsView: View {
                 }
 
                 if let message = warningMessage {
-                    toggleWarningPopup(message: message)
+                    ToggleWarningPopup(message: message)
                 }
             }
         }
@@ -126,13 +125,14 @@ private extension SongLyricsView {
                     .frame(width: 38, height: 38)
             }
 
-            Text(store.state.songTitle)
-                .notosans(.body1Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .lineLimit(1)
-                .truncationMode(.tail)
+            MarqueeText(
+                text: store.state.songTitle,
+                font: .body1Semibold,
+                textColor: Color.livithColor(.white100)
+            )
 
             Spacer()
+                .frame(width: 8)
 
             Button {
                 onReportTapped()
@@ -262,99 +262,4 @@ private extension SongLyricsView {
         }
     }
 
-    func toggleWarningPopup(message: String) -> some View {
-        VStack {
-            Spacer()
-            Text(message)
-                .notosans(.body2Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 90)
-                .padding(.vertical, 24)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.livithColor(.black90).opacity(0.9))
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 6))
-                )
-                .shadow(color: .livithColor(.yellow30).opacity(0.2), radius: 5)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .transition(.opacity.animation(.easeInOut(duration: 0.3)))
-    }
-}
-
-// MARK: - YouTube Player View
-
-private struct YouTubePlayerView: View {
-    private let youtubeID: String
-    @State private var player: YouTubePlayer?
-    @State private var isLoading = true
-    @State private var hasError = false
-    @State private var isViewActive = false
-
-    init(youtubeID: String) {
-        self.youtubeID = youtubeID
-    }
-
-    private func createPlayer() -> YouTubePlayer {
-        let configuration = YouTubePlayer.Configuration(
-            autoPlay: true,
-            showControls: true,
-            useModestBranding: true,
-            playInline: true,
-            showRelatedVideos: false
-        )
-        return YouTubePlayer(
-            source: .video(id: youtubeID),
-            configuration: configuration
-        )
-    }
-
-    var body: some View {
-        ZStack {
-            if hasError {
-                videoErrorView
-            } else if let player, isViewActive {
-                YouTubePlayerKit.YouTubePlayerView(player)
-                    .onReceive(player.statePublisher) { state in
-                        guard isViewActive else { return }
-                        switch state {
-                        case .ready:
-                            isLoading = false
-                        case .error:
-                            hasError = true
-                            isLoading = false
-                        default:
-                            break
-                        }
-                    }
-
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(Color.livithColor(.white100))
-                }
-            } else {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(Color.livithColor(.white100))
-            }
-        }
-        .onAppear {
-            isViewActive = true
-            if player == nil {
-                player = createPlayer()
-            }
-        }
-        .onDisappear {
-            isViewActive = false
-        }
-    }
-
-    var videoErrorView: some View {
-        Image.livithImage(.youtubeEmpty)
-            .resizable()
-            .scaledToFill()
-    }
 }
