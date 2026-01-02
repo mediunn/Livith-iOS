@@ -14,12 +14,21 @@ import LivithNetwork
 struct HomeRepositoryImpl {
     private let homeService: HomeService
     private let searchService: SearchService
+    private let setlistService: SetlistService
+    private let concertService: ConcertService
     private let mapper: HomeMapper = .init()
     private let errorMapper: HomeErrorMapper = .init()
     
-    init(homeService: HomeService, searchService: SearchService) {
+    init(
+        homeService: HomeService, 
+        searchService: SearchService, 
+        setlistService: SetlistService, 
+        concertService: ConcertService
+    ) {
         self.homeService = homeService
         self.searchService = searchService
+        self.setlistService = setlistService
+        self.concertService = concertService
     }
 }
 
@@ -78,7 +87,9 @@ extension HomeRepositoryImpl: HomeRepository {
 
     func fetchRecommendKeywordList(for keyword: String) async throws(HomeError) -> [String] {
         do {
-            let response: DTO.Response.FetchRecommendKeywordList = try await searchService.request(.fetchRecommendedSearchResult(letter: keyword))
+            let response: DTO.Response.FetchRecommendKeywordList = try await searchService.request(
+                .fetchRecommendedSearchResult(letter: keyword)
+            )
             return response
         } catch {
             printError(error)
@@ -123,6 +134,42 @@ extension HomeRepositoryImpl: HomeRepository {
                     cursor: cursor,
                     size: 12
                 )
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchMainSetlist(for concertID: Int) async throws(HomeError) -> Setlist {
+        do {
+            let response: DTO.Response.FetchConcertSetlist = try await setlistService.request(
+                .fetchConcertMainSetlist(concertID: concertID)
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchSongList(for setlistID: Int) async throws(HomeError) -> SetlistSongList {
+        do {
+            let response: DTO.Response.FetchSetlistSongList = try await setlistService.request(
+                .fetchSetlistSongList(setlistID: setlistID)
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            printError(error)
+            throw errorMapper.mapToDomainError(from: error)
+        }
+    }
+
+    func fetchScheduleList(for concertID: Int) async throws(HomeError) -> ConcertScheduleList {
+        do {
+            let response: DTO.Response.FetchConcertSchedule = try await concertService.request(
+                .fetchConcertSchedule(concertID: concertID)
             )
             return mapper.toDomain(from: response)
         } catch {
