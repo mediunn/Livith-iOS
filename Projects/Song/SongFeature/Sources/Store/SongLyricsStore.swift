@@ -74,6 +74,7 @@ public enum SongLyricsIntent {
 
 // MARK: - Store
 
+@MainActor
 public final class SongLyricsStore: ObservableObject {
 
     // MARK: - Property
@@ -89,7 +90,6 @@ public final class SongLyricsStore: ObservableObject {
 
     // MARK: - Intent Handler
 
-    @MainActor
     public func send(_ intent: SongLyricsIntent) {
         switch intent {
         case .onAppear(let songID, let setlistID, let songTitle):
@@ -129,7 +129,6 @@ public final class SongLyricsStore: ObservableObject {
 
 // MARK: - Toggle Validation
 
-@MainActor
 private extension SongLyricsStore {
     var activeToggleCount: Int {
         [state.showOriginal, state.showPronunciation, state.showTranslation, state.showFanchant]
