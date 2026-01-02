@@ -22,6 +22,7 @@ public struct LivithLogoHeaderView: View {
             
             Spacer()
         }
+        .frame(height: 60)
     }
 }
 
