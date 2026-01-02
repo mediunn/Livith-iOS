@@ -66,6 +66,10 @@ public enum SongLyricsIntent {
     case _setFanchant(SongFanchant?)
     case _setFetchError(String?)
     case _setToggleWarning(String?)
+    case _setShowOriginal(Bool)
+    case _setShowPronunciation(Bool)
+    case _setShowTranslation(Bool)
+    case _setShowFanchant(Bool)
 }
 
 // MARK: - Store
@@ -111,6 +115,14 @@ public final class SongLyricsStore: ObservableObject {
             state.fetchError = error
         case ._setToggleWarning(let message):
             state.toggleWarningMessage = message
+        case ._setShowOriginal(let value):
+            state.showOriginal = value
+        case ._setShowPronunciation(let value):
+            state.showPronunciation = value
+        case ._setShowTranslation(let value):
+            state.showTranslation = value
+        case ._setShowFanchant(let value):
+            state.showFanchant = value
         }
     }
 }
@@ -144,7 +156,7 @@ private extension SongLyricsStore {
                 return
             }
         }
-        state.showOriginal.toggle()
+        send(._setShowOriginal(!state.showOriginal))
     }
 
     func handleTogglePronunciation() {
@@ -153,7 +165,7 @@ private extension SongLyricsStore {
             showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
             return
         }
-        state.showPronunciation.toggle()
+        send(._setShowPronunciation(!state.showPronunciation))
     }
 
     func handleToggleTranslation() {
@@ -162,7 +174,7 @@ private extension SongLyricsStore {
             showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
             return
         }
-        state.showTranslation.toggle()
+        send(._setShowTranslation(!state.showTranslation))
     }
 
     func handleToggleFanchant() {
@@ -179,7 +191,7 @@ private extension SongLyricsStore {
                 return
             }
         }
-        state.showFanchant.toggle()
+        send(._setShowFanchant(!state.showFanchant))
     }
 
     func showWarning(_ message: String) {
