@@ -129,6 +129,7 @@ public final class SongLyricsStore: ObservableObject {
 
 // MARK: - Toggle Validation
 
+@MainActor
 private extension SongLyricsStore {
     var activeToggleCount: Int {
         [state.showOriginal, state.showPronunciation, state.showTranslation, state.showFanchant]
