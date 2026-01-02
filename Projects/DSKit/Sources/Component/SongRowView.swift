@@ -56,6 +56,7 @@ public struct SongRowView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 11)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

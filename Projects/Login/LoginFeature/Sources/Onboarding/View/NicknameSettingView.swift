@@ -258,7 +258,7 @@ private extension NicknameSettingView {
         case .idle, .valid, .checking:
             return .livithColor(.black50)
         case .invalid, .duplicate:
-            return .livithColor(.transition)
+            return .livithColor(.translation)
         case .available:
             return .livithColor(.yellow30)
         }
