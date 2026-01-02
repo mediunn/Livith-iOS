@@ -58,7 +58,8 @@ private extension HomeInterestConcertView {
                         remainDays: store.state.interestConcert?.daysLeft ?? 0,
                         date: store.state.interestConcert?.startDate ?? "",
                         location: store.state.interestConcert?.venue ?? "",
-                        title: store.state.interestConcert?.title ?? ""
+                        title: store.state.interestConcert?.title ?? "",
+                        onMoreInfoTap: handleMoreInfoTap
                     )
                     
                     SegmentTabBar(
@@ -170,6 +171,11 @@ private extension HomeInterestConcertView {
         self.showBottomSheet = flag
     }
     
+    func handleMoreInfoTap() {
+        guard let concertID = store.state.interestConcert?.id else { return }
+        coordinator?.showConcertDetail(concertID: concertID)
+    }
+
     func handleChangeMainConcert() {
         showBottomSheet(flag: false)
         coordinator?.push(to: .interest)
