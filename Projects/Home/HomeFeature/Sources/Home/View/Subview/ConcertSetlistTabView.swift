@@ -60,13 +60,13 @@ private extension ConcertSetlistTabView {
                         artist: song.artist,
                         onTapped: { onSongTap(song.id) }
                     )
-                    .padding(.vertical, 12)
+                    .padding(.bottom, 12)
                 }
                 moreButton()
             }
             .background(.livithColor(.black90))
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-            .padding(.top, 20)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.vertical, 20)
             
             Spacer()
                 .frame(height: 232)
