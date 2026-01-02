@@ -72,6 +72,7 @@ public struct SongLyricsView: View {
                     toggleWarningPopup(message: warningMessage)
                 }
             }
+            .animation(.easeInOut(duration: 0.3), value: store.state.toggleWarningMessage)
         }
         .background(Color.livithColor(.black100))
         .navigationBarBackButtonHidden()
@@ -87,7 +88,7 @@ public struct SongLyricsView: View {
         .onChange(of: store.state.toggleWarningMessage) { _, newValue in
             if newValue != nil {
                 Task {
-                    try? await Task.sleep(for: .seconds(3))
+                    try? await Task.sleep(for: .seconds(1.5))
                     store.send(.onToggleWarningDismiss)
                 }
             }
@@ -251,19 +252,18 @@ private extension SongLyricsView {
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 90)
                 .padding(.vertical, 24)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.livithColor(.black100).opacity(0.7))
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.livithColor(.black90).opacity(0.9))
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 6))
                 )
-                .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 4)
+                .shadow(color: .livithColor(.yellow30).opacity(0.2), radius: 5)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .transition(.opacity)
-        .animation(.easeInOut(duration: 0.2), value: store.state.toggleWarningMessage)
     }
 }
 
