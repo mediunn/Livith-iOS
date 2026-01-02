@@ -14,6 +14,7 @@ import DSKit
 public enum ConcertRoute: Route {
     case detail(concertID: Int)
     case setlistDetail(concertID: Int, setlistID: Int)
+    case songLyrics(songID: Int, setlistID: Int, songTitle: String)
     case safari(URL)
     case ticketSafari(URL)
     case merchandiseDetail([ConcertMerchandise])
