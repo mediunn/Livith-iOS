@@ -65,6 +65,7 @@ public enum SongLyricsIntent {
     case _setLyrics(SongLyrics?)
     case _setFanchant(SongFanchant?)
     case _setFetchError(String?)
+    case _setToggleWarning(String?)
 }
 
 // MARK: - Store
@@ -108,6 +109,8 @@ public final class SongLyricsStore: ObservableObject {
             state.fanchant = fanchant
         case ._setFetchError(let error):
             state.fetchError = error
+        case ._setToggleWarning(let message):
+            state.toggleWarningMessage = message
         }
     }
 }
@@ -180,7 +183,7 @@ private extension SongLyricsStore {
     }
 
     func showWarning(_ message: String) {
-        state.toggleWarningMessage = message
+        send(._setToggleWarning(message))
     }
 }
 
