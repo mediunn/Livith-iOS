@@ -51,7 +51,8 @@ struct LoginView: View {
         case .newUser(let tempUser):
             coordinator?.push(to: .terms(tempUser))
         case .forbidden:
-            coordinator?.present(to: .loginForbidden, presentationStyle: .fullScreen, transitionStyle: .crossDissolve)
+            coordinator?
+                .present(to: .loginForbidden, presentationStyle: .overFullScreen, transitionStyle: .crossDissolve)
         }
     }
 }
