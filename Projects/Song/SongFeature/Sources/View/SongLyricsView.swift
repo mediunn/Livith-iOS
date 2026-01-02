@@ -72,7 +72,7 @@ public struct SongLyricsView: View {
                     toggleWarningPopup(message: warningMessage)
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: store.state.toggleWarningMessage)
+            .animation(.easeInOut(duration: 1), value: store.state.toggleWarningMessage)
         }
         .background(Color.livithColor(.black100))
         .navigationBarBackButtonHidden()
@@ -89,7 +89,9 @@ public struct SongLyricsView: View {
             if newValue != nil {
                 Task {
                     try? await Task.sleep(for: .seconds(1.5))
-                    store.send(.onToggleWarningDismiss)
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        store.send(.onToggleWarningDismiss)
+                    }
                 }
             }
         }
