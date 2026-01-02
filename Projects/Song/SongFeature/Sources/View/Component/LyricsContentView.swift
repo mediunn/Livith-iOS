@@ -80,7 +80,7 @@ private extension LyricsContentView {
     }
 
     var lyricsSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 44) {
             ForEach(0..<maxLineCount, id: \.self) { index in
                 lyricsLineView(at: index)
             }
@@ -88,9 +88,12 @@ private extension LyricsContentView {
     }
 
     func lyricsLineView(at index: Int) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if store.state.showFanchant, index < fanchant.count
-            || store.state.showOriginal, index < lyrics.count {
+        VStack(alignment: .leading, spacing: 20) {
+            if store.state.showFanchant, index < fanchant.count {
+                fanchantText(fanchant[index])
+            }
+
+            if store.state.showOriginal, index < lyrics.count {
                 originalLyricsText(lyrics[index])
             }
 
@@ -104,12 +107,18 @@ private extension LyricsContentView {
         }
     }
 
-    func originalLyricsText(_ text: String) -> some View {
+    func fanchantText(_ text: String) -> some View {
         hashHighlightedText(
             text,
-            defaultColor: Color.livithColor(.original),
-            highlightColor: Color.livithColor(.yellow30)
+            defaultColor: Color.livithColor(.yellow30),
+            highlightColor: Color.livithColor(.white100)
         )
+    }
+
+    func originalLyricsText(_ text: String) -> some View {
+        Text(text)
+            .notosans(.body2Regular)
+            .foregroundStyle(Color.livithColor(.original))
     }
 
     func pronunciationText(_ text: String) -> some View {
