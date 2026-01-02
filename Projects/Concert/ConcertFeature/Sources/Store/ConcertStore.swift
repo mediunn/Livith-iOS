@@ -196,7 +196,7 @@ private extension ConcertStore {
 
     func getInterestedConcertID() -> Int? {
         guard let data = UserDefaults.standard.data(forKey: "currentUser"),
-              let user = try? JSONDecoder().decode(StoredUserInfo.self, from: data) else {
+              let user = try? JSONDecoder().decode(UserInfo.self, from: data) else {
             return nil
         }
         return user.interestConcertID
@@ -225,31 +225,12 @@ private extension ConcertStore {
 
     func updateStoredInterestConcertID(_ concertID: Int) {
         guard let data = UserDefaults.standard.data(forKey: "currentUser"),
-              var user = try? JSONDecoder().decode(StoredUserInfo.self, from: data) else {
+              var user = try? JSONDecoder().decode(UserInfo.self, from: data) else {
             return
         }
         user.interestConcertID = concertID
         if let updatedData = try? JSONEncoder().encode(user) {
             UserDefaults.standard.set(updatedData, forKey: "currentUser")
         }
-    }
-}
-
-// MARK: - Local UserInfo for UserDefaults
-
-private struct StoredUserInfo: Codable {
-    let id: Int
-    var interestConcertID: Int?
-    let provider: String
-    let providerID: String
-    let email: String?
-    let nickname: String
-    let marketingConsent: Bool
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case interestConcertID = "interestConcertId"
-        case providerID = "providerId"
-        case provider, email, nickname, marketingConsent
     }
 }
