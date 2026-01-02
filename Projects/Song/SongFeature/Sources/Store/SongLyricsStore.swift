@@ -55,7 +55,6 @@ public struct SongLyricsState {
 
 public enum SongLyricsIntent {
     case onAppear(songID: Int, setlistID: Int?, songTitle: String)
-    case onFetchErrorDismiss
 
     case toggleOriginal
     case togglePronunciation
@@ -93,8 +92,6 @@ public final class SongLyricsStore: ObservableObject {
             state.setlistID = setlistID
             state.songTitle = songTitle
             fetchSongData(songID: songID, setlistID: setlistID)
-        case .onFetchErrorDismiss:
-            state.fetchError = nil
         case .toggleOriginal:
             handleToggleOriginal()
         case .togglePronunciation:

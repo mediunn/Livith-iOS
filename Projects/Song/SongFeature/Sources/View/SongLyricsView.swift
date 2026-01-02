@@ -20,6 +20,7 @@ public struct SongLyricsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var sheetPosition: LyricsBottomSheetView.SheetPosition = .middle
     @State private var warningMessage: String?
+    @State private var errorMessage: String?
 
     private let songID: Int
     private let setlistID: Int?
@@ -42,8 +43,8 @@ public struct SongLyricsView: View {
 
     private var showErrorToast: Binding<Bool> {
         Binding(
-            get: { store.state.fetchError != nil },
-            set: { if !$0 { store.send(.onFetchErrorDismiss) } }
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
         )
     }
 
@@ -81,10 +82,15 @@ public struct SongLyricsView: View {
         .livithToast(
             isPresented: showErrorToast,
             type: .failure,
-            message: store.state.fetchError ?? ""
+            message: errorMessage ?? ""
         )
         .onAppear {
             store.send(.onAppear(songID: songID, setlistID: setlistID, songTitle: songTitle))
+        }
+        .onChange(of: store.state.fetchError) { _, newValue in
+            if let error = newValue {
+                errorMessage = error
+            }
         }
         .onChange(of: store.state.toggleWarningMessage) { _, newValue in
             if let message = newValue {
