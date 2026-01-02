@@ -51,14 +51,13 @@ struct HomeView: View {
 
     @ViewBuilder
     private func content() -> some View {
-        switch store.state.mode {
-        case .noInterestedConcert:
-            HomeNoInterestView(nickname: nickname)
-        case .hasInterestedConcert(_):
+        if store.state.interestConcert != nil {
             HomeInterestConcertView(
                 store: store,
                 isTabBarHidden: $isTabBarHidden
             )
+        } else {
+            HomeNoInterestView(nickname: nickname)
         }
     }
 }

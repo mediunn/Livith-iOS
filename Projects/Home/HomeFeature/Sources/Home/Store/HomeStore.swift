@@ -15,8 +15,7 @@ enum HomeIntent {
     case onAppear
     case onErrorToastDisappear
     case onToastDisappear
-
-    // Interest concert related
+    
     case onDelete
     case _fetchUserInterestConcertResult(Result<Concert?, Error>)
     case _fetchScheduleListResult(Result<ConcertScheduleList, Error>)
@@ -26,20 +25,14 @@ enum HomeIntent {
 }
 
 struct HomeState {
-    var mode: HomeMode = .noInterestedConcert
+    var interestConcert: Concert? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
-
-    // Interest concert substate
+    
     var scheduleList: ConcertScheduleList = []
-    var setlist: Setlist?
+    var setlist: Setlist? = nil
     var songList: SetlistSongList = []
-
-    var interestConcert: Concert? {
-        if case .hasInterestedConcert(let concert) = mode { return concert }
-        return nil
-    }
-}
+} 
 
 final class HomeStore: ObservableObject {
     @Published private(set) var state: HomeState = .init()
@@ -52,7 +45,7 @@ final class HomeStore: ObservableObject {
         switch intent {
         case .onAppear:
             performFetchUserInterestedConcert()
-            // If we already have an interest concert loaded, also fetch related details
+            
             if let concert = state.interestConcert {
                 performFetchScheduleList(concertID: concert.id)
                 performFetchMainSetlist(concertID: concert.id)
@@ -70,11 +63,15 @@ final class HomeStore: ObservableObject {
         case ._fetchUserInterestConcertResult(let result):
             switch result {
             case .success(let concert):
-                state.mode = concert.map { .hasInterestedConcert($0) } ?? .noInterestedConcert
-                // Fetch related data when we have a concert
+                state.interestConcert = concert
+                
                 if let concert = concert {
                     performFetchScheduleList(concertID: concert.id)
                     performFetchMainSetlist(concertID: concert.id)
+                } else {
+                    state.scheduleList = []
+                    state.setlist = nil
+                    state.songList = []
                 }
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
@@ -107,8 +104,10 @@ final class HomeStore: ObservableObject {
         case ._deleteInterestConcertResult(let result):
             switch result {
             case .success:
-                // update UI
-                state.mode = .noInterestedConcert
+                state.interestConcert = nil
+                state.scheduleList = []
+                state.setlist = nil
+                state.songList = []
                 state.toastMessage = "관심 콘서트가 삭제되었어요"
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
@@ -177,14 +176,5 @@ private extension HomeStore {
                 await send(._deleteInterestConcertResult(.failure(error)))
             }
         }
-    }
-}
-
-// MARK: - HomeMode
-
-extension HomeState {
-    enum HomeMode {
-        case noInterestedConcert
-        case hasInterestedConcert(Concert)
     }
 }
