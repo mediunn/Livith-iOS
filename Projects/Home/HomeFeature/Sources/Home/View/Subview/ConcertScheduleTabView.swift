@@ -44,7 +44,6 @@ struct ConcertScheduleTabView: View {
                     .frame(minHeight: 280)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 24)
         }
     }
 }
@@ -81,11 +80,11 @@ private extension ConcertScheduleTabView {
             Spacer()
             
             Text(dateTime)
-                .notosans(.body3Medium)
-                .foregroundStyle(.livithColor(.black30))
+                .notosans(.body3Semibold)
+                .foregroundStyle(.livithColor(.black5))
         }
         .overlay {
-            if isActive {
+            if !isActive {
                 Rectangle()
                     .fill(.livithColor(.black100).opacity(0.3))
             }
