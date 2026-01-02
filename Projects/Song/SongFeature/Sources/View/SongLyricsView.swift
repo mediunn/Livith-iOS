@@ -151,23 +151,39 @@ private extension SongLyricsView {
                 youtubePlayerView
                     .frame(height: videoHeight)
 
-                toggleButtonsSection
-                    .frame(height: toggleHeight)
+                if store.state.hasLyrics {
+                    toggleButtonsSection
+                        .frame(height: toggleHeight)
+                } else {
+                    lyricsEmptyView
+                }
             }
 
-            Color.livithColor(.black100)
-                .opacity(overlayOpacity)
-                .allowsHitTesting(false)
-                .animation(.easeInOut(duration: 0.3), value: sheetPosition)
+            if store.state.hasLyrics {
+                Color.livithColor(.black100)
+                    .opacity(overlayOpacity)
+                    .allowsHitTesting(false)
+                    .animation(.easeInOut(duration: 0.3), value: sheetPosition)
 
-            LyricsBottomSheetView(
-                store: store,
-                screenHeight: geometry.size.height,
-                videoHeight: videoHeight,
-                toggleHeight: toggleHeight,
-                currentPosition: $sheetPosition
-            )
+                LyricsBottomSheetView(
+                    store: store,
+                    screenHeight: geometry.size.height,
+                    videoHeight: videoHeight,
+                    toggleHeight: toggleHeight,
+                    currentPosition: $sheetPosition
+                )
+            }
         }
+    }
+
+    var lyricsEmptyView: some View {
+        VStack {
+            Spacer()
+            LivithEmptyView(text: "가사 정보가 없어요")
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.livithColor(.black100))
     }
 
     var toggleButtonsSection: some View {

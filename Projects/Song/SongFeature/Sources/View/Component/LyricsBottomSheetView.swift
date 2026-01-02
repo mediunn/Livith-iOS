@@ -101,22 +101,8 @@ private extension LyricsBottomSheetView {
     }
 
     var lyricsContentSection: some View {
-        Group {
-            if store.state.hasLyrics {
-                LyricsContentView(store: store)
-            } else {
-                lyricsEmptyView
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    var lyricsEmptyView: some View {
-        VStack {
-            Spacer()
-            LivithEmptyView(text: "가사 정보가 없어요")
-            Spacer()
-        }
+        LyricsContentView(store: store)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
