@@ -11,9 +11,9 @@ import SwiftUI
 import DSKit
 
 struct ConcertScheduleTabView: View {
-    private let schedules: ConcertScheduleList
+    private let schedules: ConcertSchedules
     
-    init(schedules: ConcertScheduleList) {
+    init(schedules: ConcertSchedules) {
         self.schedules = schedules
     }
     

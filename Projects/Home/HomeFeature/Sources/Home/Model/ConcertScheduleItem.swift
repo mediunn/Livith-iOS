@@ -8,7 +8,7 @@
 
 import Foundation
 
-typealias ConcertScheduleList = [ConcertScheduleItem]
+typealias ConcertSchedules = [ConcertScheduleItem]
 
 struct ConcertScheduleItem: Hashable, Identifiable {
     let id: Int
@@ -16,8 +16,8 @@ struct ConcertScheduleItem: Hashable, Identifiable {
     let title: String
 }
 
-extension ConcertScheduleList {
-    static func mock() -> ConcertScheduleList {
+extension ConcertSchedules {
+    static func mock() -> ConcertSchedules {
         let calendar = Calendar.current
         let today = Date()
         return [

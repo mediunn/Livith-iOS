@@ -25,7 +25,7 @@ struct HomeView: View {
             case .noInterestedConcert:
                 HomeNoInterestView(nickname: nickname)
             case .hasInterestedConcert(let concert):
-                EmptyView()
+                HomeInterestConcertView(store: HomeInterestConcertStore(interestConcert: concert))
             }
         }
         .livithToast(

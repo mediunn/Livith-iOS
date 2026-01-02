@@ -13,6 +13,8 @@ import HomeDomain
 
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
+    @ObservedObject private var store: HomeInterestConcertStore
+    
     @State private var selectedTab: InterestConcertTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
@@ -22,9 +24,13 @@ struct HomeInterestConcertView: View {
     private let date: String = "2025.11.01~11.02"
     private let location: String = "올림픽공원 올림픽홀"
     private let title: String = "Gen Hoshino presents \n MAD HOPEAsia Tour in SEOUL"
-    private let concertScheduleList: ConcertScheduleList = .mock()
+    private let concertScheduleList: ConcertSchedules = .mock()
     private let setlist: SetlistItem = .sample
     private let songs: SongList = .sample
+    
+    init(store: HomeInterestConcertStore) {
+        self.store = store
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -37,6 +43,9 @@ struct HomeInterestConcertView: View {
             deleteDialog
         }
         .animation(.easeInOut, value: showDeleteDialog)
+        .onAppear {
+            store.send(.onAppear)
+        }
     }
 }
 
@@ -52,11 +61,11 @@ private extension HomeInterestConcertView {
                     textHeaderView
                     
                     InterestConcertCardView(
-                        posterURL: posterURL,
-                        remainDays: remainDays,
-                        date: date,
-                        location: location,
-                        title: title
+                        posterURL: store.state.interestConcert.posterURL,
+                        remainDays: store.state.interestConcert.daysLeft,
+                        date: store.state.interestConcert.startDate,
+                        location: store.state.interestConcert.venue,
+                        title: store.state.interestConcert.title
                     )
                     
                     SegmentTabBar(
@@ -172,8 +181,4 @@ private extension HomeInterestConcertView {
             selectedTab = tab
         }
     }
-}
-
-#Preview {
-    HomeInterestConcertView()
 }
