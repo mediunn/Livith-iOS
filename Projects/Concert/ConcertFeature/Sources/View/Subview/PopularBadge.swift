@@ -36,7 +36,7 @@ struct PopularBadge: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 2)
-        .background(Color.livithColor(.transition))
+        .background(Color.livithColor(.translation))
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }

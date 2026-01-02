@@ -69,7 +69,7 @@ public struct ErrorSheetView: View {
                         .foregroundColor(.livithColor(.black100))
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.livithColor(.transition))
+                        .background(Color.livithColor(.translation))
                         .cornerRadius(4)
                 }
                 .padding(.top, 20)

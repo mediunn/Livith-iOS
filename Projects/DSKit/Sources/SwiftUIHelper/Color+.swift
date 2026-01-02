@@ -13,7 +13,7 @@ public extension Color {
         case black100, black90, black80, black50, black30, black5, white100
         case yellow30, yellow60
         case caution100
-        case transition, original
+        case translation, original
         
         public var color: Color {
             switch self {
@@ -37,7 +37,7 @@ public extension Color {
                 Color(DSKitAsset.ColorAssets.yellow60.color)
             case .caution100:
                 Color(DSKitAsset.ColorAssets.caution100.color)
-            case .transition:
+            case .translation:
                 Color(DSKitAsset.ColorAssets.transition.color)
             case .original:
                 Color(DSKitAsset.ColorAssets.original.color)
