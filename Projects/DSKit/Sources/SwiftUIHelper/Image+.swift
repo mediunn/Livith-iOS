@@ -162,6 +162,7 @@ public extension Image {
         case polygon
         case welcome
         case interestConcertComplete
+        case youtubeEmpty
 
         public var image: Image {
             switch self {
@@ -183,10 +184,12 @@ public extension Image {
                 DSKitAsset.ImageAssets.imageWelcome.swiftUIImage
             case .interestConcertComplete:
                 DSKitAsset.ImageAssets.imageInterestConcertComplete.swiftUIImage
+            case .youtubeEmpty:
+                DSKitAsset.ImageAssets.imageYoutubeEmpty.swiftUIImage
             }
         }
     }
-    
+
     // MARK: - livithIcon
 
     /// LivithIcon 열거형을 통해 앱의 아이콘 에셋에 접근합니다.
