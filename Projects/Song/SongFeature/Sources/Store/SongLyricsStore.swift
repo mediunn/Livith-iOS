@@ -56,7 +56,6 @@ public struct SongLyricsState {
 public enum SongLyricsIntent {
     case onAppear(songID: Int, setlistID: Int?, songTitle: String)
     case onFetchErrorDismiss
-    case onToggleWarningDismiss
 
     case toggleOriginal
     case togglePronunciation
@@ -67,7 +66,6 @@ public enum SongLyricsIntent {
     case _setLyrics(SongLyrics?)
     case _setFanchant(SongFanchant?)
     case _setFetchError(String?)
-    case _setToggleWarning(String?)
 }
 
 // MARK: - Store
@@ -97,8 +95,6 @@ public final class SongLyricsStore: ObservableObject {
             fetchSongData(songID: songID, setlistID: setlistID)
         case .onFetchErrorDismiss:
             state.fetchError = nil
-        case .onToggleWarningDismiss:
-            state.toggleWarningMessage = nil
         case .toggleOriginal:
             handleToggleOriginal()
         case .togglePronunciation:
@@ -115,8 +111,6 @@ public final class SongLyricsStore: ObservableObject {
             state.fanchant = fanchant
         case ._setFetchError(let error):
             state.fetchError = error
-        case ._setToggleWarning(let message):
-            state.toggleWarningMessage = message
         }
     }
 }

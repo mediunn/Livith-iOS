@@ -19,6 +19,7 @@ public struct SongLyricsView: View {
     @StateObject private var store = SongLyricsStore()
     @Environment(\.dismiss) private var dismiss
     @State private var sheetPosition: LyricsBottomSheetView.SheetPosition = .middle
+    @State private var warningMessage: String?
 
     private let songID: Int
     private let setlistID: Int?
@@ -68,11 +69,11 @@ public struct SongLyricsView: View {
                     contentView(geometry: geometry)
                 }
 
-                if let warningMessage = store.state.toggleWarningMessage {
-                    toggleWarningPopup(message: warningMessage)
+                if let message = warningMessage {
+                    toggleWarningPopup(message: message)
                 }
             }
-            .animation(.easeInOut(duration: 1), value: store.state.toggleWarningMessage)
+            .animation(.easeInOut(duration: 0.3), value: warningMessage)
         }
         .background(Color.livithColor(.black100))
         .navigationBarBackButtonHidden()
@@ -86,11 +87,12 @@ public struct SongLyricsView: View {
             store.send(.onAppear(songID: songID, setlistID: setlistID, songTitle: songTitle))
         }
         .onChange(of: store.state.toggleWarningMessage) { _, newValue in
-            if newValue != nil {
+            if let message = newValue {
+                warningMessage = message
                 Task {
                     try? await Task.sleep(for: .seconds(1.5))
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        store.send(.onToggleWarningDismiss)
+                        warningMessage = nil
                     }
                 }
             }
