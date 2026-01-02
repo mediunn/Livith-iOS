@@ -50,9 +50,9 @@ struct LyricsBottomSheetView: View {
     private var sheetHeight: CGFloat {
         switch currentPosition {
         case .top:
-            return screenHeight
+            return max(screenHeight, 150)
         case .middle:
-            return screenHeight - videoHeight - toggleHeight
+            return max(screenHeight - videoHeight - toggleHeight, 150)
         case .bottom:
             return 150
         }

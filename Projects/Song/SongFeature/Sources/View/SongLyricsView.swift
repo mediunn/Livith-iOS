@@ -160,7 +160,7 @@ private extension SongLyricsView {
                 }
             }
 
-            if store.state.hasLyrics {
+            if store.state.hasLyrics, geometry.size.height > 0 {
                 Color.livithColor(.black100)
                     .opacity(overlayOpacity)
                     .allowsHitTesting(false)
