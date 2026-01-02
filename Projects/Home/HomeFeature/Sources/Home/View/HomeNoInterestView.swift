@@ -45,7 +45,6 @@ struct HomeNoInterestView: View {
             }
             .refreshable { store.send(.onRefresh) }
             .ignoresSafeArea(edges: .bottom)
-            .onAppear { store.send(.onAppear) }
         }
         .background(.livithColor(.black90))
     }
