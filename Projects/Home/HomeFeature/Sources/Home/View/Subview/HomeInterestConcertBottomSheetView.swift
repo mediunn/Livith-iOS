@@ -62,12 +62,12 @@ private extension HomeInterestConcertBottomSheetView {
                 icon
                     .resizable()
                     .frame(width: 36, height: 36)
-                    .foregroundStyle(isDestructive ? .livithColor(.transition) : .livithColor(.white100))
+                    .foregroundStyle(isDestructive ? .livithColor(.translation) : .livithColor(.white100))
                     .padding([.vertical, .leading], 8)
                 
                 Text(title)
                     .notosans(.body2Semibold)
-                    .foregroundStyle(isDestructive ? .livithColor(.transition) : .livithColor(.white100))
+                    .foregroundStyle(isDestructive ? .livithColor(.translation) : .livithColor(.white100))
                 
                 Spacer()
             }

@@ -43,8 +43,10 @@ struct InteresetConcertCompleteView: View {
                         .foregroundStyle(.livithColor(.white100)))
                     .notosans(.headSemibold)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.top, 80)
+                .padding(.horizontal, 16)
             }
             
             Button {

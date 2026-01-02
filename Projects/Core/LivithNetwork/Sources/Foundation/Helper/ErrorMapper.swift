@@ -28,13 +28,22 @@ public final class ErrorMapper: ErrorMapperProtocol {
                 return .noConnection(error)
             case .invalidURL:
                 return .invalidURL
-            case .responseValidationFailed:
-                return .invalidResponse
+            case .responseValidationFailed(let reason):
+                return mapResponseValidationError(reason)
             default:
                 return .unknown(afError)
             }
         }
 
         return .unknown(error)
+    }
+
+    private func mapResponseValidationError(_ reason: AFError.ResponseValidationFailureReason) -> NetworkError {
+        switch reason {
+        case .unacceptableStatusCode(let code):
+            return NetworkError.from(statusCode: code)
+        default:
+            return .invalidResponse
+        }
     }
 }

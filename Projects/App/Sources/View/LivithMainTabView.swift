@@ -46,10 +46,13 @@ struct LivithMainTabView: View {
     }
 
     // MARK: - Property
-    
+
     @Binding private var nickname: String
     @State private var selectedTab: Tab = .home
     @State private var isTabBarHidden: Bool = false
+    @State private var showToast: Bool = false
+    @State private var toastType: LivithToastType = .success
+    @State private var toastMessage: String = ""
     
     // MARK: - LifeCycle
 
@@ -70,7 +73,14 @@ struct LivithMainTabView: View {
                     .tag(Tab.search)
                     .toolbar(.hidden, for: .tabBar)
                 
-                UserView(nickname: $nickname, isTabBarHidden: $isTabBarHidden)
+                UserView(
+                        isTabBarHidden: $isTabBarHidden,
+                        showToast: { type, message in
+                            toastType = type
+                            toastMessage = message
+                            showToast = true
+                        }
+                    )
                     .tag(Tab.my)
                     .toolbar(.hidden, for: .tabBar)
             }
@@ -85,6 +95,12 @@ struct LivithMainTabView: View {
         .animation(.easeInOut(duration: 0.3), value: isTabBarHidden)
         .animation(.easeInOut(duration: 0.3), value: selectedTab)
         .ignoresSafeArea(edges: .bottom)
+        .livithToast(
+            isPresented: $showToast,
+            type: toastType,
+            message: toastMessage,
+            position: .safeAreaTop
+        )
     }
 }
 

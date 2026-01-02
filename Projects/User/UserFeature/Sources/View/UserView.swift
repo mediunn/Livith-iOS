@@ -37,24 +37,24 @@ public struct UserView: View {
 
     // MARK: - Property
 
-    @Binding private var nickname: String
-
     @State private var path = NavigationPath()
     @State private var overlayType: OverlayType = .none
-    @State private var showSuccessToast: Bool = false
     @State private var showLogoutToast: Bool = false
     @State private var logoutToastType: LivithToastType = .success
     @State private var logoutToastMessage: String = ""
 
     @Binding private var isTabBarHidden: Bool
 
+    @StateObject private var userStore = UserStore()
     @StateObject private var logoutStore = LogoutStore()
+
+    private let showToast: ((LivithToastType, String) -> Void)?
 
     // MARK: - LifeCycle
 
-    public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
-        self._nickname = nickname
+    public init(isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
         self._isTabBarHidden = isTabBarHidden
+        self.showToast = showToast
     }
     
     // MARK: - Body
@@ -104,7 +104,8 @@ public struct UserView: View {
                         onDismiss: { path.removeLast() },
                         onSuccess: {
                             path.removeLast()
-                            withAnimation { showSuccessToast = true }
+                            userStore.send(.fetchNickname)
+                            showToast?(.success, Literals.toastSuccess)
                         }
                     )
                     .navigationBarBackButtonHidden()
@@ -116,18 +117,9 @@ public struct UserView: View {
                     .navigationBarBackButtonHidden()
                 }
             }
-            .livithToast(
-                isPresented: $showSuccessToast,
-                type: .success,
-                message: Literals.toastSuccess,
-                position: .safeAreaTop
-            )
-            .livithToast(
-                isPresented: $showLogoutToast,
-                type: logoutToastType,
-                message: logoutToastMessage,
-                position: .safeAreaTop
-            )
+        }
+        .onAppear {
+            userStore.send(.fetchNickname)
         }
         .onChange(of: logoutStore.state.logoutResult) { _, newResult in
             handleLogoutResult(newResult)
@@ -147,6 +139,12 @@ public struct UserView: View {
                 isTabBarHidden = !newPath.isEmpty
             }
         }
+        .livithToast(
+            isPresented: $showLogoutToast,
+            type: logoutToastType,
+            message: logoutToastMessage,
+            position: .safeAreaTop
+        )
     }
 }
 
@@ -171,8 +169,8 @@ private extension UserView {
     
     var titleText: some View {
         Text.init(
-            String(format: Literals.titleFormat, nickname),
-            highlighting: "\(nickname)",
+            String(format: Literals.titleFormat, userStore.state.nickname),
+            highlighting: "\(userStore.state.nickname)",
             color: .livithColor(.white100),
             font: .notosans(.headSemibold)
         )

@@ -47,26 +47,26 @@ private extension ConcertSetlistTabView {
             titleText()
                 .padding(.top, 24)
             
-            if let setlist = self.setlist, setlist.type == .recent {
+            if let setlist = self.setlist, setlist.type.isPastSetlist {
                 setlistCard(setlist: setlist)
                     .padding(.top, 20)
             }
             
             VStack(spacing: .zero) {
-                ForEach(songs, id: \.self) { song in
+                ForEach(songs.prefix(3), id: \.self) { song in
                     SongRowView(
                         orderIndex: song.orderIndex,
                         title: song.title,
                         artist: song.artist,
                         onTapped: { onSongTap(song.id) }
                     )
-                    .padding(.vertical, 12)
+                    .padding(.bottom, 12)
                 }
                 moreButton()
             }
             .background(.livithColor(.black90))
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-            .padding(.top, 20)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.vertical, 20)
             
             Spacer()
                 .frame(height: 232)
@@ -74,7 +74,7 @@ private extension ConcertSetlistTabView {
     }
     
     func titleText() -> some View {
-        Text(setlist?.type == .recent ? "이전 콘서트에서\n어떤 노래를 불렀을까요?" : "이전 콘서트를 기반으로\n이런 노래를 예상해요")
+        Text(setlist?.type.isPastSetlist == true ? "이전 콘서트에서\n어떤 노래를 불렀을까요?" : "이전 콘서트를 기반으로\n이런 노래를 예상해요")
             .notosans(.body1Semibold)
             .foregroundStyle(.livithColor(.white100))
             .multilineTextAlignment(.leading)
@@ -84,22 +84,27 @@ private extension ConcertSetlistTabView {
     func setlistCard(setlist: Setlist) -> some View {
         HStack(spacing: 16) {
             posterImageView(urlString: setlist.imageURL ?? "")
-                .padding([.vertical, .leading], 12)
+                .padding([.vertical, .leading], 16)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(setlist.title)
-                    .notosans(.body1Semibold)
+                    .notosans(.body2Medium)
                     .foregroundStyle(.livithColor(.black100))
                     .lineLimit(1)
+                    .padding(.bottom, 4)
                 
                 Text(setlist.artist)
-                    .notosans(.body2Regular)
+                    .notosans(.body4Regular)
                     .foregroundStyle(.livithColor(.black80))
                     .lineLimit(1)
+                    .padding(.bottom, 10)
                 
-                HStack(spacing: 8) {
-                    tagView(text: setlist.venue)
-                    tagView(text: formatDateRange(start: setlist.startDate, end: setlist.endDate))
+                HStack(spacing: 6) {
+                    if setlist.venue != "" {
+                        tagView(text: setlist.venue)
+                    }
+                    
+                    tagView(text: formatDate(setlist.startDate))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,23 +163,14 @@ private extension ConcertSetlistTabView {
 // MARK: - Helpers
 
 private extension ConcertSetlistTabView {
-    static let yearFormatter: DateFormatter = {
+    static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
-        f.dateFormat = "yyyy.MM.dd"
+        f.dateFormat = "yyyy년 M월 d일"
         return f
     }()
 
-    static let noYearFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "MM.dd"
-        return f
-    }()
-
-    func formatDateRange(start: Date, end: Date) -> String {
-        let startDateString = Self.yearFormatter.string(from: start)
-        let endDateString = Self.noYearFormatter.string(from: end)
-
-        return "\(startDateString) ~ \(endDateString)"
+    func formatDate(_ date: Date) -> String {
+        Self.dateFormatter.string(from: date)
     }
 }
 

@@ -59,4 +59,26 @@ final class HomeCoordinator: Coordinator {
         self.concertCoordinator = coordinator
         coordinator.start(concertID: concertID)
     }
+
+    func showSongDetail(songID: Int, setlistID: Int, songTitle: String) {
+        let coordinator = ConcertCoordinator(
+            navigationController: navigationController,
+            onDismiss: { [weak self] in
+                self?.concertCoordinator = nil
+            }
+        )
+        self.concertCoordinator = coordinator
+        coordinator.push(to: .songLyrics(songID: songID, setlistID: setlistID, songTitle: songTitle))
+    }
+
+    func showSetlistDetail(concertID: Int, setlistID: Int) {
+        let coordinator = ConcertCoordinator(
+            navigationController: navigationController,
+            onDismiss: { [weak self] in
+                self?.concertCoordinator = nil
+            }
+        )
+        self.concertCoordinator = coordinator
+        coordinator.push(to: .setlistDetail(concertID: concertID, setlistID: setlistID))
+    }
 }
