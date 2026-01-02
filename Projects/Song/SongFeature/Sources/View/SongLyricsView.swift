@@ -68,14 +68,9 @@ public struct SongLyricsView: View {
                     contentView(geometry: geometry)
                 }
 
-                Color.livithColor(.black100)
-                    .opacity(overlayOpacity)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
-                    .animation(.easeInOut(duration: 0.3), value: sheetPosition)
-
                 if let warningMessage = store.state.toggleWarningMessage {
                     toggleWarningPopup(message: warningMessage)
+                        .padding(.horizontal, 33)
                 }
             }
         }
@@ -139,6 +134,12 @@ private extension SongLyricsView {
         .padding(.horizontal, 16)
         .frame(height: 66)
         .background(Color.livithColor(.black100))
+        .overlay(
+            Color.livithColor(.black100)
+                .opacity(overlayOpacity)
+                .allowsHitTesting(false)
+                .animation(.easeInOut(duration: 0.3), value: sheetPosition)
+        )
     }
 
     func contentView(geometry: GeometryProxy) -> some View {
@@ -153,6 +154,11 @@ private extension SongLyricsView {
                 toggleButtonsSection
                     .frame(height: toggleHeight)
             }
+
+            Color.livithColor(.black100)
+                .opacity(overlayOpacity)
+                .allowsHitTesting(false)
+                .animation(.easeInOut(duration: 0.3), value: sheetPosition)
 
             LyricsBottomSheetView(
                 store: store,
@@ -228,13 +234,12 @@ private extension SongLyricsView {
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 20)
-                .background(Color.livithColor(.black80))
+                .background(.ultraThinMaterial)
+                .background(Color.livithColor(.black100).opacity(0.5))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(height: 100)
         .transition(.opacity)
         .animation(.easeInOut(duration: 0.2), value: store.state.toggleWarningMessage)
     }

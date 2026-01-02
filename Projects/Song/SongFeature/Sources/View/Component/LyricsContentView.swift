@@ -89,12 +89,15 @@ private extension LyricsContentView {
 
     func lyricsLineView(at index: Int) -> some View {
         VStack(alignment: .leading, spacing: 20) {
-            if store.state.showFanchant, index < fanchant.count {
-                fanchantText(fanchant[index])
-            }
-
+            // 원어 + 응원법 (같은 줄에 표시)
             if store.state.showOriginal, index < lyrics.count {
-                originalLyricsText(lyrics[index])
+                if store.state.showFanchant, index < fanchant.count {
+                    originalWithFanchantText(original: lyrics[index], fanchant: fanchant[index])
+                } else {
+                    originalLyricsText(lyrics[index])
+                }
+            } else if store.state.showFanchant, index < fanchant.count {
+                fanchantText(fanchant[index])
             }
 
             if store.state.showPronunciation, index < pronunciation.count {
@@ -104,6 +107,29 @@ private extension LyricsContentView {
             if store.state.showTranslation, index < translation.count {
                 translationText(translation[index])
             }
+        }
+    }
+
+    @ViewBuilder
+    func originalWithFanchantText(original: String, fanchant: String) -> some View {
+        let parsed = parseHashText(fanchant)
+
+        if parsed.segments.isEmpty {
+            Text(original + " " + fanchant)
+                .notosans(.body2Regular)
+                .foregroundStyle(Color.livithColor(.original))
+        } else {
+            Text({
+                var originalAttr = AttributedString(original + " ")
+                originalAttr.foregroundColor = Color.livithColor(.original)
+
+                return originalAttr + parsed.segments.reduce(into: AttributedString()) { result, segment in
+                    var attributedSegment = AttributedString(segment.text)
+                    attributedSegment.foregroundColor = segment.isHighlighted ? Color.livithColor(.white100) : Color.livithColor(.yellow30)
+                    result.append(attributedSegment)
+                }
+            }())
+            .notosans(.body2Regular)
         }
     }
 
