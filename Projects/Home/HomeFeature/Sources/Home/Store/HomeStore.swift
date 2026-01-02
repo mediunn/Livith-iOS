@@ -75,10 +75,7 @@ final class HomeStore: ObservableObject {
             case .success(let concert):
                 state.interestConcert = concert
                 
-                if let concert = concert {
-                    performFetchScheduleList(concertID: concert.id)
-                    performFetchMainSetlist(concertID: concert.id)
-                } else {
+                if concert == nil {
                     state.scheduleList = []
                     state.setlist = nil
                     state.songList = []
@@ -154,7 +151,7 @@ private extension HomeStore {
     func performFetchMainSetlist(concertID: Int) {
         Task {
             do {
-                let setlist = try await repository.fetchMainSetlist(for: concertID)
+                guard let setlist = try await repository.fetchMainSetlist(for: concertID) else { return }
                 let songList = try await repository.fetchSongList(for: setlist.id)
                 await send(._fetchMainSetlistResult(.success(setlist)))
                 await send(._fetchSetlistSongListResult(.success(songList)))

@@ -56,7 +56,7 @@ extension HomeRepositoryImpl: HomeRepository {
             }
             
             return mapper.toDomain(from: response)
-        } catch NetworkError.decodingFailed {
+        } catch NetworkError.decodingFailed, NetworkError.noData {
             return nil
         } catch {
             printError(error)
@@ -86,6 +86,8 @@ extension HomeRepositoryImpl: HomeRepository {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
             deleteInterestedConcertLocally()
+        } catch NetworkError.noData {
+            return
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)
@@ -149,12 +151,14 @@ extension HomeRepositoryImpl: HomeRepository {
         }
     }
     
-    func fetchMainSetlist(for concertID: Int) async throws(HomeError) -> Setlist {
+    func fetchMainSetlist(for concertID: Int) async throws(HomeError) -> Setlist? {
         do {
             let response: DTO.Response.FetchConcertSetlist = try await setlistService.request(
                 .fetchConcertMainSetlist(concertID: concertID)
             )
             return mapper.toDomain(from: response)
+        } catch NetworkError.noData {
+            return nil
         } catch {
             printError(error)
             throw errorMapper.mapToDomainError(from: error)
