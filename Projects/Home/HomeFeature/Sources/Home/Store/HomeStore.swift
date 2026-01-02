@@ -17,6 +17,7 @@ enum HomeIntent {
     case onToastDisappear
     
     case onDelete
+    case onRefreshInterestConcert
     case _fetchUserInterestConcertResult(Result<Concert?, Error>)
     case _fetchScheduleListResult(Result<ConcertScheduleList, Error>)
     case _fetchMainSetlistResult(Result<Setlist, Error>)
@@ -59,6 +60,14 @@ final class HomeStore: ObservableObject {
 
         case .onDelete:
             performDeleteInterestConcert()
+
+        case .onRefreshInterestConcert:
+            if let concert = state.interestConcert {
+                performFetchScheduleList(concertID: concert.id)
+                performFetchMainSetlist(concertID: concert.id)
+            } else {
+                performFetchUserInterestedConcert()
+            }
 
         case ._fetchUserInterestConcertResult(let result):
             switch result {

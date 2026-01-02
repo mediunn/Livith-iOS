@@ -87,7 +87,9 @@ private extension HomeInterestConcertView {
                 }
             }
             .refreshable {
-                
+                await MainActor.run {
+                    store.send(.onRefreshInterestConcert)
+                }
             }
         }
     }
