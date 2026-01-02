@@ -280,11 +280,16 @@ private extension SongLyricsView {
 // MARK: - YouTube Player View
 
 private struct YouTubePlayerView: View {
-    @StateObject private var player: YouTubePlayer
+    private let youtubeID: String
+    @State private var player: YouTubePlayer?
     @State private var isLoading = true
     @State private var hasError = false
 
     init(youtubeID: String) {
+        self.youtubeID = youtubeID
+    }
+
+    private func createPlayer() -> YouTubePlayer {
         let configuration = YouTubePlayer.Configuration(
             autoPlay: true,
             showControls: true,
@@ -292,17 +297,17 @@ private struct YouTubePlayerView: View {
             playInline: true,
             showRelatedVideos: false
         )
-        _player = StateObject(wrappedValue: YouTubePlayer(
+        return YouTubePlayer(
             source: .video(id: youtubeID),
             configuration: configuration
-        ))
+        )
     }
 
     var body: some View {
         ZStack {
             if hasError {
                 videoErrorView
-            } else {
+            } else if let player {
                 YouTubePlayerKit.YouTubePlayerView(player)
                     .onReceive(player.statePublisher) { state in
                         switch state {
@@ -321,6 +326,15 @@ private struct YouTubePlayerView: View {
                         .progressViewStyle(.circular)
                         .tint(Color.livithColor(.white100))
                 }
+            } else {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .tint(Color.livithColor(.white100))
+            }
+        }
+        .onAppear {
+            if player == nil {
+                player = createPlayer()
             }
         }
     }
