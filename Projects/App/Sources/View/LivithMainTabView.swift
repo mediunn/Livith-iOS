@@ -70,7 +70,7 @@ struct LivithMainTabView: View {
                     .tag(Tab.search)
                     .toolbar(.hidden, for: .tabBar)
                 
-                UserView(nickname: $nickname, isTabBarHidden: $isTabBarHidden)
+                UserView(isTabBarHidden: $isTabBarHidden)
                     .tag(Tab.my)
                     .toolbar(.hidden, for: .tabBar)
             }

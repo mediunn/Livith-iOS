@@ -37,8 +37,6 @@ public struct UserView: View {
 
     // MARK: - Property
 
-    @Binding private var nickname: String
-
     @State private var path = NavigationPath()
     @State private var overlayType: OverlayType = .none
     @State private var showSuccessToast: Bool = false
@@ -48,12 +46,12 @@ public struct UserView: View {
 
     @Binding private var isTabBarHidden: Bool
 
+    @StateObject private var userStore = UserStore()
     @StateObject private var logoutStore = LogoutStore()
 
     // MARK: - LifeCycle
 
-    public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
-        self._nickname = nickname
+    public init(isTabBarHidden: Binding<Bool>) {
         self._isTabBarHidden = isTabBarHidden
     }
     
@@ -129,6 +127,9 @@ public struct UserView: View {
                 position: .safeAreaTop
             )
         }
+        .onAppear {
+            userStore.send(.fetchNickname)
+        }
         .onChange(of: logoutStore.state.logoutResult) { _, newResult in
             handleLogoutResult(newResult)
         }
@@ -171,8 +172,8 @@ private extension UserView {
     
     var titleText: some View {
         Text.init(
-            String(format: Literals.titleFormat, nickname),
-            highlighting: "\(nickname)",
+            String(format: Literals.titleFormat, userStore.state.nickname),
+            highlighting: "\(userStore.state.nickname)",
             color: .livithColor(.white100),
             font: .notosans(.headSemibold)
         )
