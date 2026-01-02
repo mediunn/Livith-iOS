@@ -59,6 +59,7 @@ public struct ConcertState {
     public var setlistList: [ConcertSetlist] = []
     public var interestStatus: InterestSettingStatus = .idle
     public var showTicketReturnBanner: Bool = false
+    public var isCurrentConcertInterested: Bool = false
 
     public init() {}
 }
@@ -82,6 +83,7 @@ public enum ConcertIntent {
     case _setConcert(Concert, formattedDateRange: String)
     case _setInterestStatus(InterestSettingStatus)
     case _setFetchError(String?)
+    case _setIsCurrentConcertInterested(Bool)
 }
 
 public final class ConcertStore: ObservableObject {
@@ -138,6 +140,8 @@ public final class ConcertStore: ObservableObject {
             state.interestStatus = status
         case ._setFetchError(let error):
             state.fetchError = error
+        case ._setIsCurrentConcertInterested(let isInterested):
+            state.isCurrentConcertInterested = isInterested
         }
     }
 }
@@ -151,6 +155,7 @@ private extension ConcertStore {
 
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
+            send(._setIsCurrentConcertInterested(getInterestedConcertID() == concertID))
 
             do {
                 async let concertResult = repository.fetchConcertInfo(concertID: concertID)
@@ -189,6 +194,14 @@ private extension ConcertStore {
         }
     }
 
+    func getInterestedConcertID() -> Int? {
+        guard let data = UserDefaults.standard.data(forKey: "currentUser"),
+              let user = try? JSONDecoder().decode(UserInfo.self, from: data) else {
+            return nil
+        }
+        return user.interestConcertID
+    }
+
     func formatDateRange(from concert: Concert) -> String {
         DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate)
     }
@@ -201,10 +214,23 @@ private extension ConcertStore {
 
             do {
                 try await repository.setInterestConcert(concertID: state.concertID)
+                updateStoredInterestConcertID(state.concertID)
                 send(._setInterestStatus(.success("관심 공연을 변경했어요")))
+                send(._setIsCurrentConcertInterested(true))
             } catch {
                 send(._setInterestStatus(.failure(error.localizedDescription)))
             }
+        }
+    }
+
+    func updateStoredInterestConcertID(_ concertID: Int) {
+        guard let data = UserDefaults.standard.data(forKey: "currentUser"),
+              var user = try? JSONDecoder().decode(UserInfo.self, from: data) else {
+            return
+        }
+        user.interestConcertID = concertID
+        if let updatedData = try? JSONEncoder().encode(user) {
+            UserDefaults.standard.set(updatedData, forKey: "currentUser")
         }
     }
 }

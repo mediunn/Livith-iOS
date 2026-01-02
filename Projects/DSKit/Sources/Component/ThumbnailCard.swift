@@ -55,6 +55,7 @@ public struct ThumbnailCard: View {
         .frame(width: flexible ? nil : 108, alignment: .top)
         .frame(maxWidth: flexible ? .infinity : nil)
         .padding(.bottom, 8)
+        .contentShape(Rectangle())
     }
 }
 

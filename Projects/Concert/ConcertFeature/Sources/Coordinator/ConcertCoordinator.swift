@@ -11,6 +11,7 @@ import UIKit
 
 import DSKit
 import SetlistFeature
+import SongFeature
 
 public final class ConcertCoordinator: Coordinator {
     public typealias R = ConcertRoute
@@ -82,6 +83,21 @@ public final class ConcertCoordinator: Coordinator {
             let view = SetlistDetailView(
                 concertID: concertID,
                 setlistID: setlistID,
+                onPlaySong: { [weak self] song in
+                    self?.push(to: .songLyrics(songID: song.id, setlistID: setlistID, songTitle: song.title))
+                },
+                onReportTapped: { [weak self] in
+                    self?.present(to: .safari(ConcertConstant.reportFormURL))
+                }
+            )
+
+            return UIHostingController(rootView: view)
+
+        case .songLyrics(let songID, let setlistID, let songTitle):
+            let view = SongLyricsView(
+                songID: songID,
+                setlistID: setlistID,
+                songTitle: songTitle,
                 onReportTapped: { [weak self] in
                     self?.present(to: .safari(ConcertConstant.reportFormURL))
                 }

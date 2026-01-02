@@ -29,6 +29,7 @@ let project = Project.make(
                 .search(.searchFeature),
                 .setlist(.setlistData),
                 .setlist(.setlistFeature),
+                .song(.songData),
                 .user(.userData),
                 .user(.userFeature),
             ]

@@ -142,7 +142,7 @@ private extension DeleteUserConfirmBottomSheet {
                     .frame(height: 52)
                     .background(
                         isConfirmed
-                        ? Color.livithColor(.transition)
+                        ? Color.livithColor(.translation)
                             : Color.livithColor(.black50)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 6))
