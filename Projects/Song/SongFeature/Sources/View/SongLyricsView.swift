@@ -70,6 +70,7 @@ public struct SongLyricsView: View {
 
                 if let warningMessage = store.state.toggleWarningMessage {
                     toggleWarningPopup(message: warningMessage)
+                        .padding(.vertical, .infinity)
                         .padding(.horizontal, 33)
                 }
             }
@@ -250,12 +251,14 @@ private extension SongLyricsView {
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.white100))
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+                .padding(.vertical, 24)
                 .background(.ultraThinMaterial)
                 .background(Color.livithColor(.black100).opacity(0.5))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             Spacer()
         }
-        .frame(height: 100)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .transition(.opacity)
         .animation(.easeInOut(duration: 0.2), value: store.state.toggleWarningMessage)
     }
