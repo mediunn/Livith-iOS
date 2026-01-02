@@ -16,6 +16,7 @@ enum HomeIntent {
     case onErrorToastDisappear
     case onToastDisappear
     
+    case onAppearInterestConcert
     case onDelete
     case onRefreshInterestConcert
     case _fetchUserInterestConcertResult(Result<Concert?, Error>)
@@ -37,30 +38,30 @@ struct HomeState {
 
 final class HomeStore: ObservableObject {
     @Published private(set) var state: HomeState = .init()
-
+    
     @Injected private var repository: HomeRepository
-
-
+    
     @MainActor
     func send(_ intent: HomeIntent) {
         switch intent {
         case .onAppear:
             performFetchUserInterestedConcert()
             
+        case .onAppearInterestConcert:
             if let concert = state.interestConcert {
                 performFetchScheduleList(concertID: concert.id)
                 performFetchMainSetlist(concertID: concert.id)
             }
-
+            
         case .onErrorToastDisappear:
             state.errorMessage = ""
-        
+            
         case .onToastDisappear:
             state.toastMessage = ""
-
+            
         case .onDelete:
             performDeleteInterestConcert()
-
+            
         case .onRefreshInterestConcert:
             if let concert = state.interestConcert {
                 performFetchScheduleList(concertID: concert.id)
@@ -68,7 +69,7 @@ final class HomeStore: ObservableObject {
             } else {
                 performFetchUserInterestedConcert()
             }
-
+            
         case ._fetchUserInterestConcertResult(let result):
             switch result {
             case .success(let concert):
@@ -85,7 +86,7 @@ final class HomeStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
-
+            
         case ._fetchScheduleListResult(let result):
             switch result {
             case .success(let schedules):
@@ -93,7 +94,7 @@ final class HomeStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
-
+            
         case ._fetchMainSetlistResult(let result):
             switch result {
             case .success(let setlist):
@@ -101,7 +102,7 @@ final class HomeStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
-
+            
         case ._fetchSetlistSongListResult(let result):
             switch result {
             case .success(let songs):
@@ -109,7 +110,7 @@ final class HomeStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
-
+            
         case ._deleteInterestConcertResult(let result):
             switch result {
             case .success:
@@ -138,7 +139,7 @@ private extension HomeStore {
             }
         }
     }
-
+    
     func performFetchScheduleList(concertID: Int) {
         Task {
             do {
@@ -149,7 +150,7 @@ private extension HomeStore {
             }
         }
     }
-
+    
     func performFetchMainSetlist(concertID: Int) {
         Task {
             do {
@@ -164,7 +165,7 @@ private extension HomeStore {
             }
         }
     }
-
+    
     func performFetchSetlistSongList(setlistID: Int) {
         Task {
             do {
