@@ -14,7 +14,7 @@ struct LyricsBottomSheetView: View {
 
     // MARK: - Enum
 
-    enum SheetPosition: CaseIterable {
+    public enum SheetPosition: CaseIterable {
         case bottom
         case middle
         case top
@@ -22,7 +22,7 @@ struct LyricsBottomSheetView: View {
         func offset(screenHeight: CGFloat, videoHeight: CGFloat, toggleHeight: CGFloat) -> CGFloat {
             switch self {
             case .bottom:
-                return screenHeight - 50
+                return screenHeight - 150
             case .middle:
                 return videoHeight + toggleHeight
             case .top:
@@ -39,26 +39,51 @@ struct LyricsBottomSheetView: View {
     let videoHeight: CGFloat
     let toggleHeight: CGFloat
 
-    @State private var currentPosition: SheetPosition = .middle
+    @Binding var currentPosition: SheetPosition
     @State private var dragOffset: CGFloat = 0
+    @State private var isAppeared: Bool = false
 
     private var sheetOffset: CGFloat {
         currentPosition.offset(screenHeight: screenHeight, videoHeight: videoHeight, toggleHeight: toggleHeight) + dragOffset
     }
 
+    private var sheetHeight: CGFloat {
+        switch currentPosition {
+        case .top:
+            return screenHeight
+        case .middle:
+            return screenHeight - videoHeight - toggleHeight
+        case .bottom:
+            return 150
+        }
+    }
+
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: currentPosition == .bottom ? 0 : 20) {
             handleBar
-            lyricsContentSection
+
+            if currentPosition != .bottom {
+                lyricsContentSection
+            }
         }
-        .background(Color.livithColor(.black100))
-        .clipShape(RoundedRectangle(cornerRadius: currentPosition == .top ? 0 : 20))
+        .frame(height: sheetHeight, alignment: .top)
+        .background(Color.livithColor(.black90))
+        .clipShape(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 30,
+                topTrailingRadius: 30
+            )
+        )
         .offset(y: sheetOffset)
         .gesture(dragGesture)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentPosition)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dragOffset)
+        .animation(isAppeared ? .spring(response: 0.4, dampingFraction: 0.8) : .none, value: currentPosition)
+        .animation(isAppeared ? .spring(response: 0.4, dampingFraction: 0.8) : .none, value: dragOffset)
+        .task {
+            try? await Task.sleep(for: .milliseconds(300))
+            isAppeared = true
+        }
     }
 }
 
@@ -68,13 +93,11 @@ private extension LyricsBottomSheetView {
     var handleBar: some View {
         VStack(spacing: 0) {
             RoundedRectangle(cornerRadius: 2)
-                .fill(Color.livithColor(.black50))
-                .frame(width: 40, height: 4)
-                .padding(.vertical, 8)
+                .fill(Color.livithColor(.black80))
+                .frame(width: 76, height: 6)
+                .padding(.vertical, 10)
         }
         .frame(maxWidth: .infinity)
-        .background(Color.livithColor(.black100))
-        .contentShape(Rectangle())
     }
 
     var lyricsContentSection: some View {
