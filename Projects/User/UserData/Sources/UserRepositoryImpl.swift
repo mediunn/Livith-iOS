@@ -48,15 +48,35 @@ extension UserRepositoryImpl: UserRepository {
     public func updateUserNickname(nickname: String) async throws(UserError) -> String {
         do {
             let request = DTO.Request.UpdateUserNickname(nickname: nickname)
-            
+
             let response: DTO.Response.UpdateUserNickname = try await userService.request(
                 UserEndpoint.updateUserNickname(request: request)
             )
-            
+
+            updateStoredUserNickname(response.nickname)
+
             return response.nickname
         } catch let error {
             throw userErrorMapper.mapToUserError(error)
         }
+    }
+
+    private func updateStoredUserNickname(_ nickname: String) {
+        guard let currentUser: DTO.Response.FetchUserInfo = try? localStorage.fetch(for: LocalStorageKeys.currentUser) else {
+            return
+        }
+
+        let updatedUser = DTO.Response.FetchUserInfo(
+            id: currentUser.id,
+            interestConcertID: currentUser.interestConcertID,
+            provider: currentUser.provider,
+            providerID: currentUser.providerID,
+            email: currentUser.email,
+            nickname: nickname,
+            marketingConsent: currentUser.marketingConsent
+        )
+
+        try? localStorage.save(updatedUser, for: LocalStorageKeys.currentUser)
     }
     
     public func deleteUser(reason: String) async throws(UserError) {
