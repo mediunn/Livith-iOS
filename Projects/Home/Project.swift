@@ -15,7 +15,8 @@ let project = Project.make(
             dependencies: [
                 .home(.homeDomain),
                 .core(.livithNetwork),
-                .core(.diContainer)
+                .core(.diContainer),
+                .core(.persistence)
             ]
         ),
         .make(
