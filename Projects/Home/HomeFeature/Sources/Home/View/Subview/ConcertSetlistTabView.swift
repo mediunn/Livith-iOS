@@ -51,7 +51,7 @@ private extension ConcertSetlistTabView {
                         orderIndex: song.orderIndex,
                         title: song.title,
                         artist: song.artist,
-                        onPlayTapped: { onSongTap(song.id) }
+                        onTapped: { onSongTap(song.id) }
                     )
                     .padding(.vertical, 12)
                 }
