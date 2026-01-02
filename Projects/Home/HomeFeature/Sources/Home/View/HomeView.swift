@@ -54,11 +54,9 @@ struct HomeView: View {
         switch store.state.mode {
         case .noInterestedConcert:
             HomeNoInterestView(nickname: nickname)
-        case .hasInterestedConcert(let concert):
+        case .hasInterestedConcert(_):
             HomeInterestConcertView(
-                store: HomeInterestConcertStore(interestConcert: concert, onDeleteConcert: { [weak store] in
-                    store?.send(.onDeleteInterestConcert)
-                }),
+                store: store,
                 isTabBarHidden: $isTabBarHidden
             )
         }

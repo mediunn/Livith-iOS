@@ -13,14 +13,14 @@ import HomeDomain
 
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
-    @ObservedObject private var store: HomeInterestConcertStore
+    @ObservedObject private var store: HomeStore
     @Binding private var isTabBarHidden: Bool
 
     @State private var selectedTab: InterestConcertTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
-    init(store: HomeInterestConcertStore, isTabBarHidden: Binding<Bool>) {
+    init(store: HomeStore, isTabBarHidden: Binding<Bool>) {
         self.store = store
         self._isTabBarHidden = isTabBarHidden
     }
@@ -54,11 +54,11 @@ private extension HomeInterestConcertView {
                     textHeaderView
                     
                     InterestConcertCardView(
-                        posterURL: store.state.interestConcert.posterURL,
-                        remainDays: store.state.interestConcert.daysLeft,
-                        date: store.state.interestConcert.startDate,
-                        location: store.state.interestConcert.venue,
-                        title: store.state.interestConcert.title
+                        posterURL: store.state.interestConcert?.posterURL,
+                        remainDays: store.state.interestConcert?.daysLeft ?? 0,
+                        date: store.state.interestConcert?.startDate ?? "",
+                        location: store.state.interestConcert?.venue ?? "",
+                        title: store.state.interestConcert?.title ?? ""
                     )
                     
                     SegmentTabBar(
