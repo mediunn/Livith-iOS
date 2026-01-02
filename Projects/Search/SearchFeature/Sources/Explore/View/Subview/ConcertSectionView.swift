@@ -37,6 +37,7 @@ struct ConcertSectionView: View {
                         }
                     }
                 }
+                .padding(.trailing, 16)
             }
         }
     }
