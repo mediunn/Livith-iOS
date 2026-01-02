@@ -89,10 +89,10 @@ private extension LyricsContentView {
 
     func lyricsLineView(at index: Int) -> some View {
         VStack(alignment: .leading, spacing: 20) {
-            // 원어 + 응원법 (같은 줄에 표시)
+            // 원어 + 응원법 (응원법에 원어가 포함되어 있고, ##...## 부분만 노란색)
             if store.state.showOriginal, index < lyrics.count {
                 if store.state.showFanchant, index < fanchant.count {
-                    originalWithFanchantText(original: lyrics[index], fanchant: fanchant[index])
+                    originalWithFanchantText(fanchant: fanchant[index])
                 } else {
                     originalLyricsText(lyrics[index])
                 }
@@ -110,27 +110,12 @@ private extension LyricsContentView {
         }
     }
 
-    @ViewBuilder
-    func originalWithFanchantText(original: String, fanchant: String) -> some View {
-        let parsed = parseHashText(fanchant)
-
-        if parsed.segments.isEmpty {
-            Text(original + " " + fanchant)
-                .notosans(.body2Regular)
-                .foregroundStyle(Color.livithColor(.original))
-        } else {
-            Text({
-                var originalAttr = AttributedString(original + " ")
-                originalAttr.foregroundColor = Color.livithColor(.original)
-
-                return originalAttr + parsed.segments.reduce(into: AttributedString()) { result, segment in
-                    var attributedSegment = AttributedString(segment.text)
-                    attributedSegment.foregroundColor = segment.isHighlighted ? Color.livithColor(.white100) : Color.livithColor(.yellow30)
-                    result.append(attributedSegment)
-                }
-            }())
-            .notosans(.body2Regular)
-        }
+    func originalWithFanchantText(fanchant: String) -> some View {
+        hashHighlightedText(
+            fanchant,
+            defaultColor: Color.livithColor(.original),
+            highlightColor: Color.livithColor(.yellow30)
+        )
     }
 
     func fanchantText(_ text: String) -> some View {
