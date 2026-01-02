@@ -17,19 +17,19 @@ import SongDomain
 public struct SongLyricsState {
     public var songID: Int = 0
     public var setlistID: Int?
-    public var songTitle: String = ""
-
     public var lyrics: SongLyrics?
+    public var songTitle: String = ""
     public var fanchant: SongFanchant?
 
     public var isLoading: Bool = false
     public var fetchError: String?
 
-    // Toggle States
     public var showOriginal: Bool = true
-    public var showPronunciation: Bool = true
-    public var showTranslation: Bool = true
     public var showFanchant: Bool = true
+    public var showTranslation: Bool = true
+    public var showPronunciation: Bool = true
+    
+    public var toggleWarningMessage: String?
 
     public var hasLyrics: Bool {
         guard let lyrics else { return false }
@@ -39,13 +39,13 @@ public struct SongLyricsState {
     public var hasFanchant: Bool {
         fanchant != nil && !(fanchant?.fanchant.isEmpty ?? true)
     }
-
-    public var hasFanchantPoint: Bool {
-        fanchant?.fanchantPoint != nil && !(fanchant?.fanchantPoint?.isEmpty ?? true)
-    }
-
+    
     public var hasYouTubeVideo: Bool {
         lyrics?.youtubeID != nil && !(lyrics?.youtubeID?.isEmpty ?? true)
+    }
+    
+    public var hasFanchantPoint: Bool {
+        fanchant?.fanchantPoint != nil && !(fanchant?.fanchantPoint?.isEmpty ?? true)
     }
 
     public init() {}
@@ -56,6 +56,7 @@ public struct SongLyricsState {
 public enum SongLyricsIntent {
     case onAppear(songID: Int, setlistID: Int?, songTitle: String)
     case onFetchErrorDismiss
+    case onToggleWarningDismiss
 
     case toggleOriginal
     case togglePronunciation
@@ -66,6 +67,7 @@ public enum SongLyricsIntent {
     case _setLyrics(SongLyrics?)
     case _setFanchant(SongFanchant?)
     case _setFetchError(String?)
+    case _setToggleWarning(String?)
 }
 
 // MARK: - Store
@@ -93,19 +95,18 @@ public final class SongLyricsStore: ObservableObject {
             state.setlistID = setlistID
             state.songTitle = songTitle
             fetchSongData(songID: songID, setlistID: setlistID)
-
         case .onFetchErrorDismiss:
             state.fetchError = nil
-
+        case .onToggleWarningDismiss:
+            state.toggleWarningMessage = nil
         case .toggleOriginal:
-            state.showOriginal.toggle()
+            handleToggleOriginal()
         case .togglePronunciation:
-            state.showPronunciation.toggle()
+            handleTogglePronunciation()
         case .toggleTranslation:
-            state.showTranslation.toggle()
+            handleToggleTranslation()
         case .toggleFanchant:
-            state.showFanchant.toggle()
-
+            handleToggleFanchant()
         case ._setLoading(let isLoading):
             state.isLoading = isLoading
         case ._setLyrics(let lyrics):
@@ -114,11 +115,85 @@ public final class SongLyricsStore: ObservableObject {
             state.fanchant = fanchant
         case ._setFetchError(let error):
             state.fetchError = error
+        case ._setToggleWarning(let message):
+            state.toggleWarningMessage = message
         }
     }
 }
 
-// MARK: - Private Methods
+// MARK: - Toggle Validation
+
+private extension SongLyricsStore {
+    var activeToggleCount: Int {
+        [state.showOriginal, state.showPronunciation, state.showTranslation, state.showFanchant]
+            .filter { $0 }
+            .count
+    }
+
+    var mainToggleCount: Int {
+        [state.showOriginal, state.showPronunciation, state.showTranslation]
+            .filter { $0 }
+            .count
+    }
+
+    func handleToggleOriginal() {
+        // 원어를 끄려고 할 때
+        if state.showOriginal {
+            // 응원법이 켜져 있으면 불가능
+            if state.showFanchant {
+                showWarning("응원법은 원어에서만\n표시가 돼요")
+                return
+            }
+            // 마지막 하나 남은 토글이면 불가능 (응원법 제외)
+            if mainToggleCount <= 1 {
+                showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
+                return
+            }
+        }
+        state.showOriginal.toggle()
+    }
+
+    func handleTogglePronunciation() {
+        // 끄려고 할 때 마지막 하나면 불가능 (응원법 제외)
+        if state.showPronunciation && mainToggleCount <= 1 {
+            showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
+            return
+        }
+        state.showPronunciation.toggle()
+    }
+
+    func handleToggleTranslation() {
+        // 끄려고 할 때 마지막 하나면 불가능 (응원법 제외)
+        if state.showTranslation && mainToggleCount <= 1 {
+            showWarning("원어, 발음, 해석 중\n하나는 켜져야 해요")
+            return
+        }
+        state.showTranslation.toggle()
+    }
+
+    func handleToggleFanchant() {
+        // 응원법을 켜려고 할 때
+        if !state.showFanchant {
+            // 해석만 켜져 있는 경우
+            if state.showTranslation && !state.showOriginal && !state.showPronunciation {
+                showWarning("해석에는 응원법이\n표시되지 않아요")
+                return
+            }
+            // 원어가 꺼져 있으면 불가능
+            if !state.showOriginal {
+                showWarning("응원법은 원어에서만\n표시가 돼요")
+                return
+            }
+        }
+        state.showFanchant.toggle()
+    }
+
+    func showWarning(_ message: String) {
+        state.toggleWarningMessage = message
+    }
+}
+
+// MARK: - Fetch Methods
 
 private extension SongLyricsStore {
     func fetchSongData(songID: Int, setlistID: Int?) {

@@ -18,6 +18,7 @@ public struct SongLyricsView: View {
 
     @StateObject private var store = SongLyricsStore()
     @Environment(\.dismiss) private var dismiss
+    @State private var sheetPosition: LyricsBottomSheetView.SheetPosition = .middle
 
     private let songID: Int
     private let setlistID: Int?
@@ -45,6 +46,15 @@ public struct SongLyricsView: View {
         )
     }
 
+    private var overlayOpacity: Double {
+        switch sheetPosition {
+        case .bottom, .middle:
+            return 0
+        case .top:
+            return 0.9
+        }
+    }
+
     // MARK: - Body
 
     public var body: some View {
@@ -56,6 +66,16 @@ public struct SongLyricsView: View {
                 VStack(spacing: 0) {
                     navigationBar
                     contentView(geometry: geometry)
+                }
+
+                Color.livithColor(.black100)
+                    .opacity(overlayOpacity)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+                    .animation(.easeInOut(duration: 0.3), value: sheetPosition)
+
+                if let warningMessage = store.state.toggleWarningMessage {
+                    toggleWarningPopup(message: warningMessage)
                 }
             }
         }
@@ -69,6 +89,14 @@ public struct SongLyricsView: View {
         )
         .onAppear {
             store.send(.onAppear(songID: songID, setlistID: setlistID, songTitle: songTitle))
+        }
+        .onChange(of: store.state.toggleWarningMessage) { _, newValue in
+            if newValue != nil {
+                Task {
+                    try? await Task.sleep(for: .seconds(3))
+                    store.send(.onToggleWarningDismiss)
+                }
+            }
         }
     }
 }
@@ -130,7 +158,8 @@ private extension SongLyricsView {
                 store: store,
                 screenHeight: geometry.size.height,
                 videoHeight: videoHeight,
-                toggleHeight: toggleHeight
+                toggleHeight: toggleHeight,
+                currentPosition: $sheetPosition
             )
         }
     }
@@ -191,6 +220,24 @@ private extension SongLyricsView {
                 .scaledToFill()
         }
     }
+
+    func toggleWarningPopup(message: String) -> some View {
+        VStack {
+            Spacer()
+            Text(message)
+                .notosans(.body2Medium)
+                .foregroundStyle(Color.livithColor(.white100))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 20)
+                .background(Color.livithColor(.black80))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity)
+        .animation(.easeInOut(duration: 0.2), value: store.state.toggleWarningMessage)
+    }
 }
 
 // MARK: - YouTube Player View
@@ -242,13 +289,8 @@ private struct YouTubePlayerView: View {
     }
 
     var videoErrorView: some View {
-        ZStack {
-            Color.livithColor(.black90)
-            Image.livithImage(.livithLogo)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80)
-                .opacity(0.3)
-        }
+        Image.livithImage(.youtubeEmpty)
+            .resizable()
+            .scaledToFill()
     }
 }
