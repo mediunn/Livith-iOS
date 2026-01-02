@@ -47,7 +47,7 @@ private extension ConcertSetlistTabView {
             titleText()
                 .padding(.top, 24)
             
-            if let setlist = self.setlist, setlist.type == .recent {
+            if let setlist = self.setlist, setlist.type.isPastSetlist {
                 setlistCard(setlist: setlist)
                     .padding(.top, 20)
             }
@@ -74,7 +74,7 @@ private extension ConcertSetlistTabView {
     }
     
     func titleText() -> some View {
-        Text(setlist?.type == .recent ? "이전 콘서트에서\n어떤 노래를 불렀을까요?" : "이전 콘서트를 기반으로\n이런 노래를 예상해요")
+        Text(setlist?.type.isPastSetlist == true ? "이전 콘서트에서\n어떤 노래를 불렀을까요?" : "이전 콘서트를 기반으로\n이런 노래를 예상해요")
             .notosans(.body1Semibold)
             .foregroundStyle(.livithColor(.white100))
             .multilineTextAlignment(.leading)
