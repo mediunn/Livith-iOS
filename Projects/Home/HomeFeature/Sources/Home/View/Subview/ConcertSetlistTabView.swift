@@ -86,19 +86,24 @@ private extension ConcertSetlistTabView {
             posterImageView(urlString: setlist.imageURL ?? "")
                 .padding([.vertical, .leading], 16)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(setlist.title)
                     .notosans(.body2Medium)
                     .foregroundStyle(.livithColor(.black100))
                     .lineLimit(1)
+                    .padding(.bottom, 4)
                 
                 Text(setlist.artist)
                     .notosans(.body4Regular)
                     .foregroundStyle(.livithColor(.black80))
                     .lineLimit(1)
+                    .padding(.bottom, 10)
                 
                 HStack(spacing: 6) {
-                    tagView(text: setlist.venue)
+                    if setlist.venue != "" {
+                        tagView(text: setlist.venue)
+                    }
+                    
                     tagView(text: formatDate(setlist.startDate))
                 }
             }
