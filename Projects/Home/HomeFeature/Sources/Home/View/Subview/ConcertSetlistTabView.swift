@@ -62,6 +62,8 @@ private extension ConcertSetlistTabView {
                     )
                     .padding(.bottom, 12)
                 }
+                .padding(.top, 20)
+                
                 moreButton()
             }
             .background(.livithColor(.black90))
