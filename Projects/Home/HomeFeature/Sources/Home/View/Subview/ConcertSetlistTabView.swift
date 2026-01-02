@@ -13,12 +13,16 @@ import HomeDomain
 
 struct ConcertSetlistTabView: View {
     let setlist: Setlist?
-    let songs: SongList
+    let songs: SetlistSongList
     let onSongTap: (Int) -> Void
     let onMoreTap: (Int) -> Void
     
     var body: some View {
-        contentView()
+        if songs.isEmpty {
+            emptyView()
+        } else {
+            contentView()
+        }
     }
 }
 
@@ -42,6 +46,7 @@ private extension ConcertSetlistTabView {
         VStack(alignment: .leading, spacing: .zero) {
             titleText()
                 .padding(.top, 24)
+            
             if let setlist = self.setlist, setlist.type == .recent {
                 setlistCard(setlist: setlist)
                     .padding(.top, 20)

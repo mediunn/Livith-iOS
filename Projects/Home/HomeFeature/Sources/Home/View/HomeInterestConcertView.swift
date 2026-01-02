@@ -19,8 +19,6 @@ struct HomeInterestConcertView: View {
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
-    private let songs: SongList = .sample
-    
     init(store: HomeInterestConcertStore) {
         self.store = store
     }
@@ -73,7 +71,7 @@ private extension HomeInterestConcertView {
                         } else {
                             ConcertSetlistTabView(
                                 setlist: store.state.setlist,
-                                songs: songs,
+                                songs: store.state.songList,
                                 onSongTap: { _ in },
                                 onMoreTap: { _ in }
                             )
