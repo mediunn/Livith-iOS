@@ -9,11 +9,12 @@
 import SwiftUI
 
 import DSKit
+import HomeDomain
 
 struct ConcertScheduleTabView: View {
-    private let schedules: ConcertSchedules
+    private let schedules: ConcertScheduleList
     
-    init(schedules: ConcertSchedules) {
+    init(schedules: ConcertScheduleList) {
         self.schedules = schedules
     }
     
@@ -27,10 +28,10 @@ struct ConcertScheduleTabView: View {
             VStack(spacing: .zero) {
                 ForEach(schedules) { schedule in
                     scheduleItem(
-                        daysLeft: daysLeftText(from: schedule.date),
-                        title: schedule.title,
-                        dateTime: formatDateTime(schedule.date),
-                        isActive: isActiveDate(schedule.date)
+                        daysLeft: daysLeftText(from: schedule.schduledAt),
+                        title: schedule.category,
+                        dateTime: formatDateTime(schedule.schduledAt),
+                        isActive: isActiveDate(schedule.schduledAt)
                     )
                     .frame(height: 64)
                 }
@@ -118,11 +119,4 @@ private extension ConcertScheduleTabView {
         
         return formatter.string(from: date) + ampmFormatter.string(from: date).uppercased()
     }
-}
-
-#Preview {
-    ConcertScheduleTabView(
-        schedules: .mock()
-    )
-    .background(.livithColor(.black100))
 }

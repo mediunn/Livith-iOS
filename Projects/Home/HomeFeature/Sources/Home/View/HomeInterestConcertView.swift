@@ -19,12 +19,6 @@ struct HomeInterestConcertView: View {
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
-    private let posterURL: URL? = URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")
-    private let remainDays: Int = 10
-    private let date: String = "2025.11.01~11.02"
-    private let location: String = "올림픽공원 올림픽홀"
-    private let title: String = "Gen Hoshino presents \n MAD HOPEAsia Tour in SEOUL"
-    private let concertScheduleList: ConcertSchedules = .mock()
     private let setlist: SetlistItem = .sample
     private let songs: SongList = .sample
     
@@ -76,7 +70,7 @@ private extension HomeInterestConcertView {
                     
                     Group {
                         if selectedTab == .schedule {
-                            ConcertScheduleTabView(schedules: concertScheduleList)
+                            ConcertScheduleTabView(schedules: store.state.scheduleList)
                         } else {
                             ConcertSetlistTabView(
                                 selist: setlist,
