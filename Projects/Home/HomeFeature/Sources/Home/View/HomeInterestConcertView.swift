@@ -49,7 +49,7 @@ private extension HomeInterestConcertView {
         VStack(spacing: .zero) {
             LivithLogoHeaderView()
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: .zero) {
                     textHeaderView
                     
@@ -84,6 +84,7 @@ private extension HomeInterestConcertView {
                             )
                         }
                     }
+                    .padding(.top, 24)
                     .padding(.horizontal, 16)
                 }
             }
@@ -145,7 +146,9 @@ private extension HomeInterestConcertView {
             Text("나의 관심 콘서트")
                 .notosans(.headSemibold)
                 .foregroundStyle(.livithColor(.white100))
+                .padding(.top, 24)
                 .padding(.leading, 16)
+                .padding(.bottom, 20)
             
             Spacer()
             

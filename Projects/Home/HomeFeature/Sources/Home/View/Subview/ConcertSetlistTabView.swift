@@ -45,7 +45,6 @@ private extension ConcertSetlistTabView {
     func contentView() -> some View {
         VStack(alignment: .leading, spacing: .zero) {
             titleText()
-                .padding(.top, 24)
             
             if let setlist = self.setlist, setlist.type.isPastSetlist {
                 setlistCard(setlist: setlist)
@@ -53,20 +52,23 @@ private extension ConcertSetlistTabView {
             }
             
             VStack(spacing: .zero) {
-                ForEach(songs.prefix(3), id: \.self) { song in
-                    SongRowView(
-                        orderIndex: song.orderIndex,
-                        title: song.title,
-                        artist: song.artist,
-                        onTapped: { onSongTap(song.id) }
-                    )
-                    .padding(.bottom, 12)
+                VStack(spacing: 12) {
+                    ForEach(songs.prefix(3), id: \.self) { song in
+                        SongRowView(
+                            orderIndex: song.orderIndex,
+                            title: song.title,
+                            artist: song.artist,
+                            onTapped: { onSongTap(song.id) }
+                        )
+                    }
                 }
+                .padding(.vertical, 20)
+                
                 moreButton()
             }
             .background(.livithColor(.black90))
             .clipShape(RoundedRectangle(cornerRadius: 12))
-            .padding(.vertical, 20)
+            .padding(.top, 20)
             
             Spacer()
                 .frame(height: 232)

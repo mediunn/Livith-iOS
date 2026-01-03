@@ -20,11 +20,13 @@ final class HomeCoordinator: Coordinator {
     private let nickname: Binding<String>
     private var concertCoordinator: ConcertCoordinator?
     private let isTabBarHidden: Binding<Bool>
+    private let showToast: ((LivithToastType, String) -> Void)?
 
-    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
+    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
         self.navigationController = UINavigationController()
         self.nickname = nickname
         self.isTabBarHidden = isTabBarHidden
+        self.showToast = showToast
 
         self.navigationController.setNavigationBarHidden(true, animated: false)
     }
@@ -36,7 +38,7 @@ final class HomeCoordinator: Coordinator {
     func buildViewController(for route: R) -> UIViewController {
         switch route {
         case .home:
-            return UIHostingController(rootView: HomeView(nickname: nickname, isTabBarHidden: isTabBarHidden).environment(\.homeCoordinator, self))
+            return UIHostingController(rootView: HomeView(nickname: nickname, isTabBarHidden: isTabBarHidden, showToast: showToast).environment(\.homeCoordinator, self))
 
         case .interest:
             return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))

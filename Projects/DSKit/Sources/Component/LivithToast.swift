@@ -11,6 +11,7 @@ import SwiftUI
 public enum LivithToastType {
     case success
     case failure
+    case deletionSuccess
 
     var icon: Image {
         switch self {
@@ -18,6 +19,8 @@ public enum LivithToastType {
             return .livithIcon(.checkYellow)
         case .failure:
             return .livithIcon(.cautionTriangleSmall)
+        case .deletionSuccess:
+            return .livithIcon(.checkRed)
         }
     }
 }

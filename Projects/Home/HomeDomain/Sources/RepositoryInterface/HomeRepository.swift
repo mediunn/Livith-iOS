@@ -21,7 +21,7 @@ public protocol HomeRepository {
         startDate: String?,
         concertID: Int?
     ) async throws(HomeError) -> [Concert]
-    func fetchMainSetlist(for concertID: Int) async throws(HomeError) -> Setlist
+    func fetchMainSetlist(for concertID: Int) async throws(HomeError) -> Setlist?
     func fetchSongList(for setlistID: Int) async throws(HomeError) -> SetlistSongList
     func fetchScheduleList(for concertID: Int) async throws(HomeError) -> ConcertScheduleList
 }

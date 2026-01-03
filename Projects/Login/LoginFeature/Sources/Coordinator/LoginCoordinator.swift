@@ -47,7 +47,7 @@ final class LoginCoordinator: Coordinator {
                 rootView: ErrorSheetView(
                     title: "탈퇴 후 7일이 지나지 않았어요",
                     message: "7일이 지난 후 다시 시도해주세요",
-                    confirmTitle: "홈으로 돌아가기"
+                    confirmTitle: "로그인으로 돌아가기"
                 ) { [weak self] in
                     self?.dismiss()
                 }

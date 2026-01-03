@@ -41,7 +41,7 @@ private extension ConcertGridView {
         ScrollView(showsIndicators: false) {
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-                spacing: 16
+                spacing: 32
             ) {
                 ForEach(concerts, id: \.id) { concert in
                     concertCard(for: concert)

@@ -8,13 +8,14 @@
 
 import SwiftUI
 import UIKit
+import DSKit
 
 public struct HomeContentView: View {
     @State private var coordinator: HomeCoordinator
     @Binding private var isTabBarHidden: Bool
     
-    public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
-        self._coordinator = State(initialValue: HomeCoordinator(nickname: nickname, isTabBarHidden: isTabBarHidden))
+    public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
+        self._coordinator = State(initialValue: HomeCoordinator(nickname: nickname, isTabBarHidden: isTabBarHidden, showToast: showToast))
         self._isTabBarHidden = isTabBarHidden
     }
     

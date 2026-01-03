@@ -12,7 +12,6 @@ import DIContainer
 import HomeDomain
 
 enum HomeNoInterestIntent {
-    case onAppear
     case onRefresh
     case onToastDisappear
     case _fetchHomeSectionListResult(Result<HomeSectionList, Error>)
@@ -31,12 +30,13 @@ final class HomeNoInterestStore: ObservableObject {
     
     private var refreshTask: Task<Void, Never>?
     
+    init() {
+        performFetchHomeSectionList()
+    }
+    
     @MainActor
     func send(_ intent: HomeNoInterestIntent) {
         switch intent {
-        case .onAppear:
-            performFetchHomeSectionList()
-
         case .onRefresh:
             state.isLoading = true
             performFetchHomeSectionList()

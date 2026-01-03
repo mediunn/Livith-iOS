@@ -19,7 +19,7 @@ struct SearchResultGridView: View {
     let onLoadMore: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
             resultHeaderText
             
             searchResults.isEmpty ? AnyView(emptyView) : AnyView(gridView)
@@ -55,7 +55,7 @@ private extension SearchResultGridView {
         ScrollView(showsIndicators: false) {
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-                spacing: 16
+                spacing: 32
             ) {
                 ForEach(searchResults, id: \.id) { concert in
                     concertCard(for: concert)
