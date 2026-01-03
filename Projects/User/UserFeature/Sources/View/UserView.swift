@@ -44,15 +44,20 @@ public struct UserView: View {
     @State private var logoutToastMessage: String = ""
 
     @Binding private var isTabBarHidden: Bool
+    @Binding private var nickname: String
 
-    @StateObject private var userStore = UserStore()
     @StateObject private var logoutStore = LogoutStore()
 
     private let showToast: ((LivithToastType, String) -> Void)?
 
     // MARK: - LifeCycle
 
-    public init(isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
+    public init(
+        nickname: Binding<String>,
+        isTabBarHidden: Binding<Bool>,
+        showToast: ((LivithToastType, String) -> Void)? = nil
+    ) {
+        self._nickname = nickname
         self._isTabBarHidden = isTabBarHidden
         self.showToast = showToast
     }
@@ -102,9 +107,9 @@ public struct UserView: View {
                     NicknameUpdateView(
                         store: NicknameUpdateStore(),
                         onDismiss: { path.removeLast() },
-                        onSuccess: {
+                        onSuccess: { newNickname in
                             path.removeLast()
-                            userStore.send(.fetchNickname)
+                            nickname = newNickname
                             showToast?(.success, Literals.toastSuccess)
                         }
                     )
@@ -117,9 +122,6 @@ public struct UserView: View {
                     .navigationBarBackButtonHidden()
                 }
             }
-        }
-        .onAppear {
-            userStore.send(.fetchNickname)
         }
         .onChange(of: logoutStore.state.logoutResult) { _, newResult in
             handleLogoutResult(newResult)
@@ -169,8 +171,8 @@ private extension UserView {
     
     var titleText: some View {
         Text.init(
-            String(format: Literals.titleFormat, userStore.state.nickname),
-            highlighting: "\(userStore.state.nickname)",
+            String(format: Literals.titleFormat, nickname),
+            highlighting: "\(nickname)",
             color: .livithColor(.white100),
             font: .notosans(.headSemibold)
         )
