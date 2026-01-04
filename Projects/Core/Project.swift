@@ -37,6 +37,10 @@ let project = Project.make(
             product: .framework
         ),
         .make(
+            target: .core(.livithFoundation),
+            product: .framework
+        ),
+        .make(
             target: .core(.auth),
             product: .framework,
             dependencies: [
