@@ -115,7 +115,7 @@ final class HomeStore: ObservableObject {
                 state.scheduleList = []
                 state.setlist = nil
                 state.songList = []
-                state.toastMessage = "관심 콘서트가 삭제되었어요"
+                state.toastMessage = "관심 공연을 삭제했어요"
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
