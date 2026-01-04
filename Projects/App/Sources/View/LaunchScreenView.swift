@@ -22,12 +22,12 @@ struct LaunchScreenView: View {
                 
                 Image.livithImage(.livithLogo)
                     .resizable()
-                    .frame(height: 52)
-                    .padding(.horizontal, 88)
+                    .aspectRatio(204/52, contentMode: .fit)
+                    .frame(height: 44)
                     .padding(.bottom, 24)
                 
                 Text("분산되어 있는 내한 정보를 한번에")
-                    .notosans(.headMedium)
+                    .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.black50))
                     
                 Spacer()
