@@ -8,17 +8,11 @@
 
 import Foundation
 
+import LivithFoundation
 import LivithNetwork
 import HomeDomain
 
 struct HomeMapper {
-    private static let iso8601Formatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        return formatter
-    }()
     
     func toDomain(from response: DTO.Response.FetchHomeSectionList) -> [ConcertSection] {
         response.map { section in
@@ -157,8 +151,8 @@ struct HomeMapper {
     }
     
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist {
-        let startDate = Self.iso8601Formatter.date(from: response.startDate) ?? Date()
-		let endDate = Self.iso8601Formatter.date(from: response.endDate) ?? Date()
+        let startDate = DateFormatterFactory.iso8601.date(from: response.startDate) ?? Date()
+        let endDate = DateFormatterFactory.iso8601.date(from: response.endDate) ?? Date()
 		
         return Setlist(
             id: response.id,
@@ -184,12 +178,12 @@ struct HomeMapper {
     }
 
 	func toDomain(from response: DTO.Response.FetchConcertSchedule) -> ConcertScheduleList {
-		return response.map { schedule in
+        return response.map { schedule in
             ConcertSchedule(
                 id: schedule.id,
                 category: schedule.category,
-                schduledAt: Self.iso8601Formatter.date(from: schedule.scheduledAt) ?? .now
+                schduledAt: DateFormatterFactory.iso8601.date(from: schedule.scheduledAt) ?? .now
             )
-		}
-	}
+        }
+    }
 }
