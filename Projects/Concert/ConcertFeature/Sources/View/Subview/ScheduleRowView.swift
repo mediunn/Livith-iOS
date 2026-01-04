@@ -10,6 +10,7 @@ import SwiftUI
 
 import ConcertDomain
 import DSKit
+import LivithFoundation
 
 struct ScheduleRowView: View {
 
@@ -55,8 +56,11 @@ private extension ScheduleRowView {
         let components = Self.calendar.dateComponents([.hour, .minute], from: schedule.scheduledAt)
         let hasTime = components.hour != 0 || components.minute != 0
 
-        let formatter = hasTime ? Self.dateTimeFormatter : Self.dateOnlyFormatter
-        return formatter.string(from: schedule.scheduledAt)
+        if hasTime {
+            return DateFormatterFactory.koreanDateTime.string(from: schedule.scheduledAt)
+        } else {
+            return DateFormatterFactory.koreanDateOnly.string(from: schedule.scheduledAt)
+        }
     }
 
     func daysUntil(_ date: Date) -> Int {
@@ -67,26 +71,10 @@ private extension ScheduleRowView {
     }
 }
 
-// MARK: - Cached Formatters
+// MARK: - Constants
 
 private extension ScheduleRowView {
     static let calendar = Calendar.current
-
-    static let dateTimeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M/d(E) h:mma"
-        formatter.amSymbol = "AM"
-        formatter.pmSymbol = "PM"
-        return formatter
-    }()
-
-    static let dateOnlyFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M/d(E)"
-        return formatter
-    }()
 }
 
 // MARK: - Preview

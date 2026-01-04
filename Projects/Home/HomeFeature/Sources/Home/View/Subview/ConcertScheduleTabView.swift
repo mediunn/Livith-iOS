@@ -10,6 +10,7 @@ import SwiftUI
 
 import DSKit
 import HomeDomain
+import LivithFoundation
 
 struct ConcertScheduleTabView: View {
     private let schedules: ConcertScheduleList
@@ -130,14 +131,6 @@ private extension ConcertScheduleTabView {
     }
     
     func formatDateTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M/d(E) h:mm"
-        
-        let ampmFormatter = DateFormatter()
-        ampmFormatter.locale = Locale(identifier: "en_US")
-        ampmFormatter.dateFormat = "a"
-        
-        return formatter.string(from: date) + ampmFormatter.string(from: date).uppercased()
+        DateFormatterFactory.koreanDateTime.string(from: date)
     }
 }
