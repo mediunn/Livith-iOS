@@ -17,21 +17,11 @@ struct LaunchScreenView: View {
                 .resizable()
                 .ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                Spacer()
-                
-                Image.livithImage(.livithLogo)
-                    .resizable()
-                    .aspectRatio(204/52, contentMode: .fit)
-                    .frame(height: 44)
-                    .padding(.bottom, 24)
-                
-                Text("분산되어 있는 내한 정보를 한번에")
-                    .notosans(.body1Semibold)
-                    .foregroundStyle(Color.livithColor(.black50))
-                    
-                Spacer()
-            }
+            Image.livithImage(.livithLogo)
+                .resizable()
+                .aspectRatio(204/52, contentMode: .fit)
+                .frame(height: 48)
+                .padding(.bottom, 24)
         }
     }
 }
