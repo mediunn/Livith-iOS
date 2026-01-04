@@ -86,22 +86,25 @@ private extension TermsView {
     }
     
     var allAgreeButton: some View {
-        HStack(spacing: 16) {
-            Button {
-                store.send(.toggleAllTermsAgreement)
-            } label: {
-                Image.livithIcon((store.state.isTermsAgreed && store.state.isMarketingAgreed) ? .checkboxFillEnabled : .checkboxFillDefault)
+        Button {
+            store.send(.toggleAllTermsAgreement)
+        } label: {
+            HStack(spacing: 16) {
+                Image.livithIcon((store.state.isTermsAgreed && store.state.isMarketingAgreed)
+                                 ? .checkboxFillEnabled
+                                 : .checkboxFillDefault
+                )
+                
+                Text(Literals.allAgreeText)
+                    .notosans(.body2Medium)
+                    .foregroundColor(.livithColor(.white100))
+                
+                Spacer()
             }
-            
-            Text(Literals.allAgreeText)
-                .notosans(.body2Medium)
-                .foregroundColor(.livithColor(.white100))
-            
-            Spacer()
+            .padding(20)
+            .background(Color.livithColor(.black80))
+            .cornerRadius(12)
         }
-        .padding(20)
-        .background(Color.livithColor(.black80))
-        .cornerRadius(12)
     }
     
     var termsSection: some View {
@@ -113,20 +116,22 @@ private extension TermsView {
     }
     
     var termRow: some View {
-        HStack(spacing: 4) {
+        HStack {
             Button {
                 store.send(.toggleTermsAgreement)
             } label: {
-                Image.livithIcon(store.state.isTermsAgreed ? .checkboxLineEnabled : .checkboxLineDefault)
+                HStack(spacing: 4) {
+                    Image.livithIcon(store.state.isTermsAgreed ? .checkboxLineEnabled : .checkboxLineDefault)
+                    
+                    Text(Literals.termsAgreementText)
+                        .notosans(.body2Medium)
+                        .foregroundStyle(Color.livithColor(.white100))
+                    
+                    Text(Literals.requiredText)
+                        .notosans(.caption1Regular)
+                        .foregroundStyle(Color.livithColor(.black50))
+                }
             }
-            
-            Text(Literals.termsAgreementText)
-                .notosans(.body2Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-            
-            Text(Literals.requiredText)
-                .notosans(.caption1Regular)
-                .foregroundStyle(Color.livithColor(.black50))
             
             Spacer()
             
@@ -143,16 +148,20 @@ private extension TermsView {
     }
     
     var marketingRow: some View {
-        HStack(spacing: 4) {
+        HStack {
             Button {
                 store.send(.toggleMarketingAgreement)
             } label: {
-                Image.livithIcon(store.state.isMarketingAgreed ? .checkboxLineEnabled : .checkboxLineDefault)
+                HStack(spacing: 4) {
+                    Image.livithIcon(store.state.isMarketingAgreed ? .checkboxLineEnabled : .checkboxLineDefault)
+                    
+                    Text(Literals.marketingAgreementText)
+                        .notosans(.body2Medium)
+                        .foregroundStyle(Color.livithColor(.white100))
+                }
             }
             
-            Text(Literals.marketingAgreementText)
-                .notosans(.body2Medium)
-                .foregroundStyle(Color.livithColor(.white100))
+            Spacer()
         }
     }
     
