@@ -57,9 +57,9 @@ private extension ScheduleRowView {
         let hasTime = components.hour != 0 || components.minute != 0
 
         if hasTime {
-            return DateFormatterFactory.koreanDateTime.string(from: schedule.scheduledAt)
+            return DateFormatterService.string(from: schedule.scheduledAt, type: .koreanDateTime)
         } else {
-            return DateFormatterFactory.koreanDateOnly.string(from: schedule.scheduledAt)
+            return DateFormatterService.string(from: schedule.scheduledAt, type: .koreanDateOnly)
         }
     }
 

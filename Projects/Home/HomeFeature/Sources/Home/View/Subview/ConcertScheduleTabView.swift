@@ -131,6 +131,6 @@ private extension ConcertScheduleTabView {
     }
     
     func formatDateTime(_ date: Date) -> String {
-        DateFormatterFactory.koreanDateTime.string(from: date)
+        DateFormatterService.string(from: date, type: .koreanDateTime)
     }
 }

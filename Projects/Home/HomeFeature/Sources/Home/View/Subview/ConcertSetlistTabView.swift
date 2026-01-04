@@ -167,7 +167,7 @@ private extension ConcertSetlistTabView {
 
 private extension ConcertSetlistTabView {
     func formatDate(_ date: Date) -> String {
-        DateFormatterFactory.koreanFullDate.string(from: date)
+        DateFormatterService.string(from: date, type: .koreanFullDate)
     }
 }
 

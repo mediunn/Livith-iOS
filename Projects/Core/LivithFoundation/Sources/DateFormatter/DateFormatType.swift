@@ -11,65 +11,7 @@ import Foundation
 // MARK: - DateFormatType
 
 public enum DateFormatType: String {
-    
-    // MARK: - Network 포맷 (en_US_POSIX, Asia/Seoul)
 
-    private static let _iso8601: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        return formatter
-    }()
-
-    private static let _dashDate: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        return formatter
-    }()
-
-    private static let _dotDate: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        return formatter
-    }()
-
-    private static let _shortDate: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM.dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        return formatter
-    }()
-
-    // MARK: - Display 포맷 (ko_KR)
-
-    private static let _koreanDateTime: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "M/d(E) h:mma"
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.amSymbol = "AM"
-        formatter.pmSymbol = "PM"
-        return formatter
-    }()
-
-    private static let _koreanDateOnly: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "M/d(E)"
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter
-    }()
-
-    private static let _koreanFullDate: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy년 M월 d일"
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter
-    }()
     // MARK: Network (Mapper용) - en_US_POSIX, Asia/Seoul
 
     /// API 응답 ISO8601 형식: "2024-03-15T14:30:25.000Z"
@@ -100,6 +42,24 @@ public enum DateFormatType: String {
 
     /// AM/PM만: "PM"
     case ampm = "a"
+}
+
+// MARK: - Formatter Access
+
+extension DateFormatType {
+    var formatter: DateFormatter {
+        switch self {
+        case .iso8601: return Self._iso8601
+        case .dashDate: return Self._dashDate
+        case .dotDate: return Self._dotDate
+        case .shortDate: return Self._shortDate
+        case .koreanDateTime: return Self._koreanDateTime
+        case .koreanDateOnly: return Self._koreanDateOnly
+        case .koreanFullDate: return Self._koreanFullDate
+        case .timeOnly: return Self._timeOnly
+        case .ampm: return Self._ampm
+        }
+    }
 
     var isNetworkFormat: Bool {
         switch self {
@@ -109,4 +69,84 @@ public enum DateFormatType: String {
             return false
         }
     }
+}
+
+// MARK: - Cached Formatters
+
+private extension DateFormatType {
+
+    // MARK: Network 포맷 (en_US_POSIX, Asia/Seoul)
+
+    static let _iso8601: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        return formatter
+    }()
+
+    static let _dashDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        return formatter
+    }()
+
+    static let _dotDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        return formatter
+    }()
+
+    static let _shortDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM.dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        return formatter
+    }()
+
+    // MARK: Display 포맷 (ko_KR)
+
+    static let _koreanDateTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d(E) h:mma"
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.amSymbol = "AM"
+        formatter.pmSymbol = "PM"
+        return formatter
+    }()
+
+    static let _koreanDateOnly: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d(E)"
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter
+    }()
+
+    static let _koreanFullDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy년 M월 d일"
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter
+    }()
+
+    static let _timeOnly: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm"
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter
+    }()
+
+    static let _ampm: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "a"
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.amSymbol = "AM"
+        formatter.pmSymbol = "PM"
+        return formatter
+    }()
 }

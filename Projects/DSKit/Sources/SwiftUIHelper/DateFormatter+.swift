@@ -13,7 +13,7 @@ import LivithFoundation
 public extension DateFormatter {
     static func formatDateRange(from startDate: Date, to endDate: Date) -> String {
         let calendar = Calendar.current
-        let startDateString = DateFormatterFactory.dotDate.string(from: startDate)
+        let startDateString = DateFormatterService.string(from: startDate, type: .dotDate)
 
         if calendar.isDate(startDate, inSameDayAs: endDate) {
             return startDateString
@@ -23,10 +23,10 @@ public extension DateFormatter {
         let endYear = calendar.component(.year, from: endDate)
 
         if startYear == endYear {
-            let endShortString = DateFormatterFactory.shortDate.string(from: endDate)
+            let endShortString = DateFormatterService.string(from: endDate, type: .shortDate)
             return "\(startDateString)~\(endShortString)"
         } else {
-            let endDateString = DateFormatterFactory.dotDate.string(from: endDate)
+            let endDateString = DateFormatterService.string(from: endDate, type: .dotDate)
             return "\(startDateString)~\(endDateString)"
         }
     }

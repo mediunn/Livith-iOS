@@ -18,8 +18,8 @@ struct ConcertMapper {
     func toDomain(from response: DTO.Response.FetchConcertInfo) -> Concert? {
         guard let status = ConcertStatus(rawValue: response.status),
               let posterURL = URL(string: response.posterURL),
-              let startDate = DateFormatterFactory.dashDate.date(from: response.startDate),
-              let endDate = DateFormatterFactory.dashDate.date(from: response.endDate) else {
+              let startDate = DateFormatterService.date(from: response.startDate, type: .dashDate),
+              let endDate = DateFormatterService.date(from: response.endDate, type: .dashDate) else {
             return nil
         }
 
@@ -44,7 +44,7 @@ struct ConcertMapper {
 
     func toDomain(from response: DTO.Response.FetchConcertSchedule) -> [ConcertSchedule] {
         response.compactMap { schedule in
-            guard let scheduledAt = DateFormatterFactory.iso8601.date(from: schedule.scheduledAt) else {
+            guard let scheduledAt = DateFormatterService.date(from: schedule.scheduledAt, type: .iso8601) else {
                 return nil
             }
 
@@ -100,8 +100,8 @@ struct ConcertMapper {
 
     func toDomain(from response: DTO.Response.FetchConcertSetlistList) -> [ConcertSetlist] {
         response.compactMap { setlist in
-            guard let startDate = DateFormatterFactory.dotDate.date(from: setlist.startDate),
-                  let endDate = DateFormatterFactory.dotDate.date(from: setlist.endDate) else {
+            guard let startDate = DateFormatterService.date(from: setlist.startDate, type: .dotDate),
+                  let endDate = DateFormatterService.date(from: setlist.endDate, type: .dotDate) else {
                 return nil
             }
 
@@ -187,8 +187,8 @@ struct ConcertMapper {
     // MARK: - Setlist Detail
 
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> ConcertSetlist? {
-        guard let startDate = DateFormatterFactory.dotDate.date(from: response.startDate),
-              let endDate = DateFormatterFactory.dotDate.date(from: response.endDate) else {
+        guard let startDate = DateFormatterService.date(from: response.startDate, type: .dotDate),
+              let endDate = DateFormatterService.date(from: response.endDate, type: .dotDate) else {
             return nil
         }
 

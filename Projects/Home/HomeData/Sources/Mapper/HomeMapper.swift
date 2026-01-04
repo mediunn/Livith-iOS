@@ -151,8 +151,8 @@ struct HomeMapper {
     }
     
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist {
-        let startDate = DateFormatterFactory.iso8601.date(from: response.startDate) ?? Date()
-        let endDate = DateFormatterFactory.iso8601.date(from: response.endDate) ?? Date()
+        let startDate = DateFormatterService.date(from: response.startDate, type: .iso8601) ?? Date()
+        let endDate = DateFormatterService.date(from: response.endDate, type: .iso8601) ?? Date()
 		
         return Setlist(
             id: response.id,
@@ -182,7 +182,7 @@ struct HomeMapper {
             ConcertSchedule(
                 id: schedule.id,
                 category: schedule.category,
-                schduledAt: DateFormatterFactory.iso8601.date(from: schedule.scheduledAt) ?? .now
+                schduledAt: DateFormatterService.date(from: schedule.scheduledAt, type: .iso8601) ?? .now
             )
         }
     }
