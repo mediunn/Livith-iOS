@@ -36,49 +36,61 @@ struct InteresetConcertCompleteView: View {
 private extension InteresetConcertCompleteView {
     var contentView: some View {
         VStack(spacing: .zero) {
-            VStack(spacing: .zero) {
-                Spacer()
-                NotchedConcertPosterImage(url: concertPosterURL)
-                    .frame(width: 132, height: 176)
-                    .scaleEffect(isScaled ? 1.0 : 1.2)
-                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isScaled)
-                    
-                (Text("[\(concertTitle)]")
-                    .foregroundStyle(.livithColor(.yellow30))
-                 + Text("이\n관심 콘서트로 설정됐어요.")
-                    .foregroundStyle(.livithColor(.white100)))
-                .notosans(.headSemibold)
-                .multilineTextAlignment(.center)
-                .padding(.top, 52)
-                
-                Spacer()
-            }
-            .background(
-                imageView
-                    .padding(.bottom, 60)
-            )
+            centerContentView
+                .background(backgroundImageView)
             
-            Button {
-                coordinator?.popToRoot()
-            } label: {
-                Text("확인")
-                    .notosans(.body3Semibold)
-                    .foregroundColor(.livithColor(.black100))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(.livithColor(.yellow30))
-                    .cornerRadius(8)
-            }
+            confirmButton
         }
         .padding(.horizontal, 16)
     }
     
-    var imageView: some View {
+    var centerContentView: some View {
+        VStack(spacing: .zero) {
+            Spacer()
+            posterImageView
+            titleTextView
+            Spacer()
+        }
+    }
+    
+    var posterImageView: some View {
+        NotchedConcertPosterImage(url: concertPosterURL)
+            .frame(width: 132, height: 176)
+            .scaleEffect(isScaled ? 1.0 : 1.2)
+            .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isScaled)
+    }
+    
+    var titleTextView: some View {
+        (Text("[\(concertTitle)]")
+            .foregroundStyle(.livithColor(.yellow30))
+         + Text("이\n관심 콘서트로 설정됐어요.")
+            .foregroundStyle(.livithColor(.white100)))
+        .notosans(.headSemibold)
+        .multilineTextAlignment(.center)
+        .padding(.top, 52)
+    }
+    
+    var confirmButton: some View {
+        Button {
+            coordinator?.popToRoot()
+        } label: {
+            Text("확인")
+                .notosans(.body3Semibold)
+                .foregroundColor(.livithColor(.black100))
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(.livithColor(.yellow30))
+                .cornerRadius(8)
+        }
+    }
+    
+    var backgroundImageView: some View {
         Image.livithImage(.interestConcertComplete)
             .resizable()
             .scaledToFill()
             .rotationEffect(.degrees(isRotating ? 360 : 0), anchor: .center)
             .animation(.linear(duration: 5).repeatForever(autoreverses: false), value: isRotating)
+            .padding(.bottom, 60)
     }
 }
 
