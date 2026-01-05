@@ -8,22 +8,12 @@
 
 import Foundation
 
+import LivithFoundation
+
 public extension DateFormatter {
-    static let fullDate: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
-        return formatter
-    }()
-
-    static let shortDate: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM.dd"
-        return formatter
-    }()
-
     static func formatDateRange(from startDate: Date, to endDate: Date) -> String {
         let calendar = Calendar.current
-        let startDateString = fullDate.string(from: startDate)
+        let startDateString = DateFormatterService.string(from: startDate, type: .dotDate)
 
         if calendar.isDate(startDate, inSameDayAs: endDate) {
             return startDateString
@@ -33,10 +23,10 @@ public extension DateFormatter {
         let endYear = calendar.component(.year, from: endDate)
 
         if startYear == endYear {
-            let endShortString = shortDate.string(from: endDate)
+            let endShortString = DateFormatterService.string(from: endDate, type: .shortDate)
             return "\(startDateString)~\(endShortString)"
         } else {
-            let endDateString = fullDate.string(from: endDate)
+            let endDateString = DateFormatterService.string(from: endDate, type: .dotDate)
             return "\(startDateString)~\(endDateString)"
         }
     }

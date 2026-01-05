@@ -16,7 +16,8 @@ let project = Project.make(
                 .home(.homeDomain),
                 .core(.livithNetwork),
                 .core(.diContainer),
-                .core(.persistence)
+                .core(.persistence),
+                .core(.livithFoundation)
             ]
         ),
         .make(
@@ -31,7 +32,8 @@ let project = Project.make(
                 .concert(.concertFeature),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency)
+                .core(.livithConcurrency),
+                .core(.livithFoundation)
             ]
         )
     ]

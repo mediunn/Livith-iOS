@@ -15,7 +15,8 @@ let project = Project.make(
             dependencies: [
                 .concert(.concertDomain),
                 .core(.diContainer),
-                .core(.livithNetwork)
+                .core(.livithNetwork),
+                .core(.livithFoundation)
             ]
         ),
         .make(
@@ -31,7 +32,8 @@ let project = Project.make(
                 .song(.songFeature),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency)
+                .core(.livithConcurrency),
+                .core(.livithFoundation)
             ]
         ),
         .make(

@@ -15,7 +15,8 @@ let project = Project.make(
             target: .dsKit,
             product: .framework,
             dependencies: [
-                .external(.kingfisher)
+                .external(.kingfisher),
+                .core(.livithFoundation)
             ]
         )
     ]
