@@ -36,7 +36,7 @@ struct SearchView: View {
     public var body: some View {
         VStack(spacing: 0) {
             searchBarView
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
 
             ScrollView {
                 filterView
