@@ -83,9 +83,11 @@ private extension ExploreStore {
     func performFetchExploreData() {
         fetchTask?.cancel()
 
+        let repo = repository
+
         fetchTask = Task {
-            async let bannersTask = repository.fetchBanners()
-            async let sectionsTask = repository.fetchSections()
+            async let bannersTask = repo.fetchBanners()
+            async let sectionsTask = repo.fetchSections()
 
             do {
                 let banners = try await bannersTask

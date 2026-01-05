@@ -27,7 +27,9 @@ public enum SetlistType: String, CaseIterable {
         switch self {
         case .expected:
             return "예상"
-        case .recent, .past, .none:
+        case .recent:
+            return "최근"
+        case .past, .none:
             return nil
         }
     }
