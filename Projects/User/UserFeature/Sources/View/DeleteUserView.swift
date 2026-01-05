@@ -140,6 +140,7 @@ private extension DeleteUserView {
                     isConfirmed: $isConfirmed,
                     onCancel: {
                         showConfirmSheet = false
+                        onDismiss?()
                     },
                     onConfirm: {
                         showConfirmSheet = false
