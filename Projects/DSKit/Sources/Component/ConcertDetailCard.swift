@@ -111,7 +111,7 @@ private extension ConcertDetailCard {
     func artistText() -> some View {
         Text(artist)
             .lineLimit(1)
-            .notosans(.caption1Semibold)
+            .notosans(.caption1Regular)
             .foregroundStyle(Color.livithColor(.black50))
     }
 }
