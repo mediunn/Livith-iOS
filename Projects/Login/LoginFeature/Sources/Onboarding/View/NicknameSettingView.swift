@@ -239,7 +239,7 @@ private extension NicknameSettingView {
     var statusMessage: String {
         switch store.state.nicknameValidationStatus {
         case .idle:
-            return "10자리 이내 문자/숫자로 입력 가능해요"
+            return "10자리 이내, 문자/숫자로 입력 가능해요"
         case .valid:
             return ""
         case .invalid:
