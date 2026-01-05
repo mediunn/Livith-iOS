@@ -58,6 +58,7 @@ struct WelcomeSheetView: View {
                         .background(Color.livithColor(.yellow30))
                         .cornerRadius(4)
                 }
+                .buttonStyle(.saturation)
                 .padding(.top, 20)
                 .padding([.horizontal, .bottom], 16)
             }
