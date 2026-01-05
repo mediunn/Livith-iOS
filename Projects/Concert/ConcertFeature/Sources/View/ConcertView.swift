@@ -382,7 +382,7 @@ private extension ConcertView {
     }
 
     var venueInfo: some View {
-        HStack(spacing: 4) {
+        HStack(alignment: .top, spacing: 4) {
             Image.livithIcon(.locationLine)
                 .resizable()
                 .frame(width: 24, height: 24)
