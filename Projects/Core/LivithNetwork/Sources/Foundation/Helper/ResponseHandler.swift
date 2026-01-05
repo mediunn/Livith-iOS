@@ -29,12 +29,16 @@ public final class ResponseHandler: ResponseHandlerProtocol {
         
         do {
             let baseResponse = try decoder.decode(BaseResponse<T>.self, from: data)
-            
-            guard let unwrappedData = baseResponse.data else {
-                throw NetworkError.noData
+
+            if let unwrappedData = baseResponse.data {
+                return unwrappedData
             }
 
-            return unwrappedData
+            if T.self == DTO.Response.EmptyResponse.self {
+                return DTO.Response.EmptyResponse() as! T
+            }
+
+            throw NetworkError.noData
         } catch let error as NetworkError {
             throw error
         } catch {
