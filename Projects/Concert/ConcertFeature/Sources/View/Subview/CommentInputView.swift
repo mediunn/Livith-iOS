@@ -24,11 +24,12 @@ struct CommentInputView: View {
 
     @Binding var text: String
     @Binding var isExceedingLineLimit: Bool
+    @Binding var isExceedingCharacterLimit: Bool
     let isSubmitting: Bool
     let onSubmit: () -> Void
 
     private var isSubmitEnabled: Bool {
-        !text.isEmpty && !isSubmitting && !isExceedingLineLimit
+        !text.isEmpty && !isSubmitting && !isExceedingLineLimit && !isExceedingCharacterLimit
     }
 
     // MARK: - Body
@@ -45,7 +46,7 @@ struct CommentInputView: View {
 
 private extension CommentInputView {
     var inputRow: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .bottom, spacing: 8) {
             textField
             submitButton
         }
@@ -69,10 +70,7 @@ private extension CommentInputView {
         .onChange(of: text) { _, newValue in
             let lineCount = newValue.components(separatedBy: "\n").count
             isExceedingLineLimit = lineCount > Constants.maxLines
-
-            if newValue.count > Constants.maxLength {
-                text = String(newValue.prefix(Constants.maxLength))
-            }
+            isExceedingCharacterLimit = newValue.count > Constants.maxLength
         }
     }
 
@@ -107,6 +105,7 @@ private extension CommentInputView {
         CommentInputView(
             text: .constant(""),
             isExceedingLineLimit: .constant(false),
+            isExceedingCharacterLimit: .constant(false),
             isSubmitting: false,
             onSubmit: {}
         )
@@ -114,6 +113,7 @@ private extension CommentInputView {
         CommentInputView(
             text: .constant("테스트 댓글입니다"),
             isExceedingLineLimit: .constant(false),
+            isExceedingCharacterLimit: .constant(false),
             isSubmitting: false,
             onSubmit: {}
         )

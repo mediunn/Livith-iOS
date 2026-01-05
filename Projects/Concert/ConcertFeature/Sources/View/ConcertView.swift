@@ -24,6 +24,7 @@ public struct ConcertView: View {
     @StateObject private var communityStore: CommunityStore = CommunityStore()
     @State private var showInterestConfirmDialog: Bool = false
     @State private var isExceedingLineLimit: Bool = false
+    @State private var isExceedingCharacterLimit: Bool = false
 
     // MARK: - Initializer
 
@@ -66,6 +67,13 @@ public struct ConcertView: View {
                 duration: nil,
                 topPadding: 16
             )
+            .livithToast(
+                isPresented: $isExceedingCharacterLimit,
+                type: .failure,
+                message: "댓글은 400자를 초과할 수 없어요",
+                duration: nil,
+                topPadding: 16
+            )
             .overlay { ticketReturnBannerOverlay }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
             .onAppear {
@@ -94,9 +102,6 @@ private extension ConcertView {
                 scrollContent
                 commentInputSection
             }
-        }
-        .onTapGesture {
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
     }
 
@@ -129,6 +134,9 @@ private extension ConcertView {
                 .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
             }
             .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
             .onChange(of: store.state.selectedTab) {
                 withAnimation {
                     proxy.scrollTo("top", anchor: .top)
@@ -153,6 +161,7 @@ private extension ConcertView {
                     set: { communityStore.send(.updateCommentText($0)) }
                 ),
                 isExceedingLineLimit: $isExceedingLineLimit,
+                isExceedingCharacterLimit: $isExceedingCharacterLimit,
                 isSubmitting: communityStore.state.isSubmitting,
                 onSubmit: {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
