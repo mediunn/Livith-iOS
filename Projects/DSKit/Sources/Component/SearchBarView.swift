@@ -78,6 +78,10 @@ private extension SearchBarView {
                     .padding(.trailing, 12)
             }
         }
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.livithColor(.black50), lineWidth: isFocused ? 1 : 0)
+        )
     }
     
     @ViewBuilder
