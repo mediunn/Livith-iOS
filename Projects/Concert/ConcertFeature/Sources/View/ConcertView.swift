@@ -23,6 +23,7 @@ public struct ConcertView: View {
     @ObservedObject private var store: ConcertStore
     @StateObject private var communityStore: CommunityStore = CommunityStore()
     @State private var showInterestConfirmDialog: Bool = false
+    @State private var isExceedingLineLimit: Bool = false
 
     // MARK: - Initializer
 
@@ -101,6 +102,7 @@ public struct ConcertView: View {
                             get: { communityStore.state.commentText },
                             set: { communityStore.send(.updateCommentText($0)) }
                         ),
+                        isExceedingLineLimit: $isExceedingLineLimit,
                         isSubmitting: communityStore.state.isSubmitting,
                         onSubmit: {
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -202,6 +204,13 @@ public struct ConcertView: View {
             ),
             type: communityToastType,
             message: communityToastMessage,
+            topPadding: 16
+        )
+        .livithToast(
+            isPresented: $isExceedingLineLimit,
+            type: .failure,
+            message: "댓글은 15줄을 초과할 수 없어요",
+            duration: nil,
             topPadding: 16
         )
         .overlay {

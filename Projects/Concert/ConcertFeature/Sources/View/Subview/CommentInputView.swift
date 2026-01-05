@@ -23,11 +23,12 @@ struct CommentInputView: View {
     // MARK: - Property
 
     @Binding var text: String
+    @Binding var isExceedingLineLimit: Bool
     let isSubmitting: Bool
     let onSubmit: () -> Void
 
     private var isSubmitEnabled: Bool {
-        !text.isEmpty && !isSubmitting
+        !text.isEmpty && !isSubmitting && !isExceedingLineLimit
     }
 
     // MARK: - Body
@@ -65,11 +66,11 @@ private extension CommentInputView {
         .padding(.vertical, 12)
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 8))
-        .onChange(of: text) { oldValue, newValue in
+        .onChange(of: text) { _, newValue in
             let lineCount = newValue.components(separatedBy: "\n").count
-            if lineCount > Constants.maxLines {
-                text = oldValue
-            } else if newValue.count > Constants.maxLength {
+            isExceedingLineLimit = lineCount > Constants.maxLines
+
+            if newValue.count > Constants.maxLength {
                 text = String(newValue.prefix(Constants.maxLength))
             }
         }
@@ -105,12 +106,14 @@ private extension CommentInputView {
 
         CommentInputView(
             text: .constant(""),
+            isExceedingLineLimit: .constant(false),
             isSubmitting: false,
             onSubmit: {}
         )
 
         CommentInputView(
             text: .constant("테스트 댓글입니다"),
+            isExceedingLineLimit: .constant(false),
             isSubmitting: false,
             onSubmit: {}
         )
