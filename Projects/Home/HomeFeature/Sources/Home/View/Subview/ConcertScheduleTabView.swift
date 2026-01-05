@@ -87,7 +87,7 @@ private extension ConcertScheduleTabView {
         .overlay {
             if !isActive {
                 Rectangle()
-                    .fill(.livithColor(.black100).opacity(0.3))
+                    .fill(.livithColor(.black100).opacity(0.7))
             }
         }
     }
