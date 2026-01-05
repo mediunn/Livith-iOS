@@ -62,7 +62,11 @@ struct InterestConcertSearchView: View {
             }
             .onChange(of: store.state.completedConcert) { _, concert in
                 guard let concert = concert else { return }
-                coordinator?.push(to: .interestComplete(posterURL: concert.posterURL, title: concert.title))
+                coordinator?.push(to: .interestComplete(
+                    posterURL: concert.posterURL,
+                    title: concert.title,
+                    prefetchedImage: store.state.prefetchedPosterImage
+                ))
             }
         }
     }
@@ -191,10 +195,17 @@ private extension InterestConcertSearchView {
         Button {
             store.send(.onSubmit)
         } label: {
-            Text("설정하기")
+            HStack {
+                Text("설정하기")
+                
+                if store.state.isSubmitting {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.white100)))
+                }
+            }
         }
         .buttonStyle(.livithPrimary)
-        .disabled(store.state.selectedConcertID == nil)
+        .disabled(store.state.selectedConcertID == nil || store.state.isSubmitting)
     }
 }
 

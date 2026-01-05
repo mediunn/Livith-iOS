@@ -19,6 +19,7 @@ struct InteresetConcertCompleteView: View {
     
     let concertPosterURL: URL?
     let concertTitle: String
+    let prefetchedImage: UIImage?
     
     var body: some View {
         contentView
@@ -60,7 +61,7 @@ private extension InteresetConcertCompleteView {
     }
     
     var posterImageView: some View {
-        NotchedConcertPosterImage(url: concertPosterURL)
+        NotchedConcertPosterImage(url: concertPosterURL, image: prefetchedImage)
             .frame(width: 132, height: 176)
             .scaleEffect(isScaled ? 1.0 : 1.3)
             .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isScaled)
@@ -99,6 +100,7 @@ private extension InteresetConcertCompleteView {
 #Preview {
     InteresetConcertCompleteView(
         concertPosterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")!,
-        concertTitle: "Veniam dolor et irure quis velit dolor et mollit quis anim do incididunt mollit ullamco amet esse in"
+        concertTitle: "Veniam dolor et irure quis velit dolor et mollit quis anim do incididunt mollit ullamco amet esse in",
+        prefetchedImage: nil
     )
 }

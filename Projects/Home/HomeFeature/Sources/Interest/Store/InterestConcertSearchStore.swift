@@ -6,6 +6,7 @@
 //  Copyright © 2025 Livith. All rights reserved.
 //
 
+import UIKit
 import Foundation
 
 import HomeDomain
@@ -25,6 +26,7 @@ enum InterestConcertSearchIntent {
     case _fetchRecommendKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
     case _updateInterestConcertResult(Result<Concert, Error>)
+    case _imagePrefetchCompleted(UIImage?)
 }
 
 struct InterestConcertSearchState {
@@ -44,6 +46,8 @@ struct InterestConcertSearchState {
     var errorMessage: String = ""
     var isConcertsLoadingMore: Bool = false
     var isSearchResultsLoadingMore: Bool = false
+    var isSubmitting: Bool = false
+    var prefetchedPosterImage: UIImage?
 }
 
 final class InterestConcertSearchStore: ObservableObject {
@@ -82,7 +86,8 @@ final class InterestConcertSearchStore: ObservableObject {
             state.selectedConcertID = state.selectedConcertID == concertID ? nil : concertID
 
         case .onSubmit:
-            performUpdateInterestConcert()
+            state.isSubmitting = true
+            performPrefetchImageAndSubmit()
         
         case .onToastDisappear:
             state.errorMessage = ""
@@ -136,12 +141,17 @@ final class InterestConcertSearchStore: ObservableObject {
             }
 
         case ._updateInterestConcertResult(let result):
+            state.isSubmitting = false
             switch result {
             case .success(let concert):
                 state.completedConcert = concert
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
+        
+        case ._imagePrefetchCompleted(let image):
+            state.prefetchedPosterImage = image
+            performUpdateInterestConcert()
         }
     }
 }
@@ -207,6 +217,38 @@ private extension InterestConcertSearchStore {
                 await send(._updateInterestConcertResult(.success(concert)))
             } catch {
                 await send(._updateInterestConcertResult(.failure(error)))
+            }
+        }
+    }
+    
+    func performPrefetchImageAndSubmit() {
+        guard let concertID = state.selectedConcertID else {
+            Task { await send(._updateInterestConcertResult(.failure(HomeError.cancelled))) }
+            return
+        }
+        
+        let concert: Concert?
+        switch state.mode {
+        case .initial:
+            concert = state.concertList.first { $0.id == concertID }
+        case .showingSearchResults:
+            concert = state.searchList.first { $0.id == concertID }
+        case .recommendingKeywords:
+            concert = nil
+        }
+        
+        guard let posterURL = concert?.posterURL else {
+            Task { await send(._imagePrefetchCompleted(nil)) }
+            return
+        }
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: posterURL)
+                let image = UIImage(data: data)
+                await send(._imagePrefetchCompleted(image))
+            } catch {
+                await send(._imagePrefetchCompleted(nil))
             }
         }
     }
