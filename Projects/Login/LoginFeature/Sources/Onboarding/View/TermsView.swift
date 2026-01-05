@@ -147,14 +147,8 @@ private extension TermsView {
             coordinator?.push(to: .nickname(isMarketingAgreed))
         } label: {
             Text(Literals.nextButtonText)
-                .notosans(.body2Medium)
-                .foregroundColor(canProceed ? Color.livithColor(.black100) : Color.livithColor(.black50))
-                .padding()
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(canProceed ? Color.livithColor(.yellow30) : Color.livithColor(.black80))
-                .cornerRadius(8)
         }
+        .buttonStyle(.livithPrimary)
         .disabled(!canProceed)
     }
 }

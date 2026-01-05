@@ -82,13 +82,8 @@ private extension InteresetConcertCompleteView {
             coordinator?.popToRoot()
         } label: {
             Text("확인")
-                .notosans(.body3Semibold)
-                .foregroundColor(.livithColor(.black100))
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(.livithColor(.yellow30))
-                .cornerRadius(8)
         }
+        .buttonStyle(.livithPrimary)
     }
     
     var backgroundImageView: some View {

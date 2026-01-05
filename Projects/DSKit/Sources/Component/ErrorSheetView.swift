@@ -65,13 +65,8 @@ public struct ErrorSheetView: View {
                     }
                 } label: {
                     Text(confirmTitle)
-                        .notosans(.body3Semibold)
-                        .foregroundColor(.livithColor(.black100))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.livithColor(.translation))
-                        .cornerRadius(4)
                 }
+                .buttonStyle(.livithSecondary)
                 .padding(.top, 20)
                 .padding([.horizontal, .bottom], 16)
             }
