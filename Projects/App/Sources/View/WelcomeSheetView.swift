@@ -51,7 +51,7 @@ struct WelcomeSheetView: View {
                     }
                 } label: {
                     Text("시작하기")
-                        .notosans(.body3Medium)
+                        .notosans(.body3Semibold)
                         .foregroundColor(.livithColor(.black100))
                         .frame(maxWidth: .infinity)
                         .padding()

@@ -65,7 +65,7 @@ public struct ErrorSheetView: View {
                     }
                 } label: {
                     Text(confirmTitle)
-                        .notosans(.body2Medium)
+                        .notosans(.body3Semibold)
                         .foregroundColor(.livithColor(.black100))
                         .frame(maxWidth: .infinity)
                         .padding()
