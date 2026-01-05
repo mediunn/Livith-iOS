@@ -55,7 +55,8 @@ public struct ConcertDetailCard: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(isSelected ? Color.livithColor(.yellow30) : .clear, lineWidth: 2)
-                        )   
+                        )
+                        .padding(.top, 2)
                     
                     titleText()
                         .padding(.top, 6)
@@ -93,6 +94,7 @@ private extension ConcertDetailCard {
     @ViewBuilder
     func titleText() -> some View {
         Text(title)
+            .multilineTextAlignment(.leading)
             .lineLimit(2)
             .truncationMode(.tail)
             .notosans(.body2Medium)
