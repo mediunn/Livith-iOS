@@ -127,7 +127,7 @@ private extension SearchView {
             FilterButton(
                 style: .genre,
                 type: genreFilterType,
-                action: { showFilter = true },
+                action: { hideKeyboard(); showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: [], status: store.state.selectedStatusList))
                 }
@@ -137,7 +137,7 @@ private extension SearchView {
             FilterButton(
                 style: .status,
                 type: statusFilterType,
-                action: { showFilter = true },
+                action: { hideKeyboard(); showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: []))
                 }
