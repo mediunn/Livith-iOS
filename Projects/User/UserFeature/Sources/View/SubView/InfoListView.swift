@@ -32,9 +32,9 @@ public struct InfoListView: View {
                 Text(title)
                     .notosans(.body2Medium)
                     .foregroundStyle(Color.livithColor(.black30))
-                
+
                 Spacer()
-                
+
                 switch type {
                 case .navigation:
                     Image.livithIcon(.rightLineDefault)
@@ -52,6 +52,7 @@ public struct InfoListView: View {
             }
             .padding(.vertical, 10)
             .padding(.horizontal, 16)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
