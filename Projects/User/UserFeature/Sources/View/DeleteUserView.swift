@@ -40,36 +40,47 @@ struct DeleteUserView: View {
                 navigationBar
                     .padding(.top, 20)
                     .padding(.horizontal, 16)
+                
+                titleSection
+                    .padding(.top, 30)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
 
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 0) {
-                            titleSection
-                                .padding(.top, 30)
-
-                            reasonList
-                                .padding(.top, 20)
-                                .padding(.bottom, 30)
-
-                            Spacer(minLength: 0)
-
-                            confirmButton
-                                .padding(.bottom, keyboardHeight > 0 ? keyboardHeight + 20 : 50)
-                                .id(ScrollID.confirmButton)
+                ZStack(alignment: .top) {
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 0) {
+                                reasonList
+                                    .padding(.top, 20)
+                                    .padding(.bottom, keyboardHeight > 0 ? keyboardHeight - 100 : 20)
+                            }
+                            .padding(.horizontal, 16)
                         }
-                        .padding(.horizontal, 16)
-                    }
-                    .onChange(of: isTextFieldFocused) { _, isFocused in
-                        if isFocused {
-                            Task {
-                                try? await Task.sleep(for: .milliseconds(300))
-                                withAnimation {
-                                    proxy.scrollTo(ScrollID.confirmButton, anchor: .bottom)
+                        .onChange(of: isTextFieldFocused) { _, isFocused in
+                            if isFocused {
+                                withAnimation(.easeOut(duration: 0.25)) {
+                                    proxy.scrollTo(DeleteUserReason.other, anchor: .bottom)
                                 }
                             }
                         }
                     }
+
+                    LinearGradient(
+                        colors: [
+                            Color.livithColor(.black100),
+                            Color.livithColor(.black100).opacity(0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 20)
+                    .allowsHitTesting(false)
                 }
+
+                confirmButton
+                    .padding(.top, 40)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 50)
             }
             .background(Color.livithColor(.black100))
             .ignoresSafeArea(.all, edges: .bottom)
@@ -180,6 +191,7 @@ private extension DeleteUserView {
         VStack(spacing: 10) {
             ForEach(DeleteUserReason.allCases, id: \.self) { reason in
                 reasonRow(reason)
+                    .id(reason)
             }
         }
     }
@@ -203,7 +215,8 @@ private extension DeleteUserView {
                     Spacer()
                 }
                 .padding(.horizontal, 14)
-                .padding(.vertical, 16)
+                .padding(.vertical, 20)
+                .contentShape(Rectangle())
             }
 
             if showTextField {
@@ -291,10 +304,6 @@ private extension DeleteUserView {
 // MARK: - Constants
 
 private extension DeleteUserView {
-    enum ScrollID {
-        static let confirmButton = "confirmButton"
-    }
-
     enum Literals {
         static let title = "정말 탈퇴하시겠어요?"
         static let subtitle = "탈퇴 이유를 알려주시면,\n서비스 개선에 반영해 더 좋은 서비스로 찾아뵐게요"
