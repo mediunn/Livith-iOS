@@ -17,6 +17,10 @@ struct ScheduleRowView: View {
     // MARK: - Property
 
     let schedule: ConcertSchedule
+    
+    var isPastSchedule: Bool {
+        daysUntil(schedule.scheduledAt) < 0
+    }
 
     // MARK: - Body
 
@@ -33,6 +37,12 @@ struct ScheduleRowView: View {
             Text(formattedDate)
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
+        }
+        .overlay {
+            if isPastSchedule {
+                Rectangle()
+                    .fill(Color.livithColor(.black100).opacity(0.7))
+            }
         }
     }
 }
