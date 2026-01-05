@@ -15,8 +15,10 @@ struct MerchandiseDetailView: View {
 
     // MARK: - Property
 
+    @Environment(\.concertCoordinator) private var coordinator
+
     let merchandiseList: [ConcertMerchandise]
-    let onDismiss: () -> Void
+    let ticketingOfficeURL: URL?
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: 8, alignment: .top),
@@ -29,7 +31,7 @@ struct MerchandiseDetailView: View {
         VStack(spacing: 0) {
             ConcertNavigationBar(
                 title: "MD 상세",
-                onBack: onDismiss
+                onBack: { coordinator?.pop() }
             )
 
             ScrollView {
@@ -41,6 +43,10 @@ struct MerchandiseDetailView: View {
                             subtitle: merchandise.price,
                             flexible: true
                         )
+                        .onTapGesture {
+                            guard let url = ticketingOfficeURL else { return }
+                            coordinator?.present(to: .ticketSafari(url))
+                        }
                     }
                 }
                 .padding(.horizontal, 16)
@@ -63,6 +69,6 @@ struct MerchandiseDetailView: View {
             ConcertMerchandise(id: 4, name: "제품이름", price: "가격", imageURL: nil),
             ConcertMerchandise(id: 5, name: "제품이름", price: "가격", imageURL: nil)
         ],
-        onDismiss: {}
+        ticketingOfficeURL: nil
     )
 }

@@ -69,13 +69,12 @@ public final class ConcertCoordinator: Coordinator {
 
             return UIHostingController(rootView: safariView)
 
-        case .merchandiseDetail(let merchandiseList):
+        case .merchandiseDetail(let merchandiseList, let ticketingOfficeURL):
             let view = MerchandiseDetailView(
                 merchandiseList: merchandiseList,
-                onDismiss: { [weak self] in
-                    self?.pop()
-                }
+                ticketingOfficeURL: ticketingOfficeURL
             )
+            .environment(\.concertCoordinator, self)
 
             return UIHostingController(rootView: view)
 
