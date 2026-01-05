@@ -16,7 +16,6 @@ enum HomeIntent {
     case onErrorToastDisappear
     case onToastDisappear
     
-    case onAppearInterestConcert
     case onDelete
     case onRefreshInterestConcert
     case _fetchUserInterestConcertResult(Result<Concert?, Error>)
@@ -34,24 +33,20 @@ struct HomeState {
     var scheduleList: ConcertScheduleList = []
     var setlist: Setlist? = nil
     var songList: SetlistSongList = []
-} 
+}
 
 final class HomeStore: ObservableObject {
     @Published private(set) var state: HomeState = .init()
     
     @Injected private var repository: HomeRepository
     
+    private var cancellables = [CancelID: Task<Void, Never>]()
+    
     @MainActor
     func send(_ intent: HomeIntent) {
         switch intent {
         case .onAppear:
             performFetchUserInterestedConcert()
-            
-        case .onAppearInterestConcert:
-            if let concert = state.interestConcert {
-                performFetchScheduleList(concertID: concert.id)
-                performFetchMainSetlist(concertID: concert.id)
-            }
             
         case .onErrorToastDisappear:
             state.errorMessage = ""
@@ -75,13 +70,17 @@ final class HomeStore: ObservableObject {
             case .success(let concert):
                 state.interestConcert = concert
                 
-                if concert == nil {
+                if let concert {
+                    performFetchScheduleList(concertID: concert.id)
+                    performFetchMainSetlist(concertID: concert.id)
+                } else {
                     state.scheduleList = []
                     state.setlist = nil
                     state.songList = []
                 }
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.interestConcert = nil
+                state.errorMessage = getErrorMessage(from: error)
             }
             
         case ._fetchScheduleListResult(let result):
@@ -89,7 +88,8 @@ final class HomeStore: ObservableObject {
             case .success(let schedules):
                 state.scheduleList = schedules
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.scheduleList = []
+                state.errorMessage = getErrorMessage(from: error)
             }
             
         case ._fetchMainSetlistResult(let result):
@@ -97,7 +97,9 @@ final class HomeStore: ObservableObject {
             case .success(let setlist):
                 state.setlist = setlist
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.setlist = nil
+                state.songList = []
+                state.errorMessage = getErrorMessage(from: error)
             }
             
         case ._fetchSetlistSongListResult(let result):
@@ -105,7 +107,8 @@ final class HomeStore: ObservableObject {
             case .success(let songs):
                 state.songList = songs
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.songList = []
+                state.errorMessage = getErrorMessage(from: error)
             }
             
         case ._deleteInterestConcertResult(let result):
@@ -127,7 +130,8 @@ final class HomeStore: ObservableObject {
 
 private extension HomeStore {
     func performFetchUserInterestedConcert() {
-        Task {
+        cancellables[.fetchInterestedConcert]?.cancel()
+        cancellables[.fetchInterestedConcert] = Task {
             do {
                 let result = try await repository.fetchInterestedConcert()
                 await send(._fetchUserInterestConcertResult(.success(result)))
@@ -138,7 +142,8 @@ private extension HomeStore {
     }
     
     func performFetchScheduleList(concertID: Int) {
-        Task {
+        cancellables[.fetchScheduleList]?.cancel()
+        cancellables[.fetchScheduleList] = Task {
             do {
                 let schedules = try await repository.fetchScheduleList(for: concertID)
                 await send(._fetchScheduleListResult(.success(schedules)))
@@ -149,14 +154,18 @@ private extension HomeStore {
     }
     
     func performFetchMainSetlist(concertID: Int) {
-        Task {
+        cancellables[.fetchMainSetlist]?.cancel()
+        cancellables[.fetchMainSetlist] = Task {
             do {
-                guard let setlist = try await repository.fetchMainSetlist(for: concertID) else { return }
+                guard let setlist = try await repository.fetchMainSetlist(for: concertID) else {
+                    await send(._fetchMainSetlistResult(.failure(HomeError.cancelled)))
+                    return
+                }
                 let songList = try await repository.fetchSongList(for: setlist.id)
                 await send(._fetchMainSetlistResult(.success(setlist)))
                 await send(._fetchSetlistSongListResult(.success(songList)))
             } catch HomeError.noResponse {
-                return
+                await send(._fetchMainSetlistResult(.failure(HomeError.cancelled)))
             } catch {
                 await send(._fetchMainSetlistResult(.failure(error)))
             }
@@ -164,7 +173,8 @@ private extension HomeStore {
     }
     
     func performFetchSetlistSongList(setlistID: Int) {
-        Task {
+        cancellables[.fetchSetlistSongList]?.cancel()
+        cancellables[.fetchSetlistSongList] = Task {
             do {
                 let songList = try await repository.fetchSongList(for: setlistID)
                 await send(._fetchSetlistSongListResult(.success(songList)))
@@ -183,5 +193,28 @@ private extension HomeStore {
                 await send(._deleteInterestConcertResult(.failure(error)))
             }
         }
+    }
+    
+    func getErrorMessage(from error: Error) -> String {
+        if error is CancellationError {
+            return ""
+        }
+        
+        if case let error as HomeError = error, error == .cancelled {
+            return ""
+        }
+        
+        return error.localizedDescription
+    }
+}
+
+// MARK: - CancelID
+
+private extension HomeStore {
+    enum CancelID {
+        case fetchInterestedConcert
+        case fetchScheduleList
+        case fetchMainSetlist
+        case fetchSetlistSongList
     }
 }
