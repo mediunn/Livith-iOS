@@ -105,6 +105,7 @@ private extension SearchView {
                 set: { store.send(.updateSearchMessage($0)) }
             ),
             onBack: {
+                hideKeyboard()
                 coordinator?.pop()
             },
             onChange: {
@@ -234,6 +235,7 @@ private extension SearchView {
                 }
             }
             .onTapGesture {
+                hideKeyboard()
                 coordinator?.showConcertDetail(concertID: concert.id)
             }
         }
