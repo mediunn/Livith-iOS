@@ -51,7 +51,7 @@ struct HomeView: View {
                 isTabBarHidden: $isTabBarHidden
             )
         } else {
-            HomeNoInterestView(nickname: nickname)
+            HomeConcertSectionView(nickname: nickname, store: store)
         }
     }
 }

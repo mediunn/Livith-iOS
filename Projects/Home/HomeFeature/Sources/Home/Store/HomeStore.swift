@@ -23,6 +23,9 @@ enum HomeIntent {
     case _fetchMainSetlistResult(Result<Setlist, Error>)
     case _fetchSetlistSongListResult(Result<SetlistSongList, Error>)
     case _deleteInterestConcertResult(Result<Void, Error>)
+    
+    case onRefreshSections
+    case _fetchHomeSectionListResult(Result<HomeSectionList, Error>)
 }
 
 struct HomeState {
@@ -33,6 +36,9 @@ struct HomeState {
     var scheduleList: ConcertScheduleList = []
     var setlist: Setlist? = nil
     var songList: SetlistSongList = []
+    
+    var sectionList: HomeSectionList = []
+    var isSectionsLoading: Bool = false
 }
 
 final class HomeStore: ObservableObject {
@@ -41,6 +47,10 @@ final class HomeStore: ObservableObject {
     @Injected private var repository: HomeRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
+    
+    init() {
+        performFetchHomeSectionList()
+    }
     
     @MainActor
     func send(_ intent: HomeIntent) {
@@ -121,6 +131,20 @@ final class HomeStore: ObservableObject {
                 state.toastMessage = "관심 공연을 삭제했어요"
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
+            }
+        
+        case .onRefreshSections:
+            state.isSectionsLoading = true
+            performFetchHomeSectionList()
+            performFetchUserInterestedConcert()
+
+        case ._fetchHomeSectionListResult(let result):
+            state.isSectionsLoading = false
+            switch result {
+            case .success(let sectionList):
+                state.sectionList = sectionList
+            case .failure(let error):
+                state.errorMessage = getErrorMessage(from: error)
             }
         }
     }
@@ -206,6 +230,18 @@ private extension HomeStore {
         
         return error.localizedDescription
     }
+    
+    func performFetchHomeSectionList() {
+        cancellables[.refreshSections]?.cancel()
+        cancellables[.refreshSections] = Task {
+            do {
+                let result = try await repository.fetchSectionList()
+                await send(._fetchHomeSectionListResult(.success(result)))
+            } catch {
+                await send(._fetchHomeSectionListResult(.failure(error)))
+            }
+        }
+    }
 }
 
 // MARK: - CancelID
@@ -216,5 +252,6 @@ private extension HomeStore {
         case fetchScheduleList
         case fetchMainSetlist
         case fetchSetlistSongList
+        case refreshSections
     }
 }
