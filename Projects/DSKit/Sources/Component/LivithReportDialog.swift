@@ -141,6 +141,16 @@ private extension LivithReportDialog {
             .frame(height: 172)
             .background(Color.livithColor(.black5))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(alignment: .top) {
+                if text.components(separatedBy: "\n").count > 5 || text.count > 130 {
+                    LinearGradient(
+                        colors: [Color.livithColor(.black5), Color.livithColor(.black5).opacity(0)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 44)
+                }
+            }
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(isFocused ? Color.livithColor(.black30) : Color.clear, lineWidth: 1)
