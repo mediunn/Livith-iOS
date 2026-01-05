@@ -185,6 +185,12 @@ private extension ConcertStore {
                 send(._setConcertInfoList(concertInfoList))
                 send(._setMerchandiseList(merchandiseList))
                 send(._setSetlistList(setlistList))
+            } catch let error as ConcertError {
+                guard !Task.isCancelled else { return }
+                let message = error == .networkError
+                    ? "네트워크 연결이 없습니다.\n연결 상태를 확인해주세요."
+                    : "데이터를 불러오는데 실패했어요"
+                send(._setFetchError(message))
             } catch {
                 guard !Task.isCancelled else { return }
                 send(._setFetchError("데이터를 불러오는데 실패했어요"))
