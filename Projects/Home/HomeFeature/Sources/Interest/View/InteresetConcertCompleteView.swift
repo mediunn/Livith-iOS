@@ -37,11 +37,17 @@ private extension InteresetConcertCompleteView {
     var contentView: some View {
         VStack(spacing: .zero) {
             centerContentView
-                .background(backgroundImageView)
             
             confirmButton
+                .padding(.horizontal, 16)
         }
-        .padding(.horizontal, 16)
+        .background {
+            VStack {
+                backgroundImageView
+                
+                Spacer(minLength: 60)
+            }
+        }
     }
     
     var centerContentView: some View {
@@ -56,7 +62,7 @@ private extension InteresetConcertCompleteView {
     var posterImageView: some View {
         NotchedConcertPosterImage(url: concertPosterURL)
             .frame(width: 132, height: 176)
-            .scaleEffect(isScaled ? 1.0 : 1.2)
+            .scaleEffect(isScaled ? 1.0 : 1.3)
             .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isScaled)
     }
     
@@ -67,6 +73,7 @@ private extension InteresetConcertCompleteView {
             .foregroundStyle(.livithColor(.white100)))
         .notosans(.headSemibold)
         .multilineTextAlignment(.center)
+        .padding(.horizontal, 40)
         .padding(.top, 52)
     }
     
