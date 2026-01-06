@@ -27,6 +27,7 @@ enum InterestConcertSearchIntent {
     case _fetchSearchListResult(Result<[Concert], Error>)
     case _updateInterestConcertResult(Result<Concert, Error>)
     case _imagePrefetchCompleted(UIImage?)
+    case _setLoading(Bool)
 }
 
 struct InterestConcertSearchState {
@@ -48,6 +49,7 @@ struct InterestConcertSearchState {
     var isSearchResultsLoadingMore: Bool = false
     var isSubmitting: Bool = false
     var prefetchedPosterImage: UIImage?
+    var isLoading: Bool = true
 }
 
 final class InterestConcertSearchStore: ObservableObject {
@@ -106,6 +108,7 @@ final class InterestConcertSearchStore: ObservableObject {
 
         case ._fetchConcertListResult(let result):
             state.isConcertsLoadingMore = false
+            state.isLoading = false
             switch result {
             case .success(let concertList):
                 if state.concertList.isEmpty {
@@ -152,6 +155,9 @@ final class InterestConcertSearchStore: ObservableObject {
         case ._imagePrefetchCompleted(let image):
             state.prefetchedPosterImage = image
             performUpdateInterestConcert()
+        
+        case ._setLoading(let isLoading):
+            state.isLoading = isLoading
         }
     }
 }
@@ -161,6 +167,9 @@ final class InterestConcertSearchStore: ObservableObject {
 private extension InterestConcertSearchStore {
     func performFetchConcertList(isNextPage: Bool = false) {
         Task {
+            if !isNextPage {
+                await send(._setLoading(true))
+            }
             do {
                 let concertList = try await repository.fetchConcertList(
                     startDate: isNextPage ? state.concertList.last?.startDate : nil,

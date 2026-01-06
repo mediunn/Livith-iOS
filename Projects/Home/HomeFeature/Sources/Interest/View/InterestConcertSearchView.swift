@@ -161,13 +161,20 @@ private extension InterestConcertSearchView {
         Group {
             switch store.state.mode {
             case .initial:
-                ConcertGridView(
-                    concerts: store.state.concertList,
-                    selectedID: store.state.selectedConcertID,
-                    isLoadingMore: store.state.isConcertsLoadingMore,
-                    onConcertTap: { store.send(.onConcertTap($0)) },
-                    onLoadMore: { store.send(.onLoadMoreConcerts) }
-                )
+                if store.state.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.white100)))
+                        .scaleEffect(2.0)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ConcertGridView(
+                        concerts: store.state.concertList,
+                        selectedID: store.state.selectedConcertID,
+                        isLoadingMore: store.state.isConcertsLoadingMore,
+                        onConcertTap: { store.send(.onConcertTap($0)) },
+                        onLoadMore: { store.send(.onLoadMoreConcerts) }
+                    )
+                }
             case .recommendingKeywords:
                 RecommendKeywordListView(
                     searchText: store.state.searchText,
