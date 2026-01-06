@@ -8,23 +8,43 @@
 
 import SwiftUI
 
+// MARK: - Focus State
+
+private enum LivithSearchFieldState {
+    case idle
+    case focused
+
+    var showBorder: Bool {
+        self == .focused
+    }
+
+    var showPlaceholder: Bool {
+        self == .idle
+    }
+}
+
+// MARK: - LivithSearchField
+
 public struct LivithSearchField: View {
 
     // MARK: - Property
 
     @Binding private var text: String
     @Binding private var isFocused: Bool
-    @FocusState private var internalFocused: Bool
+    @FocusState private var fieldFocused: Bool
 
     private let placeholder: String
     private let cornerRadius: CGFloat
-    private let showBorder: Bool
     private let onChange: (() -> Void)?
     private let onClear: (() -> Void)?
     private let onSubmit: (() -> Void)?
 
-    private var isWriting: Bool {
-        internalFocused && !text.isEmpty
+    private var state: LivithSearchFieldState {
+        fieldFocused ? .focused : .idle
+    }
+
+    private var showClearButton: Bool {
+        fieldFocused && !text.isEmpty
     }
 
     // MARK: - Initializer
@@ -34,7 +54,6 @@ public struct LivithSearchField: View {
         isFocused: Binding<Bool> = .constant(false),
         placeholder: String = "찾고 있는 콘서트나 가수를 검색하세요",
         cornerRadius: CGFloat = 10,
-        showBorder: Bool = false,
         onChange: (() -> Void)? = nil,
         onClear: (() -> Void)? = nil,
         onSubmit: (() -> Void)? = nil
@@ -43,7 +62,6 @@ public struct LivithSearchField: View {
         self._isFocused = isFocused
         self.placeholder = placeholder
         self.cornerRadius = cornerRadius
-        self.showBorder = showBorder
         self.onChange = onChange
         self.onClear = onClear
         self.onSubmit = onSubmit
@@ -61,19 +79,19 @@ public struct LivithSearchField: View {
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         .overlay {
-            if showBorder && internalFocused {
+            if state.showBorder {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(Color.livithColor(.black50), lineWidth: 1)
             }
         }
         .onTapGesture {
-            internalFocused = true
+            fieldFocused = true
         }
-        .onChange(of: internalFocused) { _, newValue in
+        .onChange(of: fieldFocused) { _, newValue in
             isFocused = newValue
         }
         .onChange(of: isFocused) { _, newValue in
-            internalFocused = newValue
+            fieldFocused = newValue
         }
     }
 }
@@ -83,7 +101,7 @@ public struct LivithSearchField: View {
 private extension LivithSearchField {
     var textField: some View {
         ZStack(alignment: .leading) {
-            if text.isEmpty && !internalFocused {
+            if text.isEmpty && state.showPlaceholder {
                 Text(placeholder)
                     .notosans(.body3Medium)
                     .foregroundStyle(Color.livithColor(.black50))
@@ -93,12 +111,12 @@ private extension LivithSearchField {
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
                 .autocorrectionDisabled()
-                .focused($internalFocused)
+                .focused($fieldFocused)
                 .onChange(of: text) { _, _ in
                     onChange?()
                 }
                 .onSubmit {
-                    internalFocused = false
+                    fieldFocused = false
                     onSubmit?()
                 }
         }
@@ -106,7 +124,7 @@ private extension LivithSearchField {
 
     @ViewBuilder
     var actionButton: some View {
-        if isWriting {
+        if showClearButton {
             Button {
                 text = ""
                 onClear?()
@@ -118,7 +136,7 @@ private extension LivithSearchField {
             }
         } else {
             Button {
-                internalFocused = false
+                fieldFocused = false
                 onSubmit?()
             } label: {
                 Image.livithIcon(.searchLineDefault)
@@ -142,15 +160,14 @@ private extension LivithSearchField {
     }
 }
 
-#Preview("With Border") {
+#Preview("With Custom Corner Radius") {
     ZStack {
         Color.livithColor(.black100)
             .ignoresSafeArea()
 
         LivithSearchField(
             text: .constant(""),
-            cornerRadius: 12,
-            showBorder: true
+            cornerRadius: 12
         )
         .padding(.horizontal, 16)
     }

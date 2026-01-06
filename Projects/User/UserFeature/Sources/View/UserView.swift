@@ -106,9 +106,9 @@ public struct UserView: View {
                 case .nicknameUpdate:
                     NicknameUpdateView(
                         store: NicknameUpdateStore(),
-                        onDismiss: { path.removeLast() },
+                        onDismiss: { if !path.isEmpty { path.removeLast() } },
                         onSuccess: { newNickname in
-                            path.removeLast()
+                            if !path.isEmpty { path.removeLast() }
                             nickname = newNickname
                             showToast?(.success, Literals.toastSuccess)
                         }
@@ -117,7 +117,7 @@ public struct UserView: View {
                 case .deleteUser:
                     DeleteUserView(
                         store: DeleteUserStore(),
-                        onDismiss: { path.removeLast() }
+                        onDismiss: { if !path.isEmpty { path.removeLast() } }
                     )
                     .navigationBarBackButtonHidden()
                 }

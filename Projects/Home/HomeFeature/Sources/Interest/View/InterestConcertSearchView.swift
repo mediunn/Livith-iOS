@@ -97,7 +97,6 @@ private extension InterestConcertSearchView {
             isFocused: $isTextFieldFocused,
             placeholder: Literals.placeholder,
             cornerRadius: 12,
-            showBorder: true,
             onChange: nil,
             onClear: { store.send(.onTextChange("")) },
             onSubmit: { store.send(.onSearch) }

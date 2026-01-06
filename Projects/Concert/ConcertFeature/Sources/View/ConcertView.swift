@@ -254,7 +254,7 @@ private extension ConcertView {
 
 private extension ConcertView {
     var segmentTabBar: some View {
-        ConcertSegmentTabBar(
+        SegmentedTabBar(type: .detail(
             selectedTab: store.state.selectedTab,
             communityCount: communityStore.state.totalCount,
             onTabSelected: { tab in
@@ -262,7 +262,7 @@ private extension ConcertView {
                     store.send(.tabSelected(tab))
                 }
             }
-        )
+        ))
         .frame(maxWidth: .infinity)
         .background(Color.livithColor(.black100))
     }

@@ -16,7 +16,7 @@ struct HomeInterestConcertView: View {
     @ObservedObject private var store: HomeStore
     @Binding private var isTabBarHidden: Bool
 
-    @State private var selectedTab: InterestConcertTab = .schedule
+    @State private var selectedTab: SegmentedTabBarType.HomeTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
@@ -62,11 +62,10 @@ private extension HomeInterestConcertView {
                         onMoreInfoTap: handleMoreInfoTap
                     )
                     
-                    SegmentTabBar(
-                        segmentTitles: InterestConcertTab.allCases.map { $0.title },
-                        selectedIndex: selectedTab.rawValue,
-                        onTabSelected: updateSelectedTab(from:)
-                    )
+                    SegmentedTabBar(type: .home(
+                        selectedTab: selectedTab,
+                        onTabSelected: { selectedTab = $0 }
+                    ))
                     
                     Group {
                         if selectedTab == .schedule {
@@ -203,13 +202,7 @@ private extension HomeInterestConcertView {
     func handleDeleteConfirm() {
         showDeleteDialog = false
         isTabBarHidden = false
-        
+
         store.send(.onDelete)
-    }
-    
-    func updateSelectedTab(from index: Int) {
-        if let tab = InterestConcertTab(rawValue: index) {
-            selectedTab = tab
-        }
     }
 }
