@@ -310,7 +310,7 @@ private extension ConcertView {
                 .frame(height: 337)
 
             if !store.state.isCurrentConcertInterested {
-                InterestButton {
+                LivithActionButton("관심 콘서트 설정하기", type: .plus) {
                     showInterestConfirmDialog = true
                 }
                 .padding(.top, 16)
