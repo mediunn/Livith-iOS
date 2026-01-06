@@ -63,16 +63,7 @@ private extension BannerCell {
     }
     
     var categoryChip: some View {
-        ZStack {
-            Text(category)
-                .notosans(.caption1Bold)
-                .foregroundStyle(Color.livithColor(.black30))
-                .padding(.vertical, 4)
-                .padding(.horizontal, 12)
-                
-        }
-        .background(Color.livithColor(.black100))
-        .cornerRadius(24)
+        LivithChip(category, style: .dark)
     }
     
     var titleText: some View {

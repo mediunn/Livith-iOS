@@ -152,9 +152,9 @@ private extension LivithCard {
     var badgeView: some View {
         switch badge {
         case .status(let text, let remainDays):
-            ConcertStatusChip(statusText: text, remainDays: remainDays, isHighlighted: isSelected)
+            LivithChip.dDay(text, remainDays: remainDays, isSelected: isSelected)
         case .tag(let text):
-            TagChipView(text: text)
+            LivithChip(text, style: .tag)
         case .none:
             EmptyView()
         }

@@ -85,28 +85,31 @@ private extension FilterBottomSheetView {
     var genreOptions: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 10) {
-                FilterOptionButton(
-                    title: "전체",
-                    isSelected: tempGenreList.isEmpty,
-                    action: { tempGenreList = [] }
-                )
+                LivithChipButton(
+                    "전체",
+                    style: tempGenreList.isEmpty ? .selected : .outline
+                ) {
+                    tempGenreList = []
+                }
 
                 ForEach(selectableGenres.prefix(3), id: \.self) { genre in
-                    FilterOptionButton(
-                        title: genre.genreText,
-                        isSelected: tempGenreList.contains(genre),
-                        action: { toggleGenre(genre) }
-                    )
+                    LivithChipButton(
+                        genre.genreText,
+                        style: tempGenreList.contains(genre) ? .selected : .outline
+                    ) {
+                        toggleGenre(genre)
+                    }
                 }
             }
 
             HStack(alignment: .center, spacing: 10) {
                 ForEach(selectableGenres.suffix(3), id: \.self) { genre in
-                    FilterOptionButton(
-                        title: genre.genreText,
-                        isSelected: tempGenreList.contains(genre),
-                        action: { toggleGenre(genre) }
-                    )
+                    LivithChipButton(
+                        genre.genreText,
+                        style: tempGenreList.contains(genre) ? .selected : .outline
+                    ) {
+                        toggleGenre(genre)
+                    }
                 }
             }
         }
@@ -114,18 +117,20 @@ private extension FilterBottomSheetView {
 
     var statusOptions: some View {
         HStack(alignment: .center, spacing: 4) {
-            FilterOptionButton(
-                title: "전체",
-                isSelected: tempStatusList.isEmpty,
-                action: { tempStatusList = [] }
-            )
+            LivithChipButton(
+                "전체",
+                style: tempStatusList.isEmpty ? .selected : .outline
+            ) {
+                tempStatusList = []
+            }
 
             ForEach(ConcertStatus.allCases, id: \.self) { status in
-                FilterOptionButton(
-                    title: status.filterText,
-                    isSelected: tempStatusList.contains(status),
-                    action: { toggleStatus(status) }
-                )
+                LivithChipButton(
+                    status.filterText,
+                    style: tempStatusList.contains(status) ? .selected : .outline
+                ) {
+                    toggleStatus(status)
+                }
             }
         }
     }

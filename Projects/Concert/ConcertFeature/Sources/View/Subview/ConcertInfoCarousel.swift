@@ -96,7 +96,7 @@ private extension ConcertInfoCarousel {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 10) {
-                CardTagView(info.title, fontStyle: .caption1Semibold)
+                LivithChip(info.title, style: .dark)
 
                 Text(info.description)
                     .notosans(.body2Medium)
