@@ -81,7 +81,7 @@ private extension LivithActionButton {
 // MARK: - Styling
 
 private extension LivithActionButton {
-    var iconType: LivithIconType {
+    var iconType: Image.LivithIcon {
         switch type {
         case .chevron: return .rightLineDefault
         case .plus: return .plusLineSmall
