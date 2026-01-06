@@ -132,32 +132,16 @@ private extension FilterBottomSheetView {
     
     var setupButtons: some View {
         HStack(spacing: 12) {
-            Button {
+            LivithButton("초기화", variant: .secondary) {
                 tempGenreList = []
                 tempStatusList = []
-            } label: {
-                Text("초기화")
-                    .notosans(.body3Semibold)
-                    .foregroundStyle(hasSelection ? Color.livithColor(.white100) : Color.livithColor(.black50))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 51)
-                    .background(hasSelection ? Color.livithColor(.black50) : Color.livithColor(.black80))
-                    .cornerRadius(6)
             }
             .disabled(!hasSelection)
 
-            Button {
+            LivithButton("설정하기", variant: .primary) {
                 selectedGenreList = tempGenreList
                 selectedStatusList = tempStatusList
                 showFilter = false
-            } label: {
-                Text("설정하기")
-                    .notosans(.body3Semibold)
-                    .foregroundStyle(Color.livithColor(.black100))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 51)
-                    .background(Color.livithColor(.yellow30))
-                    .cornerRadius(6)
             }
         }
     }

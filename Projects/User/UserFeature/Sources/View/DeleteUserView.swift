@@ -261,28 +261,9 @@ private extension DeleteUserView {
     }
 
     var confirmButton: some View {
-        Button {
+        LivithButton(Literals.confirmButtonText, variant: .primary, size: .large) {
             isTextFieldFocused = false
             showConfirmSheet = true
-        } label: {
-            HStack(spacing: 8) {
-                Text(Literals.confirmButtonText)
-                    .notosans(.body2Medium)
-                    .foregroundStyle(
-                        store.isConfirmButtonEnabled
-                            ? Color.livithColor(.black100)
-                            : Color.livithColor(.black30)
-                    )
-            }
-            .animation(.easeInOut(duration: 0.2), value: store.state.selectedReasons)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(
-                store.isConfirmButtonEnabled
-                    ? Color.livithColor(.yellow30)
-                    : Color.livithColor(.black50)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .disabled(!store.isConfirmButtonEnabled || store.state.isLoading)
     }

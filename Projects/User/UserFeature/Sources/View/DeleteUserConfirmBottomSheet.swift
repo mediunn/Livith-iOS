@@ -106,37 +106,12 @@ private extension DeleteUserConfirmBottomSheet {
 
     var actionButtons: some View {
         HStack(spacing: 12) {
-            Button {
+            LivithButton(Literals.cancelButtonText, variant: .secondary) {
                 onCancel()
-            } label: {
-                Text(Literals.cancelButtonText)
-                    .notosans(.body3Medium)
-                    .foregroundStyle(Color.livithColor(.white100))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(Color.livithColor(.black80))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
             }
 
-            Button {
+            LivithButton(Literals.confirmButtonText, variant: .pink) {
                 onConfirm()
-            } label: {
-                Text(Literals.confirmButtonText)
-                    .notosans(.body3Semibold)
-                    .foregroundStyle(
-                        isConfirmed
-                            ? Color.livithColor(.black100)
-                            : Color.livithColor(.black30)
-                    )
-                    .animation(.easeInOut(duration: 0.2), value: isConfirmed)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(
-                        isConfirmed
-                        ? Color.livithColor(.translation)
-                            : Color.livithColor(.black50)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
             }
             .disabled(!isConfirmed)
         }

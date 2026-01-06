@@ -49,16 +49,8 @@ struct InteresetConcertCompleteView: View {
                 .padding(.horizontal, 16)
             }
             
-            Button {
+            LivithButton("확인", variant: .primary) {
                 coordinator?.popToRoot()
-            } label: {
-                Text("확인")
-                    .notosans(.body3Semibold)
-                    .foregroundColor(.livithColor(.black100))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(.livithColor(.yellow30))
-                    .cornerRadius(8)
             }
             .padding(.horizontal, 16)
         }

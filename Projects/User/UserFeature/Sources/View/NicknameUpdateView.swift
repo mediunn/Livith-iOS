@@ -201,23 +201,13 @@ private extension NicknameUpdateView {
     }
     
     var updateButton: some View {
-        Button {
+        LivithButton(
+            Literals.updateButtonText,
+            variant: .primary,
+            size: .large,
+            isLoading: isUpdateLoading
+        ) {
             store.send(.submitNickname)
-        } label: {
-            HStack(spacing: 8) {
-                Text(Literals.updateButtonText)
-                    .notosans(.body2Medium)
-                    .foregroundColor(isUpdateButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
-                if case .checking = store.state.nicknameValidationState {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.black100)))
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(isUpdateButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .disabled(!isUpdateButtonEnabled || isUpdateLoading)
     }

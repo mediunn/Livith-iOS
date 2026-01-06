@@ -188,20 +188,8 @@ private extension InterestConcertSearchView {
     }
     
     var submitButton: some View {
-        Button {
+        LivithButton("설정하기", variant: .primary) {
             store.send(.onSubmit)
-        } label: {
-            Text("설정하기")
-                .notosans(.body3Medium)
-                .foregroundColor(
-                    store.state.selectedConcertID != nil ? Color.livithColor(.black100) : Color.livithColor(.black50)
-                )
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(
-                    store.state.selectedConcertID != nil ? Color.livithColor(.yellow30) : Color.livithColor(.black80)
-                )
-                .cornerRadius(8)
         }
         .disabled(store.state.selectedConcertID == nil)
     }
