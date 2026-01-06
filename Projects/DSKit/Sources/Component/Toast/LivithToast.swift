@@ -66,6 +66,7 @@ public struct LivithToast: View {
         .padding(.vertical, 12)
         .frame(width: 343)
         .background(Color.livithColor(.black80))
+        .shadow(color: .livithColor(.black100).opacity(0.4), radius: 18)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

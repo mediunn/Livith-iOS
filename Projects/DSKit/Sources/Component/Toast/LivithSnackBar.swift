@@ -1,21 +1,21 @@
 //
-//  TicketReturnBanner.swift
-//  ConcertFeature
+//  LivithSnackBar.swift
+//  DSKit
 //
-//  Created by Youjin Lee on 12/31/25.
-//  Copyright © 2025 Livith. All rights reserved.
+//  Created by Youjin Lee on 1/6/26.
+//  Copyright © 2026 Livith. All rights reserved.
 //
 
 import SwiftUI
 
-import DSKit
-
-struct TicketReturnBanner: View {
+public struct LivithSnackBar: View {
 
     // MARK: - Property
 
-    let onSettingTapped: () -> Void
-    let onDismiss: () -> Void
+    private let message: String
+    private let actionTitle: String
+    private let onActionTapped: () -> Void
+    private let onDismiss: () -> Void
 
     @State private var offset: CGFloat = 0
     @State private var isDragging: Bool = false
@@ -24,9 +24,23 @@ struct TicketReturnBanner: View {
     private let autoDismissDelay: TimeInterval = 5.0
     private let dismissThreshold: CGFloat = 50
 
+    // MARK: - Initializer
+
+    public init(
+        message: String,
+        actionTitle: String,
+        onActionTapped: @escaping () -> Void,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.message = message
+        self.actionTitle = actionTitle
+        self.onActionTapped = onActionTapped
+        self.onDismiss = onDismiss
+    }
+
     // MARK: - Body
 
-    var body: some View {
+    public var body: some View {
         VStack {
             Spacer()
 
@@ -46,19 +60,19 @@ struct TicketReturnBanner: View {
 
 // MARK: - Subviews
 
-private extension TicketReturnBanner {
+private extension LivithSnackBar {
     var bannerContent: some View {
         HStack(alignment: .top, spacing: 12) {
-            Text("웹사이트를 보셨나요?\n관심 콘서트 설정하고 공연 알림을 받으세요")
+            Text(message)
                 .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
 
             Spacer()
 
             Button {
-                onSettingTapped()
+                onActionTapped()
             } label: {
-                Text("콘서트 설정")
+                Text(actionTitle)
                     .notosans(.caption1Semibold)
                     .foregroundStyle(Color.livithColor(.yellow30))
             }
@@ -105,8 +119,10 @@ private extension TicketReturnBanner {
         Color.livithColor(.black100)
             .ignoresSafeArea()
 
-        TicketReturnBanner(
-            onSettingTapped: {},
+        LivithSnackBar(
+            message: "웹사이트를 보셨나요?\n관심 콘서트 설정하고 공연 알림을 받으세요",
+            actionTitle: "콘서트 설정",
+            onActionTapped: {},
             onDismiss: {}
         )
     }
