@@ -98,26 +98,35 @@ private extension SearchView {
     }
 
     var searchBarView: some View {
-        SearchBarView(
-            input: Binding(
-                get: { store.state.searchMessage },
-                set: { store.send(.updateSearchMessage($0)) }
-            ),
-            onBack: {
+        HStack(alignment: .center) {
+            Button {
                 coordinator?.pop()
-            },
-            onChange: {
-                if isCompleteKorean() { performSearch() }
-            },
-            onClear: {
-                store.send(.clearButtonTapped)
-            },
-            onSubmit:  {
-                performSearch()
-                hideKeyboard()
+            } label: {
+                Image.livithIcon(.backLineDefault)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 38, height: 38)
             }
-        )
-        .foregroundStyle(Color.livithColor(.black100))
+
+            LivithSearchField(
+                text: Binding(
+                    get: { store.state.searchMessage },
+                    set: { store.send(.updateSearchMessage($0)) }
+                ),
+                onChange: {
+                    if isCompleteKorean() { performSearch() }
+                },
+                onClear: {
+                    store.send(.clearButtonTapped)
+                },
+                onSubmit: {
+                    performSearch()
+                    hideKeyboard()
+                }
+            )
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
     }
 
     var filterView: some View {
