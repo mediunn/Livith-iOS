@@ -123,12 +123,12 @@ private extension LivithModal {
         }
     }
 
-    var buttonBackgroundColor: Color {
+    var buttonVariant: LivithButtonVariant {
         switch type {
         case .welcome:
-            return Color.livithColor(.yellow30)
+            return .primary
         case .error:
-            return Color.livithColor(.translation)
+            return .pink
         }
     }
 }
@@ -165,7 +165,7 @@ private extension LivithModal {
     }
 
     var confirmButton: some View {
-        Button {
+        LivithButton(buttonTitle, variant: buttonVariant, cornerRadius: 4) {
             Task { @MainActor in
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isVisible = false
@@ -174,14 +174,6 @@ private extension LivithModal {
                 try? await Task.sleep(for: .seconds(0.4))
                 onConfirm?()
             }
-        } label: {
-            Text(buttonTitle)
-                .notosans(isWelcomeType ? .body3Medium : .body2Medium)
-                .foregroundColor(.livithColor(.black100))
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(buttonBackgroundColor)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
         }
     }
 }

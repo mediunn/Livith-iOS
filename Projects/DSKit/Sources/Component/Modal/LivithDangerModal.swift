@@ -193,38 +193,20 @@ private extension LivithDangerModal {
     }
 
     var confirmButton: some View {
-        Button {
+        LivithButton(confirmTitle, variant: .danger, cornerRadius: 8) {
             switch type {
             case .confirm(let onConfirm):
                 onConfirm()
             case .report(let onConfirm):
                 onConfirm(text)
             }
-        } label: {
-            Text(confirmTitle)
-                .notosans(.body3Medium)
-                .foregroundStyle(
-                    isReportType && !isConfirmEnabled
-                        ? Color.livithColor(.black50)
-                        : Color.livithColor(.caution100)
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(Color.livithColor(.black5))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .disabled(isReportType && !isConfirmEnabled)
     }
 
     var cancelButton: some View {
-        Button(action: onCancel) {
-            Text(cancelTitle)
-                .notosans(.body3Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(Color.livithColor(.black80))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+        LivithButton(cancelTitle, variant: .dark, cornerRadius: 8) {
+            onCancel()
         }
     }
 }

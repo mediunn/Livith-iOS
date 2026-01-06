@@ -11,9 +11,11 @@ import SwiftUI
 // MARK: - Button Style
 
 public enum LivithButtonVariant {
-    case primary    // Yellow
-    case pink       // Translation/Coral
-    case secondary  // Gray (for cancel/reset)
+    case primary
+    case pink
+    case secondary
+    case danger
+    case dark
 
     var enabledBackground: Color {
         switch self {
@@ -23,6 +25,10 @@ public enum LivithButtonVariant {
             return .livithColor(.translation)
         case .secondary:
             return .livithColor(.black50)
+        case .danger:
+            return .livithColor(.black5)
+        case .dark:
+            return .livithColor(.black80)
         }
     }
 
@@ -32,8 +38,10 @@ public enum LivithButtonVariant {
             return .livithColor(.yellow60)
         case .pink:
             return .livithColor(.translation).opacity(0.8)
-        case .secondary:
+        case .secondary, .dark:
             return .livithColor(.black80)
+        case .danger:
+            return .livithColor(.black5).opacity(0.8)
         }
     }
 
@@ -41,8 +49,10 @@ public enum LivithButtonVariant {
         switch self {
         case .primary, .pink:
             return .livithColor(.black50)
-        case .secondary:
+        case .secondary, .dark:
             return .livithColor(.black80)
+        case .danger:
+            return .livithColor(.black5)
         }
     }
 
@@ -52,6 +62,10 @@ public enum LivithButtonVariant {
             return .livithColor(.black100)
         case .secondary:
             return .livithColor(.white100)
+        case .danger:
+            return .livithColor(.caution100)
+        case .dark:
+            return .livithColor(.white100)
         }
     }
 
@@ -59,7 +73,9 @@ public enum LivithButtonVariant {
         switch self {
         case .primary, .pink:
             return .livithColor(.black30)
-        case .secondary:
+        case .secondary, .dark:
+            return .livithColor(.black50)
+        case .danger:
             return .livithColor(.black50)
         }
     }
@@ -68,8 +84,8 @@ public enum LivithButtonVariant {
 // MARK: - Button Size
 
 public enum LivithButtonSize {
-    case medium  // height 52
-    case large   // height 56
+    case medium
+    case large
 
     var height: CGFloat {
         switch self {
@@ -110,9 +126,14 @@ public struct LivithButton: View {
     private let size: LivithButtonSize
     private let isFullWidth: Bool
     private let isLoading: Bool
+    private let cornerRadius: CGFloat?
     private let action: () -> Void
 
     @Environment(\.isEnabled) private var isEnabled
+
+    private var resolvedCornerRadius: CGFloat {
+        cornerRadius ?? size.cornerRadius
+    }
 
     // MARK: - Initializer
 
@@ -122,6 +143,7 @@ public struct LivithButton: View {
         size: LivithButtonSize = .medium,
         isFullWidth: Bool = true,
         isLoading: Bool = false,
+        cornerRadius: CGFloat? = nil,
         action: @escaping () -> Void
     ) {
         self.title = title
@@ -129,6 +151,7 @@ public struct LivithButton: View {
         self.size = size
         self.isFullWidth = isFullWidth
         self.isLoading = isLoading
+        self.cornerRadius = cornerRadius
         self.action = action
     }
 
@@ -149,9 +172,9 @@ public struct LivithButton: View {
             .frame(maxWidth: isFullWidth ? .infinity : nil)
             .frame(height: size.height)
             .background(isEnabled ? variant.enabledBackground : variant.disabledBackground)
-            .clipShape(RoundedRectangle(cornerRadius: size.cornerRadius))
+            .clipShape(RoundedRectangle(cornerRadius: resolvedCornerRadius))
         }
-        .buttonStyle(LivithButtonStyle(variant: variant, isEnabled: isEnabled))
+        .buttonStyle(LivithButtonStyle(variant: variant, cornerRadius: resolvedCornerRadius, isEnabled: isEnabled))
     }
 }
 
@@ -159,6 +182,7 @@ public struct LivithButton: View {
 
 private struct LivithButtonStyle: ButtonStyle {
     let variant: LivithButtonVariant
+    let cornerRadius: CGFloat
     let isEnabled: Bool
 
     func makeBody(configuration: Configuration) -> some View {
@@ -168,7 +192,7 @@ private struct LivithButtonStyle: ButtonStyle {
                     ? variant.pressedBackground
                     : Color.clear
             )
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
