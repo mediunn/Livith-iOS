@@ -15,7 +15,7 @@ struct WelcomeSheetView: View {
     var onDismiss: (() -> Void)?
     
     @State private var isVisible: Bool = true
-
+    
     var body: some View {
         ZStack {
             Color.livithColor(.black100)
@@ -45,19 +45,14 @@ struct WelcomeSheetView: View {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             isVisible = false
                         }
-
+                        
                         try? await Task.sleep(for: .seconds(0.4))
                         onDismiss?()
                     }
                 } label: {
                     Text("시작하기")
-                        .notosans(.body3Medium)
-                        .foregroundColor(.livithColor(.black100))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.livithColor(.yellow30))
-                        .cornerRadius(4)
                 }
+                .buttonStyle(.livithPrimary)
                 .padding(.top, 20)
                 .padding([.horizontal, .bottom], 16)
             }

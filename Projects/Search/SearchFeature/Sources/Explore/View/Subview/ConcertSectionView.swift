@@ -30,11 +30,11 @@ struct ConcertSectionView: View {
                             date: concert.startDate,
                             artist: concert.artist,
                             status: concert.status.statusChipText,
-                            remainDays: concert.daysLeft
+                            remainDays: concert.daysLeft,
+                            onTap: {
+                                onConcertTap(concert)
+                            }
                         )
-                        .onTapGesture {
-                            onConcertTap(concert)
-                        }
                     }
                 }
                 .padding(.trailing, 16)

@@ -225,16 +225,16 @@ private extension SearchView {
                 date: concert.startDate,
                 artist: concert.artist,
                 status: concert.status.statusChipText,
-                remainDays: concert.daysLeft
+                remainDays: concert.daysLeft,
+                onTap: {
+                    coordinator?.showConcertDetail(concertID: concert.id)
+                }
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onAppear {
                 if concert.id == store.state.searchedConcertList.last?.id {
                     store.send(.loadNextPage)
                 }
-            }
-            .onTapGesture {
-                coordinator?.showConcertDetail(concertID: concert.id)
             }
         }
     }

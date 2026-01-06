@@ -64,7 +64,7 @@ private extension SegmentTabBar {
             VStack(spacing: 0) {
                 tabLabel(title: title, isSelected: isSelected)
                     .padding(.top, 18)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 20)
                 
                 ZStack {
                     Rectangle()

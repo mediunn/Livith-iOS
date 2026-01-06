@@ -63,9 +63,7 @@ struct NicknameSettingView: View {
             position: .safeAreaTop
         )
         .ignoresSafeArea(.all, edges: .bottom)
-        .onChange(of: store.state.signupStatus) {
-            oldValue,
-            newValue in
+        .onChange(of: store.state.signupStatus) { oldValue, newValue in
             switch newValue {
             case .success:
                 coordinator?.completeSignup(with: store.state.nickname)
@@ -207,20 +205,14 @@ private extension NicknameSettingView {
         } label: {
             HStack(spacing: 8) {
                 Text(Literals.signupButtonText)
-                    .notosans(.body2Medium)
-                    .foregroundColor(isSignupButtonEnabled ? .livithColor(.black100) : .livithColor(.black30))
                 
                 if case .loading = store.state.signupStatus {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.black100)))
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(isSignupButtonEnabled ? Color.livithColor(.yellow30) : Color.livithColor(.black50))
-            .cornerRadius(8)
         }
+        .buttonStyle(.livithPrimary)
         .disabled(!isSignupButtonEnabled || isSignupLoading)
     }
 }
@@ -239,7 +231,7 @@ private extension NicknameSettingView {
     var statusMessage: String {
         switch store.state.nicknameValidationStatus {
         case .idle:
-            return "10자리 이내 문자/숫자로 입력 가능해요"
+            return "10자리 이내, 문자/숫자로 입력 가능해요"
         case .valid:
             return ""
         case .invalid:
