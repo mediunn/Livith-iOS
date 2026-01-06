@@ -16,7 +16,7 @@ struct NicknameUpdateView: View {
 
     private let maxNicknameLength = 10
 
-    @FocusState private var isNicknameFocused: Bool
+    @State private var isNicknameFocused: Bool = false
     @State private var showFailureToast: Bool = false
     @ObservedObject private var store: NicknameUpdateStore
 
@@ -87,20 +87,9 @@ struct NicknameUpdateView: View {
 
 private extension NicknameUpdateView {
     var navigationBar: some View {
-        HStack {
-            Button {
-                onDismiss?()
-            } label: {
-                Image.livithIcon(.backLineDefault)
-                    .foregroundColor(.livithColor(.white100))
-            }
-
-            Text(Literals.navigationTitle)
-                .notosans(.body1Semibold)
-                .foregroundColor(.livithColor(.white100))
-
-            Spacer()
-        }
+        LivithNavigationView(
+            type: .back(title: Literals.navigationTitle, onBack: { onDismiss?() })
+        )
     }
     
     var stepIndicator: some View {
@@ -130,52 +119,15 @@ private extension NicknameUpdateView {
     }
     
     var nicknameTextField: some View {
-        ZStack(alignment: .leading) {
-            if store.state.nickname.isEmpty, !isNicknameFocused {
-                Text(Literals.placeholder)
-                    .notosans(.body3Medium)
-                    .foregroundColor(Color.livithColor(.black50))
-            }
-            
-            HStack {
-                TextField("", text: nicknameBinding)
-                    .foregroundColor(.livithColor(.white100))
-                    .notosans(.body3Medium)
-                    .autocorrectionDisabled()
-                    .onChange(of: store.state.nickname) { oldValue, newValue in
-                        if newValue.count > maxNicknameLength {
-                            store.send(.updateNickname(oldValue))
-                        }
-                    }
-                    .focused($isNicknameFocused)
-                    .onSubmit {
-                        isNicknameFocused = false
-                    }
-                    .disabled(store.state.nicknameValidationState == .checking)
-                
-                if !store.state.nickname.isEmpty {
-                    Spacer()
-                    Text("\(store.state.nickname.count)/\(maxNicknameLength)")
-                        .notosans(.caption1Regular)
-                        .foregroundColor(.livithColor(.black50))
-                    if isNicknameFocused {
-                        Button {
-                            store.send(.updateNickname(""))
-                        } label: {
-                            Image.livithIcon(.deleteFillDefault)
-                                .frame(width: 24, height: 24)
-                        }
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color.livithColor(.black90))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.livithColor(.black50), lineWidth: isNicknameFocused ? 1 : 0)
+        LivithTextField(
+            text: nicknameBinding,
+            isFocused: $isNicknameFocused,
+            type: .text(maxLength: maxNicknameLength),
+            placeholder: Literals.placeholder,
+            onSubmit: { isNicknameFocused = false },
+            onClear: { store.send(.updateNickname("")) }
         )
+        .disabled(store.state.nicknameValidationState == .checking)
     }
     
     var duplicateButton: some View {

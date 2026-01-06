@@ -47,7 +47,7 @@ struct HomeInterestConcertView: View {
 private extension HomeInterestConcertView {
     var mainContent: some View {
         VStack(spacing: .zero) {
-            LivithLogoHeaderView()
+            LivithNavigationView(type: .logo)
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: .zero) {

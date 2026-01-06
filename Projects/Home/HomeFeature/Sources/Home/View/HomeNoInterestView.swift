@@ -19,7 +19,7 @@ struct HomeNoInterestView: View {
 
     var body: some View {
         VStack(spacing: .zero) {
-            LivithLogoHeaderView()
+            LivithNavigationView(type: .logo)
 
             ScrollView {
                 VStack(spacing: .zero) {                    

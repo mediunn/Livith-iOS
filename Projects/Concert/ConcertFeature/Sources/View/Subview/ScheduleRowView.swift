@@ -21,37 +21,18 @@ struct ScheduleRowView: View {
     // MARK: - Body
 
     var body: some View {
-        HStack(spacing: 8) {
-            dDayChip
-
-            Text(schedule.category)
-                .notosans(.body3Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-
-            Spacer()
-
-            Text(formattedDate)
-                .notosans(.body3Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-        }
+        LivithScheduleItem(
+            daysLeft: daysUntil(schedule.scheduledAt),
+            title: schedule.category,
+            dateTime: formattedDate,
+            isActive: isActive
+        )
     }
 }
 
-// MARK: - Subviews
+// MARK: - Helpers
 
 private extension ScheduleRowView {
-    var dDayChip: some View {
-        let days = daysUntil(schedule.scheduledAt)
-
-        if days > 0 {
-            return ConcertStatusChip(statusText: "D-", remainDays: days, isHighlighted: true)
-        } else if days == 0 {
-            return ConcertStatusChip(statusText: "D-DAY", isHighlighted: true)
-        } else {
-            return ConcertStatusChip(statusText: "D+\(abs(days))", isHighlighted: true)
-        }
-    }
-
     var formattedDate: String {
         let components = Self.calendar.dateComponents([.hour, .minute], from: schedule.scheduledAt)
         let hasTime = components.hour != 0 || components.minute != 0
@@ -61,6 +42,12 @@ private extension ScheduleRowView {
         } else {
             return DateFormatterService.string(from: schedule.scheduledAt, type: .koreanDateOnly)
         }
+    }
+
+    var isActive: Bool {
+        let today = Self.calendar.startOfDay(for: Date())
+        let targetDate = Self.calendar.startOfDay(for: schedule.scheduledAt)
+        return targetDate >= today
     }
 
     func daysUntil(_ date: Date) -> Int {

@@ -72,34 +72,19 @@ struct InterestConcertSearchView: View {
 
 private extension InterestConcertSearchView {
     var navigationBar: some View {
-        HStack(spacing: 0) {
-            Button {
-                coordinator?.pop()
-            } label: {
-                Image.livithIcon(.backLineDefault)
-                    .resizable()
-                    .frame(width: 36, height: 36)
-            }
-            .padding(.leading, 16)
-            
-            Text("공연 설정하기")
-                .notosans(.body1Semibold)
-                .foregroundStyle(.livithColor(.white100))
-                .padding(.bottom, 2)
-            
-            Spacer()
-        }
+        LivithNavigationView(
+            type: .back(title: "공연 설정하기", onBack: { coordinator?.pop() })
+        )
     }
     
     var searchTextField: some View {
-        LivithSearchField(
+        LivithTextField(
             text: searchText,
             isFocused: $isTextFieldFocused,
+            type: .search,
             placeholder: Literals.placeholder,
-            cornerRadius: 12,
-            onChange: nil,
-            onClear: { store.send(.onTextChange("")) },
-            onSubmit: { store.send(.onSearch) }
+            onSubmit: { store.send(.onSearch) },
+            onClear: { store.send(.onTextChange("")) }
         )
     }
     

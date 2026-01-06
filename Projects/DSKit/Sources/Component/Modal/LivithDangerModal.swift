@@ -37,7 +37,7 @@ public struct LivithDangerModal: View {
     @State private var text: String = ""
     @State private var isOverLimit: Bool = false
     @State private var keyboardHeight: CGFloat = 0
-    @FocusState private var isFocused: Bool
+    @State private var isFocused: Bool = false
 
     private var isConfirmEnabled: Bool {
         !isOverLimit
@@ -142,42 +142,15 @@ private extension LivithDangerModal {
 
 private extension LivithDangerModal {
     var textInputSection: some View {
-        ZStack(alignment: .bottomTrailing) {
-            VStack {
-                TextField(
-                    "",
-                    text: $text,
-                    prompt: Text(Constants.placeholder)
-                        .foregroundStyle(Color.livithColor(.black50)),
-                    axis: .vertical
-                )
-                .notosans(.body3Medium)
-                .foregroundStyle(Color.livithColor(.black100))
-                .lineLimit(6)
-                .focused($isFocused)
-                .onChange(of: text) { _, newValue in
-                    isOverLimit = newValue.count > Constants.maxLength
-                }
-
-                Spacer()
-            }
-            .padding(14)
-            .frame(height: 172)
-            .background(Color.livithColor(.black5))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isFocused ? Color.livithColor(.black30) : Color.clear, lineWidth: 1)
-            )
-
-            Text("\(text.count)/\(Constants.maxLength)")
-                .notosans(.body4Medium)
-                .padding(12)
-                .foregroundStyle(
-                    isOverLimit
-                        ? Color.livithColor(.caution100)
-                        : Color.livithColor(.black50)
-                )
+        LivithTextView(
+            text: $text,
+            isFocused: $isFocused,
+            type: .report(maxLength: Constants.maxLength),
+            placeholder: Constants.placeholder,
+            height: 172
+        )
+        .onChange(of: text) { _, newValue in
+            isOverLimit = newValue.count > Constants.maxLength
         }
     }
 }

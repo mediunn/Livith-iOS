@@ -1,14 +1,14 @@
 //
-//  SongRowView.swift
+//  LivithSongItem.swift
 //  DSKit
 //
-//  Created by Youjin Lee on 1/1/26.
+//  Created by Youjin Lee on 1/6/26.
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
 import SwiftUI
 
-public struct SongRowView: View {
+public struct LivithSongItem: View {
 
     // MARK: - Property
 
@@ -64,9 +64,9 @@ public struct SongRowView: View {
 
 #Preview {
     VStack(spacing: 10) {
-        SongRowView(orderIndex: 1, title: "恋 (Koi)", artist: "Hosino Gen") {}
-        SongRowView(orderIndex: 2, title: "SUN", artist: "Hosino Gen") {}
-        SongRowView(orderIndex: 3, title: "喜劇 (Comedy)", artist: "Hosino Gen") {}
+        LivithSongItem(orderIndex: 1, title: "恋 (Koi)", artist: "Hosino Gen") {}
+        LivithSongItem(orderIndex: 2, title: "SUN", artist: "Hosino Gen") {}
+        LivithSongItem(orderIndex: 3, title: "喜劇 (Comedy)", artist: "Hosino Gen") {}
     }
     .padding(.vertical, 16)
     .background(Color.livithColor(.black90))

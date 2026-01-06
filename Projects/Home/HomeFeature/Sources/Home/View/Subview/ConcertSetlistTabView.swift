@@ -55,7 +55,7 @@ private extension ConcertSetlistTabView {
             VStack(spacing: .zero) {
                 VStack(spacing: 12) {
                     ForEach(songs.prefix(3), id: \.self) { song in
-                        SongRowView(
+                        LivithSongItem(
                             orderIndex: song.orderIndex,
                             title: song.title,
                             artist: song.artist,

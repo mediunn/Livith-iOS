@@ -51,20 +51,9 @@ struct TermsView: View {
 
 private extension TermsView {
     var navigationBar: some View {
-        HStack {
-            Button {
-                coordinator?.pop()
-            } label: {
-                Image.livithIcon(.backLineDefault)
-                    .foregroundColor(.livithColor(.white100))
-            }
-            
-            Text(Literals.navigationTitle)
-                .notosans(.body1Semibold)
-                .foregroundColor(.livithColor(.white100))
-            
-            Spacer()
-        }
+        LivithNavigationView(
+            type: .back(title: Literals.navigationTitle, onBack: { coordinator?.pop() })
+        )
     }
     
     var stepIndicator: some View {

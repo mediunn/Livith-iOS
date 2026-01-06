@@ -23,7 +23,7 @@ struct SetlistSongListCard: View {
     var body: some View {
         VStack(spacing: 10) {
             ForEach(songs) { song in
-                SongRowView(
+                LivithSongItem(
                     orderIndex: song.orderIndex,
                     title: song.title,
                     artist: song.artist
