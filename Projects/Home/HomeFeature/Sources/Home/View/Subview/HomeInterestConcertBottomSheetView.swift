@@ -15,11 +15,7 @@ struct HomeInterestConcertBottomSheetView: View {
     let onDeleteConcert: () -> Void
     
     var body: some View {
-        VStack(spacing: .zero) {
-            dragHandle()
-                .padding(.top, 12)
-                .padding(.bottom, 24)
-            
+        LivithBottomSheet(handleStyle: .light, handleWidth: 132) {
             VStack(alignment: .leading, spacing: 12) {
                 actionButton(
                     icon: .livithIcon(.change),
@@ -34,6 +30,7 @@ struct HomeInterestConcertBottomSheetView: View {
                     isDestructive: true
                 )
             }
+            .padding(.top, 24)
             .padding(.horizontal, 12)
             .padding(.bottom, 32)
         }
@@ -43,13 +40,6 @@ struct HomeInterestConcertBottomSheetView: View {
 // MARK: - Subviews
 
 private extension HomeInterestConcertBottomSheetView {
-    @ViewBuilder
-    func dragHandle() -> some View {
-        RoundedRectangle(cornerRadius: 2.5)
-            .fill(.livithColor(.white100))
-            .frame(width: 132, height: 5)
-    }
-    
     @ViewBuilder
     func actionButton(
         icon: Image,
