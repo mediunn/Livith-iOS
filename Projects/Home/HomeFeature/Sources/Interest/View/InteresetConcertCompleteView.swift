@@ -79,12 +79,9 @@ private extension InteresetConcertCompleteView {
     }
     
     var confirmButton: some View {
-        Button {
+        LivithButton("확인", variant: .primary) {
             coordinator?.popToRoot()
-        } label: {
-            Text("확인")
         }
-        .buttonStyle(.livithPrimary)
     }
     
     var backgroundImageView: some View {

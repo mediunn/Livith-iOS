@@ -134,19 +134,9 @@ private extension InterestConcertSearchView {
     }
     
     var submitButton: some View {
-        Button {
+        LivithButton("설정하기", variant: .primary, isLoading: store.state.isSubmitting) {
             store.send(.onSubmit)
-        } label: {
-            HStack {
-                Text("설정하기")
-
-                if store.state.isSubmitting {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.white100)))
-                }
-            }
         }
-        .buttonStyle(.livithPrimary)
         .disabled(store.state.selectedConcertID == nil || store.state.isSubmitting)
     }
 }

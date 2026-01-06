@@ -132,12 +132,9 @@ private extension TermsView {
     
     
     var nextButton: some View {
-        Button {
+        LivithButton(Literals.nextButtonText, variant: .primary) {
             coordinator?.push(to: .nickname(isMarketingAgreed))
-        } label: {
-            Text(Literals.nextButtonText)
         }
-        .buttonStyle(.livithPrimary)
         .disabled(!canProceed)
     }
 }
