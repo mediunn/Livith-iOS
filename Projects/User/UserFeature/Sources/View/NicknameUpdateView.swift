@@ -21,14 +21,14 @@ struct NicknameUpdateView: View {
     @ObservedObject private var store: NicknameUpdateStore
 
     var onDismiss: (() -> Void)?
-    var onSuccess: (() -> Void)?
+    var onSuccess: ((String) -> Void)?
 
     // MARK: - LifeCycle
 
     init(
         store: NicknameUpdateStore,
         onDismiss: (() -> Void)? = nil,
-        onSuccess: (() -> Void)? = nil
+        onSuccess: ((String) -> Void)? = nil
     ) {
         self._store = ObservedObject(wrappedValue: store)
         self.onDismiss = onDismiss
@@ -75,7 +75,7 @@ struct NicknameUpdateView: View {
             case .idle:
                 withAnimation { showFailureToast = false }
             case .success:
-                onSuccess?()
+                onSuccess?(store.state.nickname)
             case .failure:
                 withAnimation { showFailureToast = true }
             }

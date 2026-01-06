@@ -10,6 +10,7 @@ import SwiftUI
 
 import DSKit
 import HomeDomain
+import LivithFoundation
 
 struct ConcertSetlistTabView: View {
     let setlist: Setlist?
@@ -165,14 +166,8 @@ private extension ConcertSetlistTabView {
 // MARK: - Helpers
 
 private extension ConcertSetlistTabView {
-    static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy년 M월 d일"
-        return f
-    }()
-
     func formatDate(_ date: Date) -> String {
-        Self.dateFormatter.string(from: date)
+        DateFormatterService.string(from: date, type: .koreanFullDate)
     }
 }
 

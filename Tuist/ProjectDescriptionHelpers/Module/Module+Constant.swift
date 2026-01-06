@@ -15,6 +15,7 @@ public enum CoreModule: String {
     case persistence = "Persistence"
     case livithNetwork = "LivithNetwork"
     case livithConcurrency = "LivithConcurrency"
+    case livithFoundation = "LivithFoundation"
     case auth = "Auth"
 }
 

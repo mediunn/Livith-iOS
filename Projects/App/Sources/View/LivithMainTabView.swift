@@ -78,6 +78,7 @@ struct LivithMainTabView: View {
                     .toolbar(.hidden, for: .tabBar)
                 
                 UserView(
+                        nickname: $nickname,
                         isTabBarHidden: $isTabBarHidden,
                         showToast: { type, message in
                             toastType = type
