@@ -1,5 +1,5 @@
 //
-//  HomeNoInterestView.swift
+//  HomeConcertSectionView.swift
 //  HomeFeature
 //
 //  Created by Youjin Lee on 12/3/25.
@@ -12,10 +12,15 @@ import HomeDomain
 
 import DSKit
 
-struct HomeNoInterestView: View {
+struct HomeConcertSectionView: View {
     @Binding var nickname: String
     @Environment(\.homeCoordinator) private var coordinator
-    @StateObject private var store: HomeNoInterestStore = .init()
+    @ObservedObject private var store: HomeStore
+
+    init(nickname: Binding<String>, store: HomeStore) {
+        self._nickname = nickname
+        self.store = store
+    }
 
     var body: some View {
         VStack(spacing: .zero) {
@@ -28,7 +33,7 @@ struct HomeNoInterestView: View {
                         action: { coordinator?.push(to: .interest) }
                     )
 
-                    if !store.state.isLoading && store.state.sectionList.isEmpty {
+                    if !store.state.isSectionsLoading && store.state.sectionList.isEmpty {
                         LivithEmptyView(text: emptyMessage)
                             .frame(minHeight: Constants.emptyStateMinHeight)
                     }
@@ -43,7 +48,7 @@ struct HomeNoInterestView: View {
                 }
                 .background(.livithColor(.black100))
             }
-            .refreshable { store.send(.onRefresh) }
+            .refreshable { store.send(.onRefreshSections) }
             .ignoresSafeArea(edges: .bottom)
         }
         .background(.livithColor(.black90))
@@ -56,7 +61,7 @@ struct HomeNoInterestView: View {
 
 // MARK: - Helper
 
-private extension HomeNoInterestView {
+private extension HomeConcertSectionView {
     func concertSectionRow(for section: ConcertSection) -> some View {
         ConcertSectionView(
             concertSection: section,
@@ -69,7 +74,7 @@ private extension HomeNoInterestView {
 
 // MARK: - Constants
 
-private extension HomeNoInterestView {
+private extension HomeConcertSectionView {
     enum Constants {
         static let emptySpaceHeight: CGFloat = 210
         static let emptyStateMinHeight: CGFloat = 428

@@ -60,13 +60,13 @@ private extension ConcertGridView {
             isSelected: selectedID == concert.id
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
-        .onTapGesture {
-            onConcertTap(concert.id)
-        }
         .onAppear {
             if concert.id == concerts.last?.id, !isLoadingMore {
                 onLoadMore()
             }
+        }
+        .onTapGesture {
+            onConcertTap(concert.id)
         }
     }
 }

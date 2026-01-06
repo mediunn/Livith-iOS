@@ -7,11 +7,12 @@
 //
 
 import Foundation
+import UIKit
 
 import DSKit
 
 enum HomeRoute: Route {
     case home
     case interest
-    case interestComplete(posterURL: URL?, title: String)
+    case interestComplete(posterURL: URL?, title: String, prefetchedImage: UIImage?)
 }

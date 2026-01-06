@@ -62,7 +62,11 @@ struct InterestConcertSearchView: View {
             }
             .onChange(of: store.state.completedConcert) { _, concert in
                 guard let concert = concert else { return }
-                coordinator?.push(to: .interestComplete(posterURL: concert.posterURL, title: concert.title))
+                coordinator?.push(to: .interestComplete(
+                    posterURL: concert.posterURL,
+                    title: concert.title,
+                    prefetchedImage: store.state.prefetchedPosterImage
+                ))
             }
         }
     }
@@ -92,13 +96,20 @@ private extension InterestConcertSearchView {
         Group {
             switch store.state.mode {
             case .initial:
-                ConcertGridView(
-                    concerts: store.state.concertList,
-                    selectedID: store.state.selectedConcertID,
-                    isLoadingMore: store.state.isConcertsLoadingMore,
-                    onConcertTap: { store.send(.onConcertTap($0)) },
-                    onLoadMore: { store.send(.onLoadMoreConcerts) }
-                )
+                if store.state.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.white100)))
+                        .scaleEffect(2.0)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ConcertGridView(
+                        concerts: store.state.concertList,
+                        selectedID: store.state.selectedConcertID,
+                        isLoadingMore: store.state.isConcertsLoadingMore,
+                        onConcertTap: { store.send(.onConcertTap($0)) },
+                        onLoadMore: { store.send(.onLoadMoreConcerts) }
+                    )
+                }
             case .recommendingKeywords:
                 RecommendKeywordListView(
                     searchText: store.state.searchText,
@@ -123,10 +134,20 @@ private extension InterestConcertSearchView {
     }
     
     var submitButton: some View {
-        LivithButton("설정하기", variant: .primary) {
+        Button {
             store.send(.onSubmit)
+        } label: {
+            HStack {
+                Text("설정하기")
+
+                if store.state.isSubmitting {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .livithColor(.white100)))
+                }
+            }
         }
-        .disabled(store.state.selectedConcertID == nil)
+        .buttonStyle(.livithPrimary)
+        .disabled(store.state.selectedConcertID == nil || store.state.isSubmitting)
     }
 }
 

@@ -10,18 +10,28 @@ import SwiftUI
 
 public struct NotchedConcertPosterImageView: View {
     let url: URL?
+    let image: UIImage?
     
-    public init(url: URL?) {
+    public init(url: URL?, image: UIImage? = nil) {
         self.url = url
+        self.image = image
     }
     
     public var body: some View {
-        AsyncImage(url: url) { image in
-            image
-                .resizable()
-                .scaledToFill()
-        } placeholder: {
-            Color.livithColor(.black90)
+        Group {
+            if let image = image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Color.livithColor(.black90)
+                }
+            }
         }
         .clipped()
         .overlay(content: {

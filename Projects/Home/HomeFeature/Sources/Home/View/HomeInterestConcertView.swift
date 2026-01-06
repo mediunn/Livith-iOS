@@ -36,9 +36,6 @@ struct HomeInterestConcertView: View {
             deleteDialog
         }
         .animation(.easeInOut, value: showDeleteDialog)
-        .onAppear {
-            store.send(.onAppearInterestConcert)
-        }
     }
 }
 

@@ -33,7 +33,7 @@ private extension SearchResultGridView {
     var resultHeaderText: some View {
         (Text("검색 결과 ")
             .foregroundStyle(.livithColor(.black5))
-         + Text("\(searchResults.count)개")
+         + Text("\(searchResults.count)건")
             .foregroundStyle(.livithColor(.yellow30))
          + Text("의 정보가 있어요")
             .foregroundStyle(.livithColor(.black5)))
@@ -75,13 +75,13 @@ private extension SearchResultGridView {
             isSelected: selectedID == concert.id
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
-        .onTapGesture {
-            onConcertTap(concert.id)
-        }
         .onAppear {
             if concert.id == searchResults.last?.id, !isLoadingMore {
                 onLoadMore()
             }
+        }
+        .onTapGesture {
+            onConcertTap(concert.id)
         }
     }
 }
