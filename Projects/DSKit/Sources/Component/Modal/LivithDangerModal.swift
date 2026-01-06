@@ -1,14 +1,23 @@
 //
-//  LivithReportDialog.swift
+//  LivithDangerModal.swift
 //  DSKit
 //
-//  Created by Youjin Lee on 12/31/25.
-//  Copyright © 2025 Livith. All rights reserved.
+//  Created by Youjin Lee on 1/6/26.
+//  Copyright © 2026 Livith. All rights reserved.
 //
 
 import SwiftUI
 
-public struct LivithReportDialog: View {
+// MARK: - Modal Type
+
+public enum LivithDangerModalType {
+    case confirm(onConfirm: () -> Void)
+    case report(onConfirm: (String) -> Void)
+}
+
+// MARK: - LivithDangerModal
+
+public struct LivithDangerModal: View {
 
     // MARK: - Constants
 
@@ -22,7 +31,7 @@ public struct LivithReportDialog: View {
     private let message: String
     private let confirmTitle: String
     private let cancelTitle: String
-    private let onConfirm: (String) -> Void
+    private let type: LivithDangerModalType
     private let onCancel: () -> Void
 
     @State private var text: String = ""
@@ -34,19 +43,24 @@ public struct LivithReportDialog: View {
         !isOverLimit
     }
 
+    private var isReportType: Bool {
+        if case .report = type { return true }
+        return false
+    }
+
     // MARK: - Initializer
 
     public init(
         message: String,
         confirmTitle: String,
         cancelTitle: String,
-        onConfirm: @escaping (String) -> Void,
+        type: LivithDangerModalType,
         onCancel: @escaping () -> Void
     ) {
         self.message = message
         self.confirmTitle = confirmTitle
         self.cancelTitle = cancelTitle
-        self.onConfirm = onConfirm
+        self.type = type
         self.onCancel = onCancel
     }
 
@@ -58,15 +72,19 @@ public struct LivithReportDialog: View {
                 Color(hex: "14171B", opacity: 0.9)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        isFocused = false
+                        if isReportType {
+                            isFocused = false
+                        } else {
+                            onCancel()
+                        }
                     }
 
                 dialogContent
                     .padding(.horizontal, 24)
-                    .offset(y: keyboardHeight > 0 ? -(keyboardHeight / 2) : 0)
+                    .offset(y: isReportType && keyboardHeight > 0 ? -(keyboardHeight / 2) : 0)
                     .animation(.easeInOut(duration: 0.25), value: keyboardHeight)
 
-                if isOverLimit {
+                if isReportType && isOverLimit {
                     LivithToast(type: .failure, message: "200자를 초과했어요")
                         .position(
                             x: geometry.size.width / 2,
@@ -77,10 +95,14 @@ public struct LivithReportDialog: View {
         }
         .ignoresSafeArea(.keyboard)
         .onAppear {
-            keyboardHeight = KeyboardHeightObserver.shared.height
+            if isReportType {
+                keyboardHeight = KeyboardHeightObserver.shared.height
+            }
         }
         .onReceive(KeyboardHeightObserver.shared.$height) { height in
-            keyboardHeight = height
+            if isReportType {
+                keyboardHeight = height
+            }
         }
     }
 
@@ -88,7 +110,9 @@ public struct LivithReportDialog: View {
         VStack(alignment: .center, spacing: 20) {
             headerSection
 
-            textInputSection
+            if isReportType {
+                textInputSection
+            }
 
             buttonSection
         }
@@ -100,7 +124,7 @@ public struct LivithReportDialog: View {
 
 // MARK: - Header Section
 
-private extension LivithReportDialog {
+private extension LivithDangerModal {
     var headerSection: some View {
         VStack(alignment: .center, spacing: 10) {
             Image.livithIcon(.cautionFill)
@@ -116,7 +140,7 @@ private extension LivithReportDialog {
 
 // MARK: - Text Input Section
 
-private extension LivithReportDialog {
+private extension LivithDangerModal {
     var textInputSection: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack {
@@ -160,56 +184,69 @@ private extension LivithReportDialog {
 
 // MARK: - Button Section
 
-private extension LivithReportDialog {
+private extension LivithDangerModal {
     var buttonSection: some View {
         HStack(spacing: 12) {
-            dialogButton(
-                title: confirmTitle,
-                textColor: isConfirmEnabled ? .livithColor(.caution100) : .livithColor(.black50),
-                backgroundColor: .livithColor(.black5),
-                isEnabled: isConfirmEnabled
-            ) {
-                onConfirm(text)
-            }
-
-            dialogButton(
-                title: cancelTitle,
-                textColor: .livithColor(.white100),
-                backgroundColor: .livithColor(.black80)
-            ) {
-                onCancel()
-            }
+            confirmButton
+            cancelButton
         }
     }
 
-    func dialogButton(
-        title: String,
-        textColor: Color,
-        backgroundColor: Color,
-        isEnabled: Bool = true,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(title)
+    var confirmButton: some View {
+        Button {
+            switch type {
+            case .confirm(let onConfirm):
+                onConfirm()
+            case .report(let onConfirm):
+                onConfirm(text)
+            }
+        } label: {
+            Text(confirmTitle)
                 .notosans(.body3Medium)
-                .foregroundStyle(textColor)
+                .foregroundStyle(
+                    isReportType && !isConfirmEnabled
+                        ? Color.livithColor(.black50)
+                        : Color.livithColor(.caution100)
+                )
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
-                .background(backgroundColor)
+                .background(Color.livithColor(.black5))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .disabled(!isEnabled)
+        .disabled(isReportType && !isConfirmEnabled)
+    }
+
+    var cancelButton: some View {
+        Button(action: onCancel) {
+            Text(cancelTitle)
+                .notosans(.body3Medium)
+                .foregroundStyle(Color.livithColor(.white100))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(Color.livithColor(.black80))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
     }
 }
 
 // MARK: - Preview
 
-#Preview {
-    LivithReportDialog(
+#Preview("Confirm") {
+    LivithDangerModal(
+        message: "정말 로그아웃 하시겠어요?",
+        confirmTitle: "로그아웃 할래요",
+        cancelTitle: "취소할래요",
+        type: .confirm(onConfirm: { }),
+        onCancel: { }
+    )
+}
+
+#Preview("Report") {
+    LivithDangerModal(
         message: "댓글을 신고하시겠어요?",
         confirmTitle: "신고할래요",
         cancelTitle: "잘못 눌렀어요",
-        onConfirm: { _ in },
+        type: .report(onConfirm: { _ in }),
         onCancel: { }
     )
 }
