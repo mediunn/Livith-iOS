@@ -132,17 +132,9 @@ private extension NicknameSettingView {
     }
     
     var duplicateButton: some View {
-        Button {
+        LivithConfirmButton(duplicateButtonText, variant: .dark) {
             isNicknameFocused = false
             store.send(.checkNicknameDuplicate)
-        } label: {
-            Text(duplicateButtonText)
-                .notosans(.body3Medium)
-                .foregroundColor(isDuplicateButtonEnabled ? .livithColor(.black5) : .livithColor(.black50))
-                .padding()
-                .frame(minWidth: 80)
-                .background(Color.livithColor(.black80))
-                .cornerRadius(12)
         }
         .disabled(!isDuplicateButtonEnabled)
     }

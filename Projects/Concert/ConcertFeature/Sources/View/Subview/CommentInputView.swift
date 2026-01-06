@@ -59,24 +59,8 @@ private extension CommentInputView {
     }
 
     var submitButton: some View {
-        Button(action: onSubmit) {
-            Text("등록")
-                .notosans(.body3Medium)
-                .foregroundStyle(
-                    isSubmitEnabled
-                        ? Color.livithColor(.black100)
-                        : Color.livithColor(.black50)
-                )
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(
-                    isSubmitEnabled
-                        ? Color.livithColor(.yellow30)
-                        : Color.livithColor(.black80)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-        .disabled(!isSubmitEnabled)
+        LivithConfirmButton("등록", variant: .primary, action: onSubmit)
+            .disabled(!isSubmitEnabled)
     }
 }
 
