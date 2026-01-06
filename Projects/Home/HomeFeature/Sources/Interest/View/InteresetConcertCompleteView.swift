@@ -32,7 +32,7 @@ struct InteresetConcertCompleteView: View {
                 }
                 
                 VStack(spacing: 52) {
-                    NotchedConcertPosterImage(url: concertPosterURL)
+                    NotchedConcertPosterImageView(url: concertPosterURL)
                         .frame(width: 132, height: 176)
                         .scaleEffect(isScaled ? 1.0 : 1.2)
                         .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isScaled)

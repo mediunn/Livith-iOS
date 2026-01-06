@@ -30,7 +30,7 @@ struct BannerSectionView: View {
 			}
 			.tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             
-            LivithPageIndicator(
+            LivithPageIndicatorView(
                 currentPage: currentPage,
                 pageCount: banners.count
             )

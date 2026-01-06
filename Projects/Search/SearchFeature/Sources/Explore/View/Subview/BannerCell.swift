@@ -58,7 +58,7 @@ private extension BannerCell {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
         .overlay {
-            BackgroundGradient()
+            BackgroundGradientView()
         }
     }
     

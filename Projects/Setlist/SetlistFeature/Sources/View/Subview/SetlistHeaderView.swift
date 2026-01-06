@@ -27,7 +27,7 @@ struct SetlistHeaderView: View {
         ZStack(alignment: .bottomLeading) {
             posterImage
 
-            BackgroundGradient(
+            BackgroundGradientView(
                 baseColor: .livithColor(.black100),
                 transparentOpacity: 0,
                 startPoint: .bottom,

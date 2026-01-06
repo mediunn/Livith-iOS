@@ -1,5 +1,5 @@
 //
-//  BackgroundGradient.swift
+//  BackgroundGradientView.swift
 //  DSKit
 //
 //  Created by 김진웅 on 12/20/25.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-public struct BackgroundGradient: View {
+public struct BackgroundGradientView: View {
     private let baseColor: Color
     private let transparentOpacity: Double
     private let startPoint: UnitPoint
@@ -44,14 +44,14 @@ public struct BackgroundGradient: View {
             .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(BackgroundGradient())
+            .background(BackgroundGradientView())
             .frame(height: 60)
 
         Text("Custom Gradient")
             .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(BackgroundGradient(baseColor: .blue, transparentOpacity: 0.0))
+            .background(BackgroundGradientView(baseColor: .blue, transparentOpacity: 0.0))
             .frame(height: 60)
     }
     .background(Color.black)

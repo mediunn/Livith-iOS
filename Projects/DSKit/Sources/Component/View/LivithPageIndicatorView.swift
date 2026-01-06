@@ -1,5 +1,5 @@
 //
-//  LivithPageIndicator.swift
+//  LivithPageIndicatorView.swift
 //  DSKit
 //
 //  Created by 김진웅 on 12/20/25.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-public struct LivithPageIndicator: View {
+public struct LivithPageIndicatorView: View {
     private let currentPage: Int
     private let pageCount: Int
     
@@ -36,9 +36,9 @@ public struct LivithPageIndicator: View {
 
 #Preview {
     VStack(spacing: 20) {
-        LivithPageIndicator(currentPage: 0, pageCount: 5)
-        LivithPageIndicator(currentPage: 2, pageCount: 5)
-        LivithPageIndicator(currentPage: 4, pageCount: 5)
+        LivithPageIndicatorView(currentPage: 0, pageCount: 5)
+        LivithPageIndicatorView(currentPage: 2, pageCount: 5)
+        LivithPageIndicatorView(currentPage: 4, pageCount: 5)
     }
     .padding()
     .background(Color.black)

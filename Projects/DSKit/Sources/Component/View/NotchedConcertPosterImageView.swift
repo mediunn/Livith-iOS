@@ -1,5 +1,5 @@
 //
-//  NotchedConcertPosterImage.swift
+//  NotchedConcertPosterImageView.swift
 //  DSKit
 //
 //  Created by 김진웅 on 12/31/25.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-public struct NotchedConcertPosterImage: View {
+public struct NotchedConcertPosterImageView: View {
     let url: URL?
     
     public init(url: URL?) {
@@ -25,7 +25,7 @@ public struct NotchedConcertPosterImage: View {
         }
         .clipped()
         .overlay(content: {
-            BackgroundGradient()
+            BackgroundGradientView()
         })
         .mask { notchedCardShape }
         .overlay(
@@ -36,13 +36,13 @@ public struct NotchedConcertPosterImage: View {
     }
 }
 
-private extension NotchedConcertPosterImage {
+private extension NotchedConcertPosterImageView {
     var notchedCardShape: some Shape {
         NotchedCardShape(cornerRadius: 8, notchSize: .init(width: 10, height: 20), notchBottomOffset: 28)
     }
 }
 
 #Preview {
-    NotchedConcertPosterImage(url: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")!)
+    NotchedConcertPosterImageView(url: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")!)
         .frame(width: 130, height: 174)
 }

@@ -32,7 +32,7 @@ struct ConcertInfoCarousel: View {
                     .opacity(index == currentIndex ? 1 : 0)
             }
 
-            LivithPageIndicator(currentPage: currentIndex, pageCount: concertInfoList.count)
+            LivithPageIndicatorView(currentPage: currentIndex, pageCount: concertInfoList.count)
                 .padding(.bottom, 18)
         }
         .frame(height: 274)

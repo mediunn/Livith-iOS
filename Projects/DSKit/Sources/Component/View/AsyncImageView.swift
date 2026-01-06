@@ -45,7 +45,7 @@ public struct AsyncImageView<Placeholder: View>: View {
                     .clipped()
                     .overlay {
                         if showGradient {
-                            BackgroundGradient(
+                            BackgroundGradientView(
                                 baseColor: .livithColor(.black100),
                                 startPoint: .bottom,
                                 endPoint: .top
