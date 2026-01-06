@@ -66,13 +66,12 @@ private extension SearchResultGridView {
     }
     
     func concertCard(for concert: Concert) -> some View {
-        ConcertDetailCard(
-            posterURL: concert.posterURL,
+        LivithCard(
+            imageURL: concert.posterURL,
             title: concert.title,
-            date: concert.startDate,
-            artist: concert.artist,
-            status: concert.status.statusChipText,
-            remainDays: concert.daysLeft,
+            subtitle: concert.startDate,
+            secondaryText: concert.artist,
+            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
             isSelected: selectedID == concert.id
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))

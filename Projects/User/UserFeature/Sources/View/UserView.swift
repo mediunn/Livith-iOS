@@ -215,14 +215,14 @@ private extension UserView {
     @ViewBuilder
     var logoutConfirmDialog: some View {
         if overlayType == .logout {
-            LivithConfirmDialog(
+            LivithDangerModal(
                 message: Literals.logoutAlertMessage,
                 confirmTitle: Literals.logoutAlertConfirm,
                 cancelTitle: Literals.logoutAlertCancel,
-                onConfirm: {
+                type: .confirm(onConfirm: {
                     overlayType = .none
                     performLogout()
-                },
+                }),
                 onCancel: {
                     overlayType = .none
                 }

@@ -154,7 +154,7 @@ private extension ConcertInfoTabView {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 10) {
                         ForEach(merchandiseList) { merchandise in
-                            ThumbnailCard(
+                            LivithCard(
                                 imageURL: merchandise.imageURL.flatMap { URL(string: $0) },
                                 title: merchandise.name,
                                 subtitle: merchandise.price

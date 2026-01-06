@@ -146,14 +146,14 @@ public struct ConcertView: View {
         )
         .overlay {
             if showInterestConfirmDialog {
-                LivithConfirmDialog(
+                LivithDangerModal(
                     message: "관심 콘서트를 변경하시겠어요?",
                     confirmTitle: "변경할래요",
                     cancelTitle: "취소할래요",
-                    onConfirm: {
+                    type: .confirm(onConfirm: {
                         showInterestConfirmDialog = false
                         store.send(.interestButtonTapped)
-                    },
+                    }),
                     onCancel: {
                         showInterestConfirmDialog = false
                     }
@@ -165,26 +165,26 @@ public struct ConcertView: View {
         .overlay {
             switch communityStore.state.dialogState {
             case .delete:
-                LivithConfirmDialog(
+                LivithDangerModal(
                     message: "댓글을 삭제하시겠어요?",
                     confirmTitle: "지금은 삭제할래요",
                     cancelTitle: "잘못 눌렀어요",
-                    onConfirm: {
+                    type: .confirm(onConfirm: {
                         communityStore.send(.confirmDelete)
-                    },
+                    }),
                     onCancel: {
                         communityStore.send(.dismissDialog)
                     }
                 )
                 .transition(.opacity)
             case .report:
-                LivithReportDialog(
+                LivithDangerModal(
                     message: "댓글을 신고하시겠어요?",
                     confirmTitle: "신고할래요",
                     cancelTitle: "잘못 눌렀어요",
-                    onConfirm: { content in
+                    type: .report(onConfirm: { content in
                         communityStore.send(.confirmReport(content: content))
-                    },
+                    }),
                     onCancel: {
                         communityStore.send(.dismissDialog)
                     }
@@ -206,8 +206,10 @@ public struct ConcertView: View {
         )
         .overlay {
             if store.state.showTicketReturnBanner {
-                TicketReturnBanner(
-                    onSettingTapped: {
+                LivithSnackBar(
+                    message: "웹사이트를 보셨나요?\n관심 콘서트 설정하고 공연 알림을 받으세요",
+                    actionTitle: "콘서트 설정",
+                    onActionTapped: {
                         store.send(.onTicketBannerDismiss)
                         showInterestConfirmDialog = true
                     },

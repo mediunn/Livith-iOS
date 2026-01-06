@@ -91,11 +91,14 @@ private extension AppRootView {
     @ViewBuilder
     func welcomeSheetOverlay() -> some View {
         if isWelcomeSheetVisible {
-            WelcomeSheetView(nickname: nickname) {
-                withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-                    isWelcomeSheetVisible = false
+            LivithModal(
+                type: .welcome(nickname: nickname),
+                onConfirm: {
+                    withAnimation(.easeInOut(duration: Constants.animationDuration)) {
+                        isWelcomeSheetVisible = false
+                    }
                 }
-            }
+            )
             .transition(.opacity)
             .zIndex(2)
         }

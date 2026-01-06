@@ -62,9 +62,8 @@ struct SearchView: View {
         }
         .overlay {
             if showError {
-                ErrorSheetView(
-                    title: "오류가 발생했어요!",
-                    message: store.state.errorMessage
+                LivithModal(
+                    type: .error(title: "오류가 발생했어요!", message: store.state.errorMessage)
                 )
             }
         }
@@ -219,13 +218,12 @@ private extension SearchView {
     
     var searchResultCell: some View {
         ForEach(store.state.searchedConcertList, id: \.id) { concert in
-            ConcertDetailCard(
-                posterURL: concert.posterURL,
+            LivithCard(
+                imageURL: concert.posterURL,
                 title: concert.title,
-                date: concert.startDate,
-                artist: concert.artist,
-                status: concert.status.statusChipText,
-                remainDays: concert.daysLeft
+                subtitle: concert.startDate,
+                secondaryText: concert.artist,
+                badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft)
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onAppear {

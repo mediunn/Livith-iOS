@@ -126,11 +126,11 @@ private extension HomeInterestConcertView {
     var deleteDialog: some View {
         Group {
             if showDeleteDialog {
-                LivithConfirmDialog(
+                LivithDangerModal(
                     message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
                     confirmTitle: "지금은 삭제할래요",
                     cancelTitle: "잘못 눌렀어요",
-                    onConfirm: handleDeleteConfirm,
+                    type: .confirm(onConfirm: handleDeleteConfirm),
                     onCancel: {
                         showDeleteDialog = false
                         isTabBarHidden = false
