@@ -27,9 +27,8 @@ struct MerchandiseDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ConcertNavigationBar(
-                title: "MD 상세",
-                onBack: onDismiss
+            LivithNavigationView(
+                type: .back(title: "MD 상세", onBack: onDismiss)
             )
 
             ScrollView {

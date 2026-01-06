@@ -56,9 +56,8 @@ public struct ConcertView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            ConcertNavigationBar(
-                title: store.state.concert?.title ?? "",
-                onBack: onDismiss
+            LivithNavigationView(
+                type: .back(title: store.state.concert?.title ?? "", onBack: onDismiss)
             )
 
             if showEmptyView {
