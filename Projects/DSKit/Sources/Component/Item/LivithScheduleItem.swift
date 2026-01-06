@@ -49,7 +49,11 @@ public struct LivithScheduleItem: View {
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
         }
-        .opacity(isActive ? 1.0 : 0.4)
+        .overlay {
+            if !isActive {
+                Color.livithColor(.black100).opacity(0.4)
+            }
+        }
     }
 }
 
