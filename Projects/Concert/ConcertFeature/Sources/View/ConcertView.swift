@@ -340,7 +340,7 @@ private extension ConcertView {
     var concertInfoSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let label = store.state.concert?.label, !label.isEmpty {
-                PopularBadge(text: label)
+                LivithIconBadge.popular(label)
                     .padding(.bottom, 10)
             }
 

@@ -77,24 +77,16 @@ struct SearchView: View {
 // MARK: - UIComponents
 
 private extension SearchView {
-    var genreFilterType: FilterButtonType {
-        if store.state.selectedGenreList.isEmpty {
-            return .normal
-        } else {
-            let genreNames = store.state.selectedGenreList.map { $0.genreText }
-            
-            return .selected(text: setButtonText(input: genreNames))
-        }
+    var genreSelectedText: String? {
+        guard !store.state.selectedGenreList.isEmpty else { return nil }
+        let genreNames = store.state.selectedGenreList.map { $0.genreText }
+        return setButtonText(input: genreNames)
     }
 
-    var statusFilterType: FilterButtonType {
-        if store.state.selectedStatusList.isEmpty {
-            return .normal
-        } else {
-            let statusNames = store.state.selectedStatusList.map { $0.filterText }
-            
-            return .selected(text: setButtonText(input: statusNames))
-        }
+    var statusSelectedText: String? {
+        guard !store.state.selectedStatusList.isEmpty else { return nil }
+        let statusNames = store.state.selectedStatusList.map { $0.filterText }
+        return setButtonText(input: statusNames)
     }
 
     var searchBarView: some View {
@@ -133,9 +125,9 @@ private extension SearchView {
 
     var filterView: some View {
         HStack(alignment: .center, spacing: 0) {
-            FilterButton(
+            LivithFilterButton(
                 style: .genre,
-                type: genreFilterType,
+                selectedText: genreSelectedText,
                 action: { showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: [], status: store.state.selectedStatusList))
@@ -143,18 +135,18 @@ private extension SearchView {
             )
             .padding(.leading, 16)
 
-            FilterButton(
+            LivithFilterButton(
                 style: .status,
-                type: statusFilterType,
+                selectedText: statusSelectedText,
                 action: { showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: []))
                 }
             )
             .padding(.leading, 8)
-            
+
             Spacer()
-            
+
             sortButton
                 .padding(.trailing, 16)
         }
@@ -185,24 +177,16 @@ private extension SearchView {
     
     var sortView: some View {
         VStack(alignment: .center, spacing: 0) {
-            SortOptionButton(
-                title: "최신순",
-                isSelected: store.state.sortState == .latest,
-                action: {
-                    store.send(.sortStateChanged(.latest))
-                    showSort = false
-                }
-            )
+            LivithOptionButton("최신순", isSelected: store.state.sortState == .latest) {
+                store.send(.sortStateChanged(.latest))
+                showSort = false
+            }
             .padding(.bottom, 8)
 
-            SortOptionButton(
-                title: "가나다순",
-                isSelected: store.state.sortState == .alphabetical,
-                action: {
-                    store.send(.sortStateChanged(.alphabetical))
-                    showSort = false
-                }
-            )
+            LivithOptionButton("가나다순", isSelected: store.state.sortState == .alphabetical) {
+                store.send(.sortStateChanged(.alphabetical))
+                showSort = false
+            }
         }
         .fixedSize()
         .padding(.horizontal, 14)
