@@ -14,7 +14,7 @@ import HomeDomain
 struct InterestConcertSearchView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @StateObject private var store = InterestConcertSearchStore()
-    @FocusState private var isTextFieldFocused: Bool
+    @State private var isTextFieldFocused: Bool = false
     
     var body: some View {
         ZStack {
@@ -92,65 +92,16 @@ private extension InterestConcertSearchView {
     }
     
     var searchTextField: some View {
-        ZStack(alignment: .leading) {
-            if !isTextFieldFocused, store.state.searchText.isEmpty { placeholder }
-            
-            HStack {
-                TextField("", text: searchText)
-                    .notosans(.body3Medium)
-                    .foregroundStyle(.livithColor(.white100))
-                    .autocorrectionDisabled()
-                    .focused($isTextFieldFocused)
-                    .onSubmit {
-                        isTextFieldFocused = false
-                        store.send(.onSearch)
-                    }
-                
-                if isWriting {
-                    deleteButton
-                } else {
-                    searchButton
-                }
-            }
-            .frame(height: Constants.textFieldHeight)
-            .padding(.horizontal, 12)
-            .background(.livithColor(.black90))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.livithColor(.black50), lineWidth: isTextFieldFocused ? 1 : 0)
-            )
-        }
-        .onTapGesture { isTextFieldFocused = true }
-    }
-    
-    var placeholder: some View {
-        Text(Literals.placeholder)
-            .notosans(.body3Medium)
-            .foregroundStyle(.livithColor(.black50))
-            .padding(.leading, 12)
-            .zIndex(2)
-    }
-    
-    var deleteButton: some View {
-        Button {
-            store.send(.onTextChange(""))
-        } label: {
-            Image.livithIcon(.deleteFillDefault)
-                .resizable()
-                .frame(width: Constants.iconSize, height: Constants.iconSize)
-        }
-    }
-    
-    var searchButton: some View {
-        Button {
-            isTextFieldFocused = false
-            store.send(.onSearch)
-        } label: {
-            Image.livithIcon(.searchLineDefault)
-                .resizable()
-                .frame(width: Constants.iconSize, height: Constants.iconSize)
-        }
+        LivithSearchField(
+            text: searchText,
+            isFocused: $isTextFieldFocused,
+            placeholder: Literals.placeholder,
+            cornerRadius: 12,
+            showBorder: true,
+            onChange: nil,
+            onClear: { store.send(.onTextChange("")) },
+            onSubmit: { store.send(.onSearch) }
+        )
     }
     
     var scrollView: some View {
@@ -204,19 +155,12 @@ private extension InterestConcertSearchView {
             set: { store.send(.onTextChange($0)) }
         )
     }
-    
-    var isWriting: Bool { isTextFieldFocused && !store.state.searchText.isEmpty }
 }
 
-// MARK: - Literals & Constants
+// MARK: - Literals
 
 private extension InterestConcertSearchView {
     enum Literals {
         static let placeholder = "찾고 있는 콘서트나 가수를 검색하세요"
-    }
-    
-    enum Constants {
-        static let iconSize: CGFloat = 36
-        static let textFieldHeight: CGFloat = 52
     }
 }
