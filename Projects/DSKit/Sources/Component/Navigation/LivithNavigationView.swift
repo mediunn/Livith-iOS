@@ -56,7 +56,7 @@ public struct LivithNavigationView: View {
 
 // MARK: - Subviews
 
-private extension LivithNavigationBar {
+private extension LivithNavigationView {
     var logoContent: some View {
         HStack {
             Image.livithImage(.livithLogo)
