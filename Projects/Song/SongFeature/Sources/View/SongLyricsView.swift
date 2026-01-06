@@ -208,38 +208,20 @@ private extension SongLyricsView {
     var toggleButtonsSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                LyricsToggleButton(
-                    title: "원어",
-                    isOn: store.state.showOriginal,
-                    activeBackgroundColor: Color.livithColor(.original)
-                ) {
+                LivithToggleButton("원어", isOn: store.state.showOriginal, style: .original) {
                     store.send(.toggleOriginal)
                 }
 
-                LyricsToggleButton(
-                    title: "발음",
-                    isOn: store.state.showPronunciation,
-                    activeBackgroundColor: Color.livithColor(.white100)
-                ) {
+                LivithToggleButton("발음", isOn: store.state.showPronunciation, style: .pronunciation) {
                     store.send(.togglePronunciation)
                 }
 
-                LyricsToggleButton(
-                    title: "해석",
-                    isOn: store.state.showTranslation,
-                    activeBackgroundColor: Color.livithColor(.translation),
-                    activeTextColor: Color.livithColor(.black100)
-                ) {
+                LivithToggleButton("해석", isOn: store.state.showTranslation, style: .translation) {
                     store.send(.toggleTranslation)
                 }
 
                 if store.state.hasFanchant {
-                    LyricsToggleButton(
-                        title: "응원법",
-                        isOn: store.state.showFanchant,
-                        activeBackgroundColor: Color.livithColor(.yellow30),
-                        activeTextColor: Color.livithColor(.black100)
-                    ) {
+                    LivithToggleButton("응원법", isOn: store.state.showFanchant, style: .fanchant) {
                         store.send(.toggleFanchant)
                     }
                 }
