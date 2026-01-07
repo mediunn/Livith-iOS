@@ -1,6 +1,6 @@
 //
 //  AuthService.swift
-//  Auth
+//  SocialAuth
 //
 //  Created by 김진웅 on 12/4/25.
 //  Copyright © 2025 Livith. All rights reserved.
