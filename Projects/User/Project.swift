@@ -30,7 +30,7 @@ let project = Project.make(
                 .user(.userDomain),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency),
+                .core(.livithFoundation),
                 .core(.livithNetwork),
                 .core(.persistence)
             ]

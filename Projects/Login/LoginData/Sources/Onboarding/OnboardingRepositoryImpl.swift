@@ -15,13 +15,13 @@ import Persistence
 final class OnboardingRepositoryImpl {
     private let service: OnboardingService
     private let errorMapper: OnboardingErrorMapper
-    private let localStorage: LocalKeyValueStorage
+    private let localStorage: UserDefaultsStorage
     private let tokenService: TokenService
     
     init(
         service: OnboardingService = OnboardingService(),
         errorMapper: OnboardingErrorMapper = OnboardingErrorMapper(),
-        localStorage: LocalKeyValueStorage = UserDefaultsStorage(),
+        localStorage: UserDefaultsStorage = UserDefaultsStorage(),
         tokenService: TokenService = TokenServiceImpl()
     ) {
         self.service = service
@@ -56,9 +56,9 @@ extension OnboardingRepositoryImpl: OnboardingRepository {
                 )
             )
             
-            try? localStorage.save("\(tempUser.provider)", for: LocalStorageKeys.lastLoginPlatform)
+            try? localStorage.save("\(tempUser.provider)", for: .lastLoginPlatform)
 
-            try localStorage.save(response.user, for: LocalStorageKeys.currentUser)
+            try localStorage.save(response.user, for: .currentUser)
 
             try await tokenService.saveToken(
                 accessToken: response.accessToken,

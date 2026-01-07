@@ -11,7 +11,7 @@ import Foundation
 
 import HomeDomain
 import DIContainer
-import LivithConcurrency
+import LivithFoundation
 
 enum InterestConcertSearchIntent {
     case onTextChange(String)

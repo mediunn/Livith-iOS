@@ -16,14 +16,14 @@ public final class UserRepositoryImpl {
     private let userService: NetworkService<UserEndpoint>
     private let logoutService: NetworkService<LogoutEndpoint>
     private let tokenService: TokenService
-    private let localStorage: LocalKeyValueStorage
+    private let localStorage: UserDefaultsStorage
     private let userErrorMapper: UserErrorMapper = .init()
 
     public init(
         userService: NetworkService<UserEndpoint> = .init(),
         logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil),
         tokenService: TokenService = TokenServiceImpl(),
-        localStorage: LocalKeyValueStorage = UserDefaultsStorage()
+        localStorage: UserDefaultsStorage = UserDefaultsStorage()
     ) {
         self.userService = userService
         self.logoutService = logoutService
@@ -62,7 +62,7 @@ extension UserRepositoryImpl: UserRepository {
     }
 
     private func updateStoredUserNickname(_ nickname: String) {
-        guard let currentUser: DTO.Response.FetchUserInfo = try? localStorage.fetch(for: LocalStorageKeys.currentUser) else {
+        guard let currentUser: DTO.Response.FetchUserInfo = try? localStorage.fetch(for: .currentUser) else {
             return
         }
 
@@ -76,7 +76,7 @@ extension UserRepositoryImpl: UserRepository {
             marketingConsent: currentUser.marketingConsent
         )
 
-        try? localStorage.save(updatedUser, for: LocalStorageKeys.currentUser)
+        try? localStorage.save(updatedUser, for: .currentUser)
     }
     
     public func deleteUser(reason: String) async throws(UserError) {
@@ -92,7 +92,7 @@ extension UserRepositoryImpl: UserRepository {
 
         // 백엔드 삭제 성공 후에는 로컬 정리가 반드시 실행되어야 함
         try? await tokenService.removeToken()
-        localStorage.remove(for: LocalStorageKeys.currentUser)
+        localStorage.remove(for: .currentUser)
         localStorage.remove(for: LocalStorageKeys.lastLoginPlatform)
     }
     
@@ -110,13 +110,6 @@ extension UserRepositoryImpl: UserRepository {
 
         // 백엔드 로그아웃 성공 후에는 로컬 정리가 반드시 실행되어야 함
         try? await tokenService.removeToken()
-        localStorage.remove(for: LocalStorageKeys.currentUser)
+        localStorage.remove(for: .currentUser)
     }
-}
-
-// MARK: - LocalStorageKeys
-
-private enum LocalStorageKeys {
-    static let currentUser = "currentUser"
-    static let lastLoginPlatform = "lastLoginPlatform"
 }

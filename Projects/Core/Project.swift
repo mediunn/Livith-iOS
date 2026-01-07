@@ -16,10 +16,6 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.performanceMonitor),
-            product: .framework
-        ),
-        .make(
             target: .core(.livithNetwork),
             product: .framework,
             infoPlist: .file(path: "LivithNetwork/Resources/Network-Info.plist"),
@@ -30,10 +26,6 @@ let project = Project.make(
         ),
         .make(
             target: .core(.persistence),
-            product: .framework
-        ),
-        .make(
-            target: .core(.livithConcurrency),
             product: .framework
         ),
         .make(

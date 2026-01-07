@@ -235,7 +235,7 @@ if $CREATE_FEATURE; then
     TARGETS="${TARGETS}
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency)
+                .core(.livithFoundation)
             ]
         ),"
 fi

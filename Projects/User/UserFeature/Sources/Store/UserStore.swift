@@ -21,9 +21,9 @@ enum UserIntent {
 final class UserStore: ObservableObject {
     @Published private(set) var state = UserState()
 
-    private let localStorage: LocalKeyValueStorage
+    private let localStorage: UserDefaultsStorage
 
-    init(localStorage: LocalKeyValueStorage = UserDefaultsStorage()) {
+    init(localStorage: UserDefaultsStorage = UserDefaultsStorage()) {
         self.localStorage = localStorage
     }
 
@@ -41,7 +41,7 @@ final class UserStore: ObservableObject {
 private extension UserStore {
     @MainActor
     func fetchNicknameFromStorage() {
-        guard let user: StoredUserInfo = try? localStorage.fetch(for: "currentUser") else {
+        guard let user: StoredUserInfo = try? localStorage.fetch(for: .currentUser) else {
             return
         }
         state.nickname = user.nickname
