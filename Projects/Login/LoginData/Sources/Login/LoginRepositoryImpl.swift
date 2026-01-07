@@ -8,31 +8,26 @@
 
 import Foundation
 
-import Auth
+import SocialAuth
 import LivithNetwork
 import LoginDomain
 import Persistence
 
 final class LoginRepositoryImpl {
-    private let appleLoginService: AppleLoginService
-    private let kakaoLoginService: KakaoLoginService
+    private let socialAuthService: SocialAuthService
     private let loginService: OnboardingService
-    private let errorMapper: LoginErrorMapper
     private let localStorage: LocalKeyValueStorage
     private let tokenService: TokenService
+    private let errorMapper: LoginErrorMapper = .init()
     
     init(
-        appleLoginService: AppleLoginService = .init(),
-        kakaoLoginService: KakaoLoginService = .init(),
+        socialAuthService: SocialAuthService = .init(),
         loginService: OnboardingService = .init(),
-        errorMapper: LoginErrorMapper = .init(),
         localStorage: LocalKeyValueStorage = UserDefaultsStorage(),
         tokenService: TokenService = TokenServiceImpl()
     ) {
-        self.appleLoginService = appleLoginService
-        self.kakaoLoginService = kakaoLoginService
+        self.socialAuthService = socialAuthService
         self.loginService = loginService
-        self.errorMapper = errorMapper
         self.localStorage = localStorage
         self.tokenService = tokenService
     }
@@ -68,16 +63,11 @@ extension LoginRepositoryImpl: LoginRepository {
 // MARK: - Helpers
 
 private extension LoginRepositoryImpl {
-    func getCredential(for provider: SocialLoginProvider) async throws -> AuthCredential {
-        switch provider {
-        case .apple:
-            return try await appleLoginService.login()
-        case .kakao:
-            return try await kakaoLoginService.login()
-        }
+    func getCredential(for provider: SocialLoginProvider) async throws(SocialAuthError) -> SocialAuthCredential {
+        return try await socialAuthService.signIn(with: provider.authVendor)
     }
     
-    func performBackendLogin(with credential: AuthCredential, for provider: SocialLoginProvider) async throws -> LoginStatus {
+    func performBackendLogin(with credential: SocialAuthCredential, for provider: SocialLoginProvider) async throws -> LoginStatus {
         switch provider {
         case .apple:
             let response: DTO.Response.AppleLogin = try await loginService.request(.appleLogin(identityToken: credential.token))

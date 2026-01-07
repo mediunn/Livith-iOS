@@ -1,6 +1,6 @@
 //
-//  AppleLoginService.swift
-//  Auth
+//  AppleAuthenticator.swift
+//  SocialAuth
 //
 //  Created by 김진웅 on 12/4/25.
 //  Copyright © 2025 Livith. All rights reserved.
@@ -9,24 +9,22 @@
 import Foundation
 import AuthenticationServices
 
-public final class AppleLoginService: NSObject, AuthService {
-    private var activeContinuation: CheckedContinuation<AuthCredential, Error>?
-    
-    public override init() {}
+final class AppleAuthenticator: NSObject, SocialAuthenticator {
+    private var activeContinuation: CheckedContinuation<SocialAuthCredential, Error>?
     
     @MainActor
-    public func login() async throws(AuthError) -> AuthCredential {
+    func signIn() async throws(SocialAuthError) -> SocialAuthCredential {
         do {
             return try await withCheckedThrowingContinuation { continuation in
                 if let oldContinuation = activeContinuation {
-                    oldContinuation.resume(throwing: AuthError.canceled)
+                    oldContinuation.resume(throwing: SocialAuthError.canceled)
                 }
                 
                 activeContinuation = continuation
                 
                 performAppleLoginRequest()
             }
-        } catch let authError as AuthError {
+        } catch let authError as SocialAuthError {
             throw authError
         } catch {
             throw .unknown
@@ -36,7 +34,7 @@ public final class AppleLoginService: NSObject, AuthService {
 
 // MARK: - ASAuthorizationControllerDelegate
 
-extension AppleLoginService: ASAuthorizationControllerDelegate {
+extension AppleAuthenticator: ASAuthorizationControllerDelegate {
     public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
@@ -65,7 +63,7 @@ extension AppleLoginService: ASAuthorizationControllerDelegate {
         activeContinuation = nil
     }
     
-    private func convertToAuthError(from error: Error) -> AuthError {
+    private func convertToAuthError(from error: Error) -> SocialAuthError {
         guard let authorizationError = error as? ASAuthorizationError else {
             return .unknown
         }
@@ -81,7 +79,7 @@ extension AppleLoginService: ASAuthorizationControllerDelegate {
 
 // MARK: - ASAuthorizationControllerPresentationContextProviding
 
-extension AppleLoginService: ASAuthorizationControllerPresentationContextProviding {
+extension AppleAuthenticator: ASAuthorizationControllerPresentationContextProviding {
     public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         guard let activeScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }),
               let windowScene = activeScene as? UIWindowScene,
@@ -95,7 +93,7 @@ extension AppleLoginService: ASAuthorizationControllerPresentationContextProvidi
 
 // MARK: - Helpers
 
-private extension AppleLoginService {
+private extension AppleAuthenticator {
     func performAppleLoginRequest() {
         let appleIDProvider = ASAuthorizationAppleIDProvider()
         let request = appleIDProvider.createRequest()
@@ -107,16 +105,16 @@ private extension AppleLoginService {
         controller.performRequests()
     }
     
-    func createCredential(from authorization: ASAuthorization) throws -> AuthCredential {
+    func createCredential(from authorization: ASAuthorization) throws -> SocialAuthCredential {
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
               let identityToken = appleIDCredential.identityToken,
               let tokenString = String(data: identityToken, encoding: .utf8)
         else {
-            throw AuthError.missingToken
+            throw SocialAuthError.missingToken
         }
         
-        return AuthCredential(
-            provider: .apple,
+        return SocialAuthCredential(
+            vendor: .apple,
             token: tokenString,
             userID: appleIDCredential.email
         )

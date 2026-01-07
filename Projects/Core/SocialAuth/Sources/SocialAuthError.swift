@@ -1,6 +1,6 @@
 //
-//  AuthError.swift
-//  Auth
+//  SocialAuthError.swift
+//  SocialAuth
 //
 //  Created by 김진웅 on 12/3/25.
 //  Copyright © 2025 Livith. All rights reserved.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum AuthError: Error, LocalizedError {
+public enum SocialAuthError: Error, LocalizedError {
     case canceled
     case networkError
     case missingToken

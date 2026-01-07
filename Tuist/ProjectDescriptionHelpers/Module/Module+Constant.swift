@@ -16,7 +16,7 @@ public enum CoreModule: String {
     case livithNetwork = "LivithNetwork"
     case livithConcurrency = "LivithConcurrency"
     case livithFoundation = "LivithFoundation"
-    case auth = "Auth"
+    case socialAuth = "SocialAuth"
 }
 
 // MARK: - DSKitModule Module

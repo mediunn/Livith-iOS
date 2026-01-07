@@ -41,7 +41,7 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.auth),
+            target: .core(.socialAuth),
             product: .framework,
             dependencies: [
                 .external(.kakaoSDKAuth),
