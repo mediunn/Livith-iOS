@@ -23,15 +23,6 @@ public enum SetlistType: String, CaseIterable {
         }
     }
 
-    public var badgeText: String? {
-        switch self {
-        case .expected:
-            return "예상"
-        case .recent, .past, .none:
-            return nil
-        }
-    }
-
     public var isPastSetlist: Bool {
         switch self {
         case .recent, .past:

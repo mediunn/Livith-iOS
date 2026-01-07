@@ -27,7 +27,7 @@ struct SearchView: View {
 
     init(store: SearchStore) {
         self.store = store
-        
+
         store.send(.viewDidLoad)
     }
 
@@ -36,7 +36,7 @@ struct SearchView: View {
     public var body: some View {
         VStack(spacing: 0) {
             searchBarView
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
 
             ScrollView {
                 filterView
@@ -92,6 +92,7 @@ private extension SearchView {
     var searchBarView: some View {
         HStack(alignment: .center) {
             Button {
+                hideKeyboard()
                 coordinator?.pop()
             } label: {
                 Image.livithIcon(.backLineDefault)
@@ -128,7 +129,7 @@ private extension SearchView {
             LivithFilterButton(
                 style: .genre,
                 selectedText: genreSelectedText,
-                action: { showFilter = true },
+                action: { hideKeyboard(); showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: [], status: store.state.selectedStatusList))
                 }
@@ -138,7 +139,7 @@ private extension SearchView {
             LivithFilterButton(
                 style: .status,
                 selectedText: statusSelectedText,
-                action: { showFilter = true },
+                action: { hideKeyboard(); showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: []))
                 }
@@ -151,7 +152,7 @@ private extension SearchView {
                 .padding(.trailing, 16)
         }
     }
-    
+
     var sortButton: some View {
         Button {
             showSort.toggle()
@@ -174,7 +175,7 @@ private extension SearchView {
             }
         }
     }
-    
+
     var sortView: some View {
         VStack(alignment: .center, spacing: 0) {
             LivithOptionButton("최신순", isSelected: store.state.sortState == .latest) {
@@ -203,14 +204,14 @@ private extension SearchView {
             .shadow(color: .black.opacity(0.25), radius: 5.2)
         }
     }
-    
+
     @ViewBuilder
     var searchEmptyView: some View {
         LivithEmptyView(text: "검색 결과가 없어요")
 
         Spacer()
     }
-    
+
     var searchResultCell: some View {
         ForEach(store.state.searchedConcertList, id: \.id) { concert in
             LivithCard(
@@ -218,7 +219,11 @@ private extension SearchView {
                 title: concert.title,
                 subtitle: concert.startDate,
                 secondaryText: concert.artist,
-                badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft)
+                badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+                onTap: {
+                    hideKeyboard()
+                    coordinator?.showConcertDetail(concertID: concert.id)
+                }
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onAppear {
@@ -226,12 +231,9 @@ private extension SearchView {
                     store.send(.loadNextPage)
                 }
             }
-            .onTapGesture {
-                coordinator?.showConcertDetail(concertID: concert.id)
-            }
         }
     }
-    
+
     var searchResultView: some View {
         VStack(spacing: 0) {
             LazyVGrid(
@@ -249,7 +251,7 @@ private extension SearchView {
             }
         }
     }
-    
+
     var filterBottomSheet: some View {
         FilterBottomSheetView(
             selectedGenreList: Binding(
@@ -278,7 +280,7 @@ private extension SearchView {
                 }
                 .allowsHitTesting(showFilter)
                 .animation(.easeInOut(duration: 0.3), value: showFilter)
-            
+
             VStack(spacing: 0) {
                 filterBottomSheet
             }
@@ -305,24 +307,25 @@ private extension SearchView {
     func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
-    
+
     func isCompleteKorean() -> Bool {
         let message = store.state.searchMessage
         guard let lastChar = message.last else { return false }
-        
+
         return !String(lastChar).contains(/[ㄱ-ㅎㅏ-ㅣ]/)
     }
-    
+
     func performSearch() {
         guard !store.state.searchMessage.isEmpty else { return }
         store.send(.searchButtonTapped)
     }
-    
+
     func setButtonText(input: [String]) -> String {
+        guard let first = input.first else { return "" }
         if input.count > 1 {
-            return input[0] + ", ..."
+            return first + ", ..."
         } else {
-            return input[0]
+            return first
         }
     }
 }

@@ -15,7 +15,10 @@ struct MerchandiseDetailView: View {
 
     // MARK: - Property
 
+    @Environment(\.concertCoordinator) private var coordinator
+
     let merchandiseList: [ConcertMerchandise]
+    let ticketingOfficeURL: URL?
     let onDismiss: () -> Void
 
     private let columns = Array(
@@ -40,6 +43,10 @@ struct MerchandiseDetailView: View {
                             subtitle: merchandise.price,
                             isFlexible: true
                         )
+                        .onTapGesture {
+                            guard let url = ticketingOfficeURL else { return }
+                            coordinator?.present(to: .ticketSafari(url))
+                        }
                     }
                 }
                 .padding(.horizontal, 16)
@@ -62,6 +69,7 @@ struct MerchandiseDetailView: View {
             ConcertMerchandise(id: 4, name: "제품이름", price: "가격", imageURL: nil),
             ConcertMerchandise(id: 5, name: "제품이름", price: "가격", imageURL: nil)
         ],
+        ticketingOfficeURL: nil,
         onDismiss: {}
     )
 }

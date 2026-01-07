@@ -17,5 +17,5 @@ public enum ConcertRoute: Route {
     case songLyrics(songID: Int, setlistID: Int, songTitle: String)
     case safari(URL)
     case ticketSafari(URL)
-    case merchandiseDetail([ConcertMerchandise])
+    case merchandiseDetail([ConcertMerchandise], ticketingOfficeURL: URL?)
 }

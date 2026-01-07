@@ -49,13 +49,14 @@ private extension SetlistHeaderView {
         .frame(height: 337)
         .scaledToFill()
         .clipped()
-        
+
     }
 
     var concertInfoOverlay: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if let badgeText = setlist.type.badgeText {
-                LivithChip(badgeText, style: .tag)
+            if let status = setlist.status {
+                LivithChip(status, style: .tag)
+                    .padding(.bottom, 6)
             }
 
             Text(setlist.title)
@@ -84,6 +85,7 @@ private extension SetlistHeaderView {
             title: "Gen Hoshino presents MAD HOPE Asia Tour in SEOUL",
             imageURL: nil,
             type: .expected,
+            status: "예상",
             startDate: Date(),
             endDate: Date().addingTimeInterval(86400 * 2),
             venue: "Tokyo Dome",

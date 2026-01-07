@@ -19,29 +19,32 @@ struct TermsView: View {
         ZStack {
             Color.livithColor(.black100)
                 .ignoresSafeArea()
-            
+
             VStack(alignment: .leading, spacing: 0) {
                 navigationBar
-                    .padding(.top, 20)
-                
+
                 stepIndicator
                     .padding(.top, 20)
-                
+                    .padding(.horizontal, 16)
+
                 title
                     .padding(.top, 32)
-                
+                    .padding(.horizontal, 16)
+
                 allAgreeButton
                     .padding(.top, 20)
-                
+                    .padding(.horizontal, 16)
+
                 termsSection
-                    .padding([.top, .leading], 20)
-                
+                    .padding(.top, 20)
+                    .padding(.leading, 36)
+
                 Spacer()
-                
+
                 nextButton
                     .padding(.bottom, 50)
+                    .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
     }

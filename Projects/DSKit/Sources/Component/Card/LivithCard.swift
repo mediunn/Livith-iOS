@@ -30,8 +30,7 @@ public struct LivithCard: View {
     private let isSelected: Bool
     private let isFlexible: Bool
     private let titleLineLimit: Int?
-
-    @GestureState private var isPressed: Bool = false
+    private let onTap: (() -> Void)?
 
     // MARK: - Initializer
 
@@ -43,7 +42,8 @@ public struct LivithCard: View {
         badge: LivithCardBadge = .none,
         isSelected: Bool = false,
         isFlexible: Bool = false,
-        titleLineLimit: Int? = nil
+        titleLineLimit: Int? = nil,
+        onTap: (() -> Void)? = nil
     ) {
         self.imageURL = imageURL
         self.title = title
@@ -53,11 +53,22 @@ public struct LivithCard: View {
         self.isSelected = isSelected
         self.isFlexible = isFlexible
         self.titleLineLimit = titleLineLimit
+        self.onTap = onTap
     }
 
     // MARK: - Body
 
     public var body: some View {
+        if let onTap {
+            Button(action: onTap) {
+                cardContent
+            }
+        } else {
+            cardContent
+        }
+    }
+
+    private var cardContent: some View {
         ZStack(alignment: .topLeading) {
             VStack(alignment: .leading, spacing: 0) {
                 thumbnailImage
@@ -90,18 +101,6 @@ public struct LivithCard: View {
         }
         .background(Color.livithColor(.black100))
         .contentShape(Rectangle())
-        .overlay {
-            if isPressed {
-                Color.livithColor(.black100).opacity(0.3)
-            }
-        }
-        .animation(.easeInOut(duration: 0.1), value: isPressed)
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .updating($isPressed) { _, state, _ in
-                    state = true
-                }
-        )
     }
 }
 
@@ -109,7 +108,8 @@ public struct LivithCard: View {
 
 private extension LivithCard {
     var hasSecondaryText: Bool {
-        secondaryText != nil && !secondaryText!.isEmpty
+        guard let secondaryText else { return false }
+        return !secondaryText.isEmpty
     }
 }
 
@@ -141,17 +141,19 @@ private extension LivithCard {
 
     var titleText: some View {
         Text(title)
-            .lineLimit(titleLineLimit ?? (hasSecondaryText ? 2 : nil))
+            .lineLimit(titleLineLimit ?? 2)
             .truncationMode(.tail)
+            .multilineTextAlignment(.leading)
             .notosans(.body2Medium)
             .foregroundStyle(Color.livithColor(.white100))
             .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     func subtitleText(_ text: String) -> some View {
         Text(text)
             .lineLimit(1)
-            .notosans(hasSecondaryText ? .caption1Semibold : .caption1Semibold)
+            .notosans(.caption1Semibold)
             .foregroundStyle(Color.livithColor(.black50))
     }
 

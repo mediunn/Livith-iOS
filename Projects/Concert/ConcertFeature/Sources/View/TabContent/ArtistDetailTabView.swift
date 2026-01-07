@@ -148,11 +148,11 @@ private extension ArtistDetailTabView {
         HStack(spacing: 8) {
             Text("데뷔")
                 .notosans(.body4Medium)
-                .foregroundStyle(Color.livithColor(.black50))
-
-            Text(year)
-                .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
+
+            Text("\(year)년")
+                .notosans(.body4Medium)
+                .foregroundStyle(Color.livithColor(.black50))
         }
     }
 

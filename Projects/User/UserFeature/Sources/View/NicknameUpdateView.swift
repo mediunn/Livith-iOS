@@ -42,26 +42,28 @@ struct NicknameUpdateView: View {
                 .onTapGesture {
                     isNicknameFocused = false
                 }
-            
+
             VStack(alignment: .leading, spacing: 0) {
                 navigationBar
-                    .padding(.top, 20)
-                
+
                 title
                     .padding(.top, 32)
-                
+                    .padding(.horizontal, 16)
+
                 nicknameInputSection
                     .padding(.top, 20)
-                
+                    .padding(.horizontal, 16)
+
                 nicknameStatus
                     .padding(.top, 8)
-                
+                    .padding(.horizontal, 16)
+
                 Spacer()
-                
+
                 updateButton
                     .padding(.bottom, 50)
+                    .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
         .livithToast(

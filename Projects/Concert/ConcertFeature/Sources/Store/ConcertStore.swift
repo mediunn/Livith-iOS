@@ -140,18 +140,20 @@ private extension ConcertStore {
     func fetchConcertData(concertID: Int) {
         fetchTask?.cancel()
 
+        let repo = repository
+
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
             send(._setIsCurrentConcertInterested(getInterestedConcertID() == concertID))
 
             do {
-                async let concertResult = repository.fetchConcertInfo(concertID: concertID)
-                async let artistResult = repository.fetchConcertArtistInfo(concertID: concertID)
-                async let cultureResult = repository.fetchConcertCultureList(concertID: concertID)
-                async let scheduleResult = repository.fetchConcertSchedule(concertID: concertID)
-                async let concertInfoResult = repository.fetchConcertInfoList(concertID: concertID)
-                async let merchandiseResult = repository.fetchConcertMerchandiseList(concertID: concertID)
-                async let setlistResult = repository.fetchConcertSetlistList(concertID: concertID)
+                async let concertResult = repo.fetchConcertInfo(concertID: concertID)
+                async let artistResult = repo.fetchConcertArtistInfo(concertID: concertID)
+                async let cultureResult = repo.fetchConcertCultureList(concertID: concertID)
+                async let scheduleResult = repo.fetchConcertSchedule(concertID: concertID)
+                async let concertInfoResult = repo.fetchConcertInfoList(concertID: concertID)
+                async let merchandiseResult = repo.fetchConcertMerchandiseList(concertID: concertID)
+                async let setlistResult = repo.fetchConcertSetlistList(concertID: concertID)
 
                 let (concert, artist, cultures, schedules, concertInfoList, merchandiseList, setlistList) = try await (
                     concertResult,
@@ -172,6 +174,12 @@ private extension ConcertStore {
                 send(._setConcertInfoList(concertInfoList))
                 send(._setMerchandiseList(merchandiseList))
                 send(._setSetlistList(setlistList))
+            } catch let error as ConcertError {
+                guard !Task.isCancelled else { return }
+                let message = error == .networkError
+                    ? "네트워크 연결이 없습니다.\n연결 상태를 확인해주세요."
+                    : "데이터를 불러오는데 실패했어요"
+                send(._setFetchError(message))
             } catch {
                 guard !Task.isCancelled else { return }
                 send(._setFetchError("데이터를 불러오는데 실패했어요"))

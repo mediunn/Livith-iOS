@@ -30,6 +30,8 @@ struct SetlistMapper {
             type = .expected
         case "RECENT":
             type = .recent
+        case "PAST":
+            type = .past
         default:
             type = .none
         }
@@ -39,6 +41,7 @@ struct SetlistMapper {
             title: response.title,
             imageURL: response.imageURL,
             type: type,
+            status: response.status,
             startDate: startDate,
             endDate: endDate,
             venue: response.venue,
