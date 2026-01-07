@@ -24,13 +24,12 @@ struct ConcertSectionView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
                     ForEach(concertSection.concertList) { concert in
-                        ConcertDetailCard(
-                            posterURL: concert.posterURL,
+                        LivithCard(
+                            imageURL: concert.posterURL,
                             title: concert.title,
-                            date: concert.startDate,
-                            artist: concert.artist,
-                            status: concert.status.statusChipText,
-                            remainDays: concert.daysLeft
+                            subtitle: concert.startDate,
+                            secondaryText: concert.artist,
+                            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft)
                         )
                         .onTapGesture {
                             onConcertTap(concert)

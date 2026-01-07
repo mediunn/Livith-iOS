@@ -65,7 +65,7 @@ private extension InterestConcertCardView {
                     Color.livithColor(.black80)
                 }
                 .overlay {
-                    BackgroundGradient()
+                    BackgroundGradientView()
                 }
             
             VStack {

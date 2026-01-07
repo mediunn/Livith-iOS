@@ -73,19 +73,14 @@ private extension SetlistTabView {
         Button {
             coordinator?.push(to: .setlistDetail(concertID: concertID, setlistID: setlist.id))
         } label: {
-            ThumbnailCard(
+            LivithCard(
                 imageURL: setlist.imageURL.flatMap { URL(string: $0) },
                 title: setlist.title,
                 subtitle: formatDate(setlist),
-                flexible: true,
+                badge: setlist.status != .none ? .tag(text: setlist.status.displayText) : .none,
+                isFlexible: true,
                 titleLineLimit: 2
             )
-            .overlay(alignment: .topLeading) {
-                if setlist.status != .none {
-                    TagChipView(text: setlist.status.displayText)
-                        .padding(10)
-                }
-            }
         }
         .buttonStyle(.plain)
     }

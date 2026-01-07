@@ -58,25 +58,8 @@ private extension InterestConcertCardContentView {
         VStack {
             HStack {
                 Spacer()
-                
-                Button(action: onMoreInfoTap) {
-                    HStack(spacing: 4) {
-                        Text("더 많은 정보 확인하기")
-                            .notosans(.caption1Semibold)
-                            .foregroundStyle(.livithColor(.white100))
-                        
-                        Image.livithIcon(.rightLineDefault)
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(.livithColor(.black100))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .shadow(color: .livithColor(.white100).opacity(0.3), radius: 8)
-                }
+                LivithActionButton("더 많은 정보 확인하기", type: .chevron, action: onMoreInfoTap)
             }
-            
             Spacer()
         }
     }

@@ -23,45 +23,44 @@ struct DeleteUserConfirmBottomSheet: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading) {
-            handleBar
-                .padding(.top, 10)
-                .padding(.bottom, 24)
+        LivithBottomSheet {
+            VStack(alignment: .leading, spacing: 0) {
+                titleSection
+                    .padding(.horizontal, 16)
+                    .padding(.top, 30)
+                    .padding(.bottom, 16)
 
-            titleSection
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                ZStack(alignment: .top) {
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            noticeSection
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
 
-            ZStack(alignment: .top) {
-                ScrollView {
-                    VStack(alignment: .leading) {
-                        noticeSection
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-
-                        confirmCheckbox
-                            .padding(.horizontal, 45)
-                            .padding(.vertical, 20)
+                            confirmCheckbox
+                                .padding(.horizontal, 45)
+                                .padding(.vertical, 20)
+                        }
                     }
+                    .frame(height: 204)
+
+                    LinearGradient(
+                        colors: [
+                            Color.livithColor(.black90),
+                            Color.livithColor(.black90).opacity(0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 16)
+                    .allowsHitTesting(false)
                 }
-                .frame(height: 204)
 
-                LinearGradient(
-                    colors: [
-                        Color.livithColor(.black90),
-                        Color.livithColor(.black90).opacity(0)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 16)
-                .allowsHitTesting(false)
+                actionButtons
+                    .padding(.horizontal, 16)
+                    .padding(.top, 24)
+                    .padding(.bottom, 24)
             }
-
-            actionButtons
-                .padding(.horizontal, 16)
-                .padding(.top, 24)
-                .padding(.bottom, 24)
         }
     }
 }
@@ -69,14 +68,6 @@ struct DeleteUserConfirmBottomSheet: View {
 // MARK: - UIComponents
 
 private extension DeleteUserConfirmBottomSheet {
-    var handleBar: some View {
-        Rectangle()
-            .fill(Color.livithColor(.black80))
-            .frame(width: 60, height: 6)
-            .clipShape(RoundedRectangle(cornerRadius: 3))
-            .frame(maxWidth: .infinity)
-    }
-
     var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(Literals.title)
@@ -129,37 +120,12 @@ private extension DeleteUserConfirmBottomSheet {
 
     var actionButtons: some View {
         HStack(spacing: 12) {
-            Button {
+            LivithButton(Literals.cancelButtonText, variant: .secondary) {
                 onCancel()
-            } label: {
-                Text(Literals.cancelButtonText)
-                    .notosans(.body3Medium)
-                    .foregroundStyle(Color.livithColor(.white100))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(Color.livithColor(.black80))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
             }
 
-            Button {
+            LivithButton(Literals.confirmButtonText, variant: .pink) {
                 onConfirm()
-            } label: {
-                Text(Literals.confirmButtonText)
-                    .notosans(.body3Semibold)
-                    .foregroundStyle(
-                        isConfirmed
-                            ? Color.livithColor(.black100)
-                            : Color.livithColor(.black30)
-                    )
-                    .animation(.easeInOut(duration: 0.2), value: isConfirmed)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(
-                        isConfirmed
-                        ? Color.livithColor(.translation)
-                            : Color.livithColor(.black50)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
             }
             .disabled(!isConfirmed)
         }

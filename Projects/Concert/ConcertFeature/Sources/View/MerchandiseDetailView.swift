@@ -19,6 +19,7 @@ struct MerchandiseDetailView: View {
 
     let merchandiseList: [ConcertMerchandise]
     let ticketingOfficeURL: URL?
+    let onDismiss: () -> Void
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: 8, alignment: .top),
@@ -29,19 +30,18 @@ struct MerchandiseDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ConcertNavigationBar(
-                title: "MD 상세",
-                onBack: { coordinator?.pop() }
+            LivithNavigationView(
+                type: .back(title: "MD 상세", onBack: onDismiss)
             )
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(merchandiseList) { merchandise in
-                        ThumbnailCard(
+                        LivithCard(
                             imageURL: merchandise.imageURL.flatMap { URL(string: $0) },
                             title: merchandise.name,
                             subtitle: merchandise.price,
-                            flexible: true
+                            isFlexible: true
                         )
                         .onTapGesture {
                             guard let url = ticketingOfficeURL else { return }
@@ -69,6 +69,7 @@ struct MerchandiseDetailView: View {
             ConcertMerchandise(id: 4, name: "제품이름", price: "가격", imageURL: nil),
             ConcertMerchandise(id: 5, name: "제품이름", price: "가격", imageURL: nil)
         ],
-        ticketingOfficeURL: nil
+        ticketingOfficeURL: nil,
+        onDismiss: {}
     )
 }

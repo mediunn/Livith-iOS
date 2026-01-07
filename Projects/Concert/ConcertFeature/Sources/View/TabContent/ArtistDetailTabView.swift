@@ -99,7 +99,7 @@ private extension ArtistDetailTabView {
 
             VStack(alignment: .leading, spacing: 0) {
                 if !artist.category.isEmpty {
-                    CardTagView(artist.category)
+                    LivithChip(artist.category, style: .dark)
                         .padding(.bottom, 8)
                 }
 
@@ -159,7 +159,7 @@ private extension ArtistDetailTabView {
     func tagsView(keywords: [String]) -> some View {
         FlowLayout(spacing: 4) {
             ForEach(keywords, id: \.self) { keyword in
-                TagChipView(text: keyword)
+                LivithChip(keyword, style: .tag)
             }
         }
     }
@@ -208,7 +208,7 @@ private extension ArtistDetailTabView {
 
     func fanCultureCard(index: Int, culture: ConcertCulture) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            CardTagView("팬문화 \(index)", fontStyle: .caption1Bold)
+            LivithChip("팬문화 \(index)", style: .dark)
                 .padding(.bottom, 4)
 
             Text(culture.title)

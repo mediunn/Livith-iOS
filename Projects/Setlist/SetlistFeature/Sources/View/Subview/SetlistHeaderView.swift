@@ -27,7 +27,7 @@ struct SetlistHeaderView: View {
         ZStack(alignment: .bottomLeading) {
             posterImage
 
-            BackgroundGradient(
+            BackgroundGradientView(
                 baseColor: .livithColor(.black100),
                 transparentOpacity: 0,
                 startPoint: .bottom,
@@ -49,13 +49,13 @@ private extension SetlistHeaderView {
         .frame(height: 337)
         .scaledToFill()
         .clipped()
-        
+
     }
 
     var concertInfoOverlay: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let status = setlist.status {
-                TagChipView(text: status)
+                LivithChip(status, style: .tag)
                     .padding(.bottom, 6)
             }
 

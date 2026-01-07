@@ -30,43 +30,38 @@ public struct FilterBottomSheetView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Rectangle()
-                .fill(Color.livithColor(.black80))
-                .frame(height: 6)
-                .padding(.top, 10)
-                .padding(.horizontal, 150)
-                .padding(.bottom, 8)
-                .cornerRadius(8)
-
-            Text("장르")
-                .notosans(.body2Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .padding(.horizontal, 16)
-
-            genreOptions
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-
-            Rectangle()
-                .fill(Color.livithColor(.black80))
-                .frame(height: 1)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 30)
-
-            Text("기간")
-                .notosans(.body2Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .padding(.horizontal, 16)
-
-            statusOptions
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-
-            setupButtons
-                .padding(.top, 24)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+        LivithBottomSheet(handleWidth: 76) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("장르")
+                    .notosans(.body2Semibold)
+                    .foregroundStyle(Color.livithColor(.white100))
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                
+                genreOptions
+                    .padding(.horizontal, 16)
+                    .padding(.top, 20)
+                
+                Rectangle()
+                    .fill(Color.livithColor(.black80))
+                    .frame(height: 1)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 30)
+                
+                Text("기간")
+                    .notosans(.body2Semibold)
+                    .foregroundStyle(Color.livithColor(.white100))
+                    .padding(.horizontal, 16)
+                
+                statusOptions
+                    .padding(.horizontal, 16)
+                    .padding(.top, 20)
+                
+                setupButtons
+                    .padding(.top, 24)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
+            }
         }
         .animation(nil, value: showFilter)
         .onChange(of: showFilter) { _, isShowing in
@@ -90,28 +85,31 @@ private extension FilterBottomSheetView {
     var genreOptions: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 10) {
-                FilterOptionButton(
-                    title: "전체",
-                    isSelected: tempGenreList.isEmpty,
-                    action: { tempGenreList = [] }
-                )
+                LivithChipButton(
+                    "전체",
+                    style: tempGenreList.isEmpty ? .selected : .outline
+                ) {
+                    tempGenreList = []
+                }
 
                 ForEach(selectableGenres.prefix(3), id: \.self) { genre in
-                    FilterOptionButton(
-                        title: genre.genreText,
-                        isSelected: tempGenreList.contains(genre),
-                        action: { toggleGenre(genre) }
-                    )
+                    LivithChipButton(
+                        genre.genreText,
+                        style: tempGenreList.contains(genre) ? .selected : .outline
+                    ) {
+                        toggleGenre(genre)
+                    }
                 }
             }
 
             HStack(alignment: .center, spacing: 10) {
                 ForEach(selectableGenres.suffix(3), id: \.self) { genre in
-                    FilterOptionButton(
-                        title: genre.genreText,
-                        isSelected: tempGenreList.contains(genre),
-                        action: { toggleGenre(genre) }
-                    )
+                    LivithChipButton(
+                        genre.genreText,
+                        style: tempGenreList.contains(genre) ? .selected : .outline
+                    ) {
+                        toggleGenre(genre)
+                    }
                 }
             }
         }
@@ -119,50 +117,36 @@ private extension FilterBottomSheetView {
 
     var statusOptions: some View {
         HStack(alignment: .center, spacing: 4) {
-            FilterOptionButton(
-                title: "전체",
-                isSelected: tempStatusList.isEmpty,
-                action: { tempStatusList = [] }
-            )
+            LivithChipButton(
+                "전체",
+                style: tempStatusList.isEmpty ? .selected : .outline
+            ) {
+                tempStatusList = []
+            }
 
             ForEach(ConcertStatus.allCases, id: \.self) { status in
-                FilterOptionButton(
-                    title: status.filterText,
-                    isSelected: tempStatusList.contains(status),
-                    action: { toggleStatus(status) }
-                )
+                LivithChipButton(
+                    status.filterText,
+                    style: tempStatusList.contains(status) ? .selected : .outline
+                ) {
+                    toggleStatus(status)
+                }
             }
         }
     }
     
     var setupButtons: some View {
         HStack(spacing: 12) {
-            Button {
+            LivithButton("초기화", variant: .secondary) {
                 tempGenreList = []
                 tempStatusList = []
-            } label: {
-                Text("초기화")
-                    .notosans(.body3Semibold)
-                    .foregroundStyle(hasSelection ? Color.livithColor(.white100) : Color.livithColor(.black50))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 51)
-                    .background(hasSelection ? Color.livithColor(.black50) : Color.livithColor(.black80))
-                    .cornerRadius(6)
             }
             .disabled(!hasSelection)
 
-            Button {
+            LivithButton("설정하기", variant: .primary) {
                 selectedGenreList = tempGenreList
                 selectedStatusList = tempStatusList
                 showFilter = false
-            } label: {
-                Text("설정하기")
-                    .notosans(.body3Semibold)
-                    .foregroundStyle(Color.livithColor(.black100))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 51)
-                    .background(Color.livithColor(.yellow30))
-                    .cornerRadius(6)
             }
         }
     }

@@ -53,20 +53,11 @@ private extension CommentInputView {
     }
 
     var textField: some View {
-        TextField(
-            "",
+        LivithTextField(
             text: $text,
-            prompt: Text(Constants.placeholder)
-                .foregroundStyle(Color.livithColor(.black50)),
-            axis: .vertical
+            type: .comment(maxLength: Constants.maxLength),
+            placeholder: Constants.placeholder
         )
-        .notosans(.body3Medium)
-        .foregroundStyle(Color.livithColor(.white100))
-        .lineLimit(1...4)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.livithColor(.black90))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
         .onChange(of: text) { _, newValue in
             let lineCount = newValue.components(separatedBy: "\n").count
             isExceedingLineLimit = lineCount > Constants.maxLines
@@ -75,24 +66,8 @@ private extension CommentInputView {
     }
 
     var submitButton: some View {
-        Button(action: onSubmit) {
-            Text("등록")
-                .notosans(.body3Medium)
-                .foregroundStyle(
-                    isSubmitEnabled
-                        ? Color.livithColor(.black100)
-                        : Color.livithColor(.black50)
-                )
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(
-                    isSubmitEnabled
-                        ? Color.livithColor(.yellow30)
-                        : Color.livithColor(.black80)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-        .disabled(!isSubmitEnabled)
+        LivithConfirmButton("등록", variant: .primary, action: onSubmit)
+            .disabled(!isSubmitEnabled)
     }
 }
 

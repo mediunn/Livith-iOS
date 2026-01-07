@@ -32,7 +32,7 @@ struct ConcertInfoCarousel: View {
                     .opacity(index == currentIndex ? 1 : 0)
             }
 
-            LivithPageIndicator(currentPage: currentIndex, pageCount: concertInfoList.count)
+            LivithPageIndicatorView(currentPage: currentIndex, pageCount: concertInfoList.count)
                 .padding(.bottom, 18)
         }
         .frame(height: 274)
@@ -96,7 +96,7 @@ private extension ConcertInfoCarousel {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 10) {
-                CardTagView(info.title, fontStyle: .caption1Semibold)
+                LivithChip(info.title, style: .dark)
 
                 Text(info.description)
                     .notosans(.body2Medium)

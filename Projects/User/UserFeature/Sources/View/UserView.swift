@@ -84,19 +84,19 @@ public struct UserView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 24)
 
-                InfoListView(title: Literals.versionInfo, type: .value(Constant.versionString))
+                LivithListItem(Literals.versionInfo, type: .value(Constant.versionString))
                     .padding(.bottom, 12)
 
-                InfoListView(title: Literals.updateNote, type: .navigation, action: { showUpdateNote() })
+                LivithListItem(Literals.updateNote, type: .navigation, action: { showUpdateNote() })
                     .padding(.bottom, 12)
 
-                InfoListView(title: Literals.terms, type: .navigation, action: { showTerms() })
+                LivithListItem(Literals.terms, type: .navigation, action: { showTerms() })
                     .padding(.bottom, 12)
 
-                InfoListView(title: Literals.logout, type: .action, action: { logout() })
+                LivithListItem(Literals.logout, type: .action, action: { logout() })
                     .padding(.bottom, 12)
 
-                InfoListView(title: Literals.deleteAccount, type: .action, action: { deleteAccount() })
+                LivithListItem(Literals.deleteAccount, type: .action, action: { deleteAccount() })
                     .padding(.bottom, 50)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -106,9 +106,9 @@ public struct UserView: View {
                 case .nicknameUpdate:
                     NicknameUpdateView(
                         store: NicknameUpdateStore(),
-                        onDismiss: { path.removeLast() },
+                        onDismiss: { if !path.isEmpty { path.removeLast() } },
                         onSuccess: { newNickname in
-                            path.removeLast()
+                            if !path.isEmpty { path.removeLast() }
                             nickname = newNickname
                             showToast?(.success, Literals.toastSuccess)
                         }
@@ -117,7 +117,7 @@ public struct UserView: View {
                 case .deleteUser:
                     DeleteUserView(
                         store: DeleteUserStore(),
-                        onDismiss: { path.removeLast() }
+                        onDismiss: { if !path.isEmpty { path.removeLast() } }
                     )
                     .navigationBarBackButtonHidden()
                 }
@@ -215,14 +215,14 @@ private extension UserView {
     @ViewBuilder
     var logoutConfirmDialog: some View {
         if overlayType == .logout {
-            LivithConfirmDialog(
+            LivithDangerModal(
                 message: Literals.logoutAlertMessage,
                 confirmTitle: Literals.logoutAlertConfirm,
                 cancelTitle: Literals.logoutAlertCancel,
-                onConfirm: {
+                type: .confirm(onConfirm: {
                     overlayType = .none
                     performLogout()
-                },
+                }),
                 onCancel: {
                     overlayType = .none
                 }

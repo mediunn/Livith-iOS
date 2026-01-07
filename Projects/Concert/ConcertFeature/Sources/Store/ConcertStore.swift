@@ -10,23 +10,10 @@ import Foundation
 
 import ConcertDomain
 import DIContainer
+import DSKit
 import LivithConcurrency
 
-public enum ConcertTab: Int, CaseIterable {
-    case artistDetail
-    case concertInfo
-    case setlist
-    case community
-
-    var title: String {
-        switch self {
-        case .artistDetail: return "아티스트 상세"
-        case .concertInfo: return "콘서트 상세"
-        case .setlist: return "셋리스트"
-        case .community: return "소통·댓글"
-        }
-    }
-}
+public typealias ConcertTab = SegmentedTabBarType.DetailTab
 
 public enum InterestSettingStatus: Equatable {
     case idle

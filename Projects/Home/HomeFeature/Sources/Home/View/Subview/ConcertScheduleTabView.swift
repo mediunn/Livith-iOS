@@ -14,25 +14,25 @@ import LivithFoundation
 
 struct ConcertScheduleTabView: View {
     private let schedules: ConcertScheduleList
-    
+
     init(schedules: ConcertScheduleList) {
         self.schedules = schedules
     }
-    
+
     var body: some View {
         if schedules.isEmpty {
-            emptyView()
+            emptyView
         } else {
             VStack(alignment: .leading, spacing: 20) {
                 Text("날짜와 시간을\n잊지 말고 확인해요")
                     .notosans(.body1Semibold)
                     .foregroundStyle(.livithColor(.white100))
                     .multilineTextAlignment(.leading)
-                
+
                 VStack(spacing: .zero) {
                     ForEach(schedules) { schedule in
-                        scheduleItem(
-                            daysLeft: daysLeftText(from: schedule.schduledAt),
+                        LivithScheduleItem(
+                            daysLeft: daysLeft(from: schedule.schduledAt),
                             title: schedule.category,
                             dateTime: formatDateTime(schedule.schduledAt),
                             isActive: isActiveDate(schedule.schduledAt)
@@ -40,7 +40,7 @@ struct ConcertScheduleTabView: View {
                         .frame(height: 64)
                     }
                 }
-                
+
                 Spacer()
                     .frame(minHeight: 280)
             }
@@ -52,84 +52,37 @@ struct ConcertScheduleTabView: View {
 // MARK: - Subviews
 
 private extension ConcertScheduleTabView {
-    func emptyView() -> some View {
+    var emptyView: some View {
         VStack {
             Spacer()
                 .frame(height: 200)
-            
+
             LivithEmptyView(text: "일정이 따로 없어요")
                 .frame(maxWidth: .infinity)
-            
+
             Spacer()
                 .frame(height: 360)
         }
-    }
-    
-    func scheduleItem(
-        daysLeft: String,
-        title: String,
-        dateTime: String,
-        isActive: Bool
-    ) -> some View {
-        HStack(spacing: 12) {
-            daysLeftBadge(daysLeft)
-            
-            Text(title)
-                .notosans(.body3Medium)
-                .foregroundStyle(.livithColor(.black30))
-            
-            Spacer()
-            
-            Text(dateTime)
-                .notosans(.body3Semibold)
-                .foregroundStyle(.livithColor(.black5))
-        }
-        .overlay {
-            if !isActive {
-                Rectangle()
-                    .fill(.livithColor(.black100).opacity(0.7))
-            }
-        }
-    }
-    
-    func daysLeftBadge(_ text: String) -> some View {
-        Text(text)
-            .notosans(.caption1Bold)
-            .foregroundStyle(.livithColor(.black100))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(.livithColor(.yellow30))
-            )
     }
 }
 
 // MARK: - Helpers
 
 private extension ConcertScheduleTabView {
-    func daysLeftText(from date: Date) -> String {
+    func daysLeft(from date: Date) -> Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let targetDate = calendar.startOfDay(for: date)
-        let days = calendar.dateComponents([.day], from: today, to: targetDate).day ?? 0
-        
-        if days == 0 {
-            return "D-day"
-        } else if days > 0 {
-            return "D-\(days)"
-        } else {
-            return "D+\(abs(days))"
-        }
+        return calendar.dateComponents([.day], from: today, to: targetDate).day ?? 0
     }
-    
+
     func isActiveDate(_ date: Date) -> Bool {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let targetDate = calendar.startOfDay(for: date)
         return targetDate >= today
     }
-    
+
     func formatDateTime(_ date: Date) -> String {
         DateFormatterService.string(from: date, type: .koreanDateTime)
     }
