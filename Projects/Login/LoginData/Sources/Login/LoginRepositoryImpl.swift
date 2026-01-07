@@ -16,14 +16,14 @@ import Persistence
 final class LoginRepositoryImpl {
     private let socialAuthService: SocialAuthService
     private let loginService: OnboardingService
-    private let localStorage: LocalKeyValueStorage
+    private let localStorage: UserDefaultsStorage
     private let tokenService: TokenService
     private let errorMapper: LoginErrorMapper = .init()
     
     init(
         socialAuthService: SocialAuthService = .init(),
         loginService: OnboardingService = .init(),
-        localStorage: LocalKeyValueStorage = UserDefaultsStorage(),
+        localStorage: UserDefaultsStorage = UserDefaultsStorage(),
         tokenService: TokenService = TokenServiceImpl()
     ) {
         self.socialAuthService = socialAuthService
@@ -115,7 +115,7 @@ private extension LoginRepositoryImpl {
     
     func fetchAndStoreCurrentUser() async throws -> String {
         let userInfo: DTO.Response.FetchUserInfo = try await loginService.request(.fetchUserInfo)
-        try localStorage.save(userInfo, for: LocalStorageKeys.currentUser)
+        try localStorage.save(userInfo, for: .currentUser)
         return userInfo.nickname
     }
     

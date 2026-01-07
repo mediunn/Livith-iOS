@@ -17,7 +17,7 @@ struct HomeRepositoryImpl {
     private let searchService: SearchService
     private let setlistService: SetlistService
     private let concertService: ConcertService
-    private let localStorage: LocalKeyValueStorage
+    private let localStorage: UserDefaultsStorage
     private let mapper: HomeMapper = .init()
     private let errorMapper: HomeErrorMapper = .init()
     
@@ -26,7 +26,7 @@ struct HomeRepositoryImpl {
         searchService: SearchService,
         setlistService: SetlistService,
         concertService: ConcertService,
-        localStorage: LocalKeyValueStorage
+        localStorage: UserDefaultsStorage
     ) {
         self.homeService = homeService
         self.searchService = searchService

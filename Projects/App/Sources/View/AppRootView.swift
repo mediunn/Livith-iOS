@@ -21,10 +21,10 @@ struct AppRootView: View {
     @State private var showToast: Bool = false
     @State private var toastMessage: String = ""
 
-    private let localKeyValueStorage: LocalKeyValueStorage
+    private let localStorage: UserDefaultsStorage
     
-    init(localKeyValueStorage: LocalKeyValueStorage = UserDefaultsStorage()) {
-        self.localKeyValueStorage = localKeyValueStorage
+    init(localStorage: UserDefaultsStorage = UserDefaultsStorage()) {
+        self.localStorage = localStorage
     }
     
     var body: some View {
@@ -124,7 +124,7 @@ private extension AppRootView {
 
     func checkInitialRoute() {
         do {
-            let user: DTO.Response.FetchUserInfo = try localKeyValueStorage.fetch(for: "currentUser")
+            let user: DTO.Response.FetchUserInfo = try localStorage.fetch(for: .currentUser)
             self.nickname = user.nickname
             currentRoute = .main
         } catch {

@@ -1,5 +1,5 @@
 //
-//  LocalKeyValueStorage.swift
+//  UserDefaultsStorage.swift
 //  Persistence
 //
 //  Created by 김진웅 on 12/11/25.
@@ -8,17 +8,16 @@
 
 import Foundation
 
-public protocol LocalKeyValueStorage {
-    func save<T: Encodable>(_ value: T, for key: String) throws(StorageError)
-    func fetch<T: Decodable>(for key: String) throws(StorageError) -> T
-    func remove(for key: String)
-}
-
-public struct UserDefaultsStorage: LocalKeyValueStorage {
+public struct UserDefaultsStorage {
+    public enum Key: String {
+        case currentUser
+        case lastLoginPlatform
+    }
+    
     private let defaults: UserDefaults
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
-
+    
     public init(
         defaults: UserDefaults = .standard,
         encoder: JSONEncoder = .init(),
@@ -28,7 +27,7 @@ public struct UserDefaultsStorage: LocalKeyValueStorage {
         self.encoder = encoder
         self.decoder = decoder
     }
-
+    
     public func save<T: Encodable>(_ value: T, for key: String) throws(StorageError) {
         do {
             let data = try encoder.encode(value)
@@ -37,7 +36,7 @@ public struct UserDefaultsStorage: LocalKeyValueStorage {
             throw StorageError.encodingFailed
         }
     }
-
+    
     public func fetch<T: Decodable>(for key: String) throws(StorageError) -> T {
         guard let data = defaults.data(forKey: key) else {
             throw StorageError.dataNotFound
@@ -48,10 +47,22 @@ public struct UserDefaultsStorage: LocalKeyValueStorage {
             return value
         } catch {
             throw StorageError.decodingFailed
-        }
+        }   
     }
-
+    
     public func remove(for key: String) {
         defaults.removeObject(forKey: key)
+    }
+    
+    public func save<T: Encodable>(_ value: T, for key: Key) throws(StorageError) {
+        try save(value, for: key.rawValue)
+    }
+    
+    public func fetch<T: Decodable>(for key: Key) throws(StorageError) -> T {
+        try fetch(for: key.rawValue)
+    }
+    
+    public func remove(for key: Key) {
+        remove(for: key.rawValue)
     }
 }
