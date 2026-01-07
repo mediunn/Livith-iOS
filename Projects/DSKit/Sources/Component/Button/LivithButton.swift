@@ -171,10 +171,8 @@ public struct LivithButton: View {
             }
             .frame(maxWidth: isFullWidth ? .infinity : nil)
             .frame(height: size.height)
-            .background(isEnabled ? variant.enabledBackground : variant.disabledBackground)
-            .clipShape(RoundedRectangle(cornerRadius: resolvedCornerRadius))
         }
-        .buttonStyle(LivithButtonStyle(variant: variant, cornerRadius: resolvedCornerRadius, isEnabled: isEnabled))
+        .buttonStyle(LivithButtonStyle(variant: variant, cornerRadius: resolvedCornerRadius))
     }
 }
 
@@ -183,17 +181,21 @@ public struct LivithButton: View {
 private struct LivithButtonStyle: ButtonStyle {
     let variant: LivithButtonVariant
     let cornerRadius: CGFloat
-    let isEnabled: Bool
+
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .background(
-                configuration.isPressed && isEnabled
-                    ? variant.pressedBackground
-                    : Color.clear
-            )
+            .background(backgroundColor(isPressed: configuration.isPressed))
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+
+    private func backgroundColor(isPressed: Bool) -> Color {
+        if !isEnabled {
+            return variant.disabledBackground
+        }
+        return isPressed ? variant.pressedBackground : variant.enabledBackground
     }
 }
 

@@ -31,6 +31,8 @@ public struct LivithCard: View {
     private let isFlexible: Bool
     private let titleLineLimit: Int?
 
+    @GestureState private var isPressed: Bool = false
+
     // MARK: - Initializer
 
     public init(
@@ -88,6 +90,18 @@ public struct LivithCard: View {
         }
         .background(Color.livithColor(.black100))
         .contentShape(Rectangle())
+        .overlay {
+            if isPressed {
+                Color.livithColor(.black100).opacity(0.3)
+            }
+        }
+        .animation(.easeInOut(duration: 0.1), value: isPressed)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .updating($isPressed) { _, state, _ in
+                    state = true
+                }
+        )
     }
 }
 
