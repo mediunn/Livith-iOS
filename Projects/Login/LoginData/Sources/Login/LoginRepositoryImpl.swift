@@ -45,7 +45,7 @@ extension LoginRepositoryImpl: LoginRepository {
     
     func fetchLastLoginPlatform() async throws(LoginError) -> SocialLoginProvider {
         do {
-            let value: String = try localStorage.fetch(for: LocalStorageKeys.lastLoginPlatform)
+            let value: String = try localStorage.fetch(for: .lastLoginPlatform)
             switch value {
             case "apple":
                 return .apple
@@ -128,7 +128,7 @@ private extension LoginRepositoryImpl {
             throw LoginError.noData
         }
         try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
-        try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
+        try? localStorage.save(provider.description, for: .lastLoginPlatform)
         let nickname = try await fetchAndStoreCurrentUser()
         return .existingUser(nickname: nickname)
     }
