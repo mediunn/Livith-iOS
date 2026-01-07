@@ -141,11 +141,13 @@ private extension LivithCard {
 
     var titleText: some View {
         Text(title)
-            .lineLimit(titleLineLimit ?? (hasSecondaryText ? 2 : nil))
+            .lineLimit(titleLineLimit ?? 2)
             .truncationMode(.tail)
+            .multilineTextAlignment(.leading)
             .notosans(.body2Medium)
             .foregroundStyle(Color.livithColor(.white100))
             .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     func subtitleText(_ text: String) -> some View {

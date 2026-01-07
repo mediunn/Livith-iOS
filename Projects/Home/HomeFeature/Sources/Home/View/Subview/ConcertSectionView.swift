@@ -22,7 +22,7 @@ struct ConcertSectionView: View {
                 .foregroundStyle(Color.livithColor(.white100))
             
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
                     ForEach(concertSection.concertList) { concert in
                         LivithCard(
                             imageURL: concert.posterURL,
