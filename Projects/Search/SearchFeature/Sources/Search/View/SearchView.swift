@@ -219,17 +219,17 @@ private extension SearchView {
                 title: concert.title,
                 subtitle: concert.startDate,
                 secondaryText: concert.artist,
-                badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft)
+                badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+                onTap: {
+                    hideKeyboard()
+                    coordinator?.showConcertDetail(concertID: concert.id)
+                }
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onAppear {
                 if concert.id == store.state.searchedConcertList.last?.id {
                     store.send(.loadNextPage)
                 }
-            }
-            .onTapGesture {
-                hideKeyboard()
-                coordinator?.showConcertDetail(concertID: concert.id)
             }
         }
     }

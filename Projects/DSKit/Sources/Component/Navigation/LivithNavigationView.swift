@@ -18,7 +18,7 @@ public enum LivithNavigationViewType {
     var height: CGFloat {
         switch self {
         case .logo: return 60
-        case .back, .backOnly: return 56
+        case .back, .backOnly: return 68
         }
     }
 }

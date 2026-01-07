@@ -67,11 +67,11 @@ public struct LivithToggleButton: View {
                 .notosans(.body4Semibold)
                 .foregroundStyle(textColor)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.vertical, 5)
                 .background(backgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 50)
                         .stroke(Color.livithColor(.black80), lineWidth: isOn ? 0 : 1)
                 )
         }

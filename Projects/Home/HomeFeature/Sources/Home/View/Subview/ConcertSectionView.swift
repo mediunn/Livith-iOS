@@ -29,11 +29,9 @@ struct ConcertSectionView: View {
                             title: concert.title,
                             subtitle: concert.startDate,
                             secondaryText: concert.artist,
-                            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft)
+                            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+                            onTap: { onConcertTap(concert) }
                         )
-                        .onTapGesture {
-                            onConcertTap(concert)
-                        }
                     }
                 }
                 .padding(.trailing, 16)
