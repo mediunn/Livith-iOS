@@ -27,19 +27,18 @@ struct MerchandiseDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ConcertNavigationBar(
-                title: "MD 상세",
-                onBack: onDismiss
+            LivithNavigationView(
+                type: .back(title: "MD 상세", onBack: onDismiss)
             )
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(merchandiseList) { merchandise in
-                        ThumbnailCard(
+                        LivithCard(
                             imageURL: merchandise.imageURL.flatMap { URL(string: $0) },
                             title: merchandise.name,
                             subtitle: merchandise.price,
-                            flexible: true
+                            isFlexible: true
                         )
                     }
                 }

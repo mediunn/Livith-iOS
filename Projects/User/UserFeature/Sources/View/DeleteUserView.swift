@@ -16,7 +16,7 @@ struct DeleteUserView: View {
 
     @State private var keyboardHeight: CGFloat = 0
     @State private var isConfirmed: Bool = false
-    @FocusState private var isTextFieldFocused: Bool
+    @State private var isTextFieldFocused: Bool = false
     @State private var showConfirmSheet: Bool = false
     @State private var showErrorToast: Bool = false
     @State private var errorMessage: String = ""
@@ -152,16 +152,9 @@ private extension DeleteUserView {
     }
     
     var navigationBar: some View {
-        HStack {
-            Button {
-                onDismiss?()
-            } label: {
-                Image.livithIcon(.backLineDefault)
-                    .foregroundColor(.livithColor(.white100))
-            }
-
-            Spacer()
-        }
+        LivithNavigationView(
+            type: .backOnly(onBack: { onDismiss?() })
+        )
     }
 
     var titleSection: some View {
@@ -224,65 +217,22 @@ private extension DeleteUserView {
     }
 
     var otherReasonTextField: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ZStack(alignment: .topLeading) {
-                if store.state.otherReasonText.isEmpty {
-                    Text(Literals.textFieldPlaceholder)
-                        .notosans(.body3Medium)
-                        .foregroundStyle(Color.livithColor(.black50))
-                        .padding(.top, 8)
-                        .padding(.leading, 4)
-                }
-
-                TextEditor(text: Binding(
-                    get: { store.state.otherReasonText },
-                    set: { store.send(.updateOtherReasonText($0)) }
-                ))
-                .scrollContentBackground(.hidden)
-                .foregroundStyle(Color.livithColor(.white100))
-                .notosans(.body4Medium)
-                .focused($isTextFieldFocused)
-            }
-            .padding(12)
-            .frame(height: 206)
-            .background(Color.livithColor(.black80))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.livithColor(.black50), lineWidth: isTextFieldFocused ? 1 : 0)
-            )
-
-            Text("\(store.otherReasonTextCount)/200")
-                .notosans(.caption1Regular)
-                .foregroundStyle(Color.livithColor(.black50))
-                .padding(.trailing, 16)
-                .padding(.bottom, 12)
-        }
+        LivithTextView(
+            text: Binding(
+                get: { store.state.otherReasonText },
+                set: { store.send(.updateOtherReasonText($0)) }
+            ),
+            isFocused: $isTextFieldFocused,
+            type: .basic(maxLength: 200),
+            placeholder: Literals.textFieldPlaceholder,
+            height: 206
+        )
     }
 
     var confirmButton: some View {
-        Button {
+        LivithButton(Literals.confirmButtonText, variant: .primary, size: .large) {
             isTextFieldFocused = false
             showConfirmSheet = true
-        } label: {
-            HStack(spacing: 8) {
-                Text(Literals.confirmButtonText)
-                    .notosans(.body2Medium)
-                    .foregroundStyle(
-                        store.isConfirmButtonEnabled
-                            ? Color.livithColor(.black100)
-                            : Color.livithColor(.black30)
-                    )
-            }
-            .animation(.easeInOut(duration: 0.2), value: store.state.selectedReasons)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(
-                store.isConfirmButtonEnabled
-                    ? Color.livithColor(.yellow30)
-                    : Color.livithColor(.black50)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .disabled(!store.isConfirmButtonEnabled || store.state.isLoading)
     }

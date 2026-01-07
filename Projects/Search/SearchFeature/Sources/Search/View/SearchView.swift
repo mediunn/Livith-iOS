@@ -62,9 +62,8 @@ struct SearchView: View {
         }
         .overlay {
             if showError {
-                ErrorSheetView(
-                    title: "오류가 발생했어요!",
-                    message: store.state.errorMessage
+                LivithModal(
+                    type: .error(title: "오류가 발생했어요!", message: store.state.errorMessage)
                 )
             }
         }
@@ -78,54 +77,57 @@ struct SearchView: View {
 // MARK: - UIComponents
 
 private extension SearchView {
-    var genreFilterType: FilterButtonType {
-        if store.state.selectedGenreList.isEmpty {
-            return .normal
-        } else {
-            let genreNames = store.state.selectedGenreList.map { $0.genreText }
-            
-            return .selected(text: setButtonText(input: genreNames))
-        }
+    var genreSelectedText: String? {
+        guard !store.state.selectedGenreList.isEmpty else { return nil }
+        let genreNames = store.state.selectedGenreList.map { $0.genreText }
+        return setButtonText(input: genreNames)
     }
 
-    var statusFilterType: FilterButtonType {
-        if store.state.selectedStatusList.isEmpty {
-            return .normal
-        } else {
-            let statusNames = store.state.selectedStatusList.map { $0.filterText }
-            
-            return .selected(text: setButtonText(input: statusNames))
-        }
+    var statusSelectedText: String? {
+        guard !store.state.selectedStatusList.isEmpty else { return nil }
+        let statusNames = store.state.selectedStatusList.map { $0.filterText }
+        return setButtonText(input: statusNames)
     }
 
     var searchBarView: some View {
-        SearchBarView(
-            input: Binding(
-                get: { store.state.searchMessage },
-                set: { store.send(.updateSearchMessage($0)) }
-            ),
-            onBack: {
+        HStack(alignment: .center) {
+            Button {
                 coordinator?.pop()
-            },
-            onChange: {
-                if isCompleteKorean() { performSearch() }
-            },
-            onClear: {
-                store.send(.clearButtonTapped)
-            },
-            onSubmit:  {
-                performSearch()
-                hideKeyboard()
+            } label: {
+                Image.livithIcon(.backLineDefault)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 38, height: 38)
             }
-        )
-        .foregroundStyle(Color.livithColor(.black100))
+
+            LivithTextField(
+                text: Binding(
+                    get: { store.state.searchMessage },
+                    set: { store.send(.updateSearchMessage($0)) }
+                ),
+                type: .search,
+                placeholder: "찾고 있는 콘서트나 가수를 검색하세요",
+                onSubmit: {
+                    performSearch()
+                    hideKeyboard()
+                },
+                onChange: {
+                    if isCompleteKorean() { performSearch() }
+                },
+                onClear: {
+                    store.send(.clearButtonTapped)
+                }
+            )
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
     }
 
     var filterView: some View {
         HStack(alignment: .center, spacing: 0) {
-            FilterButton(
+            LivithFilterButton(
                 style: .genre,
-                type: genreFilterType,
+                selectedText: genreSelectedText,
                 action: { showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: [], status: store.state.selectedStatusList))
@@ -133,18 +135,18 @@ private extension SearchView {
             )
             .padding(.leading, 16)
 
-            FilterButton(
+            LivithFilterButton(
                 style: .status,
-                type: statusFilterType,
+                selectedText: statusSelectedText,
                 action: { showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: []))
                 }
             )
             .padding(.leading, 8)
-            
+
             Spacer()
-            
+
             sortButton
                 .padding(.trailing, 16)
         }
@@ -175,24 +177,16 @@ private extension SearchView {
     
     var sortView: some View {
         VStack(alignment: .center, spacing: 0) {
-            SortOptionButton(
-                title: "최신순",
-                isSelected: store.state.sortState == .latest,
-                action: {
-                    store.send(.sortStateChanged(.latest))
-                    showSort = false
-                }
-            )
+            LivithOptionButton("최신순", isSelected: store.state.sortState == .latest) {
+                store.send(.sortStateChanged(.latest))
+                showSort = false
+            }
             .padding(.bottom, 8)
 
-            SortOptionButton(
-                title: "가나다순",
-                isSelected: store.state.sortState == .alphabetical,
-                action: {
-                    store.send(.sortStateChanged(.alphabetical))
-                    showSort = false
-                }
-            )
+            LivithOptionButton("가나다순", isSelected: store.state.sortState == .alphabetical) {
+                store.send(.sortStateChanged(.alphabetical))
+                showSort = false
+            }
         }
         .fixedSize()
         .padding(.horizontal, 14)
@@ -219,22 +213,21 @@ private extension SearchView {
     
     var searchResultCell: some View {
         ForEach(store.state.searchedConcertList, id: \.id) { concert in
-            ConcertDetailCard(
-                posterURL: concert.posterURL,
+            LivithCard(
+                imageURL: concert.posterURL,
                 title: concert.title,
-                date: concert.startDate,
-                artist: concert.artist,
-                status: concert.status.statusChipText,
-                remainDays: concert.daysLeft,
-                onTap: {
-                    coordinator?.showConcertDetail(concertID: concert.id)
-                }
+                subtitle: concert.startDate,
+                secondaryText: concert.artist,
+                badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft)
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onAppear {
                 if concert.id == store.state.searchedConcertList.last?.id {
                     store.send(.loadNextPage)
                 }
+            }
+            .onTapGesture {
+                coordinator?.showConcertDetail(concertID: concert.id)
             }
         }
     }

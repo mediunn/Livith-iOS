@@ -51,23 +51,22 @@ private extension ConcertGridView {
     }
     
     func concertCard(for concert: Concert) -> some View {
-        ConcertDetailCard(
-            posterURL: concert.posterURL,
+        LivithCard(
+            imageURL: concert.posterURL,
             title: concert.title,
-            date: concert.startDate,
-            artist: concert.artist,
-            status: concert.status.statusChipText,
-            remainDays: concert.daysLeft,
-            isSelected: selectedID == concert.id,
-            onTap: {
-                onConcertTap(concert.id)
-            }
+            subtitle: concert.startDate,
+            secondaryText: concert.artist,
+            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+            isSelected: selectedID == concert.id
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
         .onAppear {
             if concert.id == concerts.last?.id, !isLoadingMore {
                 onLoadMore()
             }
+        }
+        .onTapGesture {
+            onConcertTap(concert.id)
         }
     }
 }

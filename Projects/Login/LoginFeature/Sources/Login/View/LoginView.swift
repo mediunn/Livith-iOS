@@ -81,23 +81,13 @@ private extension LoginView {
         VStack(spacing: 20) {
             CalloutChipView(text: store.state.calloutMessage.text, targetText: store.state.calloutMessage.targetText)
                 .frame(width: 272, height: 36)
-            
+
             VStack(spacing: 12) {
-                LoginButton(
-                    title: Literals.kakaoLoginTitle,
-                    backgroundColor: Color(hex: "#fce64a"),
-                    textColor: Color(hex: "#14171b"),
-                    icon: Image.livithIcon(.kakao)
-                ) {
+                LivithLoginButton(provider: .kakao) {
                     store.send(.kakaoLogin)
                 }
-                
-                LoginButton(
-                    title: Literals.appleLoginTitle,
-                    backgroundColor: Color(hex: "#222831"),
-                    textColor: Color(hex: "#f2f4f6"),
-                    icon: Image.livithIcon(.apple)
-                ) {
+
+                LivithLoginButton(provider: .apple) {
                     store.send(.appleLogin)
                 }
             }
@@ -108,16 +98,6 @@ private extension LoginView {
     }
 }
 
-// MARK: - Literals
-
-private extension LoginView {
-    enum Literals {
-        static let kakaoLoginTitle = "카카오로 계속하기"
-        static let appleLoginTitle = "Apple로 계속하기"
-        static let errorAlertTitle = "알림"
-        static let confirmButtonTitle = "확인"
-    }
-}
 
 #Preview {
     LoginView()

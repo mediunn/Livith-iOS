@@ -27,7 +27,7 @@ struct SetlistHeaderView: View {
         ZStack(alignment: .bottomLeading) {
             posterImage
 
-            BackgroundGradient(
+            BackgroundGradientView(
                 baseColor: .livithColor(.black100),
                 transparentOpacity: 0,
                 startPoint: .bottom,
@@ -55,7 +55,7 @@ private extension SetlistHeaderView {
     var concertInfoOverlay: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let badgeText = setlist.type.badgeText {
-                TagChipView(text: badgeText)
+                LivithChip(badgeText, style: .tag)
             }
 
             Text(setlist.title)

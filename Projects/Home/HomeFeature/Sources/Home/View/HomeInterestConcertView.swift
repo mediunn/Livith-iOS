@@ -16,7 +16,7 @@ struct HomeInterestConcertView: View {
     @ObservedObject private var store: HomeStore
     @Binding private var isTabBarHidden: Bool
 
-    @State private var selectedTab: InterestConcertTab = .schedule
+    @State private var selectedTab: SegmentedTabBarType.HomeTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
@@ -44,7 +44,7 @@ struct HomeInterestConcertView: View {
 private extension HomeInterestConcertView {
     var mainContent: some View {
         VStack(spacing: .zero) {
-            LivithLogoHeaderView()
+            LivithNavigationView(type: .logo)
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: .zero) {
@@ -59,11 +59,10 @@ private extension HomeInterestConcertView {
                         onMoreInfoTap: handleMoreInfoTap
                     )
                     
-                    SegmentTabBar(
-                        segmentTitles: InterestConcertTab.allCases.map { $0.title },
-                        selectedIndex: selectedTab.rawValue,
-                        onTabSelected: updateSelectedTab(from:)
-                    )
+                    SegmentedTabBar(type: .home(
+                        selectedTab: selectedTab,
+                        onTabSelected: { selectedTab = $0 }
+                    ))
                     
                     Group {
                         if selectedTab == .schedule {
@@ -123,11 +122,11 @@ private extension HomeInterestConcertView {
     var deleteDialog: some View {
         Group {
             if showDeleteDialog {
-                LivithConfirmDialog(
+                LivithDangerModal(
                     message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
                     confirmTitle: "지금은 삭제할래요",
                     cancelTitle: "잘못 눌렀어요",
-                    onConfirm: handleDeleteConfirm,
+                    type: .confirm(onConfirm: handleDeleteConfirm),
                     onCancel: {
                         showDeleteDialog = false
                         isTabBarHidden = false
@@ -200,13 +199,7 @@ private extension HomeInterestConcertView {
     func handleDeleteConfirm() {
         showDeleteDialog = false
         isTabBarHidden = false
-        
+
         store.send(.onDelete)
-    }
-    
-    func updateSelectedTab(from index: Int) {
-        if let tab = InterestConcertTab(rawValue: index) {
-            selectedTab = tab
-        }
     }
 }

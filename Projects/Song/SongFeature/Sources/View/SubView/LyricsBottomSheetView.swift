@@ -66,21 +66,17 @@ struct LyricsBottomSheetView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: currentPosition == .bottom ? 0 : 20) {
-            handleBar
-
+        LivithBottomSheet(
+            handleStyle: .dark,
+            handleWidth: 76,
+            cornerRadius: 30
+        ) {
             if currentPosition != .bottom {
                 lyricsContentSection
+                    .padding(.top, 20)
             }
         }
         .frame(height: sheetHeight, alignment: .top)
-        .background(Color.livithColor(.black90))
-        .clipShape(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 30,
-                topTrailingRadius: 30
-            )
-        )
         .offset(y: sheetOffset)
         .gesture(dragGesture)
         .animation(isAppeared ? .spring(response: 0.4, dampingFraction: 0.8) : .none, value: currentPosition)
@@ -95,16 +91,6 @@ struct LyricsBottomSheetView: View {
 // MARK: - Subviews
 
 private extension LyricsBottomSheetView {
-    var handleBar: some View {
-        VStack(spacing: 0) {
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.livithColor(.black80))
-                .frame(width: 76, height: 6)
-                .padding(.vertical, 10)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
     var lyricsContentSection: some View {
         LyricsContentView(store: store)
             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -31,7 +31,8 @@ let project = Project.make(
                 .dsKit(),
                 .core(.diContainer),
                 .core(.livithConcurrency),
-                .core(.livithNetwork)
+                .core(.livithNetwork),
+                .core(.persistence)
             ]
         )
     ]

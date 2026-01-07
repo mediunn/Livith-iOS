@@ -26,7 +26,7 @@ struct InteresetConcertCompleteView: View {
             .background(.livithColor(.black100))
             .onAppear {
                 isRotating = true
-                
+
                 if !reduceMotion {
                     isScaled = true
                 }
@@ -38,7 +38,7 @@ private extension InteresetConcertCompleteView {
     var contentView: some View {
         VStack(spacing: .zero) {
             centerContentView
-            
+
             confirmButton
                 .padding(.horizontal, 16)
         }
@@ -61,7 +61,7 @@ private extension InteresetConcertCompleteView {
     }
     
     var posterImageView: some View {
-        NotchedConcertPosterImage(url: concertPosterURL, image: prefetchedImage)
+        NotchedConcertPosterImageView(url: concertPosterURL, image: prefetchedImage)
             .frame(width: 132, height: 176)
             .scaleEffect(isScaled ? 1.0 : 1.3)
             .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isScaled)
@@ -79,12 +79,9 @@ private extension InteresetConcertCompleteView {
     }
     
     var confirmButton: some View {
-        Button {
+        LivithButton("확인", variant: .primary) {
             coordinator?.popToRoot()
-        } label: {
-            Text("확인")
         }
-        .buttonStyle(.livithPrimary)
     }
     
     var backgroundImageView: some View {
