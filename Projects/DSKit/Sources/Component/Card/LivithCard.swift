@@ -96,7 +96,7 @@ public struct LivithCard: View {
             }
         }
         .animation(.easeInOut(duration: 0.1), value: isPressed)
-        .gesture(
+        .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .updating($isPressed) { _, state, _ in
                     state = true
@@ -109,7 +109,8 @@ public struct LivithCard: View {
 
 private extension LivithCard {
     var hasSecondaryText: Bool {
-        secondaryText != nil && !secondaryText!.isEmpty
+        guard let secondaryText else { return false }
+        return !secondaryText.isEmpty
     }
 }
 
@@ -151,7 +152,7 @@ private extension LivithCard {
     func subtitleText(_ text: String) -> some View {
         Text(text)
             .lineLimit(1)
-            .notosans(hasSecondaryText ? .caption1Semibold : .caption1Semibold)
+            .notosans(.caption1Semibold)
             .foregroundStyle(Color.livithColor(.black50))
     }
 

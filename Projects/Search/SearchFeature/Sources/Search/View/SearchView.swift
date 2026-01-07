@@ -321,10 +321,11 @@ private extension SearchView {
     }
 
     func setButtonText(input: [String]) -> String {
+        guard let first = input.first else { return "" }
         if input.count > 1 {
-            return input[0] + ", ..."
+            return first + ", ..."
         } else {
-            return input[0]
+            return first
         }
     }
 }

@@ -72,7 +72,8 @@ public final class ConcertCoordinator: Coordinator {
         case .merchandiseDetail(let merchandiseList, let ticketingOfficeURL):
             let view = MerchandiseDetailView(
                 merchandiseList: merchandiseList,
-                ticketingOfficeURL: ticketingOfficeURL
+                ticketingOfficeURL: ticketingOfficeURL,
+                onDismiss: { [weak self] in self?.pop() }
             )
             .environment(\.concertCoordinator, self)
 
