@@ -1,5 +1,5 @@
 //
-//  SocialAuthProvider.swift
+//  SocialAuthVendor.swift
 //  SocialAuth
 //
 //  Created by 김진웅 on 1/7/26.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum SocialAuthProvider {
+public enum SocialAuthVendor {
     case kakao
     case apple
 }

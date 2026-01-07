@@ -64,7 +64,7 @@ private extension KakaoAuthenticator {
     
     func createCredential(from token: OAuthToken) -> SocialAuthCredential {
         return SocialAuthCredential(
-            provider: .kakao,
+            vendor: .kakao,
             token: token.accessToken,
             userID: nil
         )

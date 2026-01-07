@@ -64,8 +64,7 @@ extension LoginRepositoryImpl: LoginRepository {
 
 private extension LoginRepositoryImpl {
     func getCredential(for provider: SocialLoginProvider) async throws(SocialAuthError) -> SocialAuthCredential {
-        let socialAuthProvider = convertToSocialAuthProvider(provider)
-        return try await socialAuthService.signIn(with: socialAuthProvider)
+        return try await socialAuthService.signIn(with: provider.authVendor)
     }
     
     func performBackendLogin(with credential: SocialAuthCredential, for provider: SocialLoginProvider) async throws -> LoginStatus {
@@ -132,14 +131,5 @@ private extension LoginRepositoryImpl {
         try? localStorage.save(provider.description, for: LocalStorageKeys.lastLoginPlatform)
         let nickname = try await fetchAndStoreCurrentUser()
         return .existingUser(nickname: nickname)
-    }
-    
-    func convertToSocialAuthProvider(_ provider: SocialLoginProvider) -> SocialAuthProvider {
-        switch provider {
-        case .apple:
-            return .apple
-        case .kakao:
-            return .kakao
-        }
     }
 }

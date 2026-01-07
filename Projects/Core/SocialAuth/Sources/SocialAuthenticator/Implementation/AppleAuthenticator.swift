@@ -114,7 +114,7 @@ private extension AppleAuthenticator {
         }
         
         return SocialAuthCredential(
-            provider: .apple,
+            vendor: .apple,
             token: tokenString,
             userID: appleIDCredential.email
         )
