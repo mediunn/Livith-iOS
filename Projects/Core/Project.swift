@@ -16,10 +16,6 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.performanceMonitor),
-            product: .framework
-        ),
-        .make(
             target: .core(.livithNetwork),
             product: .framework,
             infoPlist: .file(path: "LivithNetwork/Resources/Network-Info.plist"),
@@ -33,15 +29,11 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.livithConcurrency),
-            product: .framework
-        ),
-        .make(
             target: .core(.livithFoundation),
             product: .framework
         ),
         .make(
-            target: .core(.auth),
+            target: .core(.socialAuth),
             product: .framework,
             dependencies: [
                 .external(.kakaoSDKAuth),

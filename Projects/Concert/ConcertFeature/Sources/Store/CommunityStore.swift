@@ -11,7 +11,7 @@ import Foundation
 import ConcertDomain
 
 import DIContainer
-import LivithConcurrency
+import LivithFoundation
 
 public struct CommunityState {
     public var concertID: Int = 0

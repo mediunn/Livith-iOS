@@ -28,7 +28,7 @@ let project = Project.make(
                 .song(.songDomain),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency),
+                .core(.livithFoundation),
                 .external(.youTubePlayerKit)
             ]
         )

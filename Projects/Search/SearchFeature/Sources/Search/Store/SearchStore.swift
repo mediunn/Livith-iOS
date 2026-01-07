@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithConcurrency
+import LivithFoundation
 import DIContainer
 import SearchDomain
 

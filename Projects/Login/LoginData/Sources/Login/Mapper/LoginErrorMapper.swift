@@ -8,7 +8,7 @@
 
 import Foundation
 
-import Auth
+import SocialAuth
 import LivithNetwork
 import LoginDomain
 
@@ -17,7 +17,7 @@ struct LoginErrorMapper {
         if let loginError = error as? LoginError {
             return loginError
         }
-        if let authError = error as? AuthError {
+        if let authError = error as? SocialAuthError {
             return mapToDomainError(authError)
         }
         if let networkError = error as? NetworkError {
@@ -27,22 +27,31 @@ struct LoginErrorMapper {
         return .unknown
     }
 
-    private func mapToDomainError(_ error: AuthError) -> LoginError {
+    private func mapToDomainError(_ error: SocialAuthError) -> LoginError {
         switch error {
-        case .canceled: .canceled
-        case .networkError: .noConnection
-        case .missingToken, .unknown: .unknown
+        case .canceled:
+            return .canceled
+        case .networkError:
+            return .noConnection
+        case .missingToken, .unknown:
+            return .unknown
         }
     }
     
     private func mapToDomainError(_ error: NetworkError) -> LoginError {
         switch error {
-        case .noConnection: .noConnection
-        case .forbidden: .forbidden
-        case .notFound: .notFound
-        case .serverError: .serverError
-        case .noData: .noData
-        default: .unknown
+        case .noConnection:
+            return .noConnection
+        case .forbidden:
+            return .forbidden
+        case .notFound:
+            return .notFound
+        case .serverError:
+            return .serverError
+        case .noData:
+            return .noData
+        default:
+            return .unknown
         }
     }
 }
