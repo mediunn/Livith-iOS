@@ -38,9 +38,7 @@ struct DeleteUserView: View {
         ZStack {
             VStack(alignment: .leading, spacing: 0) {
                 navigationBar
-                    .padding(.top, 20)
-                    .padding(.horizontal, 16)
-                
+
                 titleSection
                     .padding(.top, 30)
                     .padding(.horizontal, 16)
