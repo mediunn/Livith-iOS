@@ -32,7 +32,6 @@ let project = Project.make(
                 .concert(.concertFeature),
                 .dsKit(),
                 .core(.diContainer),
-                .core(.livithConcurrency),
                 .core(.livithFoundation)
             ]
         )

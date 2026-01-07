@@ -29,10 +29,6 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.livithConcurrency),
-            product: .framework
-        ),
-        .make(
             target: .core(.livithFoundation),
             product: .framework
         ),

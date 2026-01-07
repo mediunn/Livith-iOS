@@ -11,7 +11,7 @@ import Foundation
 import ConcertDomain
 import DIContainer
 import DSKit
-import LivithConcurrency
+import LivithFoundation
 
 public typealias ConcertTab = SegmentedTabBarType.DetailTab
 

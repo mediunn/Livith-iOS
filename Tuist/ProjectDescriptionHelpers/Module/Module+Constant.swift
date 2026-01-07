@@ -13,7 +13,6 @@ public enum CoreModule: String {
     case diContainer = "DIContainer"
     case persistence = "Persistence"
     case livithNetwork = "LivithNetwork"
-    case livithConcurrency = "LivithConcurrency"
     case livithFoundation = "LivithFoundation"
     case socialAuth = "SocialAuth"
 }

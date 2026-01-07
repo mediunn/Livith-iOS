@@ -9,7 +9,7 @@
 import Foundation
 
 import DIContainer
-import LivithConcurrency
+import LivithFoundation
 import SetlistDomain
 
 public struct SetlistState {
