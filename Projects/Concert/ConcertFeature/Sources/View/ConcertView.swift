@@ -23,6 +23,8 @@ public struct ConcertView: View {
     @ObservedObject private var store: ConcertStore
     @StateObject private var communityStore: CommunityStore = CommunityStore()
     @State private var showInterestConfirmDialog: Bool = false
+    @State private var isExceedingLineLimit: Bool = false
+    @State private var isExceedingCharacterLimit: Bool = false
 
     // MARK: - Initializer
 
@@ -42,18 +44,6 @@ public struct ConcertView: View {
         !store.state.isLoading && store.state.concert == nil
     }
 
-    private var communityToastType: LivithToastType {
-        if case .failure = communityStore.state.toastState { return .failure }
-        return .success
-    }
-
-    private var communityToastMessage: String {
-        switch communityStore.state.toastState {
-        case .success(let msg), .failure(let msg): return msg
-        case .none: return ""
-        }
-    }
-
     public var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(
@@ -61,164 +51,41 @@ public struct ConcertView: View {
             )
 
             if showEmptyView {
-                LivithEmptyView(text: "콘서트 정보가 없어요")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                emptyContentView
             } else {
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                            headerSection
-                                .id("top")
-
-                            Section {
-                                tabContentView
-                            } header: {
-                                segmentTabBar
-                            }
-                        }
-                        .opacity(store.state.concert != nil ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
-                    }
-                    .scrollDismissesKeyboard(.interactively)
-                    .onChange(of: store.state.selectedTab) {
-                        withAnimation {
-                            proxy.scrollTo("top", anchor: .top)
-                        }
-                    }
-                    .onChange(of: communityStore.state.toastState) { _, newValue in
-                        if case .success(let message) = newValue, message.contains("작성") {
-                            withAnimation {
-                                proxy.scrollTo("top", anchor: .top)
-                            }
-                        }
-                    }
-                }
-
-                if store.state.selectedTab == .community {
-                    CommentInputView(
-                        text: Binding(
-                            get: { communityStore.state.commentText },
-                            set: { communityStore.send(.updateCommentText($0)) }
-                        ),
-                        isSubmitting: communityStore.state.isSubmitting,
-                        onSubmit: {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            communityStore.send(.submitComment)
-                        }
-                    )
-                }
+                scrollContent
+                commentInputSection
             }
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
         .livithToast(
             isPresented: Binding(
-                get: {
-                    if case .failure = store.state.interestStatus { return true }
-                    return false
-                },
-                set: { _ in store.send(.onToastDisappear) }
+                get: { toastInfo != nil },
+                set: { if !$0 { dismissCurrentToast() } }
             ),
-            type: .failure,
-            message: store.state.interestStatus.message,
+            type: toastInfo?.type ?? .failure,
+            message: toastInfo?.message ?? "",
             topPadding: 16
         )
         .livithToast(
-            isPresented: Binding(
-                get: {
-                    if case .success = store.state.interestStatus { return true }
-                    return false
-                },
-                set: { _ in store.send(.onToastDisappear) }
-            ),
-            type: .success,
-            message: store.state.interestStatus.message,
+            isPresented: $isExceedingLineLimit,
+            type: .failure,
+            message: "댓글은 15줄을 초과할 수 없어요",
+            duration: nil,
             topPadding: 16
         )
         .livithToast(
-            isPresented: Binding(
-                get: { store.state.fetchError != nil },
-                set: { _ in store.send(.onFetchErrorDismiss) }
-            ),
+            isPresented: $isExceedingCharacterLimit,
             type: .failure,
-            message: store.state.fetchError ?? "",
+            message: "댓글은 400자를 초과할 수 없어요",
+            duration: nil,
             topPadding: 16
         )
-        .overlay {
-            if showInterestConfirmDialog {
-                LivithDangerModal(
-                    message: "관심 콘서트를 변경하시겠어요?",
-                    confirmTitle: "변경할래요",
-                    cancelTitle: "취소할래요",
-                    type: .confirm(onConfirm: {
-                        showInterestConfirmDialog = false
-                        store.send(.interestButtonTapped)
-                    }),
-                    onCancel: {
-                        showInterestConfirmDialog = false
-                    }
-                )
-                .transition(.opacity)
-            }
-        }
+        .overlay { interestConfirmDialogOverlay }
         .animation(.easeInOut(duration: 0.3), value: showInterestConfirmDialog)
-        .overlay {
-            switch communityStore.state.dialogState {
-            case .delete:
-                LivithDangerModal(
-                    message: "댓글을 삭제하시겠어요?",
-                    confirmTitle: "지금은 삭제할래요",
-                    cancelTitle: "잘못 눌렀어요",
-                    type: .confirm(onConfirm: {
-                        communityStore.send(.confirmDelete)
-                    }),
-                    onCancel: {
-                        communityStore.send(.dismissDialog)
-                    }
-                )
-                .transition(.opacity)
-            case .report:
-                LivithDangerModal(
-                    message: "댓글을 신고하시겠어요?",
-                    confirmTitle: "신고할래요",
-                    cancelTitle: "잘못 눌렀어요",
-                    type: .report(onConfirm: { content in
-                        communityStore.send(.confirmReport(content: content))
-                    }),
-                    onCancel: {
-                        communityStore.send(.dismissDialog)
-                    }
-                )
-                .transition(.opacity)
-            case .none:
-                EmptyView()
-            }
-        }
+        .overlay { communityDialogOverlay }
         .animation(.easeInOut(duration: 0.3), value: communityStore.state.dialogState)
-        .livithToast(
-            isPresented: Binding(
-                get: { communityStore.state.toastState != .none },
-                set: { if !$0 { communityStore.send(.dismissToast) } }
-            ),
-            type: communityToastType,
-            message: communityToastMessage,
-            topPadding: 16
-        )
-        .overlay {
-            if store.state.showTicketReturnBanner {
-                LivithSnackBar(
-                    message: "웹사이트를 보셨나요?\n관심 콘서트 설정하고 공연 알림을 받으세요",
-                    actionTitle: "콘서트 설정",
-                    onActionTapped: {
-                        store.send(.onTicketBannerDismiss)
-                        showInterestConfirmDialog = true
-                    },
-                    onDismiss: {
-                        store.send(.onTicketBannerDismiss)
-                    }
-                )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
+        .overlay { ticketReturnBannerOverlay }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
         .onAppear {
             store.send(.onAppear(concertID: concertID))
@@ -229,6 +96,144 @@ public struct ConcertView: View {
         }
         .onDisappear {
             coordinator?.onTicketSiteReturn = nil
+        }
+    }
+}
+
+// MARK: - Main Content
+
+private extension ConcertView {
+    var emptyContentView: some View {
+        LivithEmptyView(text: "콘서트 정보가 없어요")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    var scrollContent: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    headerSection
+                        .id("top")
+
+                    Section {
+                        tabContentView
+                    } header: {
+                        segmentTabBar
+                    }
+                }
+                .opacity(store.state.concert != nil ? 1 : 0)
+                .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+            .onChange(of: store.state.selectedTab) {
+                withAnimation {
+                    proxy.scrollTo("top", anchor: .top)
+                }
+            }
+            .onChange(of: communityStore.state.toastState) { _, newValue in
+                if case .success(let message) = newValue, message.contains("작성") {
+                    withAnimation {
+                        proxy.scrollTo("top", anchor: .top)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    var commentInputSection: some View {
+        if store.state.selectedTab == .community {
+            CommentInputView(
+                text: Binding(
+                    get: { communityStore.state.commentText },
+                    set: { communityStore.send(.updateCommentText($0)) }
+                ),
+                isExceedingLineLimit: $isExceedingLineLimit,
+                isExceedingCharacterLimit: $isExceedingCharacterLimit,
+                isSubmitting: communityStore.state.isSubmitting,
+                onSubmit: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    communityStore.send(.submitComment)
+                }
+            )
+        }
+    }
+}
+
+// MARK: - Dialog Overlays
+
+private extension ConcertView {
+    @ViewBuilder
+    var interestConfirmDialogOverlay: some View {
+        if showInterestConfirmDialog {
+            LivithDangerModal(
+                message: "관심 콘서트를 변경하시겠어요?",
+                confirmTitle: "변경할래요",
+                cancelTitle: "취소할래요",
+                type: .confirm(onConfirm: {
+                    showInterestConfirmDialog = false
+                    store.send(.interestButtonTapped)
+                }),
+                onCancel: {
+                    showInterestConfirmDialog = false
+                }
+            )
+            .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
+    var communityDialogOverlay: some View {
+        switch communityStore.state.dialogState {
+        case .delete:
+            LivithDangerModal(
+                message: "댓글을 삭제하시겠어요?",
+                confirmTitle: "지금은 삭제할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: {
+                    communityStore.send(.confirmDelete)
+                }),
+                onCancel: {
+                    communityStore.send(.dismissDialog)
+                }
+            )
+            .transition(.opacity)
+        case .report:
+            LivithDangerModal(
+                message: "댓글을 신고하시겠어요?",
+                confirmTitle: "신고할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .report(onConfirm: { content in
+                    communityStore.send(.confirmReport(content: content))
+                }),
+                onCancel: {
+                    communityStore.send(.dismissDialog)
+                }
+            )
+            .transition(.opacity)
+        case .none:
+            EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    var ticketReturnBannerOverlay: some View {
+        if store.state.showTicketReturnBanner {
+            LivithSnackBar(
+                message: "웹사이트를 보셨나요?\n관심 콘서트 설정하고 공연 알림을 받으세요",
+                actionTitle: "콘서트 설정",
+                onActionTapped: {
+                    store.send(.onTicketBannerDismiss)
+                    showInterestConfirmDialog = true
+                },
+                onDismiss: {
+                    store.send(.onTicketBannerDismiss)
+                }
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 }
@@ -383,7 +388,7 @@ private extension ConcertView {
     }
 
     var venueInfo: some View {
-        HStack(spacing: 4) {
+        HStack(alignment: .top, spacing: 4) {
             Image.livithIcon(.locationLine)
                 .resizable()
                 .frame(width: 24, height: 24)
@@ -391,6 +396,46 @@ private extension ConcertView {
             Text(store.state.concert?.venue ?? "")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
+        }
+    }
+}
+
+// MARK: - Toast
+
+private extension ConcertView {
+    var toastInfo: (isPresented: Bool, type: LivithToastType, message: String)? {
+        if let fetchError = store.state.fetchError {
+            return (true, .failure, fetchError)
+        }
+
+        switch store.state.interestStatus {
+        case .success(let msg):
+            return (true, .success, msg)
+        case .failure(let msg):
+            return (true, .failure, msg)
+        default:
+            break
+        }
+
+        switch communityStore.state.toastState {
+        case .success(let msg):
+            return (true, .success, msg)
+        case .failure(let msg):
+            return (true, .failure, msg)
+        case .none:
+            break
+        }
+
+        return nil
+    }
+
+    func dismissCurrentToast() {
+        if store.state.fetchError != nil {
+            store.send(.onFetchErrorDismiss)
+        } else if store.state.interestStatus != .idle && store.state.interestStatus != .inProgress {
+            store.send(.onToastDisappear)
+        } else if communityStore.state.toastState != .none {
+            communityStore.send(.dismissToast)
         }
     }
 }

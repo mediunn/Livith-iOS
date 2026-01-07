@@ -57,16 +57,14 @@ private extension ConcertGridView {
             subtitle: concert.startDate,
             secondaryText: concert.artist,
             badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
-            isSelected: selectedID == concert.id
+            isSelected: selectedID == concert.id,
+            onTap: { onConcertTap(concert.id) }
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
         .onAppear {
             if concert.id == concerts.last?.id, !isLoadingMore {
                 onLoadMore()
             }
-        }
-        .onTapGesture {
-            onConcertTap(concert.id)
         }
     }
 }

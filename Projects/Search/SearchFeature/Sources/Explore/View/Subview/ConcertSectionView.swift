@@ -22,18 +22,16 @@ struct ConcertSectionView: View {
                 .foregroundStyle(Color.livithColor(.white100))
                 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
                     ForEach(concertSection.concertList) { concert in
                         LivithCard(
                             imageURL: concert.posterURL,
                             title: concert.title,
                             subtitle: concert.startDate,
                             secondaryText: concert.artist,
-                            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft)
+                            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+                            onTap: { onConcertTap(concert) }
                         )
-                        .onTapGesture {
-                            onConcertTap(concert)
-                        }
                     }
                 }
                 .padding(.trailing, 16)

@@ -28,19 +28,33 @@ struct DeleteUserConfirmBottomSheet: View {
                 titleSection
                     .padding(.horizontal, 16)
                     .padding(.top, 30)
+                    .padding(.bottom, 16)
 
-                ScrollView {
-                    VStack(alignment: .leading) {
-                        noticeSection
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                ZStack(alignment: .top) {
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            noticeSection
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
 
-                        confirmCheckbox
-                            .padding(.horizontal, 45)
-                            .padding(.vertical, 20)
+                            confirmCheckbox
+                                .padding(.horizontal, 45)
+                                .padding(.vertical, 20)
+                        }
                     }
+                    .frame(height: 204)
+
+                    LinearGradient(
+                        colors: [
+                            Color.livithColor(.black90),
+                            Color.livithColor(.black90).opacity(0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 16)
+                    .allowsHitTesting(false)
                 }
-                .frame(height: 204)
 
                 actionButtons
                     .padding(.horizontal, 16)

@@ -24,8 +24,7 @@ struct InterestConcertSearchView: View {
             
             VStack(spacing: .zero) {
                 navigationBar
-                    .padding(.top, 20)
-                
+
                 searchTextField
                     .padding(.top, 12)
                     .padding(.horizontal, 16)

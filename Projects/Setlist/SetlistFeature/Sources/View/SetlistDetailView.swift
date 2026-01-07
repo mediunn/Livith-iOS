@@ -48,7 +48,7 @@ public struct SetlistDetailView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            navigationBar
+            LivithNavigationView(type: .back(title: store.state.setlist?.title ?? "", onBack: { dismiss() }))
 
             ZStack {
                 Color.livithColor(.black100)
@@ -80,29 +80,6 @@ public struct SetlistDetailView: View {
 // MARK: - Subviews
 
 private extension SetlistDetailView {
-    var navigationBar: some View {
-        HStack(spacing: 4) {
-            Button {
-                dismiss()
-            } label: {
-                Image.livithIcon(.backLineDefault)
-                    .resizable()
-                    .frame(width: 38, height: 38)
-            }
-
-            Text(store.state.setlist?.title ?? "")
-                .notosans(.body1Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .lineLimit(1)
-                .truncationMode(.tail)
-
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 66)
-        .background(Color.livithColor(.black100))
-    }
-
     var loadingView: some View {
         ProgressView()
             .progressViewStyle(.circular)

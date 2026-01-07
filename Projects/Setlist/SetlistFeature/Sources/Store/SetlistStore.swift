@@ -75,12 +75,14 @@ private extension SetlistStore {
     func fetchSetlistData(concertID: Int, setlistID: Int) {
         fetchTask?.cancel()
 
+        let repo = repository
+
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
 
             do {
-                async let setlistResult = repository.fetchSetlist(concertID: concertID, setlistID: setlistID)
-                async let songsResult = repository.fetchSetlistSongs(setlistID: setlistID)
+                async let setlistResult = repo.fetchSetlist(concertID: concertID, setlistID: setlistID)
+                async let songsResult = repo.fetchSetlistSongs(setlistID: setlistID)
 
                 let (setlist, songs) = try await (setlistResult, songsResult)
 

@@ -89,8 +89,10 @@ private extension NicknameUpdateStore {
     func checkNicknameDuplicate() {
         Task {
             do {
-                _ = try await repository.checkNicknameDuplicate(nickname: state.nickname)
-                await MainActor.run { send(._setNicknameValidationState(.available)) }
+                let isAvailable = try await repository.checkNicknameDuplicate(nickname: state.nickname)
+                await MainActor.run {
+                    send(._setNicknameValidationState(isAvailable ? .available : .duplicate))
+                }
             } catch {
                 await MainActor.run { send(._setNicknameValidationState(.duplicate)) }
             }

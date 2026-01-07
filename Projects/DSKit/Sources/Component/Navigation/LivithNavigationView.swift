@@ -18,7 +18,7 @@ public enum LivithNavigationViewType {
     var height: CGFloat {
         switch self {
         case .logo: return 60
-        case .back, .backOnly: return 56
+        case .back, .backOnly: return 66
         }
     }
 }
@@ -86,7 +86,7 @@ private extension LivithNavigationView {
 
             Spacer()
         }
-        .padding(.top, 20)
+        .padding(.top, 12)
     }
 
     func backOnlyContent(onBack: @escaping () -> Void) -> some View {
@@ -100,7 +100,7 @@ private extension LivithNavigationView {
 
             Spacer()
         }
-        .padding(.top, 20)
+        .padding(.top, 12)
     }
 }
 

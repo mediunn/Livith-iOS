@@ -75,6 +75,7 @@ public final class CommunityStore: ObservableObject {
         static let pageSize = 15
         static let loadingDelay: Duration = .milliseconds(500)
         static let fetchErrorMessage = "댓글을 불러오는 데 실패했어요"
+        static let networkErrorMessage = "네트워크 연결이 없습니다.\n연결 상태를 확인해주세요."
         static let submitSuccessMessage = "댓글이 작성되었어요"
         static let submitErrorMessage = "댓글 작성에 실패했어요"
         static let deleteSuccessMessage = "댓글이 삭제되었어요"
@@ -179,6 +180,11 @@ private extension CommunityStore {
 
                 send(._setComments(result.comments, totalCount: result.totalCount, cursor: result.cursor))
                 send(._setHasMorePages(result.cursor != nil))
+            } catch let error as ConcertError {
+                guard !Task.isCancelled else { return }
+                if error != .networkError {
+                    send(._setToast(.failure(Constants.fetchErrorMessage)))
+                }
             } catch {
                 guard !Task.isCancelled else { return }
                 send(._setToast(.failure(Constants.fetchErrorMessage)))
