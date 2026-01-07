@@ -14,7 +14,7 @@ public struct SocialAuthService {
 
     public init() {}
 
-    func signIn(with provider: SocialAuthProvider) async throws(SocialAuthError) -> SocialAuthCredential {
+    public func signIn(with provider: SocialAuthProvider) async throws(SocialAuthError) -> SocialAuthCredential {
         switch provider {
         case .apple:
             return try await appleAuthenticator.signIn()
