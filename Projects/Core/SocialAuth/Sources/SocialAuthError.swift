@@ -1,5 +1,5 @@
 //
-//  AuthError.swift
+//  SocialAuthError.swift
 //  SocialAuth
 //
 //  Created by 김진웅 on 12/3/25.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum AuthError: Error, LocalizedError {
+public enum SocialAuthError: Error, LocalizedError {
     case canceled
     case networkError
     case missingToken

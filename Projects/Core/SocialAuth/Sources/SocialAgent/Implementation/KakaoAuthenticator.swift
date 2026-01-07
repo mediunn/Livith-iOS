@@ -1,5 +1,5 @@
 //
-//  KakaoLoginService.swift
+//  KakaoAuthenticator.swift
 //  SocialAuth
 //
 //  Created by 김진웅 on 12/4/25.
@@ -12,19 +12,17 @@ import KakaoSDKAuth
 import KakaoSDKUser
 import KakaoSDKCommon
 
-public struct KakaoLoginService: AuthService, Sendable {
+struct KakaoAuthenticator: SocialAuthenticator, Sendable {
     typealias KakaoUserAPI = UserApi
     typealias KakaoLoginCompletion = (OAuthToken?, Error?) -> Void
     
-    public init() {}
-    
     @MainActor
-    public func login() async throws(AuthError) -> AuthCredential {
+    func signIn() async throws(SocialAuthError) -> SocialAuthCredential {
         do {
             return try await withCheckedThrowingContinuation { continuation in
                 self.performKakaoLogin(continuation: continuation)
             }
-        } catch let authError as AuthError {
+        } catch let authError as SocialAuthError {
             throw authError
         } catch {
             throw .unknown
@@ -34,9 +32,9 @@ public struct KakaoLoginService: AuthService, Sendable {
 
 // MARK: - Helpers
 
-private extension KakaoLoginService {
+private extension KakaoAuthenticator {
     @MainActor
-    func performKakaoLogin(continuation: CheckedContinuation<AuthCredential, Error>) {
+    func performKakaoLogin(continuation: CheckedContinuation<SocialAuthCredential, Error>) {
         let completion = self.handleLoginResult(continuation: continuation)
         
         if KakaoUserAPI.isKakaoTalkLoginAvailable() {
@@ -46,7 +44,7 @@ private extension KakaoLoginService {
         }
     }
     
-    func handleLoginResult(continuation: CheckedContinuation<AuthCredential, Error>) -> KakaoLoginCompletion {
+    func handleLoginResult(continuation: CheckedContinuation<SocialAuthCredential, Error>) -> KakaoLoginCompletion {
         return { token, error in
             if let error = error {
                 let authError = self.convertToAuthError(from: error)
@@ -55,7 +53,7 @@ private extension KakaoLoginService {
             }
             
             guard let oauthToken = token else {
-                continuation.resume(throwing: AuthError.missingToken)
+                continuation.resume(throwing: SocialAuthError.missingToken)
                 return
             }
             
@@ -64,15 +62,15 @@ private extension KakaoLoginService {
         }
     }
     
-    func createCredential(from token: OAuthToken) -> AuthCredential {
-        return AuthCredential(
+    func createCredential(from token: OAuthToken) -> SocialAuthCredential {
+        return SocialAuthCredential(
             provider: .kakao,
             token: token.accessToken,
             userID: nil
         )
     }
     
-    func convertToAuthError(from error: Error) -> AuthError {
+    func convertToAuthError(from error: Error) -> SocialAuthError {
         guard let sdkError = error as? SdkError else {
             return .unknown
         }
