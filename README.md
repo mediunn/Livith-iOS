@@ -1,5 +1,7 @@
 <img width="1920" height="399" alt="Image" src="https://github.com/user-attachments/assets/3f40e89b-cdcb-4cfa-8478-ecde627445b8" />
 
+<div align="center">
+  
 # Livith 라이빗
 
 ```swift
@@ -10,11 +12,8 @@ print("모두가 라이브를 통해 빛나는 순간! 라이빗 iOS 레포지�
 
 [<img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="40">](앱스토어_링크)
 
-</div>
 
 <br/>
-
-<div align="center">
 
 ## Team iOS
 
@@ -68,10 +67,10 @@ print("모두가 라이브를 통해 빛나는 순간! 라이빗 iOS 레포지�
 <br/>
 
 > [!IMPORTANT]
-> ➊ **DIContainer** - @Injected 프로퍼티 래퍼를 통한 의존성 주입 컨테이너
-> ➋ **LivithNetwork** - Alamofire 기반 네트워크 레이어. API 통신 및 에러 처리 담당
-> ➌ **LivithFoundation** - 공통 유틸리티 및 Extension. Task 확장 등 비동기 유틸리티 포함
-> ➍ **Auth** - KakaoSDK 기반 소셜 로그인 처리
+> ➊ **DIContainer** - @Injected 프로퍼티 래퍼를 통한 의존성 주입 컨테이너 <br/>
+> ➋ **LivithNetwork** - Alamofire 기반 네트워크 레이어. API 통신 및 에러 처리 담당 <br/>
+> ➌ **LivithFoundation** - 공통 유틸리티 및 Extension. Task 확장 등 비동기 유틸리티 포함 <br/>
+> ➍ **Auth** - KakaoSDK 기반 소셜 로그인 처리 <br/>
 > ➎ **Persistence** - UserDefaults 기반 로컬 데이터 저장
 
 <br/>
