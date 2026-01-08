@@ -23,10 +23,11 @@ struct InteresetConcertCompleteView: View {
     
     var body: some View {
         contentView
+            .clipped()
             .background(.livithColor(.black100))
             .onAppear {
                 isRotating = true
-
+                
                 if !reduceMotion {
                     isScaled = true
                 }
@@ -36,18 +37,10 @@ struct InteresetConcertCompleteView: View {
 
 private extension InteresetConcertCompleteView {
     var contentView: some View {
-        VStack(spacing: .zero) {
+        ZStack(alignment: .bottom) {
             centerContentView
-
+            
             confirmButton
-                .padding(.horizontal, 16)
-        }
-        .background {
-            VStack {
-                backgroundImageView
-                
-                Spacer(minLength: 60)
-            }
         }
     }
     
@@ -65,6 +58,9 @@ private extension InteresetConcertCompleteView {
             .frame(width: 132, height: 176)
             .scaleEffect(isScaled ? 1.0 : 1.3)
             .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isScaled)
+            .background {
+                backgroundImageView
+            }
     }
     
     var titleTextView: some View {
@@ -79,25 +75,30 @@ private extension InteresetConcertCompleteView {
     }
     
     var confirmButton: some View {
-        LivithButton("확인", variant: .primary) {
-            coordinator?.popToRoot()
+        ZStack {
+            LivithButton("확인", variant: .primary) {
+                coordinator?.popToRoot()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 60)
         }
+        .background(.livithColor(.black100))
     }
     
     var backgroundImageView: some View {
         Image.livithImage(.interestConcertComplete)
             .resizable()
             .scaledToFill()
+            .scaleEffect(6.0)
             .rotationEffect(.degrees(isRotating ? 360 : 0), anchor: .center)
             .animation(.linear(duration: 5).repeatForever(autoreverses: false), value: isRotating)
-            .padding(.bottom, 60)
     }
 }
 
 #Preview {
     InteresetConcertCompleteView(
         concertPosterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")!,
-        concertTitle: "Veniam dolor et irure quis velit dolor et mollit quis anim do incididunt mollit ullamco amet esse in",
+        concertTitle: "Veniam dolor et irure quis velit dolor et mollit quis anim do ",
         prefetchedImage: nil
     )
 }
