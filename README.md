@@ -20,7 +20,7 @@ print("모두가 라이브를 통해 빛나는 순간! 라이빗 iOS 레포지�
 
 | <img src="https://github.com/user-attachments/assets/f734adaf-ca51-4d87-925e-c868f649f094" width="200"/> | <img src="https://github.com/user-attachments/assets/7c76b32c-8979-43c3-82ff-bca9643d3121" width="200"/> |
 |:---:|:---:|
-| [@github](https://github.com/) | [@github](https://github.com/) |
+| [@youz2me](https://github.com/youz2me) | [@JinUng41](https://github.com/JinUng41) |
 
 </div>
 
