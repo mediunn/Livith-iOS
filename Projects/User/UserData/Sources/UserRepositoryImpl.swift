@@ -93,7 +93,7 @@ extension UserRepositoryImpl: UserRepository {
         // 백엔드 삭제 성공 후에는 로컬 정리가 반드시 실행되어야 함
         try? await tokenService.removeToken()
         localStorage.remove(for: .currentUser)
-        localStorage.remove(for: LocalStorageKeys.lastLoginPlatform)
+        localStorage.remove(for: .lastLoginPlatform)
     }
     
     public func logoutSession() async throws(UserError) {
