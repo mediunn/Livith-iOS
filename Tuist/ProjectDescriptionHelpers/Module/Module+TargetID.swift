@@ -13,7 +13,6 @@ public enum TargetID {
     case app
     case core(CoreModule)
     case login(LoginModule)
-    case dsKit
     case search(SearchModule)
     case song(SongModule)
     case setlist(SetlistModule)
@@ -25,7 +24,6 @@ public enum TargetID {
         switch self {
         case .app: return BuildConfiguration.appName
         case .core(let module): return module.rawValue
-        case .dsKit: return "DSKit"
         case .login(let module): return module.rawValue
         case .search(let module): return module.rawValue
         case .song(let module): return module.rawValue
@@ -51,8 +49,6 @@ public enum TargetID {
             return ["Sources/**"]
         case .core(let module):
             return ["\(module.rawValue)/Sources/**"]
-        case .dsKit:
-            return ["Sources/**"]
         case .login(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .search(let module):
@@ -72,8 +68,6 @@ public enum TargetID {
     
     public var resourcesPath: ResourceFileElements? {
         switch self {
-        case .dsKit:
-            return ["Resources/**"]
         case .app:
             return [
                 .glob(pattern: "Resources/**", excluding: [
