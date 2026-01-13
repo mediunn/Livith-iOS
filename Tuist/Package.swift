@@ -27,6 +27,6 @@ let package = Package(
         .package(url: "https://github.com/onevcat/Kingfisher", .upToNextMajor(from: "8.2.0")),
         .package(url: "https://github.com/kakao/kakao-ios-sdk", .upToNextMajor(from: "2.26.0")),
         .package(url: "https://github.com/SvenTiigi/YouTubePlayerKit", .upToNextMajor(from: "1.9.0")),
-        .package(url: "https://github.com/mediunn/Livith-iOS-DesignSystem.git", .upToNextMajor(from: "1.0.0"))
+        .package(url: "https://github.com/mediunn/Livith-iOS-DesignSystem.git", exact: "1.0.1")
     ]
 )
