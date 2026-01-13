@@ -14,10 +14,6 @@ extension TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.core.path)
     }
 
-    public static func dsKit() -> TargetDependency {
-        return .project(target: "DSKit", path: ProjectID.dsKit.path)
-    }
-
     public static func login(_ module: LoginModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.login.path)
     }

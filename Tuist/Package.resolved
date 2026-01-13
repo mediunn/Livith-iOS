@@ -1,5 +1,5 @@
 {
-  "originHash" : "e05b91eb831ad1932f248ff21a2beeafa39f6ed9db2fa3d6ae178ae77105dd82",
+  "originHash" : "2fce3053321598152f5d25cdf816aac08a85233d240f85671b55606de23aacc1",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "2015fda791daa72c8058619545a593bf8c1dd59f",
         "version" : "8.5.0"
+      }
+    },
+    {
+      "identity" : "livith-ios-designsystem",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mediunn/Livith-iOS-DesignSystem.git",
+      "state" : {
+        "revision" : "124f099c9565df267a3e7f2c47cdd427948461cc",
+        "version" : "1.0.0"
       }
     },
     {
