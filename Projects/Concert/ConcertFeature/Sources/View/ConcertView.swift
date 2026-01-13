@@ -170,8 +170,8 @@ private extension ConcertView {
     var interestConfirmDialogOverlay: some View {
         if showInterestConfirmDialog {
             LivithDangerModal(
-                message: "관심 콘서트를 변경하시겠어요?",
-                confirmTitle: "변경할래요",
+                message: "관심 콘서트를 설정하시겠어요?",
+                confirmTitle: "설정할래요",
                 cancelTitle: "취소할래요",
                 type: .confirm(onConfirm: {
                     showInterestConfirmDialog = false
