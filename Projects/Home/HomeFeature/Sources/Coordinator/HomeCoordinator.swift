@@ -10,7 +10,8 @@ import SwiftUI
 
 import ConcertFeature
 
-import DSKit
+import LivithDesignSystem
+import Coordinator
 
 final class HomeCoordinator: Coordinator {
     typealias R = HomeRoute

@@ -9,7 +9,8 @@
 import Foundation
 import UIKit
 
-import DSKit
+import LivithDesignSystem
+import Coordinator
 
 enum HomeRoute: Route {
     case home

@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
 
 public struct SearchContentView: View {
     @State private var coordinator: SearchCoordinator = SearchCoordinator()

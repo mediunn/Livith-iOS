@@ -9,7 +9,8 @@
 import SwiftUI
 import UIKit
 
-import DSKit
+import LivithDesignSystem
+import Coordinator
 import LoginDomain
 
 final class LoginCoordinator: Coordinator {

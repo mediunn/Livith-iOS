@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
 
 struct HomeView: View {
     @StateObject private var store: HomeStore = .init()

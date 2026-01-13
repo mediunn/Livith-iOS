@@ -8,7 +8,8 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
+import LivithFoundation
 import SetlistDomain
 
 struct SetlistHeaderView: View {

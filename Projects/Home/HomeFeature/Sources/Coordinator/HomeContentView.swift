@@ -8,7 +8,8 @@
 
 import SwiftUI
 import UIKit
-import DSKit
+
+import LivithDesignSystem
 
 public struct HomeContentView: View {
     @State private var coordinator: HomeCoordinator

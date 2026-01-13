@@ -10,7 +10,7 @@ import SwiftUI
 
 import HomeDomain
 
-import DSKit
+import LivithDesignSystem
 
 struct HomeConcertSectionView: View {
     @Binding var nickname: String

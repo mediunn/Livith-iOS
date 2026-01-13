@@ -9,7 +9,7 @@
 import SwiftUI
 import YouTubePlayerKit
 
-import DSKit
+import LivithDesignSystem
 
 struct YouTubePlayerView: View {
 
