@@ -40,6 +40,10 @@ let project = Project.make(
                 .external(.kakaoSDKUser),
                 .external(.kakaoSDKCommon)
             ]
+        ),
+        .make(
+            target: .core(.coordinator),
+            product: .framework
         )
     ]
 )

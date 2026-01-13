@@ -26,7 +26,8 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .song(.songDomain),
-                .dsKit(),
+                .external(.livithDesignSystem),
+                .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),
                 .external(.youTubePlayerKit)
