@@ -11,7 +11,8 @@ import UIKit
 
 import ConcertFeature
 
-import DSKit
+import LivithDesignSystem
+import Coordinator
 
 final class SearchCoordinator: Coordinator {
     typealias R = SearchRoute

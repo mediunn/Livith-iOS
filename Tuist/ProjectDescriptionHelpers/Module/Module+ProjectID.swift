@@ -12,12 +12,10 @@ import ProjectDescription
 public enum ProjectID: String, CaseIterable {
     case app = "App"
     case core = "Core"
-    case dsKit = "DSKit"
     case search = "Search"
     case login = "Login"
     case user = "User"
     case home = "Home"
-    
     case concert = "Concert"
     case setlist = "Setlist"
     case song = "Song"

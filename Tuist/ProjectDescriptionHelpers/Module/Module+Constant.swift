@@ -15,12 +15,7 @@ public enum CoreModule: String {
     case livithNetwork = "LivithNetwork"
     case livithFoundation = "LivithFoundation"
     case socialAuth = "SocialAuth"
-}
-
-// MARK: - DSKitModule Module
-
-public enum DSKitModule: String {
-    case dsKit = "DSKit"
+    case coordinator = "Coordinator"
 }
 
 // MARK: - Login Module
@@ -94,4 +89,5 @@ public enum ExternalDependency: String {
     case kakaoSDKAuth = "KakaoSDKAuth"
     case kakaoSDKUser = "KakaoSDKUser"
     case youTubePlayerKit = "YouTubePlayerKit"
+    case livithDesignSystem = "LivithDesignSystem"
 }

@@ -10,7 +10,7 @@ import Foundation
 
 import ConcertDomain
 import DIContainer
-import DSKit
+import LivithDesignSystem
 import LivithFoundation
 
 public typealias ConcertTab = SegmentedTabBarType.DetailTab

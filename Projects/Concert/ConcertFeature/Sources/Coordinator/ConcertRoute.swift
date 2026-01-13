@@ -9,7 +9,8 @@
 import Foundation
 
 import ConcertDomain
-import DSKit
+import LivithDesignSystem
+import Coordinator
 
 public enum ConcertRoute: Route {
     case detail(concertID: Int)

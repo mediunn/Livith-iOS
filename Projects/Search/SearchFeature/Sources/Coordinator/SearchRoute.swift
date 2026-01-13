@@ -8,7 +8,8 @@
 
 import Foundation
 
-import DSKit
+import LivithDesignSystem
+import Coordinator
 
 enum SearchRoute: Route {
     case explore

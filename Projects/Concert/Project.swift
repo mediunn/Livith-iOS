@@ -30,7 +30,8 @@ let project = Project.make(
                 .concert(.concertDomain),
                 .setlist(.setlistFeature),
                 .song(.songFeature),
-                .dsKit(),
+                .external(.livithDesignSystem),
+                .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation)
             ]

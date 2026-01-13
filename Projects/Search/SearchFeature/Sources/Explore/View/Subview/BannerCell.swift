@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
 
 struct BannerCell: View {
     let imageURL: URL?

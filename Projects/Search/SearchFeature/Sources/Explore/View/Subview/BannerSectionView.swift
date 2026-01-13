@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
 import SearchDomain
 
 struct BannerSectionView: View {

@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
 
 struct HomeInterestConcertBottomSheetView: View {
     let onChangeMainConcert: () -> Void

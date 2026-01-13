@@ -9,7 +9,7 @@
 import SwiftUI
 
 import ConcertDomain
-import DSKit
+import LivithDesignSystem
 import LivithFoundation
 
 struct ScheduleRowView: View {

@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
 
 struct InterestedConcertSettingButton: View {
     @State private var isRotating = false

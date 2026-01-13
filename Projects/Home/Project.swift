@@ -30,7 +30,8 @@ let project = Project.make(
             dependencies: [
                 .home(.homeDomain),
                 .concert(.concertFeature),
-                .dsKit(),
+                .external(.livithDesignSystem),
+                .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation)
             ]

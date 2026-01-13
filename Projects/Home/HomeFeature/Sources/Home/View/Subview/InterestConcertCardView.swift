@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import DSKit
+import LivithDesignSystem
 import Kingfisher
 
 struct InterestConcertCardView: View {
