@@ -233,7 +233,8 @@ if $CREATE_FEATURE; then
     $CREATE_DOMAIN && TARGETS="${TARGETS}
                 .${MODULE_NAME_LOWER}(.${MODULE_NAME_LOWER}Domain),"
     TARGETS="${TARGETS}
-                .dsKit(),
+                .external(.livithDesignSystem),
+                .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation)
             ]
