@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 import LivithDesignSystem
 
@@ -18,6 +19,10 @@ struct CommentInputView: View {
         static let maxLength = 400
         static let maxLines = 15
         static let placeholder = "댓글은 400자까지 작성 가능해요"
+        static let textFieldHorizontalPadding: CGFloat = 32
+        static let buttonWidth: CGFloat = 60
+        static let spacing: CGFloat = 8
+        static let containerHorizontalPadding: CGFloat = 32
     }
 
     // MARK: - Property
@@ -59,7 +64,10 @@ private extension CommentInputView {
             placeholder: Constants.placeholder
         )
         .onChange(of: text) { _, newValue in
-            let lineCount = newValue.components(separatedBy: "\n").count
+            let screenWidth = UIScreen.main.bounds.width
+            let textFieldWidth = screenWidth - Constants.containerHorizontalPadding - Constants.buttonWidth - Constants.spacing
+            let textWidth = textFieldWidth - Constants.textFieldHorizontalPadding
+            let lineCount = calculateActualLineCount(text: newValue, containerWidth: textWidth)
             isExceedingLineLimit = lineCount > Constants.maxLines
             isExceedingCharacterLimit = newValue.count > Constants.maxLength
         }
@@ -68,6 +76,32 @@ private extension CommentInputView {
     var submitButton: some View {
         LivithConfirmButton("등록", variant: .primary, action: onSubmit)
             .disabled(!isSubmitEnabled)
+    }
+
+    func calculateActualLineCount(text: String, containerWidth: CGFloat) -> Int {
+        guard containerWidth > 0 else { return 1 }
+
+        let font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        let lines = text.components(separatedBy: "\n")
+
+        return lines.reduce(0) { count, line in
+            if line.isEmpty {
+                return count + 1
+            }
+
+            let attributedString = NSAttributedString(
+                string: line,
+                attributes: [.font: font]
+            )
+            let boundingRect = attributedString.boundingRect(
+                with: CGSize(width: containerWidth, height: .greatestFiniteMagnitude),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                context: nil
+            )
+            let lineHeight = font.lineHeight
+            let wrappedLines = max(1, Int(ceil(boundingRect.height / lineHeight)))
+            return count + wrappedLines
+        }
     }
 }
 
