@@ -36,6 +36,8 @@ struct CheckboxRow: View {
             } label: {
                 HStack(spacing: 4) {
                     Image.livithIcon(isChecked ? .checkboxLineEnabled : .checkboxLineDefault)
+                        .resizable()
+                        .frame(width: 24, height: 24)
                     
                     Text(title)
                         .notosans(.body2Medium)
@@ -48,6 +50,7 @@ struct CheckboxRow: View {
                     }
                 }
             }
+            .buttonStyle(.plain)
             
             Spacer()
             

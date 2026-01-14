@@ -38,6 +38,7 @@ struct TermsView: View {
                 termsSection
                     .padding(.top, 20)
                     .padding(.leading, 36)
+                    .padding(.trailing, 20)
 
                 Spacer()
 
@@ -94,6 +95,7 @@ private extension TermsView {
             .background(Color.livithColor(.black80))
             .cornerRadius(12)
         }
+        .buttonStyle(.plain)
     }
     
     var termsSection: some View {
@@ -118,7 +120,6 @@ private extension TermsView {
                     Text(Literals.moreButtonText)
                         .notosans(.caption2Semibold)
                         .foregroundStyle(Color.livithColor(.white100))
-                        .padding(.trailing, 4)
                 }
             )
         )
