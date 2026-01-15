@@ -32,6 +32,7 @@ let project = Project.make(
                 .song(.songData),
                 .user(.userData),
                 .user(.userFeature),
+                .widget(.widget),
             ]
         )
     ],
