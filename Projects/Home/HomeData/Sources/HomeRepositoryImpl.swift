@@ -73,8 +73,9 @@ extension HomeRepositoryImpl: HomeRepository {
             guard let concert = mapper.toDomain(from: response) else {
                 throw HomeError.unknown
             }
-            
+
             updateInterestedConcertLocally(id: concert.id)
+            saveInterestConcertToShared(response)
             return concert
         } catch {
             printError(error)
@@ -86,6 +87,7 @@ extension HomeRepositoryImpl: HomeRepository {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
             deleteInterestedConcertLocally()
+            deleteInterestConcertFromShared()
         } catch NetworkError.noData {
             return
         } catch {
@@ -231,10 +233,22 @@ private extension HomeRepositoryImpl {
             printError(error)
         }
     }
-    
+
     func createCursor(startDate: String?, concertID: Int?) -> String? {
         guard let startDate, let concertID else { return nil }
         return "{\"value\":\"\(startDate)\",\"id\":\(concertID)}"
+    }
+
+    func saveInterestConcertToShared(_ concert: DTO.Response.UpdateUserInterestConcert) {
+        do {
+            try localStorage.save(concert, for: .interestConcert)
+        } catch {
+            printError(error)
+        }
+    }
+
+    func deleteInterestConcertFromShared() {
+        localStorage.remove(for: .interestConcert)
     }
 }
 
