@@ -23,7 +23,7 @@ final class UserStore: ObservableObject {
 
     private let localStorage: UserDefaultsStorage
 
-    init(localStorage: UserDefaultsStorage = UserDefaultsStorage()) {
+    init(localStorage: UserDefaultsStorage = UserDefaultsStorage(defaults: UserDefaults(suiteName: UserDefaultsStorage.appGroupID) ?? .standard)) {
         self.localStorage = localStorage
     }
 

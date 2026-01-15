@@ -23,7 +23,7 @@ final class LoginRepositoryImpl {
     init(
         socialAuthService: SocialAuthService = .init(),
         loginService: OnboardingService = .init(),
-        localStorage: UserDefaultsStorage = UserDefaultsStorage(),
+        localStorage: UserDefaultsStorage = UserDefaultsStorage(defaults: UserDefaults(suiteName: UserDefaultsStorage.appGroupID) ?? .standard),
         tokenService: TokenService = TokenServiceImpl()
     ) {
         self.socialAuthService = socialAuthService

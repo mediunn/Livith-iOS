@@ -21,7 +21,7 @@ final class OnboardingRepositoryImpl {
     init(
         service: OnboardingService = OnboardingService(),
         errorMapper: OnboardingErrorMapper = OnboardingErrorMapper(),
-        localStorage: UserDefaultsStorage = UserDefaultsStorage(),
+        localStorage: UserDefaultsStorage = UserDefaultsStorage(defaults: UserDefaults(suiteName: UserDefaultsStorage.appGroupID) ?? .standard),
         tokenService: TokenService = TokenServiceImpl()
     ) {
         self.service = service
