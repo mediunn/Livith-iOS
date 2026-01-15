@@ -12,12 +12,15 @@ public struct UserDefaultsStorage {
     public enum Key: String {
         case currentUser
         case lastLoginPlatform
+        case interestConcert
     }
-    
+
+    public static let appGroupID = "group.com.youz2me.livith"
+
     private let defaults: UserDefaults
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
-    
+
     public init(
         defaults: UserDefaults = .standard,
         encoder: JSONEncoder = .init(),
