@@ -9,8 +9,8 @@
 import SwiftUI
 
 import LivithDesignSystem
-import LoginFeature
 import LivithNetwork
+import LoginFeature
 import Persistence
 
 struct AppRootView: View {
@@ -23,7 +23,7 @@ struct AppRootView: View {
 
     private let localStorage: UserDefaultsStorage
     
-    init(localStorage: UserDefaultsStorage = UserDefaultsStorage(defaults: UserDefaults(suiteName: UserDefaultsStorage.appGroupID) ?? .standard)) {
+    init(localStorage: UserDefaultsStorage = .init()) {
         self.localStorage = localStorage
     }
     

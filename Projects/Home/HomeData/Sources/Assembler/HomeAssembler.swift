@@ -21,9 +21,7 @@ public struct HomeAssembler: DependencyAssembler {
         let searchService = SearchService()
         let setlistService = SetlistService()
         let concertService = ConcertService()
-        let localStorage = UserDefaultsStorage(
-            defaults: UserDefaults(suiteName: UserDefaultsStorage.appGroupID) ?? .standard
-        )
+        let localStorage = UserDefaultsStorage()
 
         container.register(
             {

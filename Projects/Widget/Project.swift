@@ -11,6 +11,7 @@ import ProjectDescriptionHelpers
 
 let project = Project.make(
     project: .widget,
+    settings: .environment,
     targets: [
         .make(
             target: .widget(.widget),
@@ -24,6 +25,9 @@ let project = Project.make(
             entitlements: .file(path: "Resources/LivithWidget.entitlements"),
             dependencies: [
                 .external(.livithDesignSystem),
+                .core(.livithNetwork),
+                .core(.livithFoundation),
+                .core(.persistence),
             ]
         )
     ]

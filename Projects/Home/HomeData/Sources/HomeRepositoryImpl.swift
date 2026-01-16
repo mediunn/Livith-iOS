@@ -18,21 +18,24 @@ struct HomeRepositoryImpl {
     private let setlistService: SetlistService
     private let concertService: ConcertService
     private let localStorage: UserDefaultsStorage
+    private let imageStorage: WidgetImageStorage
     private let mapper: HomeMapper = .init()
     private let errorMapper: HomeErrorMapper = .init()
-    
+
     init(
         homeService: HomeService,
         searchService: SearchService,
         setlistService: SetlistService,
         concertService: ConcertService,
-        localStorage: UserDefaultsStorage
+        localStorage: UserDefaultsStorage,
+        imageStorage: WidgetImageStorage = .init()
     ) {
         self.homeService = homeService
         self.searchService = searchService
         self.setlistService = setlistService
         self.concertService = concertService
         self.localStorage = localStorage
+        self.imageStorage = imageStorage
     }
 }
 
@@ -242,6 +245,10 @@ private extension HomeRepositoryImpl {
     func saveInterestConcertToShared(_ concert: DTO.Response.UpdateUserInterestConcert) {
         do {
             try localStorage.save(concert, for: .interestConcert)
+
+            Task {
+                await imageStorage.download(from: concert.posterURL, forKey: Keys.interestConcertPoster)
+            }
         } catch {
             printError(error)
         }
@@ -249,6 +256,7 @@ private extension HomeRepositoryImpl {
 
     func deleteInterestConcertFromShared() {
         localStorage.remove(for: .interestConcert)
+        imageStorage.remove(forKey: Keys.interestConcertPoster)
     }
 }
 
@@ -257,5 +265,6 @@ private extension HomeRepositoryImpl {
 private extension HomeRepositoryImpl {
     enum Keys {
         static let currentUser = "currentUser"
+        static let interestConcertPoster = "interestConcertPoster"
     }
 }

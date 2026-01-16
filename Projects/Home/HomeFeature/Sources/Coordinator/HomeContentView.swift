@@ -14,15 +14,29 @@ import LivithDesignSystem
 public struct HomeContentView: View {
     @State private var coordinator: HomeCoordinator
     @Binding private var isTabBarHidden: Bool
-    
-    public init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
+    @Binding private var deepLinkConcertID: Int?
+
+    public init(
+        nickname: Binding<String>,
+        isTabBarHidden: Binding<Bool>,
+        deepLinkConcertID: Binding<Int?> = .constant(nil),
+        showToast: ((LivithToastType, String) -> Void)? = nil
+    ) {
         self._coordinator = State(initialValue: HomeCoordinator(nickname: nickname, isTabBarHidden: isTabBarHidden, showToast: showToast))
         self._isTabBarHidden = isTabBarHidden
+        self._deepLinkConcertID = deepLinkConcertID
     }
-    
+
     public var body: some View {
         HomeNavigationHost(coordinator: coordinator, isTabBarHidden: $isTabBarHidden)
             .ignoresSafeArea()
+            .onChange(of: deepLinkConcertID) { _, newValue in
+                if let concertID = newValue {
+                    coordinator.popToRoot()
+                    coordinator.showConcertDetail(concertID: concertID)
+                    deepLinkConcertID = nil
+                }
+            }
     }
 }
 

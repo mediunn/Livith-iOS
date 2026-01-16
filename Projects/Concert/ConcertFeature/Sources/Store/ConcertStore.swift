@@ -7,11 +7,13 @@
 //
 
 import Foundation
+import WidgetKit
 
 import ConcertDomain
 import DIContainer
 import LivithDesignSystem
 import LivithFoundation
+import Persistence
 
 public typealias ConcertTab = SegmentedTabBarType.DetailTab
 
@@ -190,8 +192,7 @@ private extension ConcertStore {
     }
 
     func getInterestedConcertID() -> Int? {
-        guard let data = UserDefaults.standard.data(forKey: "currentUser"),
-              let user = try? JSONDecoder().decode(UserInfo.self, from: data) else {
+        guard let user: UserInfo = try? UserDefaultsStorage().fetch(for: .currentUser) else {
             return nil
         }
         return user.interestConcertID
@@ -210,6 +211,7 @@ private extension ConcertStore {
             do {
                 try await repository.setInterestConcert(concertID: state.concertID)
                 updateStoredInterestConcertID(state.concertID)
+                WidgetCenter.shared.reloadAllTimelines()
                 send(._setInterestStatus(.success("관심 공연을 변경했어요")))
                 send(._setIsCurrentConcertInterested(true))
             } catch {
@@ -219,13 +221,11 @@ private extension ConcertStore {
     }
 
     func updateStoredInterestConcertID(_ concertID: Int) {
-        guard let data = UserDefaults.standard.data(forKey: "currentUser"),
-              var user = try? JSONDecoder().decode(UserInfo.self, from: data) else {
+        let storage = UserDefaultsStorage()
+        guard var user: UserInfo = try? storage.fetch(for: .currentUser) else {
             return
         }
         user.interestConcertID = concertID
-        if let updatedData = try? JSONEncoder().encode(user) {
-            UserDefaults.standard.set(updatedData, forKey: "currentUser")
-        }
+        try? storage.save(user, for: .currentUser)
     }
 }

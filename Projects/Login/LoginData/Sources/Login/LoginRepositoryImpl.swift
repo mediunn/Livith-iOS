@@ -8,10 +8,10 @@
 
 import Foundation
 
-import SocialAuth
 import LivithNetwork
 import LoginDomain
 import Persistence
+import SocialAuth
 
 final class LoginRepositoryImpl {
     private let socialAuthService: SocialAuthService
@@ -23,7 +23,7 @@ final class LoginRepositoryImpl {
     init(
         socialAuthService: SocialAuthService = .init(),
         loginService: OnboardingService = .init(),
-        localStorage: UserDefaultsStorage = UserDefaultsStorage(defaults: UserDefaults(suiteName: UserDefaultsStorage.appGroupID) ?? .standard),
+        localStorage: UserDefaultsStorage = .init(),
         tokenService: TokenService = TokenServiceImpl()
     ) {
         self.socialAuthService = socialAuthService

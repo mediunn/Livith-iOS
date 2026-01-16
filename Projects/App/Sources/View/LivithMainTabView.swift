@@ -53,6 +53,7 @@ struct LivithMainTabView: View {
     @State private var showToast: Bool = false
     @State private var toastType: LivithToastType = .success
     @State private var toastMessage: String = ""
+    @State private var deepLinkConcertID: Int?
     
     // MARK: - LifeCycle
 
@@ -65,13 +66,18 @@ struct LivithMainTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                HomeContentView(nickname: $nickname, isTabBarHidden: $isTabBarHidden, showToast: { type, message in
+                HomeContentView(
+                    nickname: $nickname,
+                    isTabBarHidden: $isTabBarHidden,
+                    deepLinkConcertID: $deepLinkConcertID,
+                    showToast: { type, message in
                         toastType = type
                         toastMessage = message
                         showToast = true
-                    })
-                    .tag(Tab.home)
-                    .toolbar(.hidden, for: .tabBar)
+                    }
+                )
+                .tag(Tab.home)
+                .toolbar(.hidden, for: .tabBar)
                 
                 SearchContentView(isTabBarHidden: $isTabBarHidden)
                     .tag(Tab.search)
@@ -106,6 +112,12 @@ struct LivithMainTabView: View {
             message: toastMessage,
             position: .safeAreaTop
         )
+        .onReceive(NotificationCenter.default.publisher(for: .openConcertDetail)) { notification in
+            if let concertID = notification.userInfo?["concertID"] as? Int {
+                selectedTab = .home
+                deepLinkConcertID = concertID
+            }
+        }
     }
 }
 

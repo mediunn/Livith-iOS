@@ -23,7 +23,7 @@ public final class UserRepositoryImpl {
         userService: NetworkService<UserEndpoint> = .init(),
         logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil),
         tokenService: TokenService = TokenServiceImpl(),
-        localStorage: UserDefaultsStorage = UserDefaultsStorage(defaults: UserDefaults(suiteName: UserDefaultsStorage.appGroupID) ?? .standard)
+        localStorage: UserDefaultsStorage = .init()
     ) {
         self.userService = userService
         self.logoutService = logoutService

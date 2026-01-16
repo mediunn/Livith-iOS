@@ -26,7 +26,10 @@ let project = Project.make(
         ),
         .make(
             target: .core(.persistence),
-            product: .framework
+            product: .framework,
+            dependencies: [
+                .core(.livithFoundation)
+            ]
         ),
         .make(
             target: .core(.livithFoundation),

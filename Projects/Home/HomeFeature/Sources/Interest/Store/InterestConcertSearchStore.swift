@@ -8,6 +8,7 @@
 
 import UIKit
 import Foundation
+import WidgetKit
 
 import HomeDomain
 import DIContainer
@@ -219,10 +220,11 @@ private extension InterestConcertSearchStore {
 
     func performUpdateInterestConcert() {
         guard let concertID = state.selectedConcertID else { return }
-        
+
         Task {
             do {
                 let concert = try await repository.updateInterestedConcert(id: concertID)
+                WidgetCenter.shared.reloadAllTimelines()
                 await send(._updateInterestConcertResult(.success(concert)))
             } catch {
                 await send(._updateInterestConcertResult(.failure(error)))

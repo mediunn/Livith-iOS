@@ -9,24 +9,24 @@
 import Foundation
 
 public struct UserDefaultsStorage {
+    private static let appGroupID = "group.com.youz2me.livith"
+
     public enum Key: String {
         case currentUser
         case lastLoginPlatform
         case interestConcert
     }
 
-    public static let appGroupID = "group.com.youz2me.livith"
-
     private let defaults: UserDefaults
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
     public init(
-        defaults: UserDefaults = .standard,
+        defaults: UserDefaults? = nil,
         encoder: JSONEncoder = .init(),
         decoder: JSONDecoder = .init()
     ) {
-        self.defaults = defaults
+        self.defaults = defaults ?? UserDefaults(suiteName: Self.appGroupID) ?? .standard
         self.encoder = encoder
         self.decoder = decoder
     }

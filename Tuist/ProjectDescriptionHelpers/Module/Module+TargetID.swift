@@ -80,7 +80,11 @@ public enum TargetID {
                 ])
             ]
         case .widget:
-            return ["Resources/**"]
+            return [
+                .glob(pattern: "Resources/**", excluding: [
+                    "Resources/LivithWidget.entitlements"
+                ])
+            ]
         default:
             return nil
         }
