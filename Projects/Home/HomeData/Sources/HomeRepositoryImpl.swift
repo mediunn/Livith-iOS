@@ -78,7 +78,7 @@ extension HomeRepositoryImpl: HomeRepository {
             }
 
             updateInterestedConcertLocally(id: concert.id)
-            saveInterestConcertToShared(response)
+            await saveInterestConcertToShared(response)
             return concert
         } catch {
             printError(error)
@@ -242,13 +242,10 @@ private extension HomeRepositoryImpl {
         return "{\"value\":\"\(startDate)\",\"id\":\(concertID)}"
     }
 
-    func saveInterestConcertToShared(_ concert: DTO.Response.UpdateUserInterestConcert) {
+    func saveInterestConcertToShared(_ concert: DTO.Response.UpdateUserInterestConcert) async {
         do {
             try localStorage.save(concert, for: .interestConcert)
-
-            Task {
-                await imageStorage.download(from: concert.posterURL, forKey: Keys.interestConcertPoster)
-            }
+            await imageStorage.download(from: concert.posterURL, forKey: Keys.interestConcertPoster)
         } catch {
             printError(error)
         }
