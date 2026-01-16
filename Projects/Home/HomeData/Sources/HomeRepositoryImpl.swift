@@ -107,11 +107,12 @@ extension HomeRepositoryImpl: HomeRepository {
     }
     
     func fetchConcertList(startDate: String?, concertID: Int?) async throws(HomeError) -> [Concert] {
+        let cursor: String? = createCursor(startDate: startDate, concertID: concertID)
+        
         do {
             let response: DTO.Response.FetchConcertList = try await searchService.request(
                 .fetchConcertList(
-                    startDate: startDate,
-                    concertID: concertID,
+                    cursor: cursor,
                     size: 12
                 )
             )
@@ -127,11 +128,7 @@ extension HomeRepositoryImpl: HomeRepository {
         startDate: String?,
         concertID: Int?
     ) async throws(HomeError) -> [Concert] {
-        let cursor: String? = if let startDate = startDate, let concertID = concertID {
-            "{\"value\":\"\(startDate)\",\"id\":\(concertID)}"
-        } else {
-            nil
-        }
+        let cursor: String? = createCursor(startDate: startDate, concertID: concertID)
         
         do {
             let response: DTO.Response.FetchFilterSearchResult = try await searchService.request(
@@ -233,6 +230,11 @@ private extension HomeRepositoryImpl {
         } catch {
             printError(error)
         }
+    }
+    
+    func createCursor(startDate: String?, concertID: Int?) -> String? {
+        guard let startDate, let concertID else { return nil }
+        return "{\"value\":\"\(startDate)\",\"id\":\(concertID)}"
     }
 }
 

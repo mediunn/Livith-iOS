@@ -23,8 +23,7 @@ public enum SearchEndpoint {
     )
     case fetchRecommendedSearchResult(letter: String)
     case fetchConcertList(
-        startDate: String?,
-        concertID: Int?,
+        cursor: String?,
         size: Int?
     )
 }
@@ -69,12 +68,10 @@ extension SearchEndpoint: NetworkEndpoint {
         case .fetchRecommendedSearchResult(letter: let letter):
             return ["letter": letter]
         case .fetchConcertList(
-            startDate: let startDate,
-            concertID: let concertID,
+            cursor: let cursor,
             size: let size):
             let params: [String: Any?] = [
-                "cursor": startDate,
-                "id": concertID,
+                "cursor": cursor,
                 "size": size
             ]
 
