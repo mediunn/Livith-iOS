@@ -39,41 +39,60 @@ struct LargeWidgetView: View {
 
 private extension LargeWidgetView {
     var contentView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             concertInfoSection
-            scheduleSection
+                .padding(16)
+                .padding(.top, 16)
+                .background(
+                    Color.livithColor(.black90)
+                        .padding(-16)
+                )
+
+            VStack {
+                scheduleSection
+                Spacer()
+            }
+            .padding(16)
+            .padding(.top, 16)
         }
-        .padding(16)
     }
 
     var concertInfoSection: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 16) {
             posterImage
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Spacer()
                     Image.livithImage(.livithLogo)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 44)
-                }
-
-                if let formattedDDay = entry.formattedDDay {
-                    Text(formattedDDay)
-                        .notosans(.headSemibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                }
-
-                if let title = entry.concertTitle {
-                    Text(title)
-                        .notosans(.body4Semibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                        .lineLimit(2)
+                        .frame(height: 12)
                 }
 
                 Spacer()
+
+                VStack(alignment: .leading, spacing: 4) {
+                    if let formattedDDay = entry.formattedDDay {
+                        Text(formattedDDay)
+                            .notosans(.headSemibold)
+                            .foregroundStyle(Color.livithColor(.black50))
+                    }
+
+                    if let title = entry.concertTitle {
+                        Text(title)
+                            .notosans(.body4Semibold)
+                            .foregroundStyle(Color.livithColor(.white100))
+                    }
+
+                    if let artistName = entry.artistName {
+                        Text(artistName)
+                            .notosans(.caption2Regular)
+                            .foregroundStyle(Color.livithColor(.black30))
+                    }
+                }
             }
+            .frame(height: 147)
         }
     }
 
@@ -88,43 +107,22 @@ private extension LargeWidgetView {
                 Color.livithColor(.black90)
             }
         }
-        .frame(width: 61, height: 74)
+        .frame(width: 104, height: 147)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     var scheduleSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: .zero) {
             ForEach(entry.schedules) { schedule in
-                scheduleRow(schedule)
+                LivithScheduleItem(
+                    daysLeft: schedule.dDay,
+                    title: schedule.category,
+                    dateTime: formatScheduleDate(schedule.scheduledAt),
+                    isActive: schedule.dDay >= 0
+                )
+                .frame(height: 48)
             }
         }
-    }
-
-    func scheduleRow(_ schedule: ScheduleItem) -> some View {
-        HStack(spacing: 12) {
-            dDayChip(schedule)
-
-            Text(schedule.category)
-                .notosans(.body2Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-                .lineLimit(1)
-
-            Spacer()
-
-            Text(formatScheduleDate(schedule.scheduledAt))
-                .notosans(.body2Medium)
-                .foregroundStyle(Color.livithColor(.white100))
-        }
-    }
-
-    func dDayChip(_ schedule: ScheduleItem) -> some View {
-        Text(schedule.formattedDDay)
-            .notosans(.caption1Semibold)
-            .foregroundStyle(Color.livithColor(.black100))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(Color.livithColor(.yellow60))
-            .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 
     func formatScheduleDate(_ dateString: String) -> String {
