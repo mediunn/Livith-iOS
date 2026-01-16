@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import WidgetKit
 
 import DIContainer
 import HomeDomain
@@ -212,6 +213,7 @@ private extension HomeStore {
         Task {
             do {
                 try await repository.deleteInterestedConcert()
+                WidgetCenter.shared.reloadAllTimelines()
                 await send(._deleteInterestConcertResult(.success(())))
             } catch {
                 await send(._deleteInterestConcertResult(.failure(error)))

@@ -19,6 +19,7 @@ public enum TargetID {
     case concert(ConcertModule)
     case home(HomeModule)
     case user(UserModule)
+    case widget(WidgetModule)
 
     public var name: String {
         switch self {
@@ -31,6 +32,7 @@ public enum TargetID {
         case .concert(let module): return module.rawValue
         case .home(let module): return module.rawValue
         case .user(let module): return module.rawValue
+        case .widget(let module): return module.rawValue
         }
     }
     
@@ -63,6 +65,8 @@ public enum TargetID {
             return ["\(module.rawValue)/Sources/**"]
         case .user(let module):
             return ["\(module.rawValue)/Sources/**"]
+        case .widget:
+            return ["Sources/**"]
         }
     }
     
@@ -73,6 +77,12 @@ public enum TargetID {
                 .glob(pattern: "Resources/**", excluding: [
                     "Resources/App-Info.plist",
                     "Resources/Livith-iOS.entitlements"
+                ])
+            ]
+        case .widget:
+            return [
+                .glob(pattern: "Resources/**", excluding: [
+                    "Resources/LivithWidget.entitlements"
                 ])
             ]
         default:

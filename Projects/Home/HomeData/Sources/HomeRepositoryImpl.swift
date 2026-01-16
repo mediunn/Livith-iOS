@@ -18,21 +18,24 @@ struct HomeRepositoryImpl {
     private let setlistService: SetlistService
     private let concertService: ConcertService
     private let localStorage: UserDefaultsStorage
+    private let imageStorage: WidgetImageStorage
     private let mapper: HomeMapper = .init()
     private let errorMapper: HomeErrorMapper = .init()
-    
+
     init(
         homeService: HomeService,
         searchService: SearchService,
         setlistService: SetlistService,
         concertService: ConcertService,
-        localStorage: UserDefaultsStorage
+        localStorage: UserDefaultsStorage,
+        imageStorage: WidgetImageStorage = .init()
     ) {
         self.homeService = homeService
         self.searchService = searchService
         self.setlistService = setlistService
         self.concertService = concertService
         self.localStorage = localStorage
+        self.imageStorage = imageStorage
     }
 }
 
@@ -73,8 +76,9 @@ extension HomeRepositoryImpl: HomeRepository {
             guard let concert = mapper.toDomain(from: response) else {
                 throw HomeError.unknown
             }
-            
+
             updateInterestedConcertLocally(id: concert.id)
+            await saveInterestConcertToShared(response)
             return concert
         } catch {
             printError(error)
@@ -86,6 +90,7 @@ extension HomeRepositoryImpl: HomeRepository {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
             deleteInterestedConcertLocally()
+            deleteInterestConcertFromShared()
         } catch NetworkError.noData {
             return
         } catch {
@@ -231,10 +236,24 @@ private extension HomeRepositoryImpl {
             printError(error)
         }
     }
-    
+
     func createCursor(startDate: String?, concertID: Int?) -> String? {
         guard let startDate, let concertID else { return nil }
         return "{\"value\":\"\(startDate)\",\"id\":\(concertID)}"
+    }
+
+    func saveInterestConcertToShared(_ concert: DTO.Response.UpdateUserInterestConcert) async {
+        do {
+            try localStorage.save(concert, for: .interestConcert)
+            await imageStorage.download(from: concert.posterURL, forKey: Keys.interestConcertPoster)
+        } catch {
+            printError(error)
+        }
+    }
+
+    func deleteInterestConcertFromShared() {
+        localStorage.remove(for: .interestConcert)
+        imageStorage.remove(forKey: Keys.interestConcertPoster)
     }
 }
 
@@ -243,5 +262,6 @@ private extension HomeRepositoryImpl {
 private extension HomeRepositoryImpl {
     enum Keys {
         static let currentUser = "currentUser"
+        static let interestConcertPoster = "interestConcertPoster"
     }
 }

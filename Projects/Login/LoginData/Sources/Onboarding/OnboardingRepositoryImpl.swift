@@ -21,7 +21,7 @@ final class OnboardingRepositoryImpl {
     init(
         service: OnboardingService = OnboardingService(),
         errorMapper: OnboardingErrorMapper = OnboardingErrorMapper(),
-        localStorage: UserDefaultsStorage = UserDefaultsStorage(),
+        localStorage: UserDefaultsStorage = .init(),
         tokenService: TokenService = TokenServiceImpl()
     ) {
         self.service = service

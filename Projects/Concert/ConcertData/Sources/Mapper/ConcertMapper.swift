@@ -11,6 +11,7 @@ import Foundation
 import ConcertDomain
 import LivithFoundation
 import LivithNetwork
+import Persistence
 
 struct ConcertMapper {
     // MARK: - Concert
@@ -165,8 +166,7 @@ struct ConcertMapper {
     }
 
     private func getCurrentUserID() -> Int? {
-        guard let data = UserDefaults.standard.data(forKey: "currentUser"),
-              let user = try? JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: data) else {
+        guard let user: DTO.Response.FetchUserInfo = try? UserDefaultsStorage().fetch(for: .currentUser) else {
             return nil
         }
         return user.id

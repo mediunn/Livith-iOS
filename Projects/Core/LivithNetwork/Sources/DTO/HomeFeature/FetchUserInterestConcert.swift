@@ -11,7 +11,7 @@
 import Foundation
 
 public extension DTO.Response {
-    struct FetchUserInterestConcert: Decodable {
+    struct FetchUserInterestConcert: Codable {
         public let id: Int
         public let code: String
         public let title: String

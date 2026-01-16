@@ -80,6 +80,12 @@ public enum SongModule: String {
     case songFeature = "SongFeature"
 }
 
+// MARK: - Widget Module
+
+public enum WidgetModule: String {
+    case widget = "LivithWidget"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {

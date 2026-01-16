@@ -13,7 +13,7 @@ import Foundation
 public extension DTO.Response {
     typealias FetchConcertSchedule = [ConcertSchedule]
 
-    struct ConcertSchedule: Decodable {
+    struct ConcertSchedule: Codable {
         public let id: Int
         public let category: String
         public let scheduledAt: String

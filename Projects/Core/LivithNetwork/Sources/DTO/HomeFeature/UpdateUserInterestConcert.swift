@@ -25,7 +25,7 @@ public extension DTO.Request {
 }
 
 public extension DTO.Response {
-    struct UpdateUserInterestConcert: Decodable {
+    struct UpdateUserInterestConcert: Codable {
         public let id: Int
         public let code: String
         public let title: String
