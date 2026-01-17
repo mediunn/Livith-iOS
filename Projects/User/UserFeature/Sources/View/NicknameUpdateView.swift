@@ -150,7 +150,6 @@ private extension NicknameUpdateView {
         LivithButton(
             Literals.updateButtonText,
             variant: .primary,
-            size: .large,
             isLoading: isUpdateLoading
         ) {
             store.send(.submitNickname)
