@@ -37,7 +37,7 @@ struct HomeView: View {
             }
             .onChange(of: store.state.toastMessage) { _, newValue in
                 if !newValue.isEmpty {
-                    showToast?(.deletionSuccess, newValue)
+                    showToast?(.success, newValue)
                     store.send(.onToastDisappear)
                 }
             }

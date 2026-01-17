@@ -149,8 +149,6 @@ private extension NicknameSettingView {
     var signupButton: some View {
         LivithButton(
             Literals.signupButtonText,
-            variant: .primary,
-            size: .large,
             isLoading: isSignupLoading
         ) {
             store.send(.signup)

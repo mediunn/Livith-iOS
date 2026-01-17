@@ -137,7 +137,7 @@ private extension FilterBottomSheetView {
     
     var setupButtons: some View {
         HStack(spacing: 12) {
-            LivithButton("초기화", variant: .secondary) {
+            LivithButton("초기화", variant: .primary) {
                 tempGenreList = []
                 tempStatusList = []
             }

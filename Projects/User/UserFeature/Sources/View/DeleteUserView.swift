@@ -242,7 +242,10 @@ private extension DeleteUserView {
     }
 
     var confirmButton: some View {
-        LivithButton(Literals.confirmButtonText, variant: .primary, size: .large) {
+        LivithButton(
+            Literals.confirmButtonText,
+            variant: .primary
+        ) {
             isTextFieldFocused = false
             showConfirmSheet = true
         }

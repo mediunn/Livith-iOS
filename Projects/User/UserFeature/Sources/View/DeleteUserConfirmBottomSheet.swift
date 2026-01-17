@@ -120,7 +120,7 @@ private extension DeleteUserConfirmBottomSheet {
 
     var actionButtons: some View {
         HStack(spacing: 12) {
-            LivithButton(Literals.cancelButtonText, variant: .secondary) {
+            LivithButton(Literals.cancelButtonText, variant: .primary) {
                 onCancel()
             }
 
