@@ -17,7 +17,8 @@ public enum SongError: DomainError {
     case invalidID
     case setlistNotFound
     case combinationNotFound
-
+    case cancelled
+    
     public var errorDescription: String? {
         switch self {
         case .noConnection:
@@ -36,6 +37,8 @@ public enum SongError: DomainError {
             return "셋리스트를 찾을 수 없어요."
         case .combinationNotFound:
             return "해당 셋리스트에 포함된 노래가 아니에요."
+        case .cancelled:
+            return "요청이 취소되었습니다."
         }
     }
     

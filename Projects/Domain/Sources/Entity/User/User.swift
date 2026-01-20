@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct User: Codable, Identifiable {
+public struct User: Identifiable, Hashable {
     public let id: Int
     public var interestConcertID: Int?
     public let provider: String
@@ -33,12 +33,5 @@ public struct User: Codable, Identifiable {
         self.email = email
         self.nickname = nickname
         self.marketingConsent = marketingConsent
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case interestConcertID = "interestConcertId"
-        case providerID = "providerId"
-        case provider, email, nickname, marketingConsent
     }
 }

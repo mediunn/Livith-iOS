@@ -8,22 +8,20 @@
 
 import Foundation
 
-public enum AuthError: LocalizedError {
-    // Common
+public enum AuthError: DomainError {
     case noConnection
     case serverError
     case invalidResponse
     case unknown
-    case forbidden
-    case notFound
-    
-    // Login specific
-    case canceled
-    case noData
-    
-    // User specific
+    case withdrawn
+    case recentWithdrawal
     case duplicateNickname
     case nicknameTooLong
+    case emptyNickname
+    case userNotFound
+    case alreadyWithdrawn
+    case emptyReason
+    case cancelled
     
     public var errorDescription: String? {
         switch self {
@@ -35,18 +33,47 @@ public enum AuthError: LocalizedError {
             return "데이터를 불러오는데 실패했습니다."
         case .unknown:
             return "알 수 없는 오류가 발생했습니다."
-        case .forbidden:
-            return "접근 권한이 없습니다."
-        case .notFound:
-            return "정보를 찾을 수 없습니다."
-        case .canceled:
-            return "로그인이 취소되었습니다."
-        case .noData:
-            return "데이터를 불러올 수 없습니다."
+        case .withdrawn:
+            return "탈퇴한 회원입니다."
+        case .recentWithdrawal:
+            return "탈퇴 후 7일이 지나지 않았어요."
         case .duplicateNickname:
-            return "이미 사용 중인 닉네임입니다."
+            return "이미 존재하는 닉네임이에요."
         case .nicknameTooLong:
-            return "닉네임이 너무 깁니다."
+            return "닉네임은 10자 이내여야 해요."
+        case .emptyNickname:
+            return "닉네임을 입력해주세요."
+        case .userNotFound:
+            return "해당 유저를 찾을 수 없어요."
+        case .alreadyWithdrawn:
+            return "이미 탈퇴한 회원이에요."
+        case .emptyReason:
+            return "탈퇴 사유를 선택해주세요."
+        case .cancelled:
+            return "요청이 취소되었습니다."
+        }
+    }
+    
+    public static func from(message: String) -> AuthError {
+        switch message {
+        case "탈퇴한 회원입니다.":
+            return .withdrawn
+        case "탈퇴 후 7일이 지나지 않았어요":
+            return .recentWithdrawal
+        case "이미 존재하는 닉네임이에요.":
+            return .duplicateNickname
+        case "nickname must be shorter than or equal to 10 characters":
+            return .nicknameTooLong
+        case "nickname should not be empty":
+            return .emptyNickname
+        case "해당 유저가 존재하지 않습니다.":
+            return .userNotFound
+        case "이미 탈퇴한 회원입니다.":
+            return .alreadyWithdrawn
+        case "reason should not be empty":
+            return .emptyReason
+        default:
+            return .unknown
         }
     }
 }

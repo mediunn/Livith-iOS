@@ -13,9 +13,8 @@ public protocol CommentRepository {
         concertID: Int,
         cursor: (createdAt: String, id: Int)?,
         size: Int?
-    ) async throws(ConcertError) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int)
-
-    func createComment(concertID: Int, content: String) async throws(ConcertError) -> ConcertComment
-    func deleteComment(commentID: Int) async throws(ConcertError)
-    func reportComment(commentID: Int, content: String?) async throws(ConcertError)
+    ) async throws(CommentError) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int)
+    func createComment(concertID: Int, content: String) async throws(CommentError) -> ConcertComment
+    func deleteComment(commentID: Int) async throws(CommentError)
+    func reportComment(commentID: Int, content: String?) async throws(CommentError)
 }

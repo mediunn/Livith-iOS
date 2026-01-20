@@ -21,7 +21,8 @@ public enum SearchError: DomainError {
     case invalidCursor
     case invalidID
     case missingKeyword
-
+    case cancelled
+    
     public var errorDescription: String? {
         switch self {
         case .noSearchResult:
@@ -48,6 +49,8 @@ public enum SearchError: DomainError {
             return "ID는 1 이상의 정수여야 합니다."
         case .missingKeyword:
             return "검색어는 필수입니다."
+        case .cancelled:
+            return "요청이 취소되었습니다."
         }
     }
     
