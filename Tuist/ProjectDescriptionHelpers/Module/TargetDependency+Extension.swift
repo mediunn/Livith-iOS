@@ -49,4 +49,8 @@ extension TargetDependency {
     public static func widget(_ module: WidgetModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.widget.path)
     }
+
+    public static func domain(_ module: DomainModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.domain.path)
+    }
 }

@@ -86,6 +86,12 @@ public enum WidgetModule: String {
     case widget = "LivithWidget"
 }
 
+// MARK: - Domain Module
+
+public enum DomainModule: String {
+    case domain = "Domain"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {

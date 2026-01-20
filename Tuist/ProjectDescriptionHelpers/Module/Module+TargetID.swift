@@ -20,6 +20,7 @@ public enum TargetID {
     case home(HomeModule)
     case user(UserModule)
     case widget(WidgetModule)
+    case domain(DomainModule)
 
     public var name: String {
         switch self {
@@ -33,6 +34,7 @@ public enum TargetID {
         case .home(let module): return module.rawValue
         case .user(let module): return module.rawValue
         case .widget(let module): return module.rawValue
+        case .domain(let module): return module.rawValue
         }
     }
     
@@ -66,6 +68,8 @@ public enum TargetID {
         case .user(let module):
             return ["\(module.rawValue)/Sources/**"]
         case .widget:
+            return ["Sources/**"]
+        case .domain:
             return ["Sources/**"]
         }
     }
