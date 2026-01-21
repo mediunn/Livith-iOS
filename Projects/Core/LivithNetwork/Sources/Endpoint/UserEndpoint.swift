@@ -1,32 +1,34 @@
 //
 //  UserEndpoint.swift
-//  User
+//  LivithNetwork
 //
-//  Created by Youjin Lee on 12/11/25.
-//  Copyright © 2025 Livith. All rights reserved.
+//  Created by 김진웅 on 2026/01/21.
+//  Copyright © 2026 Livith. All rights reserved.
 //
 
 import Foundation
 
 import Alamofire
 
-import LivithNetwork
-import UserDomain
+public typealias UserService = NetworkService<UserEndpoint>
 
 public enum UserEndpoint {
+    case logout(request: DTO.Request.RequestLogout)
     case checkNicknameDuplicate(nickname: String)
     case updateUserNickname(request: DTO.Request.UpdateUserNickname)
-    case deleteUser(request: DTO.Request.DeleteUser)
+    case withdraw(request: DTO.Request.DeleteUser)
 }
 
 extension UserEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
+        case .logout:
+            return "/api/v4/auth/logout"
         case .checkNicknameDuplicate:
             return "/api/v4/users/check-nickname"
         case .updateUserNickname:
             return "/api/v4/users/nickname"
-        case .deleteUser:
+        case .withdraw:
             return "/api/v4/auth/withdraw"
         }
     }
@@ -42,9 +44,11 @@ extension UserEndpoint: NetworkEndpoint {
     
     public var body: (any Encodable)? {
         switch self {
+        case .logout(request: let request):
+            return request
         case .updateUserNickname(request: let request):
             return request
-        case .deleteUser(request: let request):
+        case .withdraw(request: let request):
             return request
         default:
             return .none
@@ -53,12 +57,23 @@ extension UserEndpoint: NetworkEndpoint {
     
     public var method: LivithNetwork.HTTPMethod {
         switch self {
-        case .deleteUser:
+        case .logout:
             return .post
         case .checkNicknameDuplicate:
             return .get
         case .updateUserNickname:
             return .patch
+        case .withdraw:
+            return .post
+        }
+    }
+
+    public var requiresInterceptor: Bool {
+        switch self {
+        case .logout, .checkNicknameDuplicate:
+            return false
+        case .updateUserNickname, .withdraw:
+            return true
         }
     }
 }

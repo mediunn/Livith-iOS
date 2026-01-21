@@ -14,19 +14,16 @@ import UserDomain
 
 public final class UserRepositoryImpl {
     private let userService: NetworkService<UserEndpoint>
-    private let logoutService: NetworkService<LogoutEndpoint>
     private let tokenService: TokenService
     private let localStorage: UserDefaultsStorage
     private let userErrorMapper: UserErrorMapper = .init()
 
     public init(
         userService: NetworkService<UserEndpoint> = .init(),
-        logoutService: NetworkService<LogoutEndpoint> = .init(interceptor: nil),
         tokenService: TokenService = TokenServiceImpl(),
         localStorage: UserDefaultsStorage = .init()
     ) {
         self.userService = userService
-        self.logoutService = logoutService
         self.tokenService = tokenService
         self.localStorage = localStorage
     }
@@ -84,7 +81,7 @@ extension UserRepositoryImpl: UserRepository {
             let request = DTO.Request.DeleteUser(reason: reason)
 
             let _: DTO.Response.DeleteUser = try await userService.request(
-                UserEndpoint.deleteUser(request: request)
+                UserEndpoint.withdraw(request: request)
             )
         } catch {
             throw userErrorMapper.mapToUserError(error)
@@ -101,8 +98,8 @@ extension UserRepositoryImpl: UserRepository {
             let refreshToken = try await tokenService.getRefreshToken()
             let request = DTO.Request.RequestLogout(refreshToken: refreshToken)
 
-            let _: DTO.Response.RequestLogout = try await logoutService.request(
-                LogoutEndpoint.logoutSession(request: request)
+            let _: DTO.Response.RequestLogout = try await userService.request(
+                .logout(request: request)
             )
         } catch {
             throw userErrorMapper.mapToUserError(error)
