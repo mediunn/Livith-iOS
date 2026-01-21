@@ -12,7 +12,8 @@ let project = Project.make(
                 .domain(.domain),
                 .core(.diContainer),
                 .core(.livithFoundation),
-                .core(.livithNetwork)
+                .core(.livithNetwork),
+                .core(.socialAuth)
             ]
         ),
         .make(

@@ -10,6 +10,7 @@ import Foundation
 
 import Domain
 import LivithNetwork
+import LivithFoundation
 
 struct SearchMapper {
     func toDomain(from response: DTO.Response.FetchBannerList) -> [Banner] {
