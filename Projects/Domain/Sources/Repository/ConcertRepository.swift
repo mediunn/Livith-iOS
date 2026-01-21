@@ -9,12 +9,15 @@
 import Foundation
 
 public protocol ConcertRepository {
-    func fetchConcertInfo(concertID: Int) async throws(ConcertError) -> Concert
-    func fetchConcertSchedule(concertID: Int) async throws(ConcertError) -> [ConcertSchedule]
-    func fetchConcertCultureList(concertID: Int) async throws(ConcertError) -> [ConcertCulture]
-    func fetchConcertInfoList(concertID: Int) async throws(ConcertError) -> [ConcertInfo]
-    func fetchConcertMerchandiseList(concertID: Int) async throws(ConcertError) -> [ConcertMerchandise]
-    func fetchConcertSetlistList(concertID: Int) async throws(ConcertError) -> [Setlist]
+    func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert]
     func fetchConcertArtistInfo(concertID: Int) async throws(ConcertError) -> Artist
-    func setInterestConcert(concertID: Int) async throws(ConcertError)
+    func fetchConcertSetlistList(concertID: Int) async throws(ConcertError) -> [Setlist]
+    func fetchConcertMerchandiseList(concertID: Int) async throws(ConcertError) -> [ConcertMerchandise]
+    func fetchConcertInfoList(concertID: Int) async throws(ConcertError) -> [ConcertInfo]
+    func fetchConcertCultureList(concertID: Int) async throws(ConcertError) -> [ConcertCulture]
+    func fetchConcertScheduleList(concertID: Int) async throws(ConcertError) -> [ConcertSchedule]
+    func fetchConcert(concertID: Int) async throws(ConcertError) -> Concert
+    func fetchSearchConcertSectionList() async throws(ConcertError) -> [ConcertSection]
+    func fetchHomeConcertSectionList() async throws(ConcertError) -> [ConcertSection]
+    func fetchMainSetlist(concertID: Int) async throws(ConcertError) -> Setlist?
 }

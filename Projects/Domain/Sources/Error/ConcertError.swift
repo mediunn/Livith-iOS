@@ -14,6 +14,7 @@ public enum ConcertError: DomainError {
     case invalidResponse
     case unknown
     case invalidID
+    case invalidSize
     case concertNotFound
     case artistNotFound
     case cancelled
@@ -28,7 +29,7 @@ public enum ConcertError: DomainError {
             return "데이터를 불러오는데 실패했어요."
         case .unknown:
             return "알 수 없는 오류가 발생했어요."
-        case .invalidID:
+        case .invalidID, .invalidSize:
             return "잘못된 요청입니다."
         case .concertNotFound:
             return "콘서트를 찾을 수 없어요."
@@ -41,8 +42,10 @@ public enum ConcertError: DomainError {
     
     public static func from(message: String) -> ConcertError {
         switch message {
-        case "id는 양의 정수여야 합니다.":
+        case "id는 양의 정수여야 합니다.", "id must not be less than 1":
             return .invalidID
+        case "size must not be less than 1":
+            return .invalidSize
         case "해당 콘서트를 찾을 수 없습니다.", "해당 콘서트가 존재하지 않습니다.":
             return .concertNotFound
         case "해당 아티스트를 찾을 수 없습니다.":
