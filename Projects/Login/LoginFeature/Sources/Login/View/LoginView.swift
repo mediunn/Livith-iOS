@@ -79,8 +79,8 @@ private extension LoginView {
     
     var loginButtons: some View {
         VStack(spacing: 20) {
-            CalloutChipView(text: store.state.calloutMessage.text, targetText: store.state.calloutMessage.targetText)
-                .frame(width: 272, height: 36)
+            LivithCalloutView(store.state.calloutMessage.text, highlight: store.state.calloutMessage.targetText)
+                .frame(width: 272, height: 40)
 
             VStack(spacing: 12) {
                 LivithLoginButton(provider: .kakao) {
