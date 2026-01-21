@@ -1,29 +1,64 @@
+//
+//  CommentRepositoryImpl.swift
+//  Data
+//
+//  Created by 김진웅 on 1/21/26.
+//  Copyright © 2026 Livith. All rights reserved.
+//
 
 import Foundation
+
 import Domain
-import DIContainer
 import LivithNetwork
 
-public struct CommentRepositoryImpl: CommentRepository {
-    private let diContainer: DIContainer
+struct CommentRepositoryImpl: CommentRepository {
+    private let commentService: CommentService
+    private let mapper: CommentMapper = .init()
+    private let errorMapper: CommentErrorMapper = .init()
     
-    public func fetchConcertComments(
+    func fetchConcertComments(
         concertID: Int,
         cursor: (createdAt: String, id: Int)?,
         size: Int?
     ) async throws(CommentError) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int) {
-        fatalError("Not implemented yet")
+        do {
+            let response: DTO.Response.FetchConcertCommentList = try await commentService.request(
+                .fetchConcertCommentList(concertID: concertID, cursor: cursor, size: size)
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            throw errorMapper.mapToCommentError(error)
+        }
     }
-
-    public func createComment(concertID: Int, content: String) async throws(CommentError) -> ConcertComment {
-        fatalError("Not implemented yet")
+    
+    func createComment(concertID: Int, content: String) async throws(CommentError) -> ConcertComment {
+        do {
+            let response: DTO.Response.CreateConcertComment = try await commentService.request(
+                .createComment(concertID: concertID, content: content)
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            throw errorMapper.mapToCommentError(error)
+        }
     }
-
-    public func deleteComment(commentID: Int) async throws(CommentError) {
-        fatalError("Not implemented yet")
+    
+    func deleteComment(commentID: Int) async throws(CommentError) {
+        do {
+            let _: DTO.Response.EmptyResponse = try await commentService.request(
+                .deleteComment(commentID: commentID)
+            )
+        } catch {
+            throw errorMapper.mapToCommentError(error)
+        }
     }
-
-    public func reportComment(commentID: Int, content: String?) async throws(CommentError) {
-        fatalError("Not implemented yet")
+    
+    func reportComment(commentID: Int, content: String?) async throws(CommentError) {
+        do {
+            let _: DTO.Response.CreateCommentReport = try await commentService.request(
+                .reportComment(commentID: commentID, content: content)
+            )
+        } catch {
+            throw errorMapper.mapToCommentError(error)
+        }
     }
 }
