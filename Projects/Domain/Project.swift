@@ -13,10 +13,7 @@ let project = Project.make(
     targets: [
         .make(
             target: .domain(.domain),
-            product: .framework,
-            dependencies: [
-                .core(.livithFoundation)
-            ]
+            product: .framework
         )
     ]
 )

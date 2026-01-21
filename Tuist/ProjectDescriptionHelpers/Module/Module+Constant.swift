@@ -92,6 +92,13 @@ public enum DomainModule: String {
     case domain = "Domain"
 }
 
+// MARK: - Data Module
+
+public enum DataModule: String {
+    case data = "Data"
+    case dataTests = "DataTests"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {
