@@ -9,13 +9,11 @@
 import Foundation
 
 public protocol AuthRepository {
-    // Login
-    func login(for provider: SocialLoginProvider) async throws(AuthError) -> LoginStatus
-    func fetchLastLoginPlatform() async throws(AuthError) -> SocialLoginProvider
-    
-    // User
+    func withdraw(reason: String) async throws(AuthError)
+    func logout() async throws(AuthError)
     func checkNicknameDuplicate(nickname: String) async throws(AuthError) -> Bool
-    func updateUserNickname(nickname: String) async throws(AuthError) -> String
-    func deleteUser(reason: String) async throws(AuthError) -> Void
-    func logoutSession() async throws(AuthError) -> Void
+    func signup(tempUser: TempUser, marketingConsent: Bool, nickname: String) async throws(AuthError)
+    func kakaoLogin() async throws(AuthError) -> LoginStatus
+    func appleLogin() async throws(AuthError) -> LoginStatus
+    func fetchLastLoginPlatform() async throws(AuthError) -> SocialLoginProvider
 }
