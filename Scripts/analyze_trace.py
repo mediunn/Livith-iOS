@@ -1379,28 +1379,27 @@ def analyze_all_data(trace_path: str) -> tuple:
         lifecycle["initial_frame"]
     ])
 
-    # Hitches 스키마에서 런타임 Hang 추출 (100ms 이상)
-    hitches_tmp = run_xctrace_export_to_file(
+    # potential-hangs 스키마에서 런타임 Hang 추출 (Brief Unresponsiveness)
+    potential_hangs_tmp = run_xctrace_export_to_file(
         trace_path,
-        '/trace-toc/run[@number="1"]/data/table[@schema="hitches"]'
+        '/trace-toc/run[@number="1"]/data/table[@schema="potential-hangs"]'
     )
-    if hitches_tmp:
+    if potential_hangs_tmp:
         try:
-            hitch_id_map = {}
+            hang_id_map = {}
 
-            def process_hitch_row(row, id_map):
-                # start-time, duration 추출
+            def process_potential_hang_row(row, id_map):
+                # start-time, duration, hang-type 추출
                 start_time_elem = row.find("start-time")
                 duration_elem = row.find("duration")
-                narrative_elem = row.find("narrative-description")
+                hang_type_elem = row.find("hang-type")
 
                 if start_time_elem is not None and duration_elem is not None:
                     start_fmt = resolve_ref(start_time_elem, id_map)
                     duration_fmt = resolve_ref(duration_elem, id_map)
                     duration_ms = parse_fmt_duration(duration_fmt)
-                    narrative = resolve_ref(narrative_elem, id_map) if narrative_elem is not None else "Hitch"
+                    hang_type = resolve_ref(hang_type_elem, id_map) if hang_type_elem is not None else "Hang"
 
-                    # 100ms 이상의 Hitch만 Hang으로 추가
                     if duration_ms >= 100:
                         start_ms = parse_start_time_to_ms(start_fmt)
 
@@ -1422,15 +1421,15 @@ def analyze_all_data(trace_path: str) -> tuple:
                                 "end_ms": start_ms + duration_ms,
                                 "duration_ms": duration_ms,
                                 "severity": severity,
-                                "description": f"Brief Unresponsiveness - {narrative}",
+                                "description": hang_type,
                                 "cause": "",  # 런타임 Hang은 cause 없음
                                 "affected_views": []
                             })
 
-            parse_xml_iteratively(hitches_tmp, process_hitch_row, hitch_id_map)
+            parse_xml_iteratively(potential_hangs_tmp, process_potential_hang_row, hang_id_map)
         finally:
-            if os.path.exists(hitches_tmp):
-                os.unlink(hitches_tmp)
+            if os.path.exists(potential_hangs_tmp):
+                os.unlink(potential_hangs_tmp)
 
     # Hang 발생 시간대와 View 업데이트 매칭
     for hang in hangs:
