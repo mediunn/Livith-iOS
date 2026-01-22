@@ -36,7 +36,10 @@ struct CommentRepositoryImpl: CommentRepository {
             let response: DTO.Response.CreateConcertComment = try await commentService.request(
                 .createComment(concertID: concertID, content: content)
             )
-            return mapper.toDomain(from: response)
+            guard let comment = mapper.toDomain(from: response) else {
+                throw CommentError.invalidResponse
+            }
+            return comment
         } catch {
             throw errorMapper.mapToCommentError(error)
         }

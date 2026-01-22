@@ -14,12 +14,15 @@ import LivithFoundation
 
 struct CommentMapper {
     func toDomain(from response: DTO.Response.FetchConcertCommentList) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int) {
-        let comments = response.data.map { dto in
-            ConcertComment(
+        let comments = response.data.compactMap { dto -> ConcertComment? in
+            guard let createdAt = DateFormatterService.date(from: dto.createdAt, type: .iso8601) else {
+                return nil
+            }
+            return ConcertComment(
                 id: dto.id,
                 writer: dto.nickname,
                 content: dto.content,
-                createdAt: DateFormatterService.date(from: dto.createdAt, type: .iso8601) ?? Date()
+                createdAt: createdAt
             )
         }
         
@@ -31,12 +34,16 @@ struct CommentMapper {
         return (comments, cursor, response.totalCount)
     }
     
-    func toDomain(from response: DTO.Response.CreateConcertComment) -> ConcertComment {
-        ConcertComment(
+    func toDomain(from response: DTO.Response.CreateConcertComment) -> ConcertComment? {
+        guard let createdAt = DateFormatterService.date(from: response.createdAt, type: .iso8601) else {
+            return nil
+        }
+        
+        return ConcertComment(
             id: response.id,
             writer: response.nickname,
             content: response.content,
-            createdAt: DateFormatterService.date(from: response.createdAt, type: .iso8601) ?? Date()
+            createdAt: createdAt
         )
     }
 }

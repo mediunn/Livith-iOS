@@ -27,16 +27,22 @@ struct SearchMapper {
     
     func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResultEntity {
         let concerts = response.data.compactMap { dto -> Concert? in
-            guard let posterURL = URL(string: dto.posterURL) else { return nil }
+            guard let posterURL = URL(string: dto.posterURL),
+                  let status = ConcertStatus(rawValue: dto.status),
+                  let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
+                  let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate)
+            else {
+                return nil
+            }
             
             return Concert(
                 id: dto.id,
                 title: dto.title,
                 artist: dto.artist,
-                status: ConcertStatus(rawValue: dto.status) ?? .upcoming,
+                status: status,
                 daysLeft: dto.daysLeft,
-                startDate: DateFormatterService.date(from: dto.startDate, type: .dotDate) ?? Date(),
-                endDate: DateFormatterService.date(from: dto.endDate, type: .dotDate) ?? Date(),
+                startDate: startDate,
+                endDate: endDate,
                 posterURL: posterURL,
                 venue: dto.venue,
                 ticketSite: dto.ticketSite,

@@ -13,15 +13,22 @@ import LivithNetwork
 import LivithFoundation
 
 struct SetlistMapper {
-    func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist {
-        Setlist(
+    func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist? {
+        guard let startDate = DateFormatterService.date(from: response.startDate, type: .dotDate),
+              let endDate = DateFormatterService.date(from: response.endDate, type: .dotDate),
+              let type = SetlistType(rawValue: response.type.lowercased())
+        else {
+            return nil
+        }
+        
+        return Setlist(
             id: response.id,
             title: response.title,
             imageURL: response.imageURL,
-            type: SetlistType(rawValue: response.type.lowercased()) ?? .original,
+            type: type,
             status: response.status,
-            startDate: DateFormatterService.date(from: response.startDate, type: .dotDate) ?? Date(),
-            endDate: DateFormatterService.date(from: response.endDate, type: .dotDate) ?? Date(),
+            startDate: startDate,
+            endDate: endDate,
             venue: response.venue,
             artist: response.artist
         )

@@ -102,7 +102,7 @@ final class CommentMapperTests: XCTestCase {
         let dto = try JSONDecoder().decode(DTO.Response.CreateConcertComment.self, from: json)
         
         // When
-        let result = sut.toDomain(from: dto)
+        let result = try XCTUnwrap(sut.toDomain(from: dto))
         
         // Then
         XCTAssertEqual(result.id, 29)

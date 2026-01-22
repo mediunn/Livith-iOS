@@ -21,7 +21,10 @@ struct SetlistRepositoryImpl: SetlistRepository {
             let response: DTO.Response.FetchConcertSetlist = try await setlistService.request(
                 .fetchSetlistDetail(concertID: concertID, setlistID: setlistID)
             )
-            return mapper.toDomain(from: response)
+            guard let setlist = mapper.toDomain(from: response) else {
+                throw SetlistError.invalidResponse
+            }
+            return setlist
         } catch {
             throw errorMapper.mapToSetlistError(error)
         }

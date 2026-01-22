@@ -13,6 +13,7 @@ let project = Project.make(
                 .core(.diContainer),
                 .core(.livithFoundation),
                 .core(.livithNetwork),
+                .core(.persistence),
                 .core(.socialAuth)
             ]
         ),

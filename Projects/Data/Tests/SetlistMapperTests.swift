@@ -44,7 +44,7 @@ final class SetlistMapperTests: XCTestCase {
         let dto = try JSONDecoder().decode(DTO.Response.FetchConcertSetlist.self, from: json)
         
         // When
-        let result = sut.toDomain(from: dto)
+        let result = try XCTUnwrap(sut.toDomain(from: dto))
         
         // Then
         XCTAssertEqual(result.id, 1)
