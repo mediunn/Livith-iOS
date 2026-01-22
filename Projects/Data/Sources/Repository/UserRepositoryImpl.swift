@@ -12,7 +12,7 @@ import Domain
 import LivithNetwork
 import Persistence
 
-public struct UserRepositoryImpl: UserRepository {
+struct UserRepositoryImpl: UserRepository {
     private let onboardingService: OnboardingService
     private let homeService: HomeService
     private let userService: UserService
@@ -21,7 +21,7 @@ public struct UserRepositoryImpl: UserRepository {
     private let mapper: UserMapper = .init()
     private let errorMapper: UserErrorMapper = .init()
     
-    public init(
+    init(
         onboardingService: OnboardingService,
         homeService: HomeService,
         userService: UserService,
@@ -35,7 +35,7 @@ public struct UserRepositoryImpl: UserRepository {
         self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage, widgetImageStorage: widgetImageStorage)
     }
 
-    public func updateNickname(_ nickname: String) async throws(UserError) {
+    func updateNickname(_ nickname: String) async throws(UserError) {
         do {
             let request = DTO.Request.UpdateUserNickname(nickname: nickname)
             let response: DTO.Response.UpdateUserNickname = try await userService.request(
@@ -49,7 +49,7 @@ public struct UserRepositoryImpl: UserRepository {
         }
     }
 
-    public func fetchUser() async throws(UserError) -> User {
+    func fetchUser() async throws(UserError) -> User {
         if let cachedUser = await userCache.fetchUserIfValid() {
             return cachedUser
         }
@@ -65,7 +65,7 @@ public struct UserRepositoryImpl: UserRepository {
         }
     }
 
-    public func fetchInterestedConcert() async throws(UserError) -> Concert? {
+    func fetchInterestedConcert() async throws(UserError) -> Concert? {
         if let cachedConcert = await interestConcertCache.fetchInterestConcertIfValid() {
             return cachedConcert
         }
@@ -86,7 +86,7 @@ public struct UserRepositoryImpl: UserRepository {
     }
 
     @discardableResult
-    public func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
+    func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         do {
             let response: DTO.Response.UpdateUserInterestConcert = try await homeService.request(
                 .updateInterestedConcert(id: concertID)
@@ -103,7 +103,7 @@ public struct UserRepositoryImpl: UserRepository {
         }
     }
 
-    public func deleteInterestedConcert() async throws(UserError) {
+    func deleteInterestedConcert() async throws(UserError) {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
             await userCache.updateUser { $0.interestConcertID = nil }

@@ -8,12 +8,16 @@
 
 import Foundation
 
-public struct ConcertMerchandise: Hashable {
-    public let imageURL: URL
-    public let link: URL
+public struct ConcertMerchandise: Hashable, Identifiable {
+    public let id: Int
+    public let name: String
+    public let price: String?
+    public let imageURL: URL?
     
-    public init(imageURL: URL, link: URL) {
+    public init(id: Int, name: String, price: String?, imageURL: URL?) {
+        self.id = id
+        self.name = name
+        self.price = price
         self.imageURL = imageURL
-        self.link = link
     }
 }

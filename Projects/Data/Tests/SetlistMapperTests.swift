@@ -49,7 +49,10 @@ final class SetlistMapperTests: XCTestCase {
         // Then
         XCTAssertEqual(result.id, 1)
         XCTAssertEqual(result.title, "Eras Tour Expected")
-        XCTAssertEqual(result.imageURL, "https://img.cjnews.cj.net/wp-content/uploads/2023/10/cgv_press_231025_01-692x1024.jpg")
+        XCTAssertEqual(
+            result.imageURL?.absoluteString,
+            "https://img.cjnews.cj.net/wp-content/uploads/2023/10/cgv_press_231025_01-692x1024.jpg"
+        )
         XCTAssertEqual(result.type, .expected)
         XCTAssertEqual(result.venue, "고척스카이돔")
         XCTAssertEqual(result.artist, "Taylor Swift")

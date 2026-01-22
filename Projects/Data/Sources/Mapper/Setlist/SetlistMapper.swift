@@ -24,7 +24,7 @@ struct SetlistMapper {
         return Setlist(
             id: response.id,
             title: response.title,
-            imageURL: response.imageURL,
+            imageURL: response.imageURL.flatMap { URL(string: $0) },
             type: .init(value: response.type),
             status: response.status.flatMap { SetlistStatus(rawValue: $0) },
             startDate: startDate,

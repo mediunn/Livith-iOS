@@ -11,7 +11,7 @@ import Foundation
 public struct Setlist: Identifiable, Hashable {
     public let id: Int
     public let title: String
-    public let imageURL: String?
+    public let imageURL: URL?
     public let type: SetlistType
     public let status: SetlistStatus?
     public let startDate: Date
@@ -22,7 +22,7 @@ public struct Setlist: Identifiable, Hashable {
     public init(
         id: Int,
         title: String,
-        imageURL: String?,
+        imageURL: URL?,
         type: SetlistType,
         status: SetlistStatus?,
         startDate: Date,

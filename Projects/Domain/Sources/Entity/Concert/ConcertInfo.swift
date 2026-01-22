@@ -8,16 +8,16 @@
 
 import Foundation
 
-public struct ConcertInfo: Hashable {
-    public let casting: String
-    public let runtime: String
-    public let ageLimit: String
-    public let price: String
+public struct ConcertInfo: Identifiable, Hashable {
+    public let id: Int
+    public let imageURL: String
+    public let title: String
+    public let description: String
     
-    public init(casting: String, runtime: String, ageLimit: String, price: String) {
-        self.casting = casting
-        self.runtime = runtime
-        self.ageLimit = ageLimit
-        self.price = price
+    public init(id: Int, imageURL: String, title: String, description: String) {
+        self.id = id
+        self.imageURL = imageURL
+        self.title = title
+        self.description = description
     }
 }
