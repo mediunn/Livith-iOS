@@ -16,6 +16,10 @@ struct CommentRepositoryImpl: CommentRepository {
     private let mapper: CommentMapper = .init()
     private let errorMapper: CommentErrorMapper = .init()
     
+    init(commentService: CommentService) {
+        self.commentService = commentService
+    }
+    
     func fetchConcertComments(
         concertID: Int,
         cursor: (createdAt: String, id: Int)?,

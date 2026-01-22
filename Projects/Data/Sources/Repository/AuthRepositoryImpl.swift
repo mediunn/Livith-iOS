@@ -19,8 +19,22 @@ struct AuthRepositoryImpl: AuthRepository {
     private let userService: UserService
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenService: TokenService
-    private let mapper: AuthMapper
-    private let errorMapper: AuthErrorMapper
+    private let mapper: AuthMapper = .init()
+    private let errorMapper: AuthErrorMapper = .init()
+    
+    init(
+        socialAuthService: SocialAuthService,
+        onboardingService: OnboardingService,
+        userService: UserService,
+        userdefaultsStorage: UserDefaultsStorage,
+        tokenService: TokenService
+    ) {
+        self.socialAuthService = socialAuthService
+        self.onboardingService = onboardingService
+        self.userService = userService
+        self.userdefaultsStorage = userdefaultsStorage
+        self.tokenService = tokenService
+    }
     
     func withdraw(reason: String) async throws(AuthError) {
         do {

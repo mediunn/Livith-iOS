@@ -16,6 +16,10 @@ struct SetlistRepositoryImpl: SetlistRepository {
     private let mapper: SetlistMapper = .init()
     private let errorMapper: SetlistErrorMapper = .init()
     
+    init(setlistService: SetlistService) {
+        self.setlistService = setlistService
+    }
+    
     func fetchSetlist(concertID: Int, setlistID: Int) async throws(SetlistError) -> Setlist {
         do {
             let response: DTO.Response.FetchConcertSetlist = try await setlistService.request(

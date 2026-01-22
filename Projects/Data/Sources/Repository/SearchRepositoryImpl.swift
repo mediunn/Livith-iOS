@@ -16,6 +16,10 @@ struct SearchRepositoryImpl: SearchRepository {
     private let mapper: SearchMapper = .init()
     private let errorMapper: SearchErrorMapper = .init()
     
+    init(searchService: SearchService) {
+        self.searchService = searchService
+    }
+    
     func fetchBanners() async throws(SearchError) -> [Banner] {
         do {
             let response: DTO.Response.FetchBannerList = try await searchService.request(.fetchBanners)

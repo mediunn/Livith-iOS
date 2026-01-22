@@ -20,6 +20,18 @@ struct ConcertRepositoryImpl: ConcertRepository {
     private let mapper: ConcertMapper = .init()
     private let errorMapper: ConcertErrorMapper = .init()
     
+    init(
+        homeService: HomeService,
+        searchService: SearchService,
+        concertService: ConcertService,
+        setlistService: SetlistService
+    ) {
+        self.homeService = homeService
+        self.searchService = searchService
+        self.concertService = concertService
+        self.setlistService = setlistService
+    }
+    
     func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert] {
         let cursor: String? = configureCursor(startDate: startDate, concertID: concertID)
 

@@ -16,6 +16,10 @@ struct SongRepositoryImpl: SongRepository {
     private let mapper: SongMapper = .init()
     private let errorMapper: SongErrorMapper = .init()
     
+    init(songService: SongService) {
+        self.songService = songService
+    }
+    
     func fetchSongLyrics(songID: Int) async throws(SongError) -> SongLyrics {
         do {
             let response: DTO.Response.FetchSongLyrics = try await songService.request(
