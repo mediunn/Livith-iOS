@@ -11,32 +11,18 @@ import Foundation
 @propertyWrapper
 public struct Injected<T> {
     private let container: any DependencyContainer
-    private let lock = NSLock()
-
-    private var _value: T?
 
     public init() {
         self.container = DIContainer.shared
-        self._value = nil
     }
     
     public init(container: any DependencyContainer) {
         self.container = container
-        self._value = nil
     }
 
     public var wrappedValue: T {
-        mutating get {
-            lock.lock()
-            defer { lock.unlock() }
-            
-            if let cachedValue = _value {
-                return cachedValue
-            }
-            
-            let resolved = container.resolve(T.self)
-            _value = resolved
-            return resolved
+        get {
+            return container.resolve(T.self)
         }
     }
 }
