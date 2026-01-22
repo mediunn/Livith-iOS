@@ -1667,15 +1667,6 @@ def generate_markdown_report(trace_path: str, hangs: list, views: dict, lifecycl
                             report.append(f"- {module_names.get(module, module)}: {count}회 ({ratio:.1f}%)")
                     report.append("")
 
-                # 함수 그룹화
-                function_groups = analysis.get("function_groups", [])
-                if function_groups:
-                    report.append("**추정 함수 그룹 (인접 주소 기준)**:")
-                    for group in function_groups[:3]:
-                        module_name = {"app": "앱", "system": "시스템"}.get(group["module"], group["module"])
-                        report.append(f"- `0x{group['base']:x}` ~ `0x{group['range'][1]:x}` ({module_name}): {group['count']}개 주소")
-                    report.append("")
-
                 # 진단에 따른 개선 방안
                 if "CPU 집약적" in analysis["diagnosis"]:
                     report.append("**개선 방안**:")
@@ -1694,23 +1685,6 @@ def generate_markdown_report(trace_path: str, hangs: list, views: dict, lifecycl
                     report.append("3. 배치 처리로 API 호출 횟수 감소")
                 report.append("")
 
-        # Hot addresses 전체
-        if time_profiler.get("hot_addresses"):
-            report.append("### 3.4 전체 Hot Addresses (심볼화 필요)\n")
-            report.append("> 아래 주소들을 Instruments에서 심볼화하거나, `atos` 명령어로 확인하세요.\n")
-            report.append("")
-            report.append("```bash")
-            report.append("# 심볼화 명령어 예시 (dSYM 필요)")
-            report.append("atos -arch arm64 -o YourApp.app.dSYM/Contents/Resources/DWARF/YourApp -l <load_address> <address>")
-            report.append("```")
-            report.append("")
-            report.append("| 주소 | 샘플 수 | 추정 비율 |")
-            report.append("|------|---------|----------|")
-            total_hot = sum(count for _, count in time_profiler["hot_addresses"][:10])
-            for addr, count in time_profiler["hot_addresses"][:10]:
-                ratio = count / time_profiler["running_samples"] * 100 if time_profiler["running_samples"] > 0 else 0
-                report.append(f"| `0x{addr:x}` | {count} | {ratio:.1f}% |")
-            report.append("")
     else:
         report.append("Time Profiler 데이터가 없습니다. Instruments에서 Time Profiler를 활성화하고 다시 녹화하세요.")
     report.append("\n---\n")
@@ -1959,86 +1933,6 @@ def generate_markdown_report(trace_path: str, hangs: list, views: dict, lifecycl
 
         if not priority_issues:
             report.append("✅ 심각한 성능 이슈가 감지되지 않았습니다.")
-
-    report.append("\n---\n")
-
-    # 성능 최적화 팁
-    report.append("## 7. 💡 성능 최적화 팁\n")
-    report.append("**View Body 속도 유지**")
-    report.append(f"- 각 View Body는 {FRAME_DEADLINE_60FPS}ms 이내 완료 권장")
-    report.append("- Formatter, 복잡한 계산은 ViewModel에서 처리")
-    report.append("")
-    report.append("**불필요한 업데이트 방지**")
-    report.append("- @Observable 속성을 세분화하여 필요한 View만 업데이트")
-    report.append("- Equatable 준수로 실제 변경 시에만 업데이트")
-    report.append("")
-    report.append("**데이터 흐름 설계**")
-    report.append("- View별 개별 ViewModel로 종속성 분리")
-    report.append("- Environment에 자주 변경되는 값 저장 피하기")
-    report.append("\n---\n")
-
-    # Signpost 연동 가이드
-    report.append("## 8. 🔬 더 정밀한 측정을 위한 Signpost 가이드\n")
-    report.append("> os_signpost를 사용하면 앱 코드의 특정 구간을 정밀하게 측정할 수 있습니다.\n")
-    report.append("")
-    report.append("### 8.1 Signpost 설정")
-    report.append("")
-    report.append("```swift")
-    report.append("import os.signpost")
-    report.append("")
-    report.append("// 1. Logger 정의 (앱 전역)")
-    report.append('let performanceLog = OSLog(subsystem: "com.yourapp", category: "Performance")')
-    report.append("")
-    report.append("// 2. View Body 측정")
-    report.append("struct MyView: View {")
-    report.append("    var body: some View {")
-    report.append('        os_signpost(.begin, log: performanceLog, name: "MyView.body")')
-    report.append('        defer { os_signpost(.end, log: performanceLog, name: "MyView.body") }')
-    report.append("        ")
-    report.append("        // View 내용")
-    report.append("        Text(\"Hello\")")
-    report.append("    }")
-    report.append("}")
-    report.append("")
-    report.append("// 3. 네트워크 요청 측정")
-    report.append("func fetchData() async {")
-    report.append('    let signpostID = OSSignpostID(log: performanceLog)')
-    report.append('    os_signpost(.begin, log: performanceLog, name: "FetchData", signpostID: signpostID)')
-    report.append("    ")
-    report.append("    let result = await networkService.fetch()")
-    report.append("    ")
-    report.append('    os_signpost(.end, log: performanceLog, name: "FetchData", signpostID: signpostID)')
-    report.append("}")
-    report.append("```")
-    report.append("")
-    report.append("### 8.2 Instruments에서 확인")
-    report.append("1. Instruments에서 `os_signpost` 템플릿 추가")
-    report.append("2. 앱 실행 및 녹화")
-    report.append("3. Points of Interest 또는 os_signpost 트랙에서 확인")
-    report.append("")
-    report.append("### 8.3 SwiftUI View 자동 측정 (개발 중 디버깅용)")
-    report.append("")
-    report.append("```swift")
-    report.append("#if DEBUG")
-    report.append("extension View {")
-    report.append("    func measureBody(_ name: String = #function) -> some View {")
-    report.append("        self.modifier(MeasureBodyModifier(name: name))")
-    report.append("    }")
-    report.append("}")
-    report.append("")
-    report.append("struct MeasureBodyModifier: ViewModifier {")
-    report.append("    let name: String")
-    report.append("    ")
-    report.append("    func body(content: Content) -> some View {")
-    report.append('        os_signpost(.begin, log: performanceLog, name: "ViewBody", "%{public}s", name)')
-    report.append('        defer { os_signpost(.end, log: performanceLog, name: "ViewBody", "%{public}s", name) }')
-    report.append("        return content")
-    report.append("    }")
-    report.append("}")
-    report.append("#endif")
-    report.append("```")
-    report.append("")
-    report.append("> ⚠️ Signpost는 릴리즈 빌드에서는 제거하거나 `#if DEBUG`로 감싸세요.")
 
     return "\n".join(report)
 
