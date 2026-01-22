@@ -1,4 +1,4 @@
-.PHONY: module module-delete module-rollback generate clean sync-dskit
+.PHONY: module module-delete module-rollback generate clean sync-dskit analyze
 
 # 모듈 생성
 module:
@@ -23,3 +23,7 @@ clean:
 # DSKit 에셋 동기화
 sync-dskit:
 	@./Scripts/sync-dskit.sh
+
+# Instruments trace 분석
+analyze:
+	@python3 ./Scripts/analyze_trace.py

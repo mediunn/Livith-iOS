@@ -28,7 +28,10 @@ let project = Project.make(
                 .core(.livithNetwork),
                 .core(.livithFoundation),
                 .core(.persistence),
-            ]
+            ],
+            settings: .settings(
+                base: ["CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": "YES"]
+            )
         )
     ]
 )

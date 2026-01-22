@@ -69,27 +69,11 @@ private extension CommentCardView {
     }
 
     var deleteButton: some View {
-        Button(action: onDelete) {
-            Text("삭제")
-                .notosans(.caption1Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-                .background(Color.livithColor(.black100))
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-        }
+        LivithReportButton("삭제", action: onDelete)
     }
 
     var reportButton: some View {
-        Button(action: onReport) {
-            Text("신고")
-                .notosans(.caption1Semibold)
-                .foregroundStyle(Color.livithColor(.black80))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-                .background(Color.livithColor(.black100))
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-        }
+        LivithReportButton("신고", action: onReport)
     }
 }
 
