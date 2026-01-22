@@ -13,7 +13,7 @@ public struct Setlist: Identifiable, Hashable {
     public let title: String
     public let imageURL: String?
     public let type: SetlistType
-    public let status: String?
+    public let status: SetlistStatus?
     public let startDate: Date
     public let endDate: Date
     public let venue: String
@@ -24,7 +24,7 @@ public struct Setlist: Identifiable, Hashable {
         title: String,
         imageURL: String?,
         type: SetlistType,
-        status: String? = nil,
+        status: SetlistStatus?,
         startDate: Date,
         endDate: Date,
         venue: String,

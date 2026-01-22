@@ -16,7 +16,7 @@ struct SetlistMapper {
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist? {
         guard let startDate = DateFormatterService.date(from: response.startDate, type: .dotDate),
               let endDate = DateFormatterService.date(from: response.endDate, type: .dotDate),
-              let type = SetlistType(rawValue: response.type.lowercased())
+              let type = SetlistType(rawValue: response.type.uppercased())
         else {
             return nil
         }
@@ -25,8 +25,8 @@ struct SetlistMapper {
             id: response.id,
             title: response.title,
             imageURL: response.imageURL,
-            type: type,
-            status: response.status,
+            type: .init(value: response.type),
+            status: response.status.flatMap { SetlistStatus(rawValue: $0) },
             startDate: startDate,
             endDate: endDate,
             venue: response.venue,

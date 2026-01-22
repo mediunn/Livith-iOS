@@ -8,8 +8,29 @@
 
 import Foundation
 
-public enum SetlistType: String, Equatable, CaseIterable {
-    case original
-    case fanmade
-    case official
+public enum SetlistType: String, CaseIterable, CustomStringConvertible {
+    case expected = "EXPECTED"
+    case recent = "RECENT"
+    case ongoing = "ONGOING"
+    case past = "PAST"
+    case none = "NONE"
+    
+    public init(value: String) {
+        self = .init(rawValue: value.uppercased()) ?? .none
+    }
+    
+    public var description: String {
+        switch self {
+        case .expected:
+            "예상"
+        case .recent:
+            "최근"
+        case .ongoing:
+            "진행중"
+        case .past:
+            "과거"
+        case .none:
+            ""
+        }
+    }
 }

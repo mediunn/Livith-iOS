@@ -30,14 +30,14 @@ final class SetlistMapperTests: XCTestCase {
         let json = """
         {
             "id": 1,
-            "title": "Test Concert",
-            "imgUrl": "https://example.com/image.jpg",
-            "type": "ORIGINAL",
-            "startDate": "2025.10.14",
-            "endDate": "2025.10.15",
-            "status": "FINISHED",
-            "venue": "Test Venue",
-            "artist": "Test Artist"
+            "title": "Eras Tour Expected",
+            "imgUrl": "https://img.cjnews.cj.net/wp-content/uploads/2023/10/cgv_press_231025_01-692x1024.jpg",
+            "type": "EXPECTED",
+            "startDate": "2025.07.01",
+            "endDate": "2025.07.05",
+            "status": "예상",
+            "venue": "고척스카이돔",
+            "artist": "Taylor Swift"
         }
         """.data(using: .utf8)!
         
@@ -48,16 +48,21 @@ final class SetlistMapperTests: XCTestCase {
         
         // Then
         XCTAssertEqual(result.id, 1)
-        XCTAssertEqual(result.title, "Test Concert")
-        XCTAssertEqual(result.imageURL, "https://example.com/image.jpg")
-        XCTAssertEqual(result.type, .original) // Check Enum Mapping (case insensitive due to implementation?) Implementation uses lowercased()
-        XCTAssertEqual(result.venue, "Test Venue")
-        XCTAssertEqual(result.artist, "Test Artist")
+        XCTAssertEqual(result.title, "Eras Tour Expected")
+        XCTAssertEqual(result.imageURL, "https://img.cjnews.cj.net/wp-content/uploads/2023/10/cgv_press_231025_01-692x1024.jpg")
+        XCTAssertEqual(result.type, .expected)
+        XCTAssertEqual(result.venue, "고척스카이돔")
+        XCTAssertEqual(result.artist, "Taylor Swift")
+        XCTAssertEqual(result.status, .expected)
         
-        // Date verification (approximate check since we use local formatter)
         let calendar = Calendar.current
         let year = calendar.component(.year, from: result.startDate)
+        let month = calendar.component(.month, from: result.startDate)
+        let day = calendar.component(.day, from: result.startDate)
+        
         XCTAssertEqual(year, 2025)
+        XCTAssertEqual(month, 7)
+        XCTAssertEqual(day, 1)
     }
     
     func test_FetchSetlistSongList_DTO가_SetlistSong_List로_변환되어야_한다() throws {
