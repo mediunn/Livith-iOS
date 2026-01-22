@@ -37,10 +37,6 @@ public final class DIContainer: DependencyContainer, AssemblerRegistable, @unche
     }
     
     private let storage = OSAllocatedUnfairLock(initialState: [ObjectIdentifier: Entry]())
-    
-    private var dependencies: [ObjectIdentifier: Entry] = [:]
-
-    private let queue = DispatchQueue(label: "com.livith.DIContainer.queue", qos: .userInitiated)
 
     private init() {}
 
