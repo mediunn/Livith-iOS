@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ConcertStatus: String, CaseIterable {
+public enum ConcertStatus: String, CaseIterable, Codable {
     case ongoing = "ONGOING"
     case upcoming = "UPCOMING"
     case completed = "COMPLETED"

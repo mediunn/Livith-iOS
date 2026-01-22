@@ -9,7 +9,7 @@
 public protocol UserRepository {
     func updateNickname(_ nickname: String) async throws(UserError)
     func fetchUser() async throws(UserError) -> User
-    func fetchInterestedConcert() async throws(UserError) -> Concert
+    func fetchInterestedConcert() async throws(UserError) -> Concert?
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert
     func deleteInterestedConcert() async throws(UserError)

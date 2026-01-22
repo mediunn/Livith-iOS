@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Concert: Hashable, Identifiable {
+public struct Concert: Hashable, Identifiable, Codable {
     public let id: Int
     public let title: String
     public let artist: String
