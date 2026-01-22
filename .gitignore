@@ -85,3 +85,4 @@ Tuist/.build
 ### Module Scripts ###
 .module_backup/
 claude.md__pycache__/
+Analyze/
