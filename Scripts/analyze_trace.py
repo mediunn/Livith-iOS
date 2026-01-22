@@ -168,25 +168,32 @@ def select_trace_file_cli() -> str:
             return ""
 
 
-def run_xctrace_export_to_file(trace_path: str, xpath: str) -> str:
-    """xctrace export 실행하여 XML 파일로 저장"""
-    with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as tmp:
-        tmp_path = tmp.name
+def run_xctrace_export_to_file(trace_path: str, xpath: str, max_retries: int = 3) -> str:
+    """xctrace export 실행하여 XML 파일로 저장 (재시도 로직 포함)"""
+    for attempt in range(max_retries):
+        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as tmp:
+            tmp_path = tmp.name
 
-    # shell=True와 리디렉션 사용 (대용량 파일에서 안정적)
-    cmd = f'xctrace export --input "{trace_path}" --xpath \'{xpath}\' > "{tmp_path}" 2>/dev/null'
-    try:
-        # 대용량 trace 파일은 시간이 오래 걸릴 수 있음
-        result = subprocess.run(cmd, shell=True, timeout=1200)
-        if os.path.exists(tmp_path) and os.path.getsize(tmp_path) > 0:
-            return tmp_path
-    except subprocess.TimeoutExpired:
-        print("    xctrace export 타임아웃 (20분 초과)")
-    except Exception as e:
-        print(f"    xctrace export 오류: {e}")
+        # shell=True와 리디렉션 사용 (대용량 파일에서 안정적)
+        cmd = f'xctrace export --input "{trace_path}" --xpath \'{xpath}\' > "{tmp_path}" 2>/dev/null'
+        try:
+            # 대용량 trace 파일은 시간이 오래 걸릴 수 있음
+            result = subprocess.run(cmd, shell=True, timeout=1200)
+            if os.path.exists(tmp_path) and os.path.getsize(tmp_path) > 0:
+                return tmp_path
+        except subprocess.TimeoutExpired:
+            print("    xctrace export 타임아웃 (20분 초과)")
+        except Exception as e:
+            print(f"    xctrace export 오류: {e}")
 
-    if os.path.exists(tmp_path):
-        os.unlink(tmp_path)
+        # 실패 시 임시 파일 삭제 후 재시도
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+        if attempt < max_retries - 1:
+            import time
+            time.sleep(0.5)  # 잠시 대기 후 재시도
+
     return ""
 
 
