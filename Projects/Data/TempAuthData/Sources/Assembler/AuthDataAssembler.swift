@@ -60,6 +60,7 @@ private extension AuthDataAssembler {
 
 private extension AuthDataAssembler {
     func registerNetwork(to container: any DependencyContainer) {
+        container.register(TokenServiceImpl(), for: TokenService.self)
         container.register(UserService(), for: UserService.self)
         container.register(OnboardingService(), for: OnboardingService.self)
     }
