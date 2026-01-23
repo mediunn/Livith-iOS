@@ -13,12 +13,19 @@ let project = Project.make(
     project: .sharedFeature,
     targets: [
         .make(
-            target: .sharedFeature(.nicknameEdit),
+            target: .sharedFeature(.nicknameEditFeature),
             product: .framework,
             dependencies: [
                 .external(.livithDesignSystem),
                 .core(.diContainer),
                 .domain(.domain)
+            ]
+        ),
+        .make(
+            target: .sharedFeature(.nicknameEditFeatureTests),
+            product: .unitTests,
+            dependencies: [
+                .sharedFeature(.nicknameEditFeature)
             ]
         )
     ]

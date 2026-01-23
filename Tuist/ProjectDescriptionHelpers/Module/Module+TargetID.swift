@@ -78,7 +78,7 @@ public enum TargetID {
         case .data(let module):
             return dataModuleTestSourcePath(module) ?? ["\(module.rawValue)/Sources/**"]
         case .sharedFeature(let module):
-            return ["\(module.rawValue)/Sources/**"]
+            return sharedFeatureSourcePath(module)
         }
     }
     
@@ -119,5 +119,14 @@ private extension TargetID {
         
         guard let parentModule = testModuleMappings[module] else { return nil }
         return ["\(parentModule)/Tests/**"]
+    }
+
+    func sharedFeatureSourcePath(_ module: SharedFeatureModule) -> SourceFilesList {
+        switch module {
+        case .nicknameEditFeature:
+            return ["NicknameEditFeature/Sources/**"]
+        case .nicknameEditFeatureTests:
+            return ["NicknameEditFeature/Tests/**"]
+        }
     }
 }

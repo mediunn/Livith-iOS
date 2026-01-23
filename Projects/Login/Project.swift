@@ -32,7 +32,7 @@ let project = Project.make(
             dependencies: [
                 .login(.loginDomain),
                 .domain(.domain),
-                .sharedFeature(.nicknameEdit),
+                .sharedFeature(.nicknameEditFeature),
                 .external(.livithDesignSystem),
                 .core(.coordinator),
                 .core(.diContainer)
