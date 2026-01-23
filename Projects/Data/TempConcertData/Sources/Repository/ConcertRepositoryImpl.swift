@@ -153,6 +153,8 @@ struct ConcertRepositoryImpl: ConcertRepository {
             guard let response = response else { return nil }
             let setlist: Setlist? = mapper.toDomain(from: response)
             return setlist
+        } catch NetworkError.noData {
+            return nil
         } catch {
             throw errorMapper.mapToConcertError(error)
         }
