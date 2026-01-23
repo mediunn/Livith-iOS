@@ -8,20 +8,20 @@
 
 import SwiftUI
 
-import SearchDomain
+import Domain
 import LivithDesignSystem
 
 public struct FilterBottomSheetView: View {
-    @Binding var selectedGenreList: [SearchDomain.ConcertGenre]
-    @Binding var selectedStatusList: [SearchDomain.ConcertStatus]
+    @Binding var selectedGenreList: [ConcertGenre]
+    @Binding var selectedStatusList: [ConcertStatus]
     @Binding var showFilter: Bool
 
-    @State private var tempGenreList: [SearchDomain.ConcertGenre] = []
-    @State private var tempStatusList: [SearchDomain.ConcertStatus] = []
+    @State private var tempGenreList: [ConcertGenre] = []
+    @State private var tempStatusList: [ConcertStatus] = []
 
     public init(
-        selectedGenreList: Binding<[SearchDomain.ConcertGenre]>,
-        selectedStatusList: Binding<[SearchDomain.ConcertStatus]>,
+        selectedGenreList: Binding<[ConcertGenre]>,
+        selectedStatusList: Binding<[ConcertStatus]>,
         showFilter: Binding<Bool>
     ) {
         self._selectedGenreList = selectedGenreList
@@ -115,6 +115,10 @@ private extension FilterBottomSheetView {
         }
     }
 
+    var selectableStatusList: [ConcertStatus] {
+        ConcertStatus.allCases.filter { $0 != .past }
+    }
+
     var statusOptions: some View {
         HStack(alignment: .center, spacing: 4) {
             LivithChipButton(
@@ -124,7 +128,7 @@ private extension FilterBottomSheetView {
                 tempStatusList = []
             }
 
-            ForEach(ConcertStatus.allCases, id: \.self) { status in
+            ForEach(selectableStatusList, id: \.self) { status in
                 LivithChipButton(
                     status.filterText,
                     style: tempStatusList.contains(status) ? .selected : .outline
@@ -151,7 +155,7 @@ private extension FilterBottomSheetView {
         }
     }
 
-    func toggleGenre(_ genre: SearchDomain.ConcertGenre) {
+    func toggleGenre(_ genre: ConcertGenre) {
         if tempGenreList.contains(genre) {
             tempGenreList.removeAll { $0 == genre }
         } else {
@@ -159,7 +163,7 @@ private extension FilterBottomSheetView {
         }
     }
 
-    func toggleStatus(_ status: SearchDomain.ConcertStatus) {
+    func toggleStatus(_ status: ConcertStatus) {
         if tempStatusList.contains(status) {
             tempStatusList.removeAll { $0 == status }
         } else {

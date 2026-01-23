@@ -21,11 +21,12 @@ let project = Project.make(
             dependencies: [
                 .concert(.concertData),
                 .concert(.concertFeature),
+                .data(.concertData),
                 .home(.homeData),
                 .home(.homeFeature),
                 .login(.loginData),
                 .login(.loginFeature),
-                .search(.searchData),
+                .data(.searchData),
                 .search(.searchFeature),
                 .data(.setlistData),
                 .setlist(.setlistFeature),

@@ -29,8 +29,6 @@ public enum LoginModule: String {
 // MARK: - Search Module
 
 public enum SearchModule: String {
-    case searchData = "SearchData"
-    case searchDomain = "SearchDomain"
     case searchFeature = "SearchFeature"
 }
 

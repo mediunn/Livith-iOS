@@ -8,16 +8,16 @@
 
 import Foundation
 
-import LivithFoundation
 import DIContainer
-import SearchDomain
+import Domain
+import LivithFoundation
 
 public struct SearchState {
     public var cursor: (value: String, id: Int)? = nil
 
     public var errorMessage: String = ""
     public var searchMessage: String = ""
-    
+
     public var hasMorePages: Bool = true
     public var isLoadingMore: Bool = false
 
@@ -25,11 +25,11 @@ public struct SearchState {
     public var isFilterShown: Bool = false
     public var isSearchActive: Bool = false
 
-    public var sortState: SearchDomain.SearchSort = .latest
+    public var sortState: SearchSort = .latest
 
-    public var selectedGenreList: [SearchDomain.ConcertGenre] = []
-    public var selectedStatusList: [SearchDomain.ConcertStatus] = []
-    public var searchedConcertList: [SearchDomain.Concert] = []
+    public var selectedGenreList: [ConcertGenre] = []
+    public var selectedStatusList: [ConcertStatus] = []
+    public var searchedConcertList: [Concert] = []
 
     public init() {}
 }
@@ -41,12 +41,12 @@ public enum SearchIntent {
     case clearButtonTapped
     case searchButtonTapped
     case updateSearchMessage(String)
-    case sortStateChanged(SearchDomain.SearchSort)
-    case settingButtonTapped(genres: [SearchDomain.ConcertGenre], status: [SearchDomain.ConcertStatus])
-    
+    case sortStateChanged(SearchSort)
+    case settingButtonTapped(genres: [ConcertGenre], status: [ConcertStatus])
+
     case _setConcertActive(Bool)
     case _setErrorMessage(String)
-    case _setConcertList([SearchDomain.Concert])
+    case _setConcertList([Concert])
 }
 
 final class SearchStore: ObservableObject {

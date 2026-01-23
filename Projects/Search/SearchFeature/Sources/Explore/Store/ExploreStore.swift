@@ -8,8 +8,8 @@
 
 import Foundation
 
-import SearchDomain
 import DIContainer
+import Domain
 
 enum ExploreIntent {
     case onRefresh
@@ -17,7 +17,7 @@ enum ExploreIntent {
     case setErrorMessage(String)
     case _fetchBannersResult(Result<[Banner], Error>)
     case _fetchSectionsResult(Result<[ConcertSection], Error>)
-} 
+}
 
 struct ExploreState {
     var currentPage: Int = 0
@@ -29,15 +29,16 @@ struct ExploreState {
 
 final class ExploreStore: ObservableObject {
     @Published private(set) var state: ExploreState = ExploreState()
-    
-    @Injected private var repository: SearchRepository
+
+    @Injected private var searchRepository: SearchRepository
+    @Injected private var concertRepository: ConcertRepository
 
     private var fetchTask: Task<Void, Never>? = nil
 
     init() {
         performFetchExploreData()
     }
-    
+
     @MainActor
     func send(_ intent: ExploreIntent) {
         switch intent {
@@ -47,15 +48,15 @@ final class ExploreStore: ObservableObject {
             state.concertSections = []
             state.isLoading = true
             state.errorMessage = ""
-            
+
             performFetchExploreData()
-        
+
         case .setCurrentPage(let page):
             state.currentPage = page
-            
+
         case .setErrorMessage(let message):
             state.errorMessage = message
-            
+
         case ._fetchBannersResult(let result):
             state.isLoading = false
             switch result {
@@ -64,7 +65,7 @@ final class ExploreStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
-            
+
         case ._fetchSectionsResult(let result):
             state.isLoading = false
             switch result {
@@ -83,11 +84,12 @@ private extension ExploreStore {
     func performFetchExploreData() {
         fetchTask?.cancel()
 
-        let repo = repository
+        let searchRepo = searchRepository
+        let concertRepo = concertRepository
 
         fetchTask = Task {
-            async let bannersTask = repo.fetchBanners()
-            async let sectionsTask = repo.fetchSections()
+            async let bannersTask = searchRepo.fetchBanners()
+            async let sectionsTask = concertRepo.fetchSearchConcertSectionList()
 
             do {
                 let banners = try await bannersTask
@@ -110,16 +112,12 @@ private extension ExploreStore {
     }
 
     func getErrorMessage(from error: Error) -> String {
-        let unknownMessage = SearchError.unknown.errorDescription ?? ""
-        guard let searchError = error as? SearchError else {
-            return unknownMessage
+        if let searchError = error as? SearchError {
+            return searchError.errorDescription ?? "알 수 없는 오류가 발생했어요."
         }
-
-        switch searchError {
-        case .networkError, .serverError:
-            return searchError.errorDescription ?? unknownMessage
-        case .noSearchResult, .invalidResponse, .unknown:
-            return unknownMessage
+        if let concertError = error as? ConcertError {
+            return concertError.errorDescription ?? "알 수 없는 오류가 발생했어요."
         }
+        return "알 수 없는 오류가 발생했어요."
     }
 }

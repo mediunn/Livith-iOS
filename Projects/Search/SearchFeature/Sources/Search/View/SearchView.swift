@@ -9,8 +9,8 @@
 import Combine
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
-import SearchDomain
 
 struct SearchView: View {
 
@@ -217,7 +217,7 @@ private extension SearchView {
             LivithCard(
                 imageURL: concert.posterURL,
                 title: concert.title,
-                subtitle: concert.startDate,
+                subtitle: concert.formattedStartDate,
                 secondaryText: concert.artist,
                 badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
                 onTap: {

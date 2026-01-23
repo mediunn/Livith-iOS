@@ -8,8 +8,8 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
-import SearchDomain
 
 struct ExploreView: View {
     @Environment(\.searchCoordinator) private var coordinator

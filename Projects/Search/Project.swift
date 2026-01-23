@@ -12,23 +12,10 @@ let project = Project.make(
     project: .search,
     targets: [
         .make(
-            target: .search(.searchData),
-            product: .framework,
-            dependencies: [
-                .search(.searchDomain),
-                .core(.livithNetwork),
-                .core(.diContainer)
-            ]
-        ),
-        .make(
-            target: .search(.searchDomain),
-            product: .framework
-        ),
-        .make(
             target: .search(.searchFeature),
             product: .framework,
             dependencies: [
-                .search(.searchDomain),
+                .domain(.domain),
                 .concert(.concertFeature),
                 .external(.livithDesignSystem),
                 .core(.coordinator),

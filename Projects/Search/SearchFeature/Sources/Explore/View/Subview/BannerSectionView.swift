@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import SearchDomain
+import Domain
 
 struct BannerSectionView: View {
     
