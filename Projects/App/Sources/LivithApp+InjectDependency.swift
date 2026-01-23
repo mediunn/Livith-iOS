@@ -9,13 +9,13 @@
 import Foundation
 
 import DIContainer
-import TempAuthData
-import TempCommentData
-import TempConcertData
-import TempSearchData
-import TempSetlistData
-import TempSongData
-import TempUserData
+import AuthData
+import CommentData
+import ConcertData
+import SearchData
+import SetlistData
+import SongData
+import UserData
 
 extension LivithApp {
     func registerDependency() {

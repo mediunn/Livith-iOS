@@ -104,15 +104,15 @@ public enum TargetID {
 private extension TargetID {
     func dataModuleTestSourcePath(_ module: DataModule) -> SourceFilesList? {
         let testModuleMappings: [DataModule: String] = [
-            .authDataTests: "TempAuthData",
-            .commentDataTests: "TempCommentData",
-            .concertDataTests: "TempConcertData",
-            .searchDataTests: "TempSearchData",
-            .setlistDataTests: "TempSetlistData",
-            .songDataTests: "TempSongData",
-            .userDataTests: "TempUserData"
+            .authDataTests: "AuthData",
+            .commentDataTests: "CommentData",
+            .concertDataTests: "ConcertData",
+            .searchDataTests: "SearchData",
+            .setlistDataTests: "SetlistData",
+            .songDataTests: "SongData",
+            .userDataTests: "UserData"
         ]
-        
+
         guard let parentModule = testModuleMappings[module] else { return nil }
         return ["\(parentModule)/Tests/**"]
     }
