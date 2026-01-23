@@ -28,7 +28,7 @@ public enum SetlistType: String, CaseIterable, CustomStringConvertible {
         case .ongoing:
             "진행중"
         case .past:
-            "과거"
+            "최근"
         case .none:
             ""
         }
