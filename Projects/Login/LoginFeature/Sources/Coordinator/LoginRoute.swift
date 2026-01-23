@@ -15,7 +15,7 @@ import LoginDomain
 enum LoginRoute: Route {
     case login
     case loginForbidden
-    case terms(TempUser)
+    case terms(LoginDomain.TempUser)
     case nickname(Bool)
     case signupFailed
     case safari(URL)

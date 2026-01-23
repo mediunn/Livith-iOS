@@ -11,6 +11,7 @@ import UIKit
 
 import LivithDesignSystem
 import Coordinator
+import Domain
 import LoginDomain
 
 final class LoginCoordinator: Coordinator {
@@ -18,7 +19,7 @@ final class LoginCoordinator: Coordinator {
     
     let navigationController: UINavigationController
     
-    private var tempUser: TempUser?
+    private var tempUser: Domain.TempUser?
     
     private let onLoginCompleted: ((String) -> Void)
     private let onSignupCompleted: ((String) -> Void)
@@ -57,16 +58,21 @@ final class LoginCoordinator: Coordinator {
             return vc
             
         case .terms(let tempUser):
-            self.tempUser = tempUser
+            self.tempUser = tempUser.toDomain()
             return UIHostingController(rootView: TermsView().environment(\.loginCoordinator, self))
             
         case .nickname(let marketingConsent):
             guard let tempUser = tempUser else {
                 return UIHostingController(rootView: EmptyView())
             }
-            
-            let store = NicknameSettingStore(marketingConsent: marketingConsent, tempUser: tempUser)
-            return UIHostingController(rootView: NicknameSettingView(store: store).environment(\.loginCoordinator, self))
+
+            return UIHostingController(
+                rootView: NicknameSettingView(
+                    marketingConsent: marketingConsent,
+                    tempUser: tempUser
+                )
+                .environment(\.loginCoordinator, self)
+            )
             
         case .signupFailed:
             let vc = UIHostingController(
@@ -95,5 +101,26 @@ final class LoginCoordinator: Coordinator {
     
     func completeSignup(with nickname: String) {
         onSignupCompleted(nickname)
+    }
+}
+
+// MARK: - TempUser Conversion
+
+private extension LoginDomain.TempUser {
+    func toDomain() -> Domain.TempUser {
+        Domain.TempUser(
+            provider: provider.toDomain(),
+            providerID: providerID,
+            email: email
+        )
+    }
+}
+
+private extension LoginDomain.SocialLoginProvider {
+    func toDomain() -> Domain.SocialLoginProvider {
+        switch self {
+        case .apple: return .apple
+        case .kakao: return .kakao
+        }
     }
 }
