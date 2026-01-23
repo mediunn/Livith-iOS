@@ -55,20 +55,20 @@ public enum TargetID {
             return ["Sources/**"]
         case .core(let module):
             return ["\(module.rawValue)/Sources/**"]
-        case .login(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .search(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .song(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .setlist(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .concert(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .home(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .user(let module):
-            return ["\(module.rawValue)/Sources/**"]
+        case .login:
+            return ["Sources/**"]
+        case .search:
+            return ["Sources/**"]
+        case .song:
+            return ["Sources/**"]
+        case .setlist:
+            return ["Sources/**"]
+        case .concert:
+            return ["Sources/**"]
+        case .home:
+            return ["Sources/**"]
+        case .user:
+            return ["Sources/**"]
         case .widget:
             return ["Sources/**"]
         case .domain:
