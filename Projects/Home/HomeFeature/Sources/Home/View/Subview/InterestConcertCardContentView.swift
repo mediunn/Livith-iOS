@@ -67,7 +67,15 @@ private extension InterestConcertCardContentView {
     @ViewBuilder
     func remainDaysText() -> some View {
         let condition = remainDays >= 0
-        let dDayText = condition ? "D-\(remainDays)," : "D+\(abs(remainDays)),"
+        let dDayText: String = {
+            if remainDays == 0 {
+                return "D-DAY,"
+            } else if condition {
+                return "D-\(remainDays),"
+            } else {
+                return "D+\(abs(remainDays)),"
+            }
+        }()
         let composed: Text = {
             if condition {
                 Text("콘서트까지 ")
