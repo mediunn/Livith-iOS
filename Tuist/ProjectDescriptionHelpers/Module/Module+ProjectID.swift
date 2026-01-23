@@ -22,6 +22,8 @@ public enum ProjectID: String, CaseIterable {
     case widget = "Widget"
     case domain = "Domain"
     case data = "Data"
+    case sharedFeature = "SharedFeature"
+
     public var name: String { rawValue }
     
     public var path: Path {
