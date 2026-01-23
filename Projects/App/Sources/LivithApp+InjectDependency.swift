@@ -15,12 +15,16 @@ import LoginData
 import SearchData
 import SetlistData
 import SongData
+import TempAuthData
+import TempUserData
 import UserData
 
 extension LivithApp {
     func registerDependency() {
         DIContainer.shared.register(
             assemblers: [
+                AuthDataAssembler(),
+                UserDataAssembler(),
                 ConcertAssembler(),
                 HomeAssembler(),
                 LoginAssembler(),

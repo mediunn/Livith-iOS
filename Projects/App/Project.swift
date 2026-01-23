@@ -21,6 +21,8 @@ let project = Project.make(
             dependencies: [
                 .concert(.concertData),
                 .concert(.concertFeature),
+                .data(.authData),
+                .data(.userData),
                 .home(.homeData),
                 .home(.homeFeature),
                 .login(.loginData),
