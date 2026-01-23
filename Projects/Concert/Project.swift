@@ -31,7 +31,7 @@ let project = Project.make(
                 .concert(.concertDomain),
                 .setlist(.setlistFeature),
                 .song(.songFeature),
-                .external(.livithDesignSystem),
+                .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),

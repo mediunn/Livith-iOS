@@ -26,7 +26,7 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .song(.songDomain),
-                .external(.livithDesignSystem),
+                .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),

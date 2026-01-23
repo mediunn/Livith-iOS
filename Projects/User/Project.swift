@@ -28,7 +28,7 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .user(.userDomain),
-                .external(.livithDesignSystem),
+                .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),
