@@ -47,8 +47,8 @@ final class MockAuthRepository: AuthRepository {
 
     func withdraw(reason: String) async throws(AuthError) {}
     func logout() async throws(AuthError) {}
-    func kakaoLogin() async throws(AuthError) -> LoginStatus { .existingUser }
-    func appleLogin() async throws(AuthError) -> LoginStatus { .existingUser }
+    func kakaoLogin() async throws(AuthError) -> LoginStatus { .existingUser(nickname: "test") }
+    func appleLogin() async throws(AuthError) -> LoginStatus { .existingUser(nickname: "test") }
     func fetchLastLoginPlatform() async throws(AuthError) -> SocialLoginProvider { .kakao }
 }
 
@@ -70,13 +70,37 @@ final class MockUserRepository: UserRepository {
     }
 
     func fetchUser() async throws(UserError) -> User {
-        User(id: 1, interestConcertID: nil, provider: "kakao", providerID: "123", email: nil, nickname: "test", marketingConsent: false)
+        User(
+            id: 1,
+            interestConcertID: nil,
+            provider: "kakao",
+            providerID: "123",
+            email: nil,
+            nickname: "test",
+            marketingConsent: false
+        )
     }
 
     func fetchInterestedConcert() async throws(UserError) -> Concert? { nil }
+
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
-        Concert(id: 1, name: "test", artist: "test", venue: "test", startDate: "2025-01-01", endDate: "2025-01-01", posterURL: nil, ticketOpenDate: nil)
+        Concert(
+            id: 1,
+            title: "테스트 콘서트",
+            artist: "테스트 아티스트",
+            status: .ongoing,
+            daysLeft: 10,
+            startDate: Date(),
+            endDate: Date(),
+            posterURL: URL(string: "https://example.com/poster.jpg")!,
+            venue: "테스트 장소",
+            ticketSite: nil,
+            ticketURL: nil,
+            introduction: "테스트 소개",
+            label: nil
+        )
     }
+
     func deleteInterestedConcert() async throws(UserError) {}
 }
 
@@ -240,7 +264,7 @@ final class NicknameEditStoreTests: XCTestCase {
 
     func test_중복_체크_에러_발생하면_duplicate_상태여야_한다() async {
         // Given
-        mockAuthRepository.checkNicknameResult = .failure(.networkError)
+        mockAuthRepository.checkNicknameResult = .failure(.noConnection)
         sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트")
 
