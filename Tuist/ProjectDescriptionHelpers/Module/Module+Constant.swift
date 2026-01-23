@@ -113,6 +113,12 @@ public enum DataModule: String {
     case dataTests = "DataTests"
 }
 
+// MARK: - DesignSystem Module
+
+public enum DesignSystemModule: String {
+    case designSystem = "LivithDesignSystem"
+}
+
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {
@@ -122,5 +128,4 @@ public enum ExternalDependency: String {
     case kakaoSDKAuth = "KakaoSDKAuth"
     case kakaoSDKUser = "KakaoSDKUser"
     case youTubePlayerKit = "YouTubePlayerKit"
-    case livithDesignSystem = "LivithDesignSystem"
 }

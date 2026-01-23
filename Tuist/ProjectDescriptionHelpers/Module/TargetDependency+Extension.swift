@@ -57,4 +57,8 @@ extension TargetDependency {
     public static func data(_ module: DataModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.data.path)
     }
+
+    public static func designSystem(_ module: DesignSystemModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.designSystem.path)
+    }
 }
