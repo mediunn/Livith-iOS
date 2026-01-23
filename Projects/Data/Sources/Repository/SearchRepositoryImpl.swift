@@ -36,7 +36,7 @@ struct SearchRepositoryImpl: SearchRepository {
         keyword: String?,
         cursor: String?,
         size: Int?
-    ) async throws(SearchError) -> SearchResultEntity {
+    ) async throws(SearchError) -> SearchResult {
         do {
             let response: DTO.Response.FetchFilterSearchResult = try await searchService.request(
                 .fetchFilterSearchResult(

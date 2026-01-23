@@ -25,7 +25,7 @@ struct SearchMapper {
         }
     }
     
-    func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResultEntity {
+    func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResult {
         let concerts = response.data.compactMap { dto -> Concert? in
             guard let posterURL = URL(string: dto.posterURL),
                   let status = ConcertStatus(rawValue: dto.status),
@@ -57,7 +57,7 @@ struct SearchMapper {
             cursorTuple = (cursor.value, cursor.id)
         }
         
-        return SearchResultEntity(
+        return SearchResult(
             concerts: concerts,
             cursor: cursorTuple,
             totalCount: response.totalCount

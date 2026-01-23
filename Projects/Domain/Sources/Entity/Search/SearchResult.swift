@@ -1,5 +1,5 @@
 //
-//  SearchResultEntity.swift
+//  SearchResult.swift
 //  Domain
 //
 //  Created by 김진웅 on 1/21/26.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SearchResultEntity {
+public struct SearchResult {
     public let concerts: [Concert]
     public let cursor: (value: String, id: Int)?
     public let totalCount: Int
