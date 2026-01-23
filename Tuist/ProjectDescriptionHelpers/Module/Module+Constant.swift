@@ -21,8 +21,6 @@ public enum CoreModule: String {
 // MARK: - Login Module
 
 public enum LoginModule: String {
-    case loginData = "LoginData"
-    case loginDomain = "LoginDomain"
     case loginFeature = "LoginFeature"
 }
 
@@ -43,8 +41,6 @@ public enum UserModule: String {
 // MARK: - Home Module
 
 public enum HomeModule: String {
-    case homeData = "HomeData"
-    case homeDomain = "HomeDomain"
     case homeFeature = "HomeFeature"
 }
 
@@ -52,10 +48,7 @@ public enum HomeModule: String {
 // MARK: - Concert Module
 
 public enum ConcertModule: String {
-    case concertData = "ConcertData"
-    case concertDomain = "ConcertDomain"
     case concertFeature = "ConcertFeature"
-    case concertTests = "ConcertTests"
 }
 
 

@@ -9,10 +9,8 @@
 import Foundation
 
 import DIContainer
-import ConcertData
-import HomeData
-import LoginData
 import TempAuthData
+import TempCommentData
 import TempConcertData
 import TempSearchData
 import TempSetlistData
@@ -24,10 +22,8 @@ extension LivithApp {
         DIContainer.shared.register(
             assemblers: [
                 AuthDataAssembler(),
-                ConcertAssembler(),
+                CommentDataAssembler(),
                 ConcertDataAssembler(),
-                HomeAssembler(),
-                LoginAssembler(),
                 SearchDataAssembler(),
                 SetlistDataAssembler(),
                 SongDataAssembler(),

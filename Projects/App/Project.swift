@@ -19,12 +19,10 @@ let project = Project.make(
             infoPlist: .file(path: "Resources/App-Info.plist"),
             entitlements: .file(path: "Resources/Livith-iOS.entitlements"),
             dependencies: [
-                .concert(.concertData),
                 .concert(.concertFeature),
+                .data(.commentData),
                 .data(.concertData),
-                .home(.homeData),
                 .home(.homeFeature),
-                .login(.loginData),
                 .login(.loginFeature),
                 .data(.searchData),
                 .search(.searchFeature),
