@@ -34,6 +34,7 @@ public extension DTO.Response {
         public let status: String
         public let posterURL: String
         public let artist: String
+        public let daysLeft: Int
         public let ticketSite: String?
         public let ticketURL: String?
         public let venue: String
@@ -49,6 +50,7 @@ public extension DTO.Response {
             case status
             case posterURL = "poster"
             case artist
+            case daysLeft
             case ticketSite
             case ticketURL = "ticketUrl"
             case venue
