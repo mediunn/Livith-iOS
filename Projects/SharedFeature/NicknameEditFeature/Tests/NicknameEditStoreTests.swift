@@ -6,7 +6,8 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-import XCTest
+import Testing
+import Foundation
 
 import DIContainer
 import Domain
@@ -106,280 +107,213 @@ final class MockUserRepository: UserRepository {
 
 // MARK: - Tests
 
+@Suite("NicknameEditStore 테스트")
 @MainActor
-final class NicknameEditStoreTests: XCTestCase {
-    private var sut: NicknameEditStore!
-    private var mockAuthRepository: MockAuthRepository!
-    private var mockUserRepository: MockUserRepository!
+struct NicknameEditStoreTests {
+    private let mockAuthRepository = MockAuthRepository()
+    private let mockUserRepository = MockUserRepository()
 
-    override func setUp() {
-        super.setUp()
-        mockAuthRepository = MockAuthRepository()
-        mockUserRepository = MockUserRepository()
-
+    init() {
         DIContainer.shared.register(mockAuthRepository, for: AuthRepository.self)
         DIContainer.shared.register(mockUserRepository, for: UserRepository.self)
     }
 
-    override func tearDown() {
-        sut = nil
-        mockAuthRepository = nil
-        mockUserRepository = nil
-        super.tearDown()
-    }
-
     // MARK: - Nickname Format Validation Tests
 
-    func test_빈_닉네임은_idle_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("빈 닉네임은 idle 상태여야 한다")
+    func emptyNicknameShouldBeIdle() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .idle)
+        #expect(sut.state.validationState == .idle)
     }
 
-    func test_유효한_한글_닉네임은_valid_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("유효한 한글 닉네임은 valid 상태여야 한다")
+    func validKoreanNicknameShouldBeValid() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트유저")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .valid)
+        #expect(sut.state.validationState == .valid)
     }
 
-    func test_유효한_영문_닉네임은_valid_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("유효한 영문 닉네임은 valid 상태여야 한다")
+    func validEnglishNicknameShouldBeValid() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("TestUser")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .valid)
+        #expect(sut.state.validationState == .valid)
     }
 
-    func test_유효한_숫자_닉네임은_valid_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("유효한 숫자 닉네임은 valid 상태여야 한다")
+    func validNumberNicknameShouldBeValid() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("1234567890")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .valid)
+        #expect(sut.state.validationState == .valid)
     }
 
-    func test_유효한_혼합_닉네임은_valid_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("유효한 혼합 닉네임은 valid 상태여야 한다")
+    func validMixedNicknameShouldBeValid() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트User1")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .valid)
+        #expect(sut.state.validationState == .valid)
     }
 
-    func test_11자_이상_닉네임은_invalid_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("11자 이상 닉네임은 invalid 상태여야 한다")
+    func tooLongNicknameShouldBeInvalid() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("가나다라마바사아자차카")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .invalid)
+        #expect(sut.state.validationState == .invalid)
     }
 
-    func test_특수문자_포함_닉네임은_invalid_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("특수문자 포함 닉네임은 invalid 상태여야 한다")
+    func specialCharacterNicknameShouldBeInvalid() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트!")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .invalid)
+        #expect(sut.state.validationState == .invalid)
     }
 
-    func test_공백_포함_닉네임은_invalid_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("공백 포함 닉네임은 invalid 상태여야 한다")
+    func whitespaceNicknameShouldBeInvalid() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트 유저")
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .invalid)
+        #expect(sut.state.validationState == .invalid)
     }
 
     // MARK: - Duplicate Check Tests
 
-    func test_중복_체크_시작하면_checking_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
+    @Test("중복 체크 시작하면 checking 상태여야 한다")
+    func duplicateCheckShouldStartWithChecking() {
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트")
-
-        // When
         sut.checkDuplicate()
-
-        // Then
-        XCTAssertEqual(sut.state.validationState, .checking)
+        #expect(sut.state.validationState == .checking)
     }
 
-    func test_닉네임_사용_가능하면_available_상태여야_한다() async {
-        // Given
+    @Test("닉네임 사용 가능하면 available 상태여야 한다")
+    func availableNicknameShouldBeAvailable() async {
         mockAuthRepository.checkNicknameResult = .success(true)
-        sut = NicknameEditStore(config: .update)
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트")
 
-        // When
         sut.checkDuplicate()
         try? await Task.sleep(for: .milliseconds(100))
 
-        // Then
-        XCTAssertEqual(sut.state.validationState, .available)
-        XCTAssertEqual(mockAuthRepository.checkNicknameCallCount, 1)
-        XCTAssertEqual(mockAuthRepository.lastCheckedNickname, "테스트")
+        #expect(sut.state.validationState == .available)
+        #expect(mockAuthRepository.checkNicknameCallCount == 1)
+        #expect(mockAuthRepository.lastCheckedNickname == "테스트")
     }
 
-    func test_닉네임_중복이면_duplicate_상태여야_한다() async {
-        // Given
+    @Test("닉네임 중복이면 duplicate 상태여야 한다")
+    func duplicateNicknameShouldBeDuplicate() async {
         mockAuthRepository.checkNicknameResult = .success(false)
-        sut = NicknameEditStore(config: .update)
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("중복닉네임")
 
-        // When
         sut.checkDuplicate()
         try? await Task.sleep(for: .milliseconds(100))
 
-        // Then
-        XCTAssertEqual(sut.state.validationState, .duplicate)
+        #expect(sut.state.validationState == .duplicate)
     }
 
-    func test_중복_체크_에러_발생하면_duplicate_상태여야_한다() async {
-        // Given
+    @Test("중복 체크 에러 발생하면 duplicate 상태여야 한다")
+    func duplicateCheckErrorShouldBeDuplicate() async {
         mockAuthRepository.checkNicknameResult = .failure(.noConnection)
-        sut = NicknameEditStore(config: .update)
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트")
 
-        // When
         sut.checkDuplicate()
         try? await Task.sleep(for: .milliseconds(100))
 
-        // Then
-        XCTAssertEqual(sut.state.validationState, .duplicate)
+        #expect(sut.state.validationState == .duplicate)
     }
 
     // MARK: - Submit Tests (Signup)
 
-    func test_signup_제출_성공하면_success_상태여야_한다() async {
-        // Given
+    @Test("signup 제출 성공하면 success 상태여야 한다")
+    func signupSuccessShouldBeSuccess() async {
         mockAuthRepository.signupResult = .success(())
         let tempUser = TempUser(provider: .kakao, providerID: "123", email: "test@test.com")
-        sut = NicknameEditStore(config: .signup(marketingConsent: true, tempUser: tempUser))
+        let sut = NicknameEditStore(config: .signup(marketingConsent: true, tempUser: tempUser))
         sut.updateNickname("테스트")
 
-        // When
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
 
-        // Then
-        XCTAssertEqual(sut.state.submitResult, .success)
-        XCTAssertFalse(sut.state.isSubmitting)
-        XCTAssertEqual(mockAuthRepository.signupCallCount, 1)
-        XCTAssertEqual(mockAuthRepository.lastSignupNickname, "테스트")
+        #expect(sut.state.submitResult == .success)
+        #expect(sut.state.isSubmitting == false)
+        #expect(mockAuthRepository.signupCallCount == 1)
+        #expect(mockAuthRepository.lastSignupNickname == "테스트")
     }
 
-    func test_signup_제출_실패하면_failure_상태여야_한다() async {
-        // Given
+    @Test("signup 제출 실패하면 failure 상태여야 한다")
+    func signupFailureShouldBeFailure() async {
         mockAuthRepository.signupResult = .failure(.serverError)
         let tempUser = TempUser(provider: .kakao, providerID: "123", email: nil)
-        sut = NicknameEditStore(config: .signup(marketingConsent: false, tempUser: tempUser))
+        let sut = NicknameEditStore(config: .signup(marketingConsent: false, tempUser: tempUser))
         sut.updateNickname("테스트")
 
-        // When
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
 
-        // Then
         if case .failure = sut.state.submitResult {
-            XCTAssertTrue(true)
+            #expect(true)
         } else {
-            XCTFail("Expected failure state")
+            Issue.record("Expected failure state")
         }
-        XCTAssertFalse(sut.state.isSubmitting)
+        #expect(sut.state.isSubmitting == false)
     }
 
     // MARK: - Submit Tests (Update)
 
-    func test_update_제출_성공하면_success_상태여야_한다() async {
-        // Given
+    @Test("update 제출 성공하면 success 상태여야 한다")
+    func updateSuccessShouldBeSuccess() async {
         mockUserRepository.updateNicknameResult = .success(())
-        sut = NicknameEditStore(config: .update)
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("새닉네임")
 
-        // When
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
 
-        // Then
-        XCTAssertEqual(sut.state.submitResult, .success)
-        XCTAssertFalse(sut.state.isSubmitting)
-        XCTAssertEqual(mockUserRepository.updateNicknameCallCount, 1)
-        XCTAssertEqual(mockUserRepository.lastUpdatedNickname, "새닉네임")
+        #expect(sut.state.submitResult == .success)
+        #expect(sut.state.isSubmitting == false)
+        #expect(mockUserRepository.updateNicknameCallCount == 1)
+        #expect(mockUserRepository.lastUpdatedNickname == "새닉네임")
     }
 
-    func test_update_제출_실패하면_failure_상태여야_한다() async {
-        // Given
+    @Test("update 제출 실패하면 failure 상태여야 한다")
+    func updateFailureShouldBeFailure() async {
         mockUserRepository.updateNicknameResult = .failure(.serverError)
-        sut = NicknameEditStore(config: .update)
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("새닉네임")
 
-        // When
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
 
-        // Then
         if case .failure = sut.state.submitResult {
-            XCTAssertTrue(true)
+            #expect(true)
         } else {
-            XCTFail("Expected failure state")
+            Issue.record("Expected failure state")
         }
-        XCTAssertFalse(sut.state.isSubmitting)
+        #expect(sut.state.isSubmitting == false)
     }
 
     // MARK: - Reset Tests
 
-    func test_submitResult_리셋하면_idle_상태여야_한다() {
-        // Given
-        sut = NicknameEditStore(config: .update)
-
-        // When
+    @Test("submitResult 리셋하면 idle 상태여야 한다")
+    func resetSubmitResultShouldBeIdle() {
+        let sut = NicknameEditStore(config: .update)
         sut.resetSubmitResult()
-
-        // Then
-        XCTAssertEqual(sut.state.submitResult, .idle)
+        #expect(sut.state.submitResult == .idle)
     }
 
-    func test_닉네임_변경하면_submitResult가_idle로_리셋되어야_한다() async {
-        // Given
+    @Test("닉네임 변경하면 submitResult가 idle로 리셋되어야 한다")
+    func nicknameChangeShouldResetSubmitResult() async {
         mockUserRepository.updateNicknameResult = .success(())
-        sut = NicknameEditStore(config: .update)
+        let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트")
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
-        XCTAssertEqual(sut.state.submitResult, .success)
+        #expect(sut.state.submitResult == .success)
 
-        // When
         sut.updateNickname("새닉네임")
 
-        // Then
-        XCTAssertEqual(sut.state.submitResult, .idle)
+        #expect(sut.state.submitResult == .idle)
     }
 }
