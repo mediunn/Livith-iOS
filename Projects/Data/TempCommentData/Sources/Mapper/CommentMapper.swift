@@ -20,6 +20,7 @@ struct CommentMapper {
             }
             return ConcertComment(
                 id: dto.id,
+                userID: dto.userID,
                 writer: dto.nickname,
                 content: dto.content,
                 createdAt: createdAt
@@ -38,9 +39,10 @@ struct CommentMapper {
         guard let createdAt = DateFormatterService.date(from: response.createdAt, type: .iso8601) else {
             return nil
         }
-        
+
         return ConcertComment(
             id: response.id,
+            userID: response.userID,
             writer: response.nickname,
             content: response.content,
             createdAt: createdAt

@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import ConcertDomain
+import Domain
 import LivithDesignSystem
 import LivithFoundation
 
@@ -19,7 +19,7 @@ struct SetlistTabView: View {
     @Environment(\.concertCoordinator) private var coordinator
 
     let concertID: Int
-    let setlistList: [ConcertSetlist]
+    let setlistList: [Setlist]
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: 10, alignment: .top),
@@ -70,15 +70,15 @@ private extension SetlistTabView {
         .padding(.bottom, 40)
     }
 
-    func setlistCard(for setlist: ConcertSetlist) -> some View {
+    func setlistCard(for setlist: Setlist) -> some View {
         Button {
             coordinator?.push(to: .setlistDetail(concertID: concertID, setlistID: setlist.id))
         } label: {
             LivithCard(
-                imageURL: setlist.imageURL.flatMap { URL(string: $0) },
+                imageURL: setlist.imageURL,
                 title: setlist.title,
                 subtitle: formatDate(setlist),
-                badge: setlist.status != .none ? .tag(text: setlist.status.displayText) : .none,
+                badge: setlist.type != .none ? .tag(text: setlist.type.description) : .none,
                 isFlexible: true,
                 titleLineLimit: 2
             )
@@ -86,7 +86,7 @@ private extension SetlistTabView {
         .buttonStyle(.plain)
     }
 
-    func formatDate(_ setlist: ConcertSetlist) -> String {
+    func formatDate(_ setlist: Setlist) -> String {
         DateFormatter.formatDateRange(from: setlist.startDate, to: setlist.endDate)
     }
 }
@@ -96,43 +96,47 @@ private extension SetlistTabView {
         SetlistTabView(
             concertID: 1,
             setlistList: [
-                ConcertSetlist(
+                Setlist(
                     id: 1,
                     title: "Gen Hoshino presents MAD HOPE 202",
                     imageURL: nil,
+                    type: .expected,
+                    status: nil,
                     startDate: Date(),
                     endDate: Date(),
-                    status: .expected,
                     venue: "올림픽공원 올림픽홀",
                     artist: "호시노 겐"
                 ),
-                ConcertSetlist(
+                Setlist(
                     id: 2,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
+                    type: .recent,
+                    status: nil,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
-                    status: .recent,
                     venue: "올림픽공원 올림픽홀",
                     artist: "호시노 겐"
                 ),
-                ConcertSetlist(
+                Setlist(
                     id: 3,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
+                    type: .recent,
+                    status: nil,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
-                    status: .recent,
                     venue: "올림픽공원 올림픽홀",
                     artist: "호시노 겐"
                 ),
-                ConcertSetlist(
+                Setlist(
                     id: 4,
                     title: "World Tour [ LIVE FULL E...",
                     imageURL: nil,
+                    type: .none,
+                    status: nil,
                     startDate: Date(),
                     endDate: Date().addingTimeInterval(86400),
-                    status: .none,
                     venue: "올림픽공원 올림픽홀",
                     artist: "호시노 겐"
                 )

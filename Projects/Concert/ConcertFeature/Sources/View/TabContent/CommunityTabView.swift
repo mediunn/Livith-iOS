@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import ConcertDomain
+import Domain
 import LivithDesignSystem
 
 struct CommunityTabView: View {
@@ -62,6 +62,7 @@ private extension CommunityTabView {
             ForEach(store.state.comments) { comment in
                 CommentCardView(
                     comment: comment,
+                    isMine: store.isMyComment(comment),
                     onDelete: { store.send(.showDeleteDialog(commentID: comment.id)) },
                     onReport: { store.send(.showReportDialog(commentID: comment.id)) }
                 )

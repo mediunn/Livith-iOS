@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import ConcertDomain
+import Domain
 import LivithDesignSystem
 
 struct ConcertInfoTabView: View {
@@ -155,7 +155,7 @@ private extension ConcertInfoTabView {
                     HStack(alignment: .top, spacing: 10) {
                         ForEach(merchandiseList) { merchandise in
                             LivithCard(
-                                imageURL: merchandise.imageURL.flatMap { URL(string: $0) },
+                                imageURL: merchandise.imageURL,
                                 title: merchandise.name,
                                 subtitle: merchandise.price
                             )

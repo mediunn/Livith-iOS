@@ -8,7 +8,7 @@
 
 import Foundation
 
-import ConcertDomain
+import Domain
 import LivithDesignSystem
 import Coordinator
 

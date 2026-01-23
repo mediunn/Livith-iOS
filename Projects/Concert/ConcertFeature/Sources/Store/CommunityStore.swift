@@ -8,13 +8,13 @@
 
 import Foundation
 
-import ConcertDomain
-
 import DIContainer
+import Domain
 import LivithFoundation
 
 public struct CommunityState {
     public var concertID: Int = 0
+    public var currentUserID: Int? = nil
     public var comments: [ConcertComment] = []
     public var totalCount: Int = 0
     public var commentText: String = ""
@@ -94,10 +94,18 @@ public final class CommunityStore: ObservableObject {
     @Published private(set) var state = CommunityState()
 
     @Injected private var repository: CommentRepository
+    @Injected private var userRepository: UserRepository
 
     // MARK: - Initializer
 
     public init() {}
+
+    // MARK: - Public Methods
+
+    public func isMyComment(_ comment: ConcertComment) -> Bool {
+        guard let currentUserID = state.currentUserID else { return false }
+        return comment.userID == currentUserID
+    }
 
     // MARK: - Intent Handler
 
@@ -106,6 +114,7 @@ public final class CommunityStore: ObservableObject {
         switch intent {
         case .onAppear(let concertID):
             state.concertID = concertID
+            fetchCurrentUser()
             fetchComments()
         case .loadNextPage:
             loadNextPage()
@@ -163,6 +172,14 @@ public final class CommunityStore: ObservableObject {
 // MARK: - Private Methods
 
 private extension CommunityStore {
+    func fetchCurrentUser() {
+        Task { @MainActor in
+            if let user = try? await userRepository.fetchUser() {
+                state.currentUserID = user.id
+            }
+        }
+    }
+
     func fetchComments() {
         fetchTask?.cancel()
 
@@ -180,9 +197,9 @@ private extension CommunityStore {
 
                 send(._setComments(result.comments, totalCount: result.totalCount, cursor: result.cursor))
                 send(._setHasMorePages(result.cursor != nil))
-            } catch let error as ConcertError {
+            } catch let error as CommentError {
                 guard !Task.isCancelled else { return }
-                if error != .networkError {
+                if error != .noConnection {
                     send(._setToast(.failure(Constants.fetchErrorMessage)))
                 }
             } catch {

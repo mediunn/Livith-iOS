@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import ConcertDomain
+import Domain
 import LivithDesignSystem
 
 struct MerchandiseDetailView: View {
@@ -38,7 +38,7 @@ struct MerchandiseDetailView: View {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(merchandiseList) { merchandise in
                         LivithCard(
-                            imageURL: merchandise.imageURL.flatMap { URL(string: $0) },
+                            imageURL: merchandise.imageURL,
                             title: merchandise.name,
                             subtitle: merchandise.price,
                             isFlexible: true

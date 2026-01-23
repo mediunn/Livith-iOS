@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import ConcertDomain
+import Domain
 import LivithDesignSystem
 
 struct CommentCardView: View {
@@ -16,6 +16,7 @@ struct CommentCardView: View {
     // MARK: - Property
 
     let comment: ConcertComment
+    let isMine: Bool
     let onDelete: () -> Void
     let onReport: () -> Void
 
@@ -43,13 +44,13 @@ private extension CommentCardView {
         HStack(spacing: 10) {
             profileImage
 
-            Text(comment.nickname)
+            Text(comment.writer)
                 .notosans(.body3Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
 
             Spacer()
 
-            if comment.isMine {
+            if isMine {
                 deleteButton
             } else {
                 reportButton
@@ -85,12 +86,11 @@ private extension CommentCardView {
             comment: ConcertComment(
                 id: 1,
                 userID: 1,
-                nickname: "라이빗",
-                concertID: 1,
+                writer: "라이빗",
                 content: "님들아 제발 이땐 [아아아~~~] 떼창 해줘라 ㅠㅠ 왜 맨날 안하고 넘어가는건지 모르겠음 ㅠㅠ 일본에서는 이 파트 꼭 다들 열심히 죽어라 하는데 왜 안하는거야!!!",
-                createdAt: "2025-01-01",
-                isMine: true
+                createdAt: Date()
             ),
+            isMine: true,
             onDelete: {},
             onReport: {}
         )
@@ -99,12 +99,11 @@ private extension CommentCardView {
             comment: ConcertComment(
                 id: 2,
                 userID: 2,
-                nickname: "라이빗",
-                concertID: 1,
+                writer: "라이빗",
                 content: "하 언제와 진심 개큰기대중임 제발",
-                createdAt: "2025-01-01",
-                isMine: false
+                createdAt: Date()
             ),
+            isMine: false,
             onDelete: {},
             onReport: {}
         )

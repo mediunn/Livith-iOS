@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import ConcertDomain
+import Domain
 import LivithDesignSystem
 
 struct ArtistDetailTabView: View {
@@ -84,8 +84,8 @@ private extension ArtistDetailTabView {
 
     func artistInfoCard(for artist: Artist) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            if let imageURLString = artist.imageURL {
-                AsyncImageView(url: URL(string: imageURLString))
+            if let imageURL = artist.imageURL {
+                AsyncImageView(url: imageURL)
                     .frame(height: 148)
                     .clipShape(
                         .rect(
@@ -131,8 +131,7 @@ private extension ArtistDetailTabView {
 
             Spacer()
 
-            if let instagramURLString = artist.instagramURL,
-               let instagramURL = URL(string: instagramURLString) {
+            if let instagramURL = artist.instagramURL {
                 Button {
                     coordinator?.present(to: .safari(instagramURL))
                 } label: {
@@ -257,7 +256,7 @@ private extension ArtistDetailTabView {
                 imageURL: nil,
                 detail: "단순한 가수를 넘어, 연기, 음악, 글쓰기, 라디오 등 다방면에서 활약하는 일본의 대표적인 크리에이터",
                 keywords: ["다채로운 사운드", "팝", "재즈"],
-                instagramURL: "https://instagram.com/iamgenhoshino"
+                instagramURL: URL(string: "https://instagram.com/iamgenhoshino")
             ),
             introduction: "호시노 겐의 n 년만의 내한!\nKoi 열풍으로 한국에서도 인기 아티스트",
             fanCultures: [

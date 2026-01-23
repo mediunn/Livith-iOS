@@ -9,8 +9,8 @@
 import Foundation
 import WidgetKit
 
-import ConcertDomain
 import DIContainer
+import Domain
 import LivithDesignSystem
 import LivithFoundation
 import Persistence
@@ -45,7 +45,7 @@ public struct ConcertState {
     public var concertInfoList: [ConcertInfo] = []
     public var selectedTab: ConcertTab = .artistDetail
     public var merchandiseList: [ConcertMerchandise] = []
-    public var setlistList: [ConcertSetlist] = []
+    public var setlistList: [Setlist] = []
     public var interestStatus: InterestSettingStatus = .idle
     public var showTicketReturnBanner: Bool = false
     public var isCurrentConcertInterested: Bool = false
@@ -68,7 +68,7 @@ public enum ConcertIntent {
     case _setSchedules([ConcertSchedule])
     case _setConcertInfoList([ConcertInfo])
     case _setMerchandiseList([ConcertMerchandise])
-    case _setSetlistList([ConcertSetlist])
+    case _setSetlistList([Setlist])
     case _setConcert(Concert, formattedDateRange: String)
     case _setInterestStatus(InterestSettingStatus)
     case _setFetchError(String?)
@@ -83,6 +83,7 @@ public final class ConcertStore: ObservableObject {
     @Published private(set) var state = ConcertState()
 
     @Injected private var repository: ConcertRepository
+    @Injected private var userRepository: UserRepository
 
     // MARK: - Initializer
 
@@ -149,10 +150,10 @@ private extension ConcertStore {
             send(._setIsCurrentConcertInterested(getInterestedConcertID() == concertID))
 
             do {
-                async let concertResult = repo.fetchConcertInfo(concertID: concertID)
+                async let concertResult = repo.fetchConcert(concertID: concertID)
                 async let artistResult = repo.fetchConcertArtistInfo(concertID: concertID)
                 async let cultureResult = repo.fetchConcertCultureList(concertID: concertID)
-                async let scheduleResult = repo.fetchConcertSchedule(concertID: concertID)
+                async let scheduleResult = repo.fetchConcertScheduleList(concertID: concertID)
                 async let concertInfoResult = repo.fetchConcertInfoList(concertID: concertID)
                 async let merchandiseResult = repo.fetchConcertMerchandiseList(concertID: concertID)
                 async let setlistResult = repo.fetchConcertSetlistList(concertID: concertID)
@@ -178,7 +179,7 @@ private extension ConcertStore {
                 send(._setSetlistList(setlistList))
             } catch let error as ConcertError {
                 guard !Task.isCancelled else { return }
-                let message = error == .networkError
+                let message = error == .noConnection
                     ? "네트워크 연결이 없습니다.\n연결 상태를 확인해주세요."
                     : "데이터를 불러오는데 실패했어요"
                 send(._setFetchError(message))
@@ -192,7 +193,7 @@ private extension ConcertStore {
     }
 
     func getInterestedConcertID() -> Int? {
-        guard let user: UserInfo = try? UserDefaultsStorage().fetch(for: .currentUser) else {
+        guard let user: User = try? UserDefaultsStorage().fetch(for: .currentUser) else {
             return nil
         }
         return user.interestConcertID
@@ -209,7 +210,7 @@ private extension ConcertStore {
             send(._setInterestStatus(.inProgress))
 
             do {
-                try await repository.setInterestConcert(concertID: state.concertID)
+                try await userRepository.updateInterestedConcert(state.concertID)
                 updateStoredInterestConcertID(state.concertID)
                 WidgetCenter.shared.reloadAllTimelines()
                 send(._setInterestStatus(.success("관심 공연을 변경했어요")))
@@ -222,7 +223,7 @@ private extension ConcertStore {
 
     func updateStoredInterestConcertID(_ concertID: Int) {
         let storage = UserDefaultsStorage()
-        guard var user: UserInfo = try? storage.fetch(for: .currentUser) else {
+        guard var user: User = try? storage.fetch(for: .currentUser) else {
             return
         }
         user.interestConcertID = concertID
