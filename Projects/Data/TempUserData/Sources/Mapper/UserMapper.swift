@@ -72,12 +72,14 @@ struct UserMapper {
             return nil
         }
 
+        let daysLeft = calculateDaysLeft(from: startDate)
+
         return Concert(
             id: dto.id,
             title: dto.title,
             artist: dto.artist,
             status: status,
-            daysLeft: dto.daysLeft,
+            daysLeft: daysLeft,
             startDate: startDate,
             endDate: endDate,
             posterURL: posterURL,
@@ -87,5 +89,12 @@ struct UserMapper {
             introduction: dto.introduction,
             label: dto.label
         )
+    }
+
+    private func calculateDaysLeft(from date: Date) -> Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let targetDate = calendar.startOfDay(for: date)
+        return calendar.dateComponents([.day], from: today, to: targetDate).day ?? 0
     }
 }

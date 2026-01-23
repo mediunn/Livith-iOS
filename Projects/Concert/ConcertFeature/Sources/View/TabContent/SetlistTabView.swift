@@ -78,7 +78,7 @@ private extension SetlistTabView {
                 imageURL: setlist.imageURL,
                 title: setlist.title,
                 subtitle: formatDate(setlist),
-                badge: setlist.type != .none ? .tag(text: setlist.type.description) : .none,
+                badge: (setlist.status == .recent || setlist.status == .expected) ? .tag(text: setlist.status?.description ?? "") : .none,
                 isFlexible: true,
                 titleLineLimit: 2
             )
