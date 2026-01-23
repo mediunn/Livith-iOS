@@ -96,6 +96,20 @@ public enum DomainModule: String {
 
 public enum DataModule: String {
     case data = "Data"
+    case authData = "TempAuthData"
+    case authDataTests = "TempAuthDataTests"
+    case commentData = "TempCommentData"
+    case commentDataTests = "TempCommentDataTests"
+    case concertData = "TempConcertData"
+    case concertDataTests = "TempConcertDataTests"
+    case searchData = "TempSearchData"
+    case searchDataTests = "TempSearchDataTests"
+    case setlistData = "TempSetlistData"
+    case setlistDataTests = "TempSetlistDataTests"
+    case songData = "TempSongData"
+    case songDataTests = "TempSongDataTests"
+    case userData = "TempUserData"
+    case userDataTests = "TempUserDataTests"
     case dataTests = "DataTests"
 }
 

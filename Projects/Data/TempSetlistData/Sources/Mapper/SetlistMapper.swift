@@ -15,8 +15,7 @@ import LivithFoundation
 struct SetlistMapper {
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist? {
         guard let startDate = DateFormatterService.date(from: response.startDate, type: .dotDate),
-              let endDate = DateFormatterService.date(from: response.endDate, type: .dotDate),
-              let type = SetlistType(rawValue: response.type.uppercased())
+              let endDate = DateFormatterService.date(from: response.endDate, type: .dotDate)
         else {
             return nil
         }

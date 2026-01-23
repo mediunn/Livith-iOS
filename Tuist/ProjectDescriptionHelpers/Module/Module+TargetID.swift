@@ -74,10 +74,7 @@ public enum TargetID {
         case .domain:
             return ["Sources/**"]
         case .data(let module):
-            if module == .dataTests {
-                return ["Tests/**"]
-            }
-            return ["Sources/**"]
+            return dataModuleTestSourcePath(module) ?? ["\(module.rawValue)/Sources/**"]
         }
     }
     
@@ -99,5 +96,24 @@ public enum TargetID {
         default:
             return nil
         }
+    }
+}
+
+// MARK: - Helpers
+
+private extension TargetID {
+    func dataModuleTestSourcePath(_ module: DataModule) -> SourceFilesList? {
+        let testModuleMappings: [DataModule: String] = [
+            .authDataTests: "TempAuthData",
+            .commentDataTests: "TempCommentData",
+            .concertDataTests: "TempConcertData",
+            .searchDataTests: "TempSearchData",
+            .setlistDataTests: "TempSetlistData",
+            .songDataTests: "TempSongData",
+            .userDataTests: "TempUserData"
+        ]
+        
+        guard let parentModule = testModuleMappings[module] else { return nil }
+        return ["\(parentModule)/Tests/**"]
     }
 }
