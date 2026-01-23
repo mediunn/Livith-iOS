@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import LoginDomain
+import Domain
 
 struct NicknameSettingView: View {
     @ObservedObject var store: NicknameSettingStore

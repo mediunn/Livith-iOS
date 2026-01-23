@@ -9,7 +9,7 @@
 import Foundation
 
 import DIContainer
-import LoginDomain
+import Domain
 
 struct NicknameSettingState {
     var nickname: String = ""
@@ -30,35 +30,35 @@ enum NicknameSettingIntent {
 
 final class NicknameSettingStore: ObservableObject {
     @Published private(set) var state = NicknameSettingState()
-    
-    @Injected private var onboardingUseCase: OnboardingUseCase
-    
+
+    @Injected private var authRepository: AuthRepository
+
     private let marketingConsent: Bool
     private let tempUser: TempUser
-    
+
     init(marketingConsent: Bool, tempUser: TempUser) {
         self.marketingConsent = marketingConsent
         self.tempUser = tempUser
     }
-    
+
     @MainActor
     func send(_ intent: NicknameSettingIntent) {
         switch intent {
         case .updateNickname(let nickname):
             state.nickname = nickname
             performNicknameValidation()
-            
+
         case .checkNicknameDuplicate:
             state.nicknameValidationStatus = .checking
             performDuplicateCheck()
-            
+
         case .signup:
             state.signupStatus = .loading
             performSignup()
-            
+
         case .setErrorMessage(let message):
             state.errorMessage = message
-            
+
         case ._validationResult(let result):
             switch result {
             case .success:
@@ -66,32 +66,34 @@ final class NicknameSettingStore: ObservableObject {
             case .failure:
                 state.nicknameValidationStatus = .invalid
             }
-            
+
         case ._duplicateCheckResult(let result):
             switch result {
             case .success:
                 state.nicknameValidationStatus = .available
-                
+
             case .failure(let error):
-                let onboardingError = error as? OnboardingError
-                
-                if onboardingError == .nicknameDuplicated {
+                let authError = error as? AuthError
+
+                if authError == .duplicateNickname {
                     state.nicknameValidationStatus = .duplicate
                 } else {
                     state.nicknameValidationStatus = .valid
                     state.errorMessage = getErrorMessage(from: error)
                 }
             }
-            
+
         case ._signupResult(let result):
             switch result {
             case .success:
                 state.signupStatus = .success
-                
+
             case .failure(let error):
-                let onboardingError = error as? OnboardingError
-                let isRecoverableError = onboardingError == .invalidNicknameFormat || onboardingError == .nicknameDuplicated
-                
+                let authError = error as? AuthError
+                let isRecoverableError = authError == .nicknameTooLong
+                    || authError == .emptyNickname
+                    || authError == .duplicateNickname
+
                 if isRecoverableError {
                     state.errorMessage = getErrorMessage(from: error)
                 } else {
@@ -110,35 +112,37 @@ private extension NicknameSettingStore {
             state.nicknameValidationStatus = .idle
             return
         }
-        
-        Task {
-            do {
-                try onboardingUseCase.validateNicknameFormat(state.nickname)
-                await send(._validationResult(.success(())))
-            } catch {
-                await send(._validationResult(.failure(error)))
-            }
+
+        let pattern = /^[a-zA-Z0-9가-힣]{1,10}$/
+        if state.nickname.wholeMatch(of: pattern) != nil {
+            state.nicknameValidationStatus = .valid
+        } else {
+            state.nicknameValidationStatus = .invalid
         }
     }
-    
+
     func performDuplicateCheck() {
         Task {
             do {
-                try await onboardingUseCase.checkNicknameDuplicate(state.nickname)
-                await send(._duplicateCheckResult(.success(())))
+                let isAvailable = try await authRepository.checkNicknameDuplicate(nickname: state.nickname)
+                if isAvailable {
+                    await send(._duplicateCheckResult(.success(())))
+                } else {
+                    await send(._duplicateCheckResult(.failure(AuthError.duplicateNickname)))
+                }
             } catch {
                 await send(._duplicateCheckResult(.failure(error)))
             }
         }
     }
-    
+
     func performSignup() {
         Task {
             do {
-                try await onboardingUseCase.signup(
+                try await authRepository.signup(
+                    tempUser: tempUser,
                     marketingConsent: marketingConsent,
-                    nickname: state.nickname,
-                    tempUser: tempUser
+                    nickname: state.nickname
                 )
                 await send(._signupResult(.success(())))
             } catch {
@@ -146,12 +150,12 @@ private extension NicknameSettingStore {
             }
         }
     }
-    
+
     func getErrorMessage(from error: Error) -> String {
-        let unknownMessage = OnboardingError.unknown.errorDescription ?? ""
-        guard let onboardingError = error as? OnboardingError else {
+        let unknownMessage = AuthError.unknown.errorDescription ?? ""
+        guard let authError = error as? AuthError else {
             return unknownMessage
         }
-        return onboardingError.errorDescription ?? unknownMessage
+        return authError.errorDescription ?? unknownMessage
     }
 }

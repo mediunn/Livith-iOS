@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import LoginDomain
+import Domain
 
 struct LoginView: View {
     @StateObject private var store = LoginStore()

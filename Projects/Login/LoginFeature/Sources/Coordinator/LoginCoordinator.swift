@@ -11,7 +11,7 @@ import UIKit
 
 import LivithDesignSystem
 import Coordinator
-import LoginDomain
+import Domain
 
 final class LoginCoordinator: Coordinator {
     typealias R = LoginRoute

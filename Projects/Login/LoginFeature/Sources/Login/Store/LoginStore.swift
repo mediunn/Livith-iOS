@@ -9,7 +9,7 @@
 import Foundation
 
 import DIContainer
-import LoginDomain
+import Domain
 
 enum LoginIntent {
     case kakaoLogin
@@ -27,9 +27,9 @@ struct LoginState {
 
 final class LoginStore: ObservableObject {
     @Published private(set) var state: LoginState = .init()
-    
-    @Injected private var useCase: LoginUseCase
-    
+
+    @Injected private var authRepository: AuthRepository
+
     init() {
         performFetchLastLoginPlatform()
     }
@@ -40,16 +40,16 @@ final class LoginStore: ObservableObject {
         case .kakaoLogin:
             state.status = nil
             state.errorMessage = ""
-            performLogin(for: .kakao)
-            
+            performKakaoLogin()
+
         case .appleLogin:
             state.status = nil
             state.errorMessage = ""
-            performLogin(for: .apple)
-            
+            performAppleLogin()
+
         case .setErrorMessage(let message):
             state.errorMessage = message
-            
+
         case ._loginResult(let result):
             switch result {
             case .success(let loginResult):
@@ -57,7 +57,7 @@ final class LoginStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
-            
+
         case ._setLastLoginPlatform(let value):
             state.lastLoginPlatform = value
         }
@@ -67,11 +67,26 @@ final class LoginStore: ObservableObject {
 // MARK: - Helpers
 
 private extension LoginStore {
-    func performLogin(for socialProvider: SocialLoginProvider) {
+    func performKakaoLogin() {
         Task {
             do {
-                let loginResult = try await useCase.execute(for: socialProvider)
+                let loginResult = try await authRepository.kakaoLogin()
                 await send(._loginResult(.success(loginResult)))
+            } catch AuthError.recentWithdrawal {
+                await send(._loginResult(.success(.forbidden)))
+            } catch {
+                await send(._loginResult(.failure(error)))
+            }
+        }
+    }
+
+    func performAppleLogin() {
+        Task {
+            do {
+                let loginResult = try await authRepository.appleLogin()
+                await send(._loginResult(.success(loginResult)))
+            } catch AuthError.recentWithdrawal {
+                await send(._loginResult(.success(.forbidden)))
             } catch {
                 await send(._loginResult(.failure(error)))
             }
@@ -80,21 +95,21 @@ private extension LoginStore {
 
     func performFetchLastLoginPlatform() {
         Task {
-            let platform = try? await useCase.lastLoginPlatform()
+            let platform = try? await authRepository.fetchLastLoginPlatform()
             await send(._setLastLoginPlatform(platform))
         }
     }
-    
-    func getErrorMessage(from error: Error) -> String {
-        let unknownMessage = LoginError.unknown.errorDescription ?? ""
-        guard let loginError = error as? LoginError else { return unknownMessage }
 
-        switch loginError {
-        case .canceled, .forbidden:
+    func getErrorMessage(from error: Error) -> String {
+        let unknownMessage = AuthError.unknown.errorDescription ?? ""
+        guard let authError = error as? AuthError else { return unknownMessage }
+
+        switch authError {
+        case .cancelled, .recentWithdrawal:
             return ""
-        case .noConnection, .serverError, .notFound:
-            return loginError.errorDescription ?? unknownMessage
-        case .noData, .unknown:
+        case .noConnection, .serverError, .userNotFound:
+            return authError.errorDescription ?? unknownMessage
+        default:
             return unknownMessage
         }
     }

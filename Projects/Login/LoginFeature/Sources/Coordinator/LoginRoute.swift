@@ -10,7 +10,7 @@ import Foundation
 
 import LivithDesignSystem
 import Coordinator
-import LoginDomain
+import Domain
 
 enum LoginRoute: Route {
     case login
