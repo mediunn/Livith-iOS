@@ -32,7 +32,8 @@ let project = Project.make(
                 .setlist(.setlistFeature),
                 .data(.songData),
                 .song(.songFeature),
-                .user(.userData),
+                .data(.authData),
+                .data(.userData),
                 .user(.userFeature),
                 .widget(.widget),
             ]

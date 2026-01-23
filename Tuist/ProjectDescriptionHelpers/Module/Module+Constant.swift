@@ -36,8 +36,6 @@ public enum SearchModule: String {
 // MARK: - User Module
 
 public enum UserModule: String {
-    case userData = "UserData"
-    case userDomain = "UserDomain"
     case userFeature = "UserFeature"
 }
 

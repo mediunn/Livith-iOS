@@ -9,8 +9,8 @@
 import Foundation
 
 import DIContainer
+import Domain
 import LivithNetwork
-import UserDomain
 
 enum LogoutResult: Equatable {
     case idle
@@ -30,7 +30,7 @@ enum LogoutIntent {
 
 final class LogoutStore: ObservableObject {
     @Published private(set) var state = LogoutState()
-    @Injected private var repository: UserRepository
+    @Injected private var authRepository: AuthRepository
 
     func send(_ intent: LogoutIntent) {
         switch intent {
@@ -53,7 +53,7 @@ private extension LogoutStore {
 
         Task {
             do {
-                try await repository.logoutSession()
+                try await authRepository.logout()
 
                 await MainActor.run {
                     send(._setLogoutResult(.success))

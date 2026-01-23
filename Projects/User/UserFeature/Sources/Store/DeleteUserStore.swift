@@ -9,8 +9,8 @@
 import Foundation
 
 import DIContainer
+import Domain
 import LivithNetwork
-import UserDomain
 
 enum DeleteUserReason: String, CaseIterable {
     case lackOfInfo = "원하는 정보가 부족하거나 없어요"
@@ -41,7 +41,7 @@ enum DeleteUserIntent {
 
 final class DeleteUserStore: ObservableObject {
     @Published private(set) var state = DeleteUserState()
-    @Injected private var repository: UserRepository
+    @Injected private var authRepository: AuthRepository
 
     private let maxOtherReasonLength = 200
 
@@ -93,7 +93,7 @@ private extension DeleteUserStore {
         Task {
             do {
                 let reason = buildReasonString()
-                try await repository.deleteUser(reason: reason)
+                try await authRepository.withdraw(reason: reason)
 
                 await MainActor.run {
                     send(._setDeleteUserResult(.success))

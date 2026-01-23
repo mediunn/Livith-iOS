@@ -9,8 +9,8 @@
 import Foundation
 
 import DIContainer
+import Domain
 import LivithFoundation
-import UserDomain
 
 enum NicknameValidationState {
     case idle
@@ -43,7 +43,8 @@ enum NicknameUpdateIntent {
 
 final class NicknameUpdateStore: ObservableObject {
     @Published private(set) var state = NicknameUpdateState()
-    @Injected private var repository: UserRepository
+    @Injected private var authRepository: AuthRepository
+    @Injected private var userRepository: UserRepository
     
     func send(_ intent: NicknameUpdateIntent) {
         switch intent {
@@ -89,7 +90,7 @@ private extension NicknameUpdateStore {
     func checkNicknameDuplicate() {
         Task {
             do {
-                let isAvailable = try await repository.checkNicknameDuplicate(nickname: state.nickname)
+                let isAvailable = try await authRepository.checkNicknameDuplicate(nickname: state.nickname)
                 await MainActor.run {
                     send(._setNicknameValidationState(isAvailable ? .available : .duplicate))
                 }
@@ -102,7 +103,7 @@ private extension NicknameUpdateStore {
     func submitNickname() {
         Task {
             do {
-                _ = try await repository.updateUserNickname(nickname: state.nickname)
+                try await userRepository.updateNickname(state.nickname)
                 await MainActor.run { send(._setUpdateResult(.success)) }
             } catch {
                 await MainActor.run { send(._setUpdateResult(.failure)) }
