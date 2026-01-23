@@ -51,7 +51,7 @@ struct UserMapper {
             title: dto.title,
             artist: dto.artist,
             status: status,
-            daysLeft: dto.daysLeft,
+            daysLeft: calculateDaysLeft(from: startDate),
             startDate: startDate,
             endDate: endDate,
             posterURL: posterURL,
