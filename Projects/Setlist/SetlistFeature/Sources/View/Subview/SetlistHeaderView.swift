@@ -8,9 +8,9 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 import LivithFoundation
-import SetlistDomain
 
 struct SetlistHeaderView: View {
 
@@ -44,7 +44,7 @@ struct SetlistHeaderView: View {
 
 private extension SetlistHeaderView {
     var posterImage: some View {
-        AsyncImageView(url: URL(string: setlist.imageURL ?? "")) {
+        AsyncImageView(url: setlist.imageURL) {
             Rectangle()
         }
         .frame(height: 337)
@@ -56,7 +56,7 @@ private extension SetlistHeaderView {
     var concertInfoOverlay: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let status = setlist.status {
-                LivithChip(status, style: .tag)
+                LivithChip(status.description, style: .tag)
                     .padding(.bottom, 6)
             }
 
@@ -86,7 +86,7 @@ private extension SetlistHeaderView {
             title: "Gen Hoshino presents MAD HOPE Asia Tour in SEOUL",
             imageURL: nil,
             type: .expected,
-            status: "예상",
+            status: .expected,
             startDate: Date(),
             endDate: Date().addingTimeInterval(86400 * 2),
             venue: "Tokyo Dome",

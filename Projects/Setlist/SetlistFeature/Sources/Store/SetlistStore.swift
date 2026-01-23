@@ -9,8 +9,8 @@
 import Foundation
 
 import DIContainer
+import Domain
 import LivithFoundation
-import SetlistDomain
 
 public struct SetlistState {
     public var concertID: Int = 0

@@ -66,8 +66,6 @@ public enum ConcertModule: String {
 // MARK: - Setlist Module
 
 public enum SetlistModule: String {
-    case setlistData = "SetlistData"
-    case setlistDomain = "SetlistDomain"
     case setlistFeature = "SetlistFeature"
 }
 

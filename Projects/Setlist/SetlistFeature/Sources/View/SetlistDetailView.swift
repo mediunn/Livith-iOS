@@ -8,8 +8,8 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
-import SetlistDomain
 
 public struct SetlistDetailView: View {
 
