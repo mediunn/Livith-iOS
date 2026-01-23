@@ -148,13 +148,8 @@ private extension HomeInterestConcertView {
             
             Spacer()
             
-            Button {
+            LivithTextButton("수정하기") {
                 showBottomSheet(flag: true)
-            } label: {
-                Text("수정하기")
-                    .notosans(.body4Regular)
-                    .foregroundStyle(.livithColor(.black50))
-                    .padding(8)
             }
             .padding(.top, 20)
             .padding([.bottom, .trailing], 16)

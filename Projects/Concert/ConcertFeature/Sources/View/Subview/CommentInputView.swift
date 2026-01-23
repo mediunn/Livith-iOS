@@ -74,7 +74,7 @@ private extension CommentInputView {
     }
 
     var submitButton: some View {
-        LivithConfirmButton("등록", variant: .primary, action: onSubmit)
+        LivithConfirmButton("등록", variant: .primary, size: .small, action: onSubmit)
             .disabled(!isSubmitEnabled)
     }
 
