@@ -11,13 +11,25 @@ import SwiftUI
 import LivithDesignSystem
 import SongDomain
 
+// MARK: - PageSizingModifier
+
+private struct PageSizingModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.presentationSizing(.page)
+        } else {
+            content
+        }
+    }
+}
+
 public struct SongLyricsView: View {
 
     // MARK: - Property
 
     @StateObject private var store = SongLyricsStore()
     @Environment(\.dismiss) private var dismiss
-    @State private var sheetPosition: LyricsBottomSheetView.SheetPosition = .middle
+    @State private var selectedDetent: PresentationDetent = .medium
     @State private var warningMessage: String?
     @State private var errorMessage: String?
     @State private var warningDismissTask: Task<Void, Never>?
@@ -49,12 +61,7 @@ public struct SongLyricsView: View {
     }
 
     private var overlayOpacity: Double {
-        switch sheetPosition {
-        case .bottom, .middle:
-            return 0
-        case .top:
-            return 0.9
-        }
+        selectedDetent == .large ? 0.9 : 0
     }
 
     // MARK: - Body
@@ -78,6 +85,17 @@ public struct SongLyricsView: View {
         .background(Color.livithColor(.black100))
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: .constant(store.state.hasLyrics)) {
+            LyricsContentView(store: store)
+                .presentationDetents([.height(150), .medium, .large], selection: $selectedDetent)
+                .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+                .presentationContentInteraction(.scrolls)
+                .presentationBackground(Color.livithColor(.black90))
+                .presentationCornerRadius(30)
+                .interactiveDismissDisabled()
+                .modifier(PageSizingModifier())
+        }
         .livithToast(
             isPresented: showErrorToast,
             type: .failure,
@@ -155,43 +173,27 @@ private extension SongLyricsView {
             Color.livithColor(.black100)
                 .opacity(overlayOpacity)
                 .allowsHitTesting(false)
-                .animation(.easeInOut(duration: 0.3), value: sheetPosition)
+                .animation(.easeInOut(duration: 0.3), value: selectedDetent)
         )
     }
 
     func contentView(geometry: GeometryProxy) -> some View {
         let screenWidth = geometry.size.width
-        let screenHeight = geometry.size.height
         let videoHeight = screenWidth > 0 ? screenWidth * 9 / 16 : 200
         let toggleHeight: CGFloat = 70
 
-        return ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-                youtubePlayerView
-                    .frame(height: videoHeight)
+        return VStack(spacing: 0) {
+            youtubePlayerView
+                .frame(height: videoHeight)
 
-                if store.state.hasLyrics {
-                    toggleButtonsSection
-                        .frame(height: toggleHeight)
-                } else {
-                    lyricsEmptyView
-                }
+            if store.state.hasLyrics {
+                toggleButtonsSection
+                    .frame(height: toggleHeight)
+            } else {
+                lyricsEmptyView
             }
 
-            if store.state.hasLyrics, screenHeight > 0, screenWidth > 0 {
-                Color.livithColor(.black100)
-                    .opacity(overlayOpacity)
-                    .allowsHitTesting(false)
-                    .animation(.easeInOut(duration: 0.3), value: sheetPosition)
-
-                LyricsBottomSheetView(
-                    store: store,
-                    screenHeight: screenHeight,
-                    videoHeight: videoHeight,
-                    toggleHeight: toggleHeight,
-                    currentPosition: $sheetPosition
-                )
-            }
+            Spacer()
         }
     }
 

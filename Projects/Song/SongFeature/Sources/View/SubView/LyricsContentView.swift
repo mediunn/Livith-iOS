@@ -52,12 +52,13 @@ struct LyricsContentView: View {
             VStack(alignment: .leading, spacing: 0) {
                 if store.state.hasFanchantPoint {
                     fanchantPointSection
-                    
+
                     divideLine
                 }
 
                 lyricsSection
             }
+            .padding(.top, 36)
             .padding(.horizontal, 20)
             .padding(.bottom, 100)
         }
