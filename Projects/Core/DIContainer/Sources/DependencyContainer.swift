@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 // MARK: - Dependency Container Protocols
 
@@ -27,7 +28,7 @@ public typealias DependencyContainer = DependencyRegistable & DependencyResolvab
 
 // MARK: - Dependency Container Implementation
 
-public final class DIContainer: DependencyContainer, AssemblerRegistable {
+public final class DIContainer: DependencyContainer, AssemblerRegistable, @unchecked Sendable {
     public static let shared = DIContainer()
 
     private enum Entry {
@@ -35,37 +36,37 @@ public final class DIContainer: DependencyContainer, AssemblerRegistable {
         case factory(() -> Any)
     }
     
-    private var dependencies: [ObjectIdentifier: Entry] = [:]
-
-    private let queue = DispatchQueue(label: "com.livith.DIContainer.queue", qos: .userInitiated)
+    private let storage = OSAllocatedUnfairLock(initialState: [ObjectIdentifier: Entry]())
 
     private init() {}
 
     public func register<T>(_ dependency: T, for type: T.Type) {
-        queue.sync {
-            let key = ObjectIdentifier(type)
+        let key = ObjectIdentifier(type)
+        storage.withLock { dependencies in
             dependencies[key] = .instance(dependency)
         }
     }
     
     public func register<T>(_ factory: @escaping () -> T, for type: T.Type) {
-        queue.sync {
-            let key = ObjectIdentifier(type)
-            let anyFactory: () -> Any = { factory() }
+        let key = ObjectIdentifier(type)
+        let anyFactory: () -> Any = { factory() }
+        
+        storage.withLock { dependencies in
             dependencies[key] = .factory(anyFactory)
         }
     }
     
     public func resolve<T>(_ type: T.Type) -> T {
-        let entry: Entry = queue.sync {
-            let key = ObjectIdentifier(type)
-            guard let entry = dependencies[key] else {
-                fatalError("\(type) is not registered")
-            }
-            return entry
+        let key = ObjectIdentifier(type)
+        let entry: Entry? = storage.withLock { dependencies in
+            dependencies[key]
+        }
+        
+        guard let validEntry = entry else {
+            fatalError("\(type) is not registered")
         }
 
-        switch entry {
+        switch validEntry {
         case .instance(let service):
             guard let typedService = service as? T else {
                 fatalError("Registered dependency for \(type) has mismatched type")

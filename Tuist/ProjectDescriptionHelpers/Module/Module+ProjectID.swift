@@ -20,6 +20,8 @@ public enum ProjectID: String, CaseIterable {
     case setlist = "Setlist"
     case song = "Song"
     case widget = "Widget"
+    case domain = "Domain"
+    case data = "Data"
     public var name: String { rawValue }
     
     public var path: Path {
