@@ -105,7 +105,6 @@ public struct UserView: View {
                 switch destination {
                 case .nicknameUpdate:
                     NicknameUpdateView(
-                        store: NicknameUpdateStore(),
                         onDismiss: { if !path.isEmpty { path.removeLast() } },
                         onSuccess: { newNickname in
                             if !path.isEmpty { path.removeLast() }
