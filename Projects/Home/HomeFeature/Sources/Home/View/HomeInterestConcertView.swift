@@ -9,7 +9,8 @@
 import SwiftUI
 
 import LivithDesignSystem
-import HomeDomain
+import Domain
+import LivithFoundation
 
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
@@ -53,7 +54,7 @@ private extension HomeInterestConcertView {
                     InterestConcertCardView(
                         posterURL: store.state.interestConcert?.posterURL,
                         remainDays: store.state.interestConcert?.daysLeft ?? 0,
-                        date: store.state.interestConcert?.startDate ?? "",
+                        date: formatDate(store.state.interestConcert?.startDate),
                         location: store.state.interestConcert?.venue ?? "",
                         title: store.state.interestConcert?.title ?? "",
                         onMoreInfoTap: handleMoreInfoTap
@@ -196,5 +197,10 @@ private extension HomeInterestConcertView {
         isTabBarHidden = false
 
         store.send(.onDelete)
+    }
+
+    func formatDate(_ date: Date?) -> String {
+        guard let date else { return "" }
+        return DateFormatterService.string(from: date, type: .koreanFullDate)
     }
 }

@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import HomeDomain
+import Domain
 
 struct ConcertSectionView: View {
     let concertSection: ConcertSection
@@ -27,7 +27,7 @@ struct ConcertSectionView: View {
                         LivithCard(
                             imageURL: concert.posterURL,
                             title: concert.title,
-                            subtitle: concert.startDate,
+                            subtitle: DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate),
                             secondaryText: concert.artist,
                             badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
                             onTap: { onConcertTap(concert) }

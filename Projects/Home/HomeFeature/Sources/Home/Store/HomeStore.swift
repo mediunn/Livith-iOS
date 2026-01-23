@@ -10,42 +10,44 @@ import Foundation
 import WidgetKit
 
 import DIContainer
-import HomeDomain
+import Domain
 
 enum HomeIntent {
     case onAppear
     case onErrorToastDisappear
     case onToastDisappear
-    
+
     case onDelete
     case onRefreshInterestConcert
     case _fetchUserInterestConcertResult(Result<Concert?, Error>)
-    case _fetchScheduleListResult(Result<ConcertScheduleList, Error>)
+    case _fetchScheduleListResult(Result<[ConcertSchedule], Error>)
     case _fetchMainSetlistResult(Result<Setlist, Error>)
-    case _fetchSetlistSongListResult(Result<SetlistSongList, Error>)
+    case _fetchSetlistSongListResult(Result<[SetlistSong], Error>)
     case _deleteInterestConcertResult(Result<Void, Error>)
-    
+
     case onRefreshSections
-    case _fetchHomeSectionListResult(Result<HomeSectionList, Error>)
+    case _fetchHomeSectionListResult(Result<[ConcertSection], Error>)
 }
 
 struct HomeState {
     var interestConcert: Concert? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
-    
-    var scheduleList: ConcertScheduleList = []
+
+    var scheduleList: [ConcertSchedule] = []
     var setlist: Setlist? = nil
-    var songList: SetlistSongList = []
-    
-    var sectionList: HomeSectionList = []
+    var songList: [SetlistSong] = []
+
+    var sectionList: [ConcertSection] = []
     var isSectionsLoading: Bool = false
 }
 
 final class HomeStore: ObservableObject {
     @Published private(set) var state: HomeState = .init()
-    
-    @Injected private var repository: HomeRepository
+
+    @Injected private var userRepository: UserRepository
+    @Injected private var concertRepository: ConcertRepository
+    @Injected private var setlistRepository: SetlistRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
     
@@ -158,61 +160,61 @@ private extension HomeStore {
         cancellables[.fetchInterestedConcert]?.cancel()
         cancellables[.fetchInterestedConcert] = Task {
             do {
-                let result = try await repository.fetchInterestedConcert()
+                let result = try await userRepository.fetchInterestedConcert()
                 await send(._fetchUserInterestConcertResult(.success(result)))
             } catch {
                 await send(._fetchUserInterestConcertResult(.failure(error)))
             }
         }
     }
-    
+
     func performFetchScheduleList(concertID: Int) {
         cancellables[.fetchScheduleList]?.cancel()
         cancellables[.fetchScheduleList] = Task {
             do {
-                let schedules = try await repository.fetchScheduleList(for: concertID)
+                let schedules = try await concertRepository.fetchConcertScheduleList(concertID: concertID)
                 await send(._fetchScheduleListResult(.success(schedules)))
             } catch {
                 await send(._fetchScheduleListResult(.failure(error)))
             }
         }
     }
-    
+
     func performFetchMainSetlist(concertID: Int) {
         cancellables[.fetchMainSetlist]?.cancel()
         cancellables[.fetchMainSetlist] = Task {
             do {
-                guard let setlist = try await repository.fetchMainSetlist(for: concertID) else {
-                    await send(._fetchMainSetlistResult(.failure(HomeError.cancelled)))
+                guard let setlist = try await concertRepository.fetchMainSetlist(concertID: concertID) else {
+                    await send(._fetchMainSetlistResult(.failure(ConcertError.cancelled)))
                     return
                 }
-                let songList = try await repository.fetchSongList(for: setlist.id)
+                let songList = try await setlistRepository.fetchSetlistSongs(setlistID: setlist.id)
                 await send(._fetchMainSetlistResult(.success(setlist)))
                 await send(._fetchSetlistSongListResult(.success(songList)))
-            } catch HomeError.noResponse {
-                await send(._fetchMainSetlistResult(.failure(HomeError.cancelled)))
+            } catch ConcertError.invalidResponse {
+                await send(._fetchMainSetlistResult(.failure(ConcertError.cancelled)))
             } catch {
                 await send(._fetchMainSetlistResult(.failure(error)))
             }
         }
     }
-    
+
     func performFetchSetlistSongList(setlistID: Int) {
         cancellables[.fetchSetlistSongList]?.cancel()
         cancellables[.fetchSetlistSongList] = Task {
             do {
-                let songList = try await repository.fetchSongList(for: setlistID)
+                let songList = try await setlistRepository.fetchSetlistSongs(setlistID: setlistID)
                 await send(._fetchSetlistSongListResult(.success(songList)))
             } catch {
                 await send(._fetchSetlistSongListResult(.failure(error)))
             }
         }
     }
-    
+
     func performDeleteInterestConcert() {
         Task {
             do {
-                try await repository.deleteInterestedConcert()
+                try await userRepository.deleteInterestedConcert()
                 WidgetCenter.shared.reloadAllTimelines()
                 await send(._deleteInterestConcertResult(.success(())))
             } catch {
@@ -220,24 +222,24 @@ private extension HomeStore {
             }
         }
     }
-    
+
     func getErrorMessage(from error: Error) -> String {
         if error is CancellationError {
             return ""
         }
-        
-        if case let error as HomeError = error, error == .cancelled {
+
+        if case let error as ConcertError = error, error == .cancelled {
             return ""
         }
-        
+
         return error.localizedDescription
     }
-    
+
     func performFetchHomeSectionList() {
         cancellables[.refreshSections]?.cancel()
         cancellables[.refreshSections] = Task {
             do {
-                let result = try await repository.fetchSectionList()
+                let result = try await concertRepository.fetchHomeConcertSectionList()
                 await send(._fetchHomeSectionListResult(.success(result)))
             } catch {
                 await send(._fetchHomeSectionListResult(.failure(error)))

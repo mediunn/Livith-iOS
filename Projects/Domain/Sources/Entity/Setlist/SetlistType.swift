@@ -33,4 +33,8 @@ public enum SetlistType: String, CaseIterable, CustomStringConvertible {
             ""
         }
     }
+
+    public var isPastSetlist: Bool {
+        self == .past || self == .recent
+    }
 }

@@ -10,7 +10,7 @@ import UIKit
 import Foundation
 import WidgetKit
 
-import HomeDomain
+import Domain
 import DIContainer
 import LivithFoundation
 
@@ -56,7 +56,9 @@ struct InterestConcertSearchState {
 final class InterestConcertSearchStore: ObservableObject {
     @Published private(set) var state = InterestConcertSearchState()
 
-    @Injected private var repository: HomeRepository
+    @Injected private var concertRepository: ConcertRepository
+    @Injected private var userRepository: UserRepository
+    @Injected private var searchRepository: SearchRepository
 
     private var searchTask: Task<Void, Never>?
     
@@ -172,12 +174,12 @@ private extension InterestConcertSearchStore {
                 await send(._setLoading(true))
             }
             do {
-                let concertList = try await repository.fetchConcertList(
+                let concertList = try await concertRepository.fetchAllConcertList(
                     startDate: isNextPage ? state.concertList.last?.startDate : nil,
                     concertID: isNextPage ? state.concertList.last?.id : nil
                 )
                 await send(._fetchConcertListResult(.success(concertList)))
-            } catch HomeError.noResponse {
+            } catch ConcertError.invalidResponse {
                 await send(._fetchConcertListResult(.success([])))
             } catch {
                 await send(._fetchConcertListResult(.failure(error)))
@@ -185,15 +187,15 @@ private extension InterestConcertSearchStore {
         }
     }
 
-    func performFetchRecommendKeywordList() {        
+    func performFetchRecommendKeywordList() {
         searchTask?.cancel()
         searchTask = Task {
             guard await Task.wait(for: .milliseconds(400)) else { return }
 
             do {
-                let keywordList = try await repository.fetchRecommendKeywordList(for: state.searchText)
+                let keywordList = try await searchRepository.fetchRecommendedSearchResult(keyword: state.searchText)
                 await send(._fetchRecommendKeywordListResult(.success(keywordList)))
-            } catch HomeError.cancelled {
+            } catch SearchError.cancelled {
                 return
             } catch {
                 await send(._fetchRecommendKeywordListResult(.failure(error)))
@@ -204,13 +206,16 @@ private extension InterestConcertSearchStore {
     func performFetchSearchList(isNextPage: Bool = false) {
         Task {
             do {
-                let searchList = try await repository.fetchSearchedConcertList(
+                let result = try await searchRepository.fetchFilterSearchResult(
+                    genre: [],
+                    sort: nil,
+                    status: [],
                     keyword: state.searchText,
-                    startDate: isNextPage ? state.searchList.last?.startDate : nil,
-                    concertID: isNextPage ? state.searchList.last?.id : nil
+                    cursor: isNextPage ? state.searchList.last?.id.description : nil,
+                    size: nil
                 )
-                await send(._fetchSearchListResult(.success(searchList)))
-            } catch HomeError.noResponse {
+                await send(._fetchSearchListResult(.success(result.concerts)))
+            } catch SearchError.invalidResponse {
                 await send(._fetchSearchListResult(.success([])))
             } catch {
                 await send(._fetchSearchListResult(.failure(error)))
@@ -223,7 +228,7 @@ private extension InterestConcertSearchStore {
 
         Task {
             do {
-                let concert = try await repository.updateInterestedConcert(id: concertID)
+                let concert = try await userRepository.updateInterestedConcert(concertID)
                 WidgetCenter.shared.reloadAllTimelines()
                 await send(._updateInterestConcertResult(.success(concert)))
             } catch {
@@ -231,13 +236,13 @@ private extension InterestConcertSearchStore {
             }
         }
     }
-    
+
     func performPrefetchImageAndSubmit() {
         guard let concertID = state.selectedConcertID else {
-            Task { await send(._updateInterestConcertResult(.failure(HomeError.cancelled))) }
+            Task { await send(._updateInterestConcertResult(.failure(ConcertError.cancelled))) }
             return
         }
-        
+
         let concert: Concert?
         switch state.mode {
         case .initial:
@@ -247,12 +252,12 @@ private extension InterestConcertSearchStore {
         case .recommendingKeywords:
             concert = nil
         }
-        
+
         guard let posterURL = concert?.posterURL else {
             Task { await send(._imagePrefetchCompleted(nil)) }
             return
         }
-        
+
         Task {
             do {
                 let (data, _) = try await URLSession.shared.data(from: posterURL)

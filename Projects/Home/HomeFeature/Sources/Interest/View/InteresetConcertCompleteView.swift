@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import HomeDomain
+import Domain
 
 struct InteresetConcertCompleteView: View {
     @State private var isRotating = false

@@ -9,7 +9,8 @@
 import SwiftUI
 
 import LivithDesignSystem
-import HomeDomain
+import Domain
+import LivithFoundation
 
 struct ConcertGridView: View {
     let concerts: [Concert]
@@ -54,7 +55,7 @@ private extension ConcertGridView {
         LivithCard(
             imageURL: concert.posterURL,
             title: concert.title,
-            subtitle: concert.startDate,
+            subtitle: DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate),
             secondaryText: concert.artist,
             badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
             isSelected: selectedID == concert.id,

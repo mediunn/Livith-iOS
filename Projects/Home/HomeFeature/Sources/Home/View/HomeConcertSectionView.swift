@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import HomeDomain
+import Domain
 
 import LivithDesignSystem
 

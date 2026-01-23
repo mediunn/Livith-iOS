@@ -9,13 +9,13 @@
 import SwiftUI
 
 import LivithDesignSystem
-import HomeDomain
+import Domain
 import LivithFoundation
 
 struct ConcertScheduleTabView: View {
-    private let schedules: ConcertScheduleList
+    private let schedules: [ConcertSchedule]
 
-    init(schedules: ConcertScheduleList) {
+    init(schedules: [ConcertSchedule]) {
         self.schedules = schedules
     }
 
@@ -32,10 +32,10 @@ struct ConcertScheduleTabView: View {
                 VStack(spacing: .zero) {
                     ForEach(schedules) { schedule in
                         LivithScheduleItem(
-                            daysLeft: daysLeft(from: schedule.schduledAt),
+                            daysLeft: daysLeft(from: schedule.scheduledAt),
                             title: schedule.category,
-                            dateTime: formatDateTime(schedule.schduledAt),
-                            isActive: isActiveDate(schedule.schduledAt)
+                            dateTime: formatDateTime(schedule.scheduledAt),
+                            isActive: isActiveDate(schedule.scheduledAt)
                         )
                         .frame(height: 64)
                     }

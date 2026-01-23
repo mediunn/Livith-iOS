@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import HomeDomain
+import Domain
 import LivithFoundation
 
 struct ConcertSetlistTabView: View {
@@ -86,7 +86,7 @@ private extension ConcertSetlistTabView {
     
     func setlistCard(setlist: Setlist) -> some View {
         HStack(spacing: 16) {
-            posterImageView(urlString: setlist.imageURL ?? "")
+            posterImageView(urlString: setlist.imageURL?.absoluteString ?? "")
                 .padding([.vertical, .leading], 16)
             
             VStack(alignment: .leading, spacing: 0) {

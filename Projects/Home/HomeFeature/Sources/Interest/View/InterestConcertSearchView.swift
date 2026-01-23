@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import HomeDomain
+import Domain
 
 struct InterestConcertSearchView: View {
     @Environment(\.homeCoordinator) private var coordinator
