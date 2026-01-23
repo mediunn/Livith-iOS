@@ -13,8 +13,8 @@ import ConcertData
 import HomeData
 import LoginData
 import SearchData
-import SongData
 import TempSetlistData
+import TempSongData
 import UserData
 
 extension LivithApp {
@@ -26,7 +26,7 @@ extension LivithApp {
                 LoginAssembler(),
                 SearchAssembler(),
                 SetlistDataAssembler(),
-                SongAssembler(),
+                SongDataAssembler(),
                 UserAssembler()
             ]
         )

@@ -9,8 +9,8 @@
 import Foundation
 
 import DIContainer
+import Domain
 import LivithFoundation
-import SongDomain
 
 // MARK: - State
 

@@ -8,8 +8,8 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
-import SongDomain
 
 public struct SongLyricsView: View {
 

@@ -10,22 +10,10 @@ let project = Project.make(
     project: .song,
     targets: [
         .make(
-            target: .song(.songData),
-            product: .framework,
-            dependencies: [
-                .song(.songDomain),
-                .core(.livithNetwork)
-            ]
-        ),
-        .make(
-            target: .song(.songDomain),
-            product: .framework
-        ),
-        .make(
             target: .song(.songFeature),
             product: .framework,
             dependencies: [
-                .song(.songDomain),
+                .domain(.domain),
                 .external(.livithDesignSystem),
                 .core(.coordinator),
                 .core(.diContainer),
