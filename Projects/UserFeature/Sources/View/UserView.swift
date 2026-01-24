@@ -131,10 +131,23 @@ public struct UserView: View {
                     .ignoresSafeArea(edges: .bottom)
             }
         }
-        .overlay {
-            logoutConfirmDialog
+        .crossDissolve(isPresented: Binding(
+            get: { overlayType == .logout },
+            set: { if !$0 { overlayType = .none } }
+        ), dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: Literals.logoutAlertMessage,
+                confirmTitle: Literals.logoutAlertConfirm,
+                cancelTitle: Literals.logoutAlertCancel,
+                type: .confirm(onConfirm: {
+                    overlayType = .none
+                    performLogout()
+                }),
+                onCancel: {
+                    overlayType = .none
+                }
+            )
         }
-        .animation(.easeInOut(duration: 0.3), value: overlayType)
         .onChange(of: path) { _, newPath in
             Task { @MainActor in
                 isTabBarHidden = !newPath.isEmpty
@@ -208,24 +221,6 @@ private extension UserView {
             Image.livithImage(.feedback)
                 .resizable()
                 .scaledToFill()
-        }
-    }
-
-    @ViewBuilder
-    var logoutConfirmDialog: some View {
-        if overlayType == .logout {
-            LivithDangerModal(
-                message: Literals.logoutAlertMessage,
-                confirmTitle: Literals.logoutAlertConfirm,
-                cancelTitle: Literals.logoutAlertCancel,
-                type: .confirm(onConfirm: {
-                    overlayType = .none
-                    performLogout()
-                }),
-                onCancel: {
-                    overlayType = .none
-                }
-            )
         }
     }
 }
