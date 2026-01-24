@@ -16,7 +16,7 @@ let project = Project.make(
                 .domain(.domain),
                 .setlist(.setlistFeature),
                 .song(.songFeature),
-                .external(.livithDesignSystem),
+                .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),

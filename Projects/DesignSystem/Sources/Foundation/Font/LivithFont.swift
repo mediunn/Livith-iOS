@@ -82,7 +82,7 @@ public extension Font {
         return .custom(style.fontName, size: style.size)
     }
 
-    public static func registerFont() {
+    static func registerFont() {
         let fontNames = [
             "NotoSansKR-Bold",
             "NotoSansKR-SemiBold",
