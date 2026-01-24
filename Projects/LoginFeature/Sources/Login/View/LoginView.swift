@@ -15,6 +15,8 @@ struct LoginView: View {
     @StateObject private var store = LoginStore()
     @Environment(\.loginCoordinator) private var coordinator
     
+    @State private var isForbiddenModalPresented = false
+    
     var body: some View {
         ZStack {
             Color.livithColor(.black100)
@@ -38,6 +40,18 @@ struct LoginView: View {
             duration: 2,
             position: .safeAreaTop
         )
+        .crossDissolve(isPresented: $isForbiddenModalPresented, dismissOnTapOutside: false) {
+            LivithModal(
+                type: .error(
+                    title: "탈퇴 후 7일이 지나지 않았어요",
+                    message: "7일이 지난 후 다시 시도해주세요"
+                ),
+                confirmTitle: "로그인으로 돌아가기",
+                onConfirm: {
+                    isForbiddenModalPresented = false
+                }
+            )
+        }
         .onChange(of: store.state.status) { oldValue, newValue in
             guard let loginStatus = newValue else { return }
             handleLoginSuccess(loginStatus)
@@ -51,8 +65,7 @@ struct LoginView: View {
         case .newUser(let tempUser):
             coordinator?.push(to: .terms(tempUser))
         case .forbidden:
-            coordinator?
-                .present(to: .loginForbidden, presentationStyle: .overFullScreen, transitionStyle: .crossDissolve)
+            isForbiddenModalPresented = true
         }
     }
 }
