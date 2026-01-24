@@ -60,19 +60,6 @@ final class LoginCoordinator: Coordinator {
                 .environment(\.loginCoordinator, self)
             )
             
-        case .signupFailed:
-            let vc = UIHostingController(
-                rootView: LivithModal(
-                    type: .error(title: "오류가 발생했어요!", message: "잠시 후 다시 시도해주세요"),
-                    confirmTitle: "로그인으로 돌아가기",
-                    onConfirm: { [weak self] in
-                        self?.dismiss(completion: { self?.popToRoot() })
-                    }
-                )
-            )
-            vc.view.backgroundColor = .clear
-            return vc
-            
         case .safari(let url):
             let safariView = SafariView(url: url) { [weak self] in
                 self?.dismiss()

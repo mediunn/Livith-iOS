@@ -16,6 +16,5 @@ enum LoginRoute: Route {
     case login
     case terms(TempUser)
     case nickname(Bool)
-    case signupFailed
     case safari(URL)
 }
