@@ -57,20 +57,20 @@ public enum TargetID {
             return ["Sources/**"]
         case .core(let module):
             return ["\(module.rawValue)/Sources/**"]
-        case .login(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .search(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .song(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .setlist(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .concert(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .home(let module):
-            return ["\(module.rawValue)/Sources/**"]
-        case .user(let module):
-            return ["\(module.rawValue)/Sources/**"]
+        case .login:
+            return ["Sources/**"]
+        case .search:
+            return ["Sources/**"]
+        case .song:
+            return ["Sources/**"]
+        case .setlist:
+            return ["Sources/**"]
+        case .concert:
+            return ["Sources/**"]
+        case .home:
+            return ["Sources/**"]
+        case .user:
+            return ["Sources/**"]
         case .widget:
             return ["Sources/**"]
         case .domain:
@@ -110,15 +110,15 @@ public enum TargetID {
 private extension TargetID {
     func dataModuleTestSourcePath(_ module: DataModule) -> SourceFilesList? {
         let testModuleMappings: [DataModule: String] = [
-            .authDataTests: "TempAuthData",
-            .commentDataTests: "TempCommentData",
-            .concertDataTests: "TempConcertData",
-            .searchDataTests: "TempSearchData",
-            .setlistDataTests: "TempSetlistData",
-            .songDataTests: "TempSongData",
-            .userDataTests: "TempUserData"
+            .authDataTests: "AuthData",
+            .commentDataTests: "CommentData",
+            .concertDataTests: "ConcertData",
+            .searchDataTests: "SearchData",
+            .setlistDataTests: "SetlistData",
+            .songDataTests: "SongData",
+            .userDataTests: "UserData"
         ]
-        
+
         guard let parentModule = testModuleMappings[module] else { return nil }
         return ["\(parentModule)/Tests/**"]
     }
