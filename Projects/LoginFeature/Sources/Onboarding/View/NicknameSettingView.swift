@@ -10,7 +10,7 @@ import SwiftUI
 
 import Domain
 import LivithDesignSystem
-import NicknameEditFeature
+import NicknameEdit
 
 struct NicknameSettingView: View {
     @Environment(\.loginCoordinator) private var coordinator
