@@ -33,10 +33,19 @@ struct HomeInterestConcertView: View {
             
             customBottomSheet
                 .ignoresSafeArea()
-            
-            deleteDialog
         }
-        .animation(.easeInOut, value: showDeleteDialog)
+        .crossDissolve(isPresented: $showDeleteDialog, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
+                confirmTitle: "지금은 삭제할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: handleDeleteConfirm),
+                onCancel: {
+                    showDeleteDialog = false
+                    isTabBarHidden = false
+                }
+            )
+        }
     }
 }
 
@@ -117,24 +126,6 @@ private extension HomeInterestConcertView {
             )
             .offset(y: showBottomSheet ? 0 : UIScreen.main.bounds.height)
             .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
-        }
-    }
-    
-    var deleteDialog: some View {
-        Group {
-            if showDeleteDialog {
-                LivithDangerModal(
-                    message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
-                    confirmTitle: "지금은 삭제할래요",
-                    cancelTitle: "잘못 눌렀어요",
-                    type: .confirm(onConfirm: handleDeleteConfirm),
-                    onCancel: {
-                        showDeleteDialog = false
-                        isTabBarHidden = false
-                    }
-                )
-                .transition(.opacity)
-            }
         }
     }
     
