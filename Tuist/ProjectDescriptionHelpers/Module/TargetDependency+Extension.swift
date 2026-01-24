@@ -58,6 +58,10 @@ extension TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.data.path)
     }
 
+    public static func sharedFeature(_ module: SharedFeatureModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.sharedFeature.path)
+    }
+
     public static func designSystem(_ module: DesignSystemModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.designSystem.path)
     }

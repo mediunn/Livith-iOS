@@ -18,7 +18,7 @@ final class LoginCoordinator: Coordinator {
     
     let navigationController: UINavigationController
     
-    private var tempUser: TempUser?
+    private var tempUser: Domain.TempUser?
     
     private let onLoginCompleted: ((String) -> Void)
     private let onSignupCompleted: ((String) -> Void)
@@ -64,9 +64,14 @@ final class LoginCoordinator: Coordinator {
             guard let tempUser = tempUser else {
                 return UIHostingController(rootView: EmptyView())
             }
-            
-            let store = NicknameSettingStore(marketingConsent: marketingConsent, tempUser: tempUser)
-            return UIHostingController(rootView: NicknameSettingView(store: store).environment(\.loginCoordinator, self))
+
+            return UIHostingController(
+                rootView: NicknameSettingView(
+                    marketingConsent: marketingConsent,
+                    tempUser: tempUser
+                )
+                .environment(\.loginCoordinator, self)
+            )
             
         case .signupFailed:
             let vc = UIHostingController(
@@ -97,3 +102,4 @@ final class LoginCoordinator: Coordinator {
         onSignupCompleted(nickname)
     }
 }
+
