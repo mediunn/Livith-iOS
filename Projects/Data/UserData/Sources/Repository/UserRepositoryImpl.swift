@@ -34,7 +34,7 @@ struct UserRepositoryImpl: UserRepository {
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
         self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage, widgetImageStorage: widgetImageStorage)
     }
-
+    
     func updateNickname(_ nickname: String) async throws(UserError) {
         do {
             let request = DTO.Request.UpdateUserNickname(nickname: nickname)
@@ -48,7 +48,7 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
-
+    
     func fetchUser() async throws(UserError) -> User {
         if let cachedUser = await userCache.fetchUserIfValid() {
             return cachedUser
@@ -64,7 +64,7 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
-
+    
     func fetchInterestedConcert() async throws(UserError) -> Concert? {
         if let cachedConcert = await interestConcertCache.fetchInterestConcertIfValid() {
             return cachedConcert
@@ -79,12 +79,14 @@ struct UserRepositoryImpl: UserRepository {
             await userCache.updateUser { $0.interestConcertID = concert.id }
             await interestConcertCache.saveInterestConcert(concert)
             return concert
-        } catch {
+        } catch NetworkError.noData {
+            return nil
+        }catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
         }
     }
-
+    
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         do {
@@ -102,7 +104,7 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
-
+    
     func deleteInterestedConcert() async throws(UserError) {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
@@ -110,7 +112,7 @@ struct UserRepositoryImpl: UserRepository {
             await interestConcertCache.deleteInterestConcert()
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError 
+            throw userError
         }
     }
 }
