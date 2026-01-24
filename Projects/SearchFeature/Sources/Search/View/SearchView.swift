@@ -60,12 +60,11 @@ struct SearchView: View {
         .onChange(of: store.state.errorMessage) { _, newValue in
             showError = !newValue.isEmpty
         }
-        .overlay {
-            if showError {
-                LivithModal(
-                    type: .error(title: "오류가 발생했어요!", message: store.state.errorMessage)
-                )
-            }
+        .crossDissolve(isPresented: $showError, dismissOnTapOutside: true) {
+            LivithModal(
+                type: .error(title: "오류가 발생했어요!", message: store.state.errorMessage),
+                onConfirm: { showError = false }
+            )
         }
         .overlay {
             customFilterSheet
