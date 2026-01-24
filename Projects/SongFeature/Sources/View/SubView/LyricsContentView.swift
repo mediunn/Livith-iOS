@@ -48,18 +48,23 @@ struct LyricsContentView: View {
     // MARK: - Body
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                if store.state.hasFanchantPoint {
-                    fanchantPointSection
-                    
-                    divideLine
-                }
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(height: 36)
 
-                lyricsSection
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    if store.state.hasFanchantPoint {
+                        fanchantPointSection
+
+                        divideLine
+                    }
+
+                    lyricsSection
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 100)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 100)
         }
     }
 }

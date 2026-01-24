@@ -104,7 +104,9 @@ public final class ConcertCoordinator: Coordinator {
                 }
             )
 
-            return UIHostingController(rootView: view)
+            let hostingController = UIHostingController(rootView: view)
+            hostingController.hidesBottomBarWhenPushed = true
+            return hostingController
         }
     }
 }
