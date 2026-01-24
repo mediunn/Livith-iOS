@@ -101,8 +101,8 @@ public enum DataModule: String {
 // MARK: - SharedFeature Module
 
 public enum SharedFeatureModule: String {
-    case nicknameEditFeature = "NicknameEditFeature"
-    case nicknameEditFeatureTests = "NicknameEditFeatureTests"
+    case nicknameEdit = "NicknameEdit"
+    case nicknameEditTests = "NicknameEditTests"
 }
 
 // MARK: - External Dependency
