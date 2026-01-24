@@ -30,11 +30,8 @@ struct HomeInterestConcertView: View {
         ZStack(alignment: .bottom) {
             mainContent
                 .background(.livithColor(.black100))
-            
-            customBottomSheet
-                .ignoresSafeArea()
         }
-        .crossDissolve(isPresented: $showDeleteDialog, dismissOnTapOutside: false) {
+        .crossDissolve(isPresented: $showDeleteDialog) {
             LivithDangerModal(
                 message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
                 confirmTitle: "지금은 삭제할래요",
@@ -44,6 +41,12 @@ struct HomeInterestConcertView: View {
                     showDeleteDialog = false
                     isTabBarHidden = false
                 }
+            )
+        }
+        .bottomSheet(isPresented: $showBottomSheet, handleStyle: .light) {
+            HomeInterestConcertBottomSheetView(
+                onChangeMainConcert: handleChangeMainConcert,
+                onDeleteConcert: handleDeleteConcert
             )
         }
     }
@@ -102,33 +105,6 @@ private extension HomeInterestConcertView {
         }
     }
     
-    var customBottomSheet: some View {
-        ZStack(alignment: .bottom) {
-            Color.black
-                .opacity(showBottomSheet ? 0.4 : 0)
-                .ignoresSafeArea()
-                .onTapGesture { showBottomSheet(flag: false) }
-                .allowsHitTesting(showBottomSheet)
-                .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
-            
-            HomeInterestConcertBottomSheetView(
-                onChangeMainConcert: handleChangeMainConcert,
-                onDeleteConcert: handleDeleteConcert
-            )
-            .background(.livithColor(.black90))
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 24,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 24
-                )
-            )
-            .offset(y: showBottomSheet ? 0 : UIScreen.main.bounds.height)
-            .animation(.easeInOut(duration: 0.3), value: showBottomSheet)
-        }
-    }
-    
     var textHeaderView: some View {
         HStack(spacing: .zero) {
             Text("나의 관심 콘서트")
@@ -141,7 +117,7 @@ private extension HomeInterestConcertView {
             Spacer()
             
             LivithTextButton("수정하기") {
-                showBottomSheet(flag: true)
+                showBottomSheet = true
             }
             .padding(.top, 20)
             .padding([.bottom, .trailing], 16)
@@ -152,11 +128,6 @@ private extension HomeInterestConcertView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertView {
-    func showBottomSheet(flag: Bool) {
-        self.isTabBarHidden = flag
-        self.showBottomSheet = flag
-    }
-    
     func handleMoreInfoTap() {
         guard let concertID = store.state.interestConcert?.id else { return }
         coordinator?.showConcertDetail(concertID: concertID)
@@ -174,7 +145,7 @@ private extension HomeInterestConcertView {
     }
 
     func handleChangeMainConcert() {
-        showBottomSheet(flag: false)
+        showBottomSheet = false
         coordinator?.push(to: .interest)
     }
     

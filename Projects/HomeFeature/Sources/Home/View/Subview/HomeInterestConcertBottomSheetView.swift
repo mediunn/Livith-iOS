@@ -14,26 +14,24 @@ struct HomeInterestConcertBottomSheetView: View {
     let onChangeMainConcert: () -> Void
     let onDeleteConcert: () -> Void
     
-    var body: some View {
-        LivithBottomSheet(handleStyle: .light, handleWidth: 132) {
-            VStack(alignment: .leading, spacing: 12) {
-                actionButton(
-                    icon: .livithIcon(.change),
-                    title: "메인 콘서트 바꾸기",
-                    action: onChangeMainConcert
-                )
-                
-                actionButton(
-                    icon: .livithIcon(.trash),
-                    title: "콘서트 삭제하기",
-                    action: onDeleteConcert,
-                    isDestructive: true
-                )
-            }
-            .padding(.top, 24)
-            .padding(.horizontal, 12)
-            .padding(.bottom, 32)
+    var body: some View {       
+        VStack(alignment: .leading, spacing: 12) {
+            actionButton(
+                icon: .livithIcon(.change),
+                title: "메인 콘서트 바꾸기",
+                action: onChangeMainConcert
+            )
+            
+            actionButton(
+                icon: .livithIcon(.trash),
+                title: "콘서트 삭제하기",
+                action: onDeleteConcert,
+                isDestructive: true
+            )
         }
+        .padding(.top, 28)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 32)
     }
 }
 
