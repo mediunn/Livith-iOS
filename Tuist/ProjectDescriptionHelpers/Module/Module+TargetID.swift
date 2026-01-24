@@ -22,6 +22,7 @@ public enum TargetID {
     case widget(WidgetModule)
     case domain(DomainModule)
     case data(DataModule)
+    case designSystem(DesignSystemModule)
 
     public var name: String {
         switch self {
@@ -37,6 +38,7 @@ public enum TargetID {
         case .widget(let module): return module.rawValue
         case .domain(let module): return module.rawValue
         case .data(let module): return module.rawValue
+        case .designSystem(let module): return module.rawValue
         }
     }
     
@@ -75,6 +77,8 @@ public enum TargetID {
             return ["Sources/**"]
         case .data(let module):
             return dataModuleTestSourcePath(module) ?? ["\(module.rawValue)/Sources/**"]
+        case .designSystem:
+            return ["Sources/**"]
         }
     }
     
@@ -93,6 +97,8 @@ public enum TargetID {
                     "Resources/LivithWidget.entitlements"
                 ])
             ]
+        case .designSystem:
+            return ["Resources/**"]
         default:
             return nil
         }

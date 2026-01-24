@@ -17,7 +17,7 @@ let project = Project.make(
             dependencies: [
                 .domain(.domain),
                 .concert(.concertFeature),
-                .external(.livithDesignSystem),
+                .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation)
