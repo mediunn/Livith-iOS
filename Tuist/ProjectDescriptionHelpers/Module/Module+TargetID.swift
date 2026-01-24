@@ -22,7 +22,7 @@ public enum TargetID {
     case widget(WidgetModule)
     case domain(DomainModule)
     case data(DataModule)
-    case sharedFeature(SharedFeatureModule)
+    case shared(SharedModule)
     case designSystem(DesignSystemModule)
 
     public var name: String {
@@ -39,7 +39,7 @@ public enum TargetID {
         case .widget(let module): return module.rawValue
         case .domain(let module): return module.rawValue
         case .data(let module): return module.rawValue
-        case .sharedFeature(let module): return module.rawValue
+        case .shared(let module): return module.rawValue
         case .designSystem(let module): return module.rawValue
         }
     }
@@ -79,8 +79,8 @@ public enum TargetID {
             return ["Sources/**"]
         case .data(let module):
             return dataModuleTestSourcePath(module) ?? ["\(module.rawValue)/Sources/**"]
-        case .sharedFeature(let module):
-            return sharedFeatureSourcePath(module)
+        case .shared(let module):
+            return sharedSourcePath(module)
         case .designSystem:
             return ["Sources/**"]
         }
@@ -127,7 +127,7 @@ private extension TargetID {
         return ["\(parentModule)/Tests/**"]
     }
 
-    func sharedFeatureSourcePath(_ module: SharedFeatureModule) -> SourceFilesList {
+    func sharedSourcePath(_ module: SharedModule) -> SourceFilesList {
         switch module {
         case .nicknameEditFeature:
             return ["NicknameEditFeature/Sources/**"]

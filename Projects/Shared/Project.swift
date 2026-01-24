@@ -1,6 +1,6 @@
 //
 //  Project.swift
-//  SharedFeature
+//  Shared
 //
 //  Created by Youjin Lee on 1/23/26.
 //  Copyright © 2026 Livith. All rights reserved.
@@ -10,10 +10,10 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.make(
-    project: .sharedFeature,
+    project: .shared,
     targets: [
         .make(
-            target: .sharedFeature(.nicknameEditFeature),
+            target: .shared(.nicknameEditFeature),
             product: .framework,
             dependencies: [
                 .designSystem(.designSystem),
@@ -22,10 +22,10 @@ let project = Project.make(
             ]
         ),
         .make(
-            target: .sharedFeature(.nicknameEditFeatureTests),
+            target: .shared(.nicknameEditFeatureTests),
             product: .unitTests,
             dependencies: [
-                .sharedFeature(.nicknameEditFeature)
+                .shared(.nicknameEditFeature)
             ]
         )
     ]

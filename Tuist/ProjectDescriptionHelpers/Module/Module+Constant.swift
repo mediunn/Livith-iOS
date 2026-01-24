@@ -98,9 +98,9 @@ public enum DataModule: String {
     case dataTests = "DataTests"
 }
 
-// MARK: - SharedFeature Module
+// MARK: - Shared Module
 
-public enum SharedFeatureModule: String {
+public enum SharedModule: String {
     case nicknameEditFeature = "NicknameEditFeature"
     case nicknameEditFeatureTests = "NicknameEditFeatureTests"
 }
