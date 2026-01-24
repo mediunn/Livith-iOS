@@ -61,15 +61,7 @@ private extension TermsView {
     }
     
     var stepIndicator: some View {
-        HStack(spacing: 4) {
-            Capsule()
-                .fill(Color.livithColor(.yellow30))
-                .frame(height: 4)
-            
-            Capsule()
-                .fill(Color.livithColor(.black80))
-                .frame(height: 4)
-        }
+        StepIndicatorView(currentStep: 1, totalSteps: 2)
     }
     
     var title: some View {

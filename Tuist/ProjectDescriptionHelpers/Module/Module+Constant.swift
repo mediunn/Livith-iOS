@@ -98,11 +98,11 @@ public enum DataModule: String {
     case dataTests = "DataTests"
 }
 
-// MARK: - SharedFeature Module
+// MARK: - Shared Module
 
-public enum SharedFeatureModule: String {
-    case nicknameEdit = "NicknameEdit"
-    case nicknameEditTests = "NicknameEditTests"
+public enum SharedModule: String {
+    case nicknameEditFeature = "NicknameEditFeature"
+    case nicknameEditFeatureTests = "NicknameEditFeatureTests"
 }
 
 // MARK: - DesignSystem Module

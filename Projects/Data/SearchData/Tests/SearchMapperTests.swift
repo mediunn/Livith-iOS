@@ -10,7 +10,7 @@ import XCTest
 
 import LivithNetwork
 import Domain
-@testable import Data
+@testable import SearchData
 
 final class SearchMapperTests: XCTestCase {
     private var sut: SearchMapper!

@@ -22,7 +22,7 @@ public enum ProjectID: String, CaseIterable {
     case widget = "Widget"
     case domain = "Domain"
     case data = "Data"
-    case sharedFeature = "SharedFeature"
+    case shared = "Shared"
     case designSystem = "DesignSystem"
 
     public var name: String { rawValue }

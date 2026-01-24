@@ -10,7 +10,7 @@ import XCTest
 
 import LivithNetwork
 import Domain
-@testable import Data
+@testable import CommentData
 
 final class CommentMapperTests: XCTestCase {
     private var sut: CommentMapper!

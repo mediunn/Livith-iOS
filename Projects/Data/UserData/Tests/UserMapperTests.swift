@@ -10,7 +10,7 @@ import XCTest
 
 import LivithNetwork
 import Domain
-@testable import Data
+@testable import UserData
 
 final class UserMapperTests: XCTestCase {
     private var sut: UserMapper!

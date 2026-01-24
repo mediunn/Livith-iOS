@@ -1,6 +1,6 @@
 //
 //  NicknameEditView.swift
-//  NicknameEdit
+//  NicknameEditFeature
 //
 //  Created by Youjin Lee on 1/23/26.
 //  Copyright © 2026 Livith. All rights reserved.
@@ -99,15 +99,7 @@ private extension NicknameEditView {
     }
 
     var stepIndicator: some View {
-        HStack(spacing: 4) {
-            Capsule()
-                .fill(Color.livithColor(.yellow30))
-                .frame(height: 4)
-
-            Capsule()
-                .fill(Color.livithColor(.yellow30))
-                .frame(height: 4)
-        }
+        StepIndicatorView(currentStep: 2, totalSteps: 2)
     }
 
     var title: some View {

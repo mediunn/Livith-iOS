@@ -10,7 +10,7 @@ import XCTest
 
 import LivithNetwork
 import Domain
-@testable import Data
+@testable import SetlistData
 
 final class SetlistMapperTests: XCTestCase {
     private var sut: SetlistMapper!
