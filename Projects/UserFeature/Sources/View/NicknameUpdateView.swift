@@ -9,7 +9,7 @@
 import SwiftUI
 
 import LivithDesignSystem
-import NicknameEdit
+import NicknameEditFeature
 
 public struct NicknameUpdateView: View {
 

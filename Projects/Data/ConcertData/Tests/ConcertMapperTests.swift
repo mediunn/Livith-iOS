@@ -10,7 +10,7 @@ import XCTest
 
 import LivithNetwork
 import Domain
-@testable import Data
+@testable import ConcertData
 
 final class ConcertMapperTests: XCTestCase {
     private var sut: ConcertMapper!

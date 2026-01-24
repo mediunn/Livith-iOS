@@ -16,7 +16,7 @@ let project = Project.make(
             product: .framework,
             dependencies: [
                 .domain(.domain),
-                .sharedFeature(.nicknameEdit),
+                .sharedFeature(.nicknameEditFeature),
                 .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer)

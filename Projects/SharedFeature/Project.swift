@@ -13,7 +13,7 @@ let project = Project.make(
     project: .sharedFeature,
     targets: [
         .make(
-            target: .sharedFeature(.nicknameEdit),
+            target: .sharedFeature(.nicknameEditFeature),
             product: .framework,
             dependencies: [
                 .designSystem(.designSystem),
@@ -22,10 +22,10 @@ let project = Project.make(
             ]
         ),
         .make(
-            target: .sharedFeature(.nicknameEditTests),
+            target: .sharedFeature(.nicknameEditFeatureTests),
             product: .unitTests,
             dependencies: [
-                .sharedFeature(.nicknameEdit)
+                .sharedFeature(.nicknameEditFeature)
             ]
         )
     ]

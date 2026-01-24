@@ -10,7 +10,7 @@ import XCTest
 
 import LivithNetwork
 import Domain
-@testable import Data
+@testable import AuthData
 
 final class AuthMapperTests: XCTestCase {
     private var sut: AuthMapper!

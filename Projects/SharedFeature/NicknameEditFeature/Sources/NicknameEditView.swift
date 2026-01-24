@@ -1,6 +1,6 @@
 //
 //  NicknameEditView.swift
-//  NicknameEdit
+//  NicknameEditFeature
 //
 //  Created by Youjin Lee on 1/23/26.
 //  Copyright © 2026 Livith. All rights reserved.

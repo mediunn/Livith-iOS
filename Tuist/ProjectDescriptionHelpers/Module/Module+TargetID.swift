@@ -129,10 +129,10 @@ private extension TargetID {
 
     func sharedFeatureSourcePath(_ module: SharedFeatureModule) -> SourceFilesList {
         switch module {
-        case .nicknameEdit:
-            return ["NicknameEdit/Sources/**"]
-        case .nicknameEditTests:
-            return ["NicknameEdit/Tests/**"]
+        case .nicknameEditFeature:
+            return ["NicknameEditFeature/Sources/**"]
+        case .nicknameEditFeatureTests:
+            return ["NicknameEditFeature/Tests/**"]
         }
     }
 }

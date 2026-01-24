@@ -11,7 +11,7 @@ import Foundation
 
 import DIContainer
 import Domain
-@testable import NicknameEdit
+@testable import NicknameEditFeature
 
 // MARK: - Mock Repositories
 
