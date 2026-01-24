@@ -12,20 +12,25 @@ import SwiftUI
 ///
 /// - Parameters:
 ///   - currentStep: 현재 진행 중인 단계 (1부터 시작)
-///   - totalSteps: 전체 단계 수
+///   - totalSteps: 전체 단계 수 (최대 4단계)
 ///
 /// 현재 단계까지는 yellow30 색상으로 표시되며, 이후 단계는 black80 색상으로 표시됩니다.
 public struct StepIndicatorView: View {
+    static let maxSteps = 4
+    
     private let currentStep: Int
     private let totalSteps: Int
     
     /// Step Indicator를 생성합니다
     /// - Parameters:
     ///   - currentStep: 현재 진행 중인 단계 (1부터 시작)
-    ///   - totalSteps: 전체 단계 수
+    ///   - totalSteps: 전체 단계 수 (최대 4단계)
     public init(currentStep: Int, totalSteps: Int) {
-        self.currentStep = max(1, min(currentStep, totalSteps))
-        self.totalSteps = max(1, totalSteps)
+        if totalSteps > Self.maxSteps {
+            print("⚠️ StepIndicatorView: totalSteps(\(totalSteps))는 최대 단계 수(\(Self.maxSteps))를 초과합니다")
+        }
+        self.totalSteps = max(1, min(totalSteps, Self.maxSteps))
+        self.currentStep = max(1, min(currentStep, self.totalSteps))
     }
     
     public var body: some View {
