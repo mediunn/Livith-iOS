@@ -9,14 +9,12 @@
 import Foundation
 
 import DIContainer
+import AuthData
+import CommentData
 import ConcertData
-import HomeData
-import LoginData
 import SearchData
 import SetlistData
 import SongData
-import TempAuthData
-import TempUserData
 import UserData
 
 extension LivithApp {
@@ -24,14 +22,12 @@ extension LivithApp {
         DIContainer.shared.register(
             assemblers: [
                 AuthDataAssembler(),
-                UserDataAssembler(),
-                ConcertAssembler(),
-                HomeAssembler(),
-                LoginAssembler(),
-                SearchAssembler(),
-                SetlistAssembler(),
-                SongAssembler(),
-                UserAssembler()
+                CommentDataAssembler(),
+                ConcertDataAssembler(),
+                SearchDataAssembler(),
+                SetlistDataAssembler(),
+                SongDataAssembler(),
+                UserDataAssembler()
             ]
         )
     }
