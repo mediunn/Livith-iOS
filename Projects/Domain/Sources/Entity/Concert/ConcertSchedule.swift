@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ConcertSchedule: Hashable {
+public struct ConcertSchedule: Hashable, Identifiable {
     public let id: Int
     public let category: String
     public let scheduledAt: Date

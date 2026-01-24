@@ -9,9 +9,9 @@
 import Foundation
 
 import DIContainer
+import AuthData
+import CommentData
 import ConcertData
-import HomeData
-import LoginData
 import SearchData
 import SetlistData
 import SongData
@@ -21,13 +21,13 @@ extension LivithApp {
     func registerDependency() {
         DIContainer.shared.register(
             assemblers: [
-                ConcertAssembler(),
-                HomeAssembler(),
-                LoginAssembler(),
-                SearchAssembler(),
-                SetlistAssembler(),
-                SongAssembler(),
-                UserAssembler()
+                AuthDataAssembler(),
+                CommentDataAssembler(),
+                ConcertDataAssembler(),
+                SearchDataAssembler(),
+                SetlistDataAssembler(),
+                SongDataAssembler(),
+                UserDataAssembler()
             ]
         )
     }
