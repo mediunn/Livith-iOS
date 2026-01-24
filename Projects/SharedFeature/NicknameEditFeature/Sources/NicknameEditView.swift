@@ -99,15 +99,7 @@ private extension NicknameEditView {
     }
 
     var stepIndicator: some View {
-        HStack(spacing: 4) {
-            Capsule()
-                .fill(Color.livithColor(.yellow30))
-                .frame(height: 4)
-
-            Capsule()
-                .fill(Color.livithColor(.yellow30))
-                .frame(height: 4)
-        }
+        StepIndicatorView(currentStep: 2, totalSteps: 2)
     }
 
     var title: some View {
