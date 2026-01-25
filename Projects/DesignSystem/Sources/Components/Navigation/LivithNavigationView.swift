@@ -12,7 +12,7 @@ import SwiftUI
 
 public enum LivithNavigationViewType {
     case logo(hasNewNotice: Bool = false, onNoticeTap: (() -> Void)? = nil)
-    case back(title: String, onBack: () -> Void)
+    case back(title: String, onBack: () -> Void, rightButtonTitle: String? = nil, onRightButtonTap: (() -> Void)? = nil)
     case backOnly(onBack: () -> Void)
 
     var height: CGFloat {
@@ -44,8 +44,8 @@ public struct LivithNavigationView: View {
             switch type {
             case .logo(let hasNewNotice, let onNoticeTap):
                 logoContent(hasNewNotice: hasNewNotice, onNoticeTap: onNoticeTap)
-            case .back(let title, let onBack):
-                backContent(title: title, onBack: onBack)
+            case .back(let title, let onBack, let rightButtonTitle, let onRightButtonTap):
+                backContent(title: title, onBack: onBack, rightButtonTitle: rightButtonTitle, onRightButtonTap: onRightButtonTap)
             case .backOnly(let onBack):
                 backOnlyContent(onBack: onBack)
             }
@@ -77,7 +77,12 @@ private extension LivithNavigationView {
         .padding(.bottom, 16)
     }
 
-    func backContent(title: String, onBack: @escaping () -> Void) -> some View {
+    func backContent(
+        title: String,
+        onBack: @escaping () -> Void,
+        rightButtonTitle: String?,
+        onRightButtonTap: (() -> Void)?
+    ) -> some View {
         HStack(spacing: 4) {
             Button(action: onBack) {
                 Image.livithIcon(.backLineDefault)
@@ -92,6 +97,11 @@ private extension LivithNavigationView {
                 .lineLimit(1)
 
             Spacer()
+
+            if let rightButtonTitle, let onRightButtonTap {
+                LivithTextButton(rightButtonTitle, color: .livithColor(.white100), action: onRightButtonTap)
+                    .padding(.trailing, 16)
+            }
         }
         .padding(.top, 12)
     }
