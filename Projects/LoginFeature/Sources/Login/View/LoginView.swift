@@ -36,9 +36,7 @@ struct LoginView: View {
                 set: { _ in store.send(.setErrorMessage("")) }
             ),
             type: .failure,
-            message: store.state.errorMessage,
-            duration: 2,
-            position: .safeAreaTop
+            message: store.state.errorMessage
         )
         .crossDissolve(isPresented: $isForbiddenModalPresented, dismissOnTapOutside: false) {
             LivithModal(

@@ -18,8 +18,6 @@ struct AppRootView: View {
     @State private var isLaunchScreenVisible: Bool = true
     @State private var nickname: String = ""
     @State private var isWelcomeSheetVisible: Bool = false
-    @State private var showToast: Bool = false
-    @State private var toastMessage: String = ""
 
     private let localStorage: UserDefaultsStorage
     
@@ -43,17 +41,8 @@ struct AppRootView: View {
             )
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { notification in
-            if let message = notification.userInfo?["toastMessage"] as? String {
-                toastMessage = message
-                transition(to: .login)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showToast = true
-                }
-            } else {
-                transition(to: .login)
-            }
+            transition(to: .login)
         }
-        .livithToast(isPresented: $showToast, type: .success, message: toastMessage, position: .safeAreaTop)
         .onAppear {
             handleOnAppear()
         }

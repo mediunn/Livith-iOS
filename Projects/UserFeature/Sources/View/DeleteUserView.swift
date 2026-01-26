@@ -107,7 +107,7 @@ struct DeleteUserView: View {
                     showErrorToast = true
                 }
             }
-            .livithToast(isPresented: $showErrorToast, type: .failure, message: errorMessage, position: .safeAreaTop)
+            .livithToast(isPresented: $showErrorToast, type: .failure, message: errorMessage)
             .livithSheet(
                 isPresented: $showConfirmSheet,
                 detents: [.fraction(445.0 / 812.0)]

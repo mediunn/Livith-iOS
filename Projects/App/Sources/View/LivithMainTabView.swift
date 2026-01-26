@@ -26,9 +26,6 @@ struct LivithMainTabView: View {
     @Binding private var nickname: String
     @State private var selectedTab: Tab = .home
     @State private var isTabBarHidden: Bool = false
-    @State private var showToast: Bool = false
-    @State private var toastType: LivithToastType = .success
-    @State private var toastMessage: String = ""
     @State private var deepLinkConcertID: Int?
     
     // MARK: - LifeCycle
@@ -45,12 +42,7 @@ struct LivithMainTabView: View {
             HomeContentView(
                 nickname: $nickname,
                 isTabBarHidden: $isTabBarHidden,
-                deepLinkConcertID: $deepLinkConcertID,
-                showToast: { type, message in
-                    toastType = type
-                    toastMessage = message
-                    showToast = true
-                }
+                deepLinkConcertID: $deepLinkConcertID
             )
             .tag(Tab.home)
             .tabItem {
@@ -67,12 +59,7 @@ struct LivithMainTabView: View {
             
             UserView(
                 nickname: $nickname,
-                isTabBarHidden: $isTabBarHidden,
-                showToast: { type, message in
-                    toastType = type
-                    toastMessage = message
-                    showToast = true
-                }
+                isTabBarHidden: $isTabBarHidden
             )
             .tag(Tab.my)
             .tabItem {
@@ -81,12 +68,6 @@ struct LivithMainTabView: View {
             .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         }
         .preferredColorScheme(.dark)
-        .livithToast(
-            isPresented: $showToast,
-            type: toastType,
-            message: toastMessage,
-            position: .safeAreaTop
-        )
         .onReceive(NotificationCenter.default.publisher(for: .openConcertDetail)) { notification in
             if let concertID = notification.userInfo?["concertID"] as? Int {
                 selectedTab = .home

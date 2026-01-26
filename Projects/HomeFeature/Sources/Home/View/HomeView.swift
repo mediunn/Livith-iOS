@@ -15,12 +15,13 @@ struct HomeView: View {
 
     @Binding private var isTabBarHidden: Bool
     private let nickname: Binding<String>
-    private let showToast: ((LivithToastType, String) -> Void)?
+    
+    @State private var showErrorToast = false
+    @State private var showSuccessToast = false
 
-    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
+    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
         self.nickname = nickname
         self._isTabBarHidden = isTabBarHidden
-        self.showToast = showToast
     }
     
     var body: some View {
@@ -31,16 +32,30 @@ struct HomeView: View {
             }
             .onChange(of: store.state.errorMessage) { _, newValue in
                 if !newValue.isEmpty {
-                    showToast?(.failure, newValue)
-                    store.send(.onErrorToastDisappear)
+                    showErrorToast = true
                 }
             }
             .onChange(of: store.state.toastMessage) { _, newValue in
                 if !newValue.isEmpty {
-                    showToast?(.success, newValue)
-                    store.send(.onToastDisappear)
+                    showSuccessToast = true
                 }
             }
+            .livithToast(
+                isPresented: Binding(
+                    get: { showErrorToast && !store.state.errorMessage.isEmpty },
+                    set: { if !$0 { showErrorToast = false; store.send(.onErrorToastDisappear) } }
+                ),
+                type: .failure,
+                message: store.state.errorMessage
+            )
+            .livithToast(
+                isPresented: Binding(
+                    get: { showSuccessToast && !store.state.toastMessage.isEmpty },
+                    set: { if !$0 { showSuccessToast = false; store.send(.onToastDisappear) } }
+                ),
+                type: .success,
+                message: store.state.toastMessage
+            )
     }
 
     @ViewBuilder
@@ -55,3 +70,4 @@ struct HomeView: View {
         }
     }
 }
+
