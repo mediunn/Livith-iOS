@@ -36,7 +36,7 @@ extension SearchEndpoint: NetworkEndpoint {
         case .fetchBanners:
             return "/search/banners"
         case .fetchFilterSearchResult:
-            return "/search"
+            return "/search/concerts"
         case .fetchRecommendedSearchResult:
             return "/search/suggestions"
         case .fetchConcertList:
