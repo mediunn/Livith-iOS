@@ -8,31 +8,6 @@
 
 import SwiftUI
 
-// MARK: - Handle Style
-
-public enum HandleStyle {
-    case dark
-    case light
-    
-    var color: Color {
-        switch self {
-        case .dark:
-            return Color.livithColor(.black80)
-        case .light:
-            return Color.livithColor(.white100)
-        }
-    }
-    
-    var width: CGFloat {
-        switch self {
-        case .dark:
-            return 60
-        case .light:
-            return 132
-        }
-    }
-}
-
 /// 하단에서 올라오는 BottomSheet를 구현하는 ViewModifier입니다.
 /// `fullScreenCover`를 기반으로 하여 콘텐츠를 상단만 둥글게 처리하고,
 /// 슬라이드 애니메이션으로 표시/숨김 처리합니다.
@@ -120,22 +95,12 @@ private struct BottomSheetContainerView<Content: View>: View {
                     }
                 }
             
-            VStack(spacing: 0) {
-                handleBar
-                    .padding(.top, 10)
-                
-                content()
-                    .frame(maxWidth: .infinity)
-            }
-            .background(contentBackground)
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 20,
-                    topTrailingRadius: 20
-                )
+            BottomSheet(
+                handleStyle: handleStyle,
+                contentBackground: contentBackground,
+                content: content
             )
             .offset(y: sheetOffset)
-            .padding(.horizontal, 4)
         }
         .ignoresSafeArea(edges: .bottom)
         .onAppear {
@@ -151,12 +116,6 @@ private struct BottomSheetContainerView<Content: View>: View {
                 dismissWithAnimation()
             }
         }
-    }
-    
-    var handleBar: some View {
-        RoundedRectangle(cornerRadius: 3)
-            .fill(handleStyle.color)
-            .frame(width: handleStyle.width, height: 6)
     }
     
     // MARK: - Private Methods
