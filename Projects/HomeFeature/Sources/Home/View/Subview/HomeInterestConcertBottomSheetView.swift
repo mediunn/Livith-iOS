@@ -29,9 +29,7 @@ struct HomeInterestConcertBottomSheetView: View {
                 isDestructive: true
             )
         }
-        .padding(.top, 28)
         .padding(.horizontal, 12)
-        .padding(.bottom, 32)
     }
 }
 

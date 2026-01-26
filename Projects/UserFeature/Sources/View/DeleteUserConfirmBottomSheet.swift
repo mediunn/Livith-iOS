@@ -23,44 +23,41 @@ struct DeleteUserConfirmBottomSheet: View {
     // MARK: - Body
 
     var body: some View {
-        LivithBottomSheet {
-            VStack(alignment: .leading, spacing: 0) {
-                titleSection
-                    .padding(.horizontal, 16)
-                    .padding(.top, 30)
-                    .padding(.bottom, 16)
+        VStack(alignment: .leading, spacing: 0) {
+            titleSection
+                .padding(.horizontal, 16)
+                .padding(.top, 30)
+                .padding(.bottom, 16)
 
-                ZStack(alignment: .top) {
-                    ScrollView {
-                        VStack(alignment: .leading) {
-                            noticeSection
-                                .padding(.horizontal, 16)
-                                .padding(.top, 16)
+            ZStack(alignment: .top) {
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        noticeSection
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
 
-                            confirmCheckbox
-                                .padding(.horizontal, 45)
-                                .padding(.vertical, 20)
-                        }
+                        confirmCheckbox
+                            .padding(.horizontal, 45)
+                            .padding(.vertical, 20)
                     }
-                    .frame(height: 204)
-
-                    LinearGradient(
-                        colors: [
-                            Color.livithColor(.black90),
-                            Color.livithColor(.black90).opacity(0)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 16)
-                    .allowsHitTesting(false)
                 }
+                .frame(height: 204)
 
-                actionButtons
-                    .padding(.horizontal, 16)
-                    .padding(.top, 24)
-                    .padding(.bottom, 24)
+                LinearGradient(
+                    colors: [
+                        Color.livithColor(.black90),
+                        Color.livithColor(.black90).opacity(0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 16)
+                .allowsHitTesting(false)
             }
+
+            actionButtons
+                .padding(.horizontal, 16)
+                .padding(.top, 24)
         }
     }
 }

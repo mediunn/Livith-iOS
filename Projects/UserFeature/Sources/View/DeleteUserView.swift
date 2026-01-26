@@ -35,8 +35,7 @@ struct DeleteUserView: View {
     // MARK: - Body
 
     public var body: some View {
-        ZStack {
-            VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
                 navigationBar
 
                 titleSection
@@ -109,30 +108,10 @@ struct DeleteUserView: View {
                 }
             }
             .livithToast(isPresented: $showErrorToast, type: .failure, message: errorMessage, position: .safeAreaTop)
-            .overlay {
-                customFilterSheet.ignoresSafeArea()
-            }
-
-            
-        }
-    }
-}
-
-// MARK: - UIComponents
-
-private extension DeleteUserView {
-    var customFilterSheet: some View {
-        ZStack(alignment: .bottom) {
-            Color.black
-                .opacity(showConfirmSheet ? 0.4 : 0)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    showConfirmSheet = false
-                }
-                .allowsHitTesting(showConfirmSheet)
-                .animation(.easeInOut(duration: 0.3), value: showConfirmSheet)
-            
-            VStack(spacing: 0) {
+            .livithSheet(
+                isPresented: $showConfirmSheet,
+                detents: [.fraction(445.0 / 812.0)]
+            ) {
                 DeleteUserConfirmBottomSheet(
                     isPresented: $showConfirmSheet,
                     isConfirmed: $isConfirmed,
@@ -146,21 +125,12 @@ private extension DeleteUserView {
                     }
                 )
             }
-            .frame(maxWidth: .infinity)
-            .background(Color.livithColor(.black90))
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 16,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 16
-                )
-            )
-            .offset(y: showConfirmSheet ? 0 : UIScreen.main.bounds.height)
-            .animation(.easeInOut(duration: 0.3), value: showConfirmSheet)
-        }
     }
-    
+}
+
+// MARK: - UIComponents
+
+private extension DeleteUserView {
     var navigationBar: some View {
         LivithNavigationView(
             type: .backOnly(onBack: { onDismiss?() })

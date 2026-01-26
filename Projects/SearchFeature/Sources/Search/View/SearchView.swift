@@ -66,9 +66,25 @@ struct SearchView: View {
                 onConfirm: { showError = false }
             )
         }
-        .overlay {
-            customFilterSheet
-                .ignoresSafeArea()
+        .livithSheet(
+            isPresented: $showFilter,
+            detents: [.fraction(366.0 / 812.0)]
+        ) {
+            FilterBottomSheetView(
+                selectedGenreList: Binding(
+                    get: { store.state.selectedGenreList },
+                    set: { newGenres in
+                        store.send(.settingButtonTapped(genres: newGenres, status: store.state.selectedStatusList))
+                    }
+                ),
+                selectedStatusList: Binding(
+                    get: { store.state.selectedStatusList },
+                    set: { newStatus in
+                        store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: newStatus))
+                    }
+                ),
+                showFilter: $showFilter
+            )
         }
     }
 }
@@ -251,53 +267,7 @@ private extension SearchView {
         }
     }
 
-    var filterBottomSheet: some View {
-        FilterBottomSheetView(
-            selectedGenreList: Binding(
-                get: { store.state.selectedGenreList },
-                set: { newGenres in
-                    store.send(.settingButtonTapped(genres: newGenres, status: store.state.selectedStatusList))
-                }
-            ),
-            selectedStatusList: Binding(
-                get: { store.state.selectedStatusList },
-                set: { newStatus in
-                    store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: newStatus))
-                }
-            ),
-            showFilter: $showFilter
-        )
-    }
 
-    var customFilterSheet: some View {
-        ZStack(alignment: .bottom) {
-            Color.black
-                .opacity(showFilter ? 0.4 : 0)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    showFilter = false
-                }
-                .allowsHitTesting(showFilter)
-                .animation(.easeInOut(duration: 0.3), value: showFilter)
-
-            VStack(spacing: 0) {
-                filterBottomSheet
-            }
-            .frame(maxWidth: .infinity)
-            .background(Color.livithColor(.black90))
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 16,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 16
-                )
-            )
-            .drawingGroup()
-            .offset(y: showFilter ? 0 : 420)
-            .animation(.easeInOut(duration: 0.3), value: showFilter)
-        }
-    }
 }
 
 // MARK: - Helper Method

@@ -81,7 +81,7 @@ public struct ConcertView: View {
             duration: nil,
             topPadding: 16
         )
-        .crossDissolve(isPresented: $showInterestConfirmDialog, dismissOnTapOutside: false) {
+        .crossDissolve(isPresented: $showInterestConfirmDialog, dismissOnTapOutside: true) {
             LivithDangerModal(
                 message: "관심 콘서트를 설정하시겠어요?",
                 confirmTitle: "설정할래요",
@@ -95,7 +95,7 @@ public struct ConcertView: View {
                 }
             )
         }
-        .crossDissolve(isPresented: isDeleteDialogPresented, dismissOnTapOutside: false) {
+        .crossDissolve(isPresented: isDeleteDialogPresented, dismissOnTapOutside: true) {
             LivithDangerModal(
                 message: "댓글을 삭제하시겠어요?",
                 confirmTitle: "지금은 삭제할래요",
@@ -108,7 +108,7 @@ public struct ConcertView: View {
                 }
             )
         }
-        .crossDissolve(isPresented: isReportDialogPresented, dismissOnTapOutside: false) {
+        .crossDissolve(isPresented: isReportDialogPresented, dismissOnTapOutside: true) {
             LivithDangerModal(
                 message: "댓글을 신고하시겠어요?",
                 confirmTitle: "신고할래요",
