@@ -23,13 +23,13 @@ extension UserEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .logout:
-            return "/api/v4/auth/logout"
+            return "/auth/logout"
         case .checkNicknameDuplicate:
-            return "/api/v4/users/check-nickname"
+            return "/users/check-nickname"
         case .updateUserNickname:
-            return "/api/v4/users/nickname"
+            return "/users/nickname"
         case .withdraw:
-            return "/api/v4/auth/withdraw"
+            return "/auth/withdraw"
         }
     }
     

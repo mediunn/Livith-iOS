@@ -21,13 +21,13 @@ extension HomeEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .fetchSectionList:
-            return "/api/v4/home/sections"
+            return "/home/sections"
         case .fetchInterestedConcert:
-            return "/api/v4/users/interest-concert"
+            return "/users/interest-concert"
         case .updateInterestedConcert:
-            return "/api/v4/users/interest-concert"
+            return "/users/interest-concert"
         case .deleteInterestedConcert:
-            return "/api/v4/users/interest-concert"
+            return "/users/interest-concert"
         }
     }
     
