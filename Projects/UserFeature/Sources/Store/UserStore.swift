@@ -8,7 +8,8 @@
 
 import Foundation
 
-import Persistence
+import DIContainer
+import Domain
 
 struct UserState {
     var nickname: String = ""
@@ -16,22 +17,27 @@ struct UserState {
 
 enum UserIntent {
     case fetchNickname
+    case _fetchUserResult(Result<User, Error>)
 }
 
 final class UserStore: ObservableObject {
     @Published private(set) var state = UserState()
 
-    private let localStorage: UserDefaultsStorage
-
-    init(localStorage: UserDefaultsStorage = .init()) {
-        self.localStorage = localStorage
-    }
+    @Injected private var userRepository: UserRepository
 
     @MainActor
     func send(_ intent: UserIntent) {
         switch intent {
         case .fetchNickname:
-            fetchNicknameFromStorage()
+            performFetchUser()
+            
+        case ._fetchUserResult(let result):
+            switch result {
+            case .success(let user):
+                state.nickname = user.nickname
+            case .failure:
+                break
+            }
         }
     }
 }
@@ -39,17 +45,14 @@ final class UserStore: ObservableObject {
 // MARK: - Helper
 
 private extension UserStore {
-    @MainActor
-    func fetchNicknameFromStorage() {
-        guard let user: StoredUserInfo = try? localStorage.fetch(for: .currentUser) else {
-            return
+    func performFetchUser() {
+        Task {
+            do {
+                let user = try await userRepository.fetchUser()
+                await send(._fetchUserResult(.success(user)))
+            } catch {
+                await send(._fetchUserResult(.failure(error)))
+            }
         }
-        state.nickname = user.nickname
     }
-}
-
-// MARK: - StoredUserInfo
-
-private struct StoredUserInfo: Decodable {
-    let nickname: String
 }

@@ -45,17 +45,15 @@ public struct UserView: View {
     @State private var showNicknameSuccessToast: Bool = false
 
     @Binding private var isTabBarHidden: Bool
-    @Binding private var nickname: String
-
+    
+    @StateObject private var store = UserStore()
     @StateObject private var logoutStore = LogoutStore()
 
     // MARK: - LifeCycle
 
     public init(
-        nickname: Binding<String>,
         isTabBarHidden: Binding<Bool>
     ) {
-        self._nickname = nickname
         self._isTabBarHidden = isTabBarHidden
     }
     
@@ -105,7 +103,7 @@ public struct UserView: View {
                         onDismiss: { if !path.isEmpty { path.removeLast() } },
                         onSuccess: { newNickname in
                             if !path.isEmpty { path.removeLast() }
-                            nickname = newNickname
+                            store.send(.fetchNickname)
                             showNicknameSuccessToast = true
                         }
                     )
@@ -160,6 +158,9 @@ public struct UserView: View {
             type: .success,
             message: Literals.toastSuccess
         )
+        .onAppear {
+            store.send(.fetchNickname)
+        }
     }
 }
 
@@ -184,8 +185,8 @@ private extension UserView {
     
     var titleText: some View {
         Text.init(
-            String(format: Literals.titleFormat, nickname),
-            highlighting: "\(nickname)",
+            String(format: Literals.titleFormat, store.state.nickname),
+            highlighting: "\(store.state.nickname)",
             color: .livithColor(.white100),
             font: .notosans(.headSemibold)
         )
