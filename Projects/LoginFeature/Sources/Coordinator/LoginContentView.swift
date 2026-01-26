@@ -13,7 +13,7 @@ public struct LoginContentView: View {
     @State private var coordinator: LoginCoordinator
     
     public init(
-        onLoginCompleted: @escaping (String) -> Void,
+        onLoginCompleted: @escaping () -> Void,
         onSignupCompleted: @escaping (String) -> Void
     ) {
         _coordinator = State(
