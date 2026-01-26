@@ -43,19 +43,6 @@ final class LoginCoordinator: Coordinator {
         case .login:
             return UIHostingController(rootView: LoginView().environment(\.loginCoordinator, self))
             
-        case .loginForbidden:
-            let vc = UIHostingController(
-                rootView: LivithModal(
-                    type: .error(title: "탈퇴 후 7일이 지나지 않았어요", message: "7일이 지난 후 다시 시도해주세요"),
-                    confirmTitle: "로그인으로 돌아가기",
-                    onConfirm: { [weak self] in
-                        self?.dismiss()
-                    }
-                )
-            )
-            vc.view.backgroundColor = .clear
-            return vc
-            
         case .terms(let tempUser):
             self.tempUser = tempUser
             return UIHostingController(rootView: TermsView().environment(\.loginCoordinator, self))
@@ -72,19 +59,6 @@ final class LoginCoordinator: Coordinator {
                 )
                 .environment(\.loginCoordinator, self)
             )
-            
-        case .signupFailed:
-            let vc = UIHostingController(
-                rootView: LivithModal(
-                    type: .error(title: "오류가 발생했어요!", message: "잠시 후 다시 시도해주세요"),
-                    confirmTitle: "로그인으로 돌아가기",
-                    onConfirm: { [weak self] in
-                        self?.dismiss(completion: { self?.popToRoot() })
-                    }
-                )
-            )
-            vc.view.backgroundColor = .clear
-            return vc
             
         case .safari(let url):
             let safariView = SafariView(url: url) { [weak self] in

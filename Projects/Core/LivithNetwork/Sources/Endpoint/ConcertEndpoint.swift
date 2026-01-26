@@ -25,21 +25,21 @@ extension ConcertEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .fetchConcertInfo(let concertID):
-            return "/api/v4/concerts/\(concertID)"
+            return "/concerts/\(concertID)"
         case .fetchConcertSchedule(let concertID):
-            return "/api/v4/concerts/\(concertID)/schedule"
+            return "/concerts/\(concertID)/schedule"
         case .fetchConcertCultureList(let concertID):
-            return "/api/v4/concerts/\(concertID)/cultures"
+            return "/concerts/\(concertID)/cultures"
         case .fetchConcertInfoList(let concertID):
-            return "/api/v4/concerts/\(concertID)/info"
+            return "/concerts/\(concertID)/info"
         case .fetchConcertMerchandiseList(let concertID):
-            return "/api/v4/concerts/\(concertID)/mds"
+            return "/concerts/\(concertID)/mds"
         case .fetchConcertSetlistList(let concertID):
-            return "/api/v4/concerts/\(concertID)/setlists"
+            return "/concerts/\(concertID)/setlists"
         case .fetchConcertArtistInfo(let concertID):
-            return "/api/v4/concerts/\(concertID)/artist"
+            return "/concerts/\(concertID)/artist"
         case .setInterestConcert:
-            return "/api/v4/users/interest-concert"
+            return "/users/interest-concert"
         }
     }
 

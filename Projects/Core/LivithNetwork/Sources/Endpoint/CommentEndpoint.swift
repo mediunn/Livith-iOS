@@ -21,13 +21,13 @@ extension CommentEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .fetchConcertCommentList(let concertID, _, _):
-            return "/api/v4/concerts/\(concertID)/comments"
+            return "/concerts/\(concertID)/comments"
         case .createComment(let concertID, _):
-            return "/api/v4/concerts/\(concertID)/comments"
+            return "/concerts/\(concertID)/comments"
         case .deleteComment(let commentID):
-            return "/api/v4/comments/\(commentID)"
+            return "/comments/\(commentID)"
         case .reportComment(let commentID, _):
-            return "/api/v4/comments/\(commentID)/report"
+            return "/comments/\(commentID)/report"
         }
     }
 

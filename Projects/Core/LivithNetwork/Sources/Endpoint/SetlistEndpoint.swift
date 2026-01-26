@@ -21,13 +21,13 @@ extension SetlistEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .fetchConcertSetlist(let setlistID):
-            return "/api/v4/setlists/\(setlistID)"
+            return "/setlists/\(setlistID)"
         case .fetchSetlistDetail(let concertID, let setlistID):
-            return "/api/v4/concerts/\(concertID)/setlists/\(setlistID)"
+            return "/concerts/\(concertID)/setlists/\(setlistID)"
         case .fetchSetlistSongList(let setlistID):
-            return "/api/v4/setlists/\(setlistID)/songs"
+            return "/setlists/\(setlistID)/songs"
         case .fetchConcertMainSetlist(let concertID):
-            return "/api/v4/concerts/\(concertID)/main-setlist"
+            return "/concerts/\(concertID)/main-setlist"
         }
     }
 

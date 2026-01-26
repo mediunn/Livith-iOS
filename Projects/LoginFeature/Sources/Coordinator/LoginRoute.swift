@@ -14,9 +14,7 @@ import Domain
 
 enum LoginRoute: Route {
     case login
-    case loginForbidden
     case terms(TempUser)
     case nickname(Bool)
-    case signupFailed
     case safari(URL)
 }

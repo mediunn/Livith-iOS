@@ -69,16 +69,6 @@ public struct LivithDangerModal: View {
     public var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Color(hex: "14171B", opacity: 0.9)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        if isReportType {
-                            isFocused = false
-                        } else {
-                            onCancel()
-                        }
-                    }
-
                 dialogContent
                     .padding(.horizontal, 24)
                     .offset(y: isReportType && keyboardHeight > 0 ? -(keyboardHeight / 2) : 0)
@@ -92,6 +82,7 @@ public struct LivithDangerModal: View {
                         )
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
         .ignoresSafeArea(.keyboard)
         .onAppear {
@@ -166,7 +157,7 @@ private extension LivithDangerModal {
     }
 
     var confirmButton: some View {
-        LivithButton(confirmTitle, variant: .pink, cornerRadius: 8) {
+        DangerModalButton(title: confirmTitle, role: .confirm, cornerRadius: 8) {
             switch type {
             case .confirm(let onConfirm):
                 onConfirm()
@@ -178,30 +169,123 @@ private extension LivithDangerModal {
     }
 
     var cancelButton: some View {
-        LivithButton(cancelTitle, variant: .primary, cornerRadius: 8) {
+        DangerModalButton(title: cancelTitle, role: .cancel, cornerRadius: 8) {
             onCancel()
         }
     }
 }
 
-// MARK: - Preview
+// MARK: - Local Button
 
-#Preview("Confirm") {
-    LivithDangerModal(
-        message: "정말 로그아웃 하시겠어요?",
-        confirmTitle: "로그아웃 할래요",
-        cancelTitle: "취소할래요",
-        type: .confirm(onConfirm: { }),
-        onCancel: { }
-    )
+private struct DangerModalButton: View {
+    let title: String
+    let role: DangerModalButtonRole
+    let cornerRadius: CGFloat
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .notosans(.body3Semibold)
+                .foregroundStyle(role.enabledForeground)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+        }
+        .buttonStyle(DangerModalButtonStyle(role: role, cornerRadius: cornerRadius))
+    }
 }
 
-#Preview("Report") {
-    LivithDangerModal(
-        message: "댓글을 신고하시겠어요?",
-        confirmTitle: "신고할래요",
-        cancelTitle: "잘못 눌렀어요",
-        type: .report(onConfirm: { _ in }),
-        onCancel: { }
-    )
+private enum DangerModalButtonRole {
+    case confirm
+    case cancel
+
+    var enabledBackground: Color {
+        switch self {
+        case .confirm:
+            return .livithColor(.black5)
+        case .cancel:
+            return .livithColor(.black80)
+        }
+    }
+
+    var pressedBackground: Color {
+        switch self {
+        case .confirm:
+            return .livithColor(.black30)
+        case .cancel:
+            return .livithColor(.black50)
+        }
+    }
+
+    var enabledForeground: Color {
+        switch self {
+        case .confirm:
+            return .livithColor(.caution100)
+        case .cancel:
+            return .livithColor(.white100)
+        }
+    }
+}
+
+private struct DangerModalButtonStyle: ButtonStyle {
+    let role: DangerModalButtonRole
+    let cornerRadius: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(backgroundColor(isPressed: configuration.isPressed))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+
+    private func backgroundColor(isPressed: Bool) -> Color {
+        return isPressed ? role.pressedBackground : role.enabledBackground
+    }
+}
+
+// MARK: - Preview
+
+#Preview("Danger Modals") {
+    LivithDangerModalPreviewContainer()
+}
+
+private struct LivithDangerModalPreviewContainer: View {
+    @State private var isConfirmPresented = false
+    @State private var isReportPresented = false
+
+    var body: some View {
+        ZStack {
+            Color.livithColor(.black100).ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                Button("확인 모달 보기") {
+                    isConfirmPresented = true
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button("신고 모달 보기") {
+                    isReportPresented = true
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .crossDissolve(isPresented: $isConfirmPresented, dismissOnTapOutside: true) {
+            LivithDangerModal(
+                message: "정말 로그아웃 하시겠어요?",
+                confirmTitle: "로그아웃 할래요",
+                cancelTitle: "취소할래요",
+                type: .confirm(onConfirm: { isConfirmPresented = false }),
+                onCancel: { isConfirmPresented = false }
+            )
+        }
+        .crossDissolve(isPresented: $isReportPresented, dismissOnTapOutside: true) {
+            LivithDangerModal(
+                message: "댓글을 신고하시겠어요?",
+                confirmTitle: "신고할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .report(onConfirm: { _ in isReportPresented = false }),
+                onCancel: { isReportPresented = false }
+            )
+        }
+    }
 }

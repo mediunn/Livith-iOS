@@ -31,11 +31,17 @@ struct AppRootView: View {
         ZStack {
             contentView()
             splashOverlay()
-            welcomeSheetOverlay()
         }
         .animation(.easeInOut(duration: Constants.animationDuration), value: isLaunchScreenVisible)
         .animation(.easeInOut(duration: Constants.animationDuration), value: currentRoute)
-        .animation(.easeInOut(duration: Constants.animationDuration), value: isWelcomeSheetVisible)
+        .crossDissolve(isPresented: $isWelcomeSheetVisible, dismissOnTapOutside: false) {
+            LivithModal(
+                type: .welcome(nickname: nickname),
+                onConfirm: {
+                    isWelcomeSheetVisible = false
+                }
+            )
+        }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { notification in
             if let message = notification.userInfo?["toastMessage"] as? String {
                 toastMessage = message
@@ -88,22 +94,6 @@ private extension AppRootView {
         }
     }
 
-    @ViewBuilder
-    func welcomeSheetOverlay() -> some View {
-        if isWelcomeSheetVisible {
-            LivithModal(
-                type: .welcome(nickname: nickname),
-                onConfirm: {
-                    withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-                        isWelcomeSheetVisible = false
-                    }
-                }
-            )
-            .transition(.opacity)
-            .zIndex(2)
-        }
-    }
-    
     func handleLoginCompleted(nickname: String) {
         transition(to: .main, nickname: nickname)
     }

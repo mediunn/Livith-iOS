@@ -81,10 +81,46 @@ public struct ConcertView: View {
             duration: nil,
             topPadding: 16
         )
-        .overlay { interestConfirmDialogOverlay }
-        .animation(.easeInOut(duration: 0.3), value: showInterestConfirmDialog)
-        .overlay { communityDialogOverlay }
-        .animation(.easeInOut(duration: 0.3), value: communityStore.state.dialogState)
+        .crossDissolve(isPresented: $showInterestConfirmDialog, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: "관심 콘서트를 설정하시겠어요?",
+                confirmTitle: "설정할래요",
+                cancelTitle: "취소할래요",
+                type: .confirm(onConfirm: {
+                    showInterestConfirmDialog = false
+                    store.send(.interestButtonTapped)
+                }),
+                onCancel: {
+                    showInterestConfirmDialog = false
+                }
+            )
+        }
+        .crossDissolve(isPresented: isDeleteDialogPresented, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: "댓글을 삭제하시겠어요?",
+                confirmTitle: "지금은 삭제할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: {
+                    communityStore.send(.confirmDelete)
+                }),
+                onCancel: {
+                    communityStore.send(.dismissDialog)
+                }
+            )
+        }
+        .crossDissolve(isPresented: isReportDialogPresented, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: "댓글을 신고하시겠어요?",
+                confirmTitle: "신고할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .report(onConfirm: { content in
+                    communityStore.send(.confirmReport(content: content))
+                }),
+                onCancel: {
+                    communityStore.send(.dismissDialog)
+                }
+            )
+        }
         .overlay { ticketReturnBannerOverlay }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
         .onAppear {
@@ -163,61 +199,33 @@ private extension ConcertView {
     }
 }
 
-// MARK: - Dialog Overlays
+// MARK: - Computed Bindings
 
 private extension ConcertView {
-    @ViewBuilder
-    var interestConfirmDialogOverlay: some View {
-        if showInterestConfirmDialog {
-            LivithDangerModal(
-                message: "관심 콘서트를 설정하시겠어요?",
-                confirmTitle: "설정할래요",
-                cancelTitle: "취소할래요",
-                type: .confirm(onConfirm: {
-                    showInterestConfirmDialog = false
-                    store.send(.interestButtonTapped)
-                }),
-                onCancel: {
-                    showInterestConfirmDialog = false
-                }
-            )
-            .transition(.opacity)
-        }
+    var isDeleteDialogPresented: Binding<Bool> {
+        Binding(
+            get: { 
+                if case .delete = communityStore.state.dialogState { return true }
+                return false
+            },
+            set: { if !$0 { communityStore.send(.dismissDialog) } }
+        )
     }
+    
+    var isReportDialogPresented: Binding<Bool> {
+        Binding(
+            get: { 
+                if case .report = communityStore.state.dialogState { return true }
+                return false
+            },
+            set: { if !$0 { communityStore.send(.dismissDialog) } }
+        )
+    }
+}
 
-    @ViewBuilder
-    var communityDialogOverlay: some View {
-        switch communityStore.state.dialogState {
-        case .delete:
-            LivithDangerModal(
-                message: "댓글을 삭제하시겠어요?",
-                confirmTitle: "지금은 삭제할래요",
-                cancelTitle: "잘못 눌렀어요",
-                type: .confirm(onConfirm: {
-                    communityStore.send(.confirmDelete)
-                }),
-                onCancel: {
-                    communityStore.send(.dismissDialog)
-                }
-            )
-            .transition(.opacity)
-        case .report:
-            LivithDangerModal(
-                message: "댓글을 신고하시겠어요?",
-                confirmTitle: "신고할래요",
-                cancelTitle: "잘못 눌렀어요",
-                type: .report(onConfirm: { content in
-                    communityStore.send(.confirmReport(content: content))
-                }),
-                onCancel: {
-                    communityStore.send(.dismissDialog)
-                }
-            )
-            .transition(.opacity)
-        case .none:
-            EmptyView()
-        }
-    }
+// MARK: - Banner Overlays
+
+private extension ConcertView {
 
     @ViewBuilder
     var ticketReturnBannerOverlay: some View {

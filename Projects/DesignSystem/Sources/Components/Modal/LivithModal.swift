@@ -25,8 +25,6 @@ public struct LivithModal: View {
     private let confirmTitle: String
     private let onConfirm: (() -> Void)?
 
-    @State private var isVisible: Bool = false
-
     // MARK: - Initializer
 
     public init(
@@ -42,23 +40,7 @@ public struct LivithModal: View {
     // MARK: - Body
 
     public var body: some View {
-        ZStack {
-            Color.livithColor(.black100)
-                .opacity(0.9)
-                .ignoresSafeArea()
-
-            modalContent
-        }
-        .opacity(isVisible ? 1 : 0)
-        .presentationBackground(.clear)
-        .onAppear {
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(0.4))
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isVisible = true
-                }
-            }
-        }
+        modalContent
     }
 
     private var modalContent: some View {
@@ -166,31 +148,45 @@ private extension LivithModal {
 
     var confirmButton: some View {
         LivithButton(buttonTitle, variant: buttonVariant, cornerRadius: 4) {
-            Task { @MainActor in
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isVisible = false
-                }
-
-                try? await Task.sleep(for: .seconds(0.4))
-                onConfirm?()
-            }
+            onConfirm?()
         }
     }
 }
 
 // MARK: - Preview
 
-#Preview("Welcome") {
-    LivithModal(
-        type: .welcome(nickname: "유지미"),
-        onConfirm: { }
-    )
+private struct LivithModalPreviewContainer: View {
+    @State private var isWelcomePresented = false
+    @State private var isErrorPresented = false
+    
+    var body: some View {
+        ZStack {
+            VStack(spacing: 20) {
+                Button("Welcome Modal 보기") {
+                    isWelcomePresented = true
+                }
+                
+                Button("Error Modal 보기") {
+                    isErrorPresented = true
+                }
+            }
+        }
+        .crossDissolve(isPresented: $isWelcomePresented, dismissOnTapOutside: true) {
+            LivithModal(
+                type: .welcome(nickname: "유지미"),
+                onConfirm: { isWelcomePresented = false }
+            )
+        }
+        .crossDissolve(isPresented: $isErrorPresented, dismissOnTapOutside: true) {
+            LivithModal(
+                type: .error(title: "탈퇴 후 7일이 지나지 않았어요", message: "7일이 지난 후 다시 시도해주세요"),
+                confirmTitle: "로그인으로 돌아가기",
+                onConfirm: { isErrorPresented = false }
+            )
+        }
+    }
 }
 
-#Preview("Error") {
-    LivithModal(
-        type: .error(title: "탈퇴 후 7일이 지나지 않았어요", message: "7일이 지난 후 다시 시도해주세요"),
-        confirmTitle: "로그인으로 돌아가기",
-        onConfirm: { }
-    )
+#Preview("Modal Examples") {
+    LivithModalPreviewContainer()
 }

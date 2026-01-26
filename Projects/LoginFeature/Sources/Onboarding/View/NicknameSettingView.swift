@@ -15,8 +15,8 @@ import NicknameEditFeature
 struct NicknameSettingView: View {
     @Environment(\.loginCoordinator) private var coordinator
 
-    @State private var showErrorToast: Bool = false
-    @State private var errorMessage: String = ""
+    @State private var isSignupFailureModalPresented: Bool = false
+    @State private var signupFailureMessage: String = ""
 
     private let marketingConsent: Bool
     private let tempUser: TempUser
@@ -27,6 +27,7 @@ struct NicknameSettingView: View {
     }
 
     var body: some View {
+        // TODO: - 회원가입 API 연결 취향 설정 이후로 빼기
         NicknameEditView(
             config: .signup(marketingConsent: marketingConsent, tempUser: tempUser),
             onDismiss: { coordinator?.pop() },
@@ -34,16 +35,22 @@ struct NicknameSettingView: View {
                 coordinator?.completeSignup(with: nickname)
             },
             onSubmitFailure: { message in
-                errorMessage = message
-                withAnimation { showErrorToast = true }
+                signupFailureMessage = message
+                isSignupFailureModalPresented = true
             }
         )
-        .livithToast(
-            isPresented: $showErrorToast,
-            type: .failure,
-            message: errorMessage,
-            duration: 2,
-            position: .safeAreaTop
-        )
+        .crossDissolve(isPresented: $isSignupFailureModalPresented, dismissOnTapOutside: false) {
+            LivithModal(
+                type: .error(title: "오류가 발생했어요!", message: signupFailureMessage),
+                confirmTitle: "로그인으로 돌아가기",
+                onConfirm: {
+                    isSignupFailureModalPresented = false
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(0.25))
+                        coordinator?.popToRoot()
+                    }
+                }
+            )
+        }
     }
 }
