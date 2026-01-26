@@ -30,40 +30,37 @@ public struct FilterBottomSheetView: View {
     }
 
     public var body: some View {
-        LivithBottomSheet(handleWidth: 76) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("장르")
-                    .notosans(.body2Semibold)
-                    .foregroundStyle(Color.livithColor(.white100))
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                
-                genreOptions
-                    .padding(.horizontal, 16)
-                    .padding(.top, 20)
-                
-                Rectangle()
-                    .fill(Color.livithColor(.black80))
-                    .frame(height: 1)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 30)
-                
-                Text("기간")
-                    .notosans(.body2Semibold)
-                    .foregroundStyle(Color.livithColor(.white100))
-                    .padding(.horizontal, 16)
-                
-                statusOptions
-                    .padding(.horizontal, 16)
-                    .padding(.top, 20)
-                
-                setupButtons
-                    .padding(.top, 24)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 24)
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            Text("장르")
+                .notosans(.body2Semibold)
+                .foregroundStyle(Color.livithColor(.white100))
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            
+            genreOptions
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
+            
+            Rectangle()
+                .fill(Color.livithColor(.black80))
+                .frame(height: 1)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 30)
+            
+            Text("기간")
+                .notosans(.body2Semibold)
+                .foregroundStyle(Color.livithColor(.white100))
+                .padding(.horizontal, 16)
+            
+            statusOptions
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
+            
+            setupButtons
+                .padding(.top, 24)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
         }
-        .animation(nil, value: showFilter)
         .onChange(of: showFilter) { _, isShowing in
             if isShowing {
                 tempGenreList = selectedGenreList
