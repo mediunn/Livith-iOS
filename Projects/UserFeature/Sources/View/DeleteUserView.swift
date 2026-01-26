@@ -35,8 +35,7 @@ struct DeleteUserView: View {
     // MARK: - Body
 
     public var body: some View {
-        ZStack {
-            VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
                 navigationBar
 
                 titleSection
@@ -126,7 +125,6 @@ struct DeleteUserView: View {
                     }
                 )
             }
-        }
     }
 }
 

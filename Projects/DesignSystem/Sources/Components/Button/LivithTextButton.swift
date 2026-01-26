@@ -32,8 +32,8 @@ public struct LivithTextButton: View {
     public var body: some View {
         Button(action: action) {
             Text(title)
-                .notosans(.body4Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
+                .notosans(.body4Regular)
+                .foregroundStyle(Color.livithColor(.black50))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
         }
@@ -48,8 +48,8 @@ private struct LivithTextButtonStyle: ButtonStyle {
         configuration.label
             .background(
                 configuration.isPressed
-                    ? Color.livithColor(.black100)
-                    : Color.livithColor(.black80)
+                    ? Color.livithColor(.black80)
+                    : Color.livithColor(.black100)
             )
             .clipShape(Capsule())
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)

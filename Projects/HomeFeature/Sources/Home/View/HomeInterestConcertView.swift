@@ -27,31 +27,29 @@ struct HomeInterestConcertView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            mainContent
-                .background(.livithColor(.black100))
-        }
-        .crossDissolve(isPresented: $showDeleteDialog) {
-            LivithDangerModal(
-                message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
-                confirmTitle: "지금은 삭제할래요",
-                cancelTitle: "잘못 눌렀어요",
-                type: .confirm(onConfirm: handleDeleteConfirm),
-                onCancel: {
-                    showDeleteDialog = false
-                    isTabBarHidden = false
-                }
-            )
-        }
-        .livithSheet(
-            isPresented: $showBottomSheet,
-            detents: [.fraction(180.0 / 812.0)]
-        ) {
-            HomeInterestConcertBottomSheetView(
-                onChangeMainConcert: handleChangeMainConcert,
-                onDeleteConcert: handleDeleteConcert
-            )
-        }
+        mainContent
+            .background(.livithColor(.black100))
+            .crossDissolve(isPresented: $showDeleteDialog) {
+                LivithDangerModal(
+                    message: "관심 콘서트를 삭제하시나요?\n언제든 다시 지정할 수 있어요.",
+                    confirmTitle: "지금은 삭제할래요",
+                    cancelTitle: "잘못 눌렀어요",
+                    type: .confirm(onConfirm: handleDeleteConfirm),
+                    onCancel: {
+                        showDeleteDialog = false
+                        isTabBarHidden = false
+                    }
+                )
+            }
+            .livithSheet(
+                isPresented: $showBottomSheet,
+                detents: [.fraction(180.0 / 812.0)]
+            ) {
+                HomeInterestConcertBottomSheetView(
+                    onChangeMainConcert: handleChangeMainConcert,
+                    onDeleteConcert: handleDeleteConcert
+                )
+            }
     }
 }
 
