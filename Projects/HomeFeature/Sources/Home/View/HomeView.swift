@@ -14,13 +14,11 @@ struct HomeView: View {
     @StateObject private var store: HomeStore = .init()
 
     @Binding private var isTabBarHidden: Bool
-    private let nickname: Binding<String>
     
     @State private var showErrorToast = false
     @State private var showSuccessToast = false
 
-    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>) {
-        self.nickname = nickname
+    init(isTabBarHidden: Binding<Bool>) {
         self._isTabBarHidden = isTabBarHidden
     }
     
@@ -66,7 +64,7 @@ struct HomeView: View {
                 isTabBarHidden: $isTabBarHidden
             )
         } else {
-            HomeConcertSectionView(nickname: nickname, store: store)
+            HomeConcertSectionView(store: store)
         }
     }
 }

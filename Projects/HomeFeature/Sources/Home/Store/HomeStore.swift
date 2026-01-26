@@ -24,12 +24,14 @@ enum HomeIntent {
     case _fetchMainSetlistResult(Result<Setlist, Error>)
     case _fetchSetlistSongListResult(Result<[SetlistSong], Error>)
     case _deleteInterestConcertResult(Result<Void, Error>)
+    case _fetchUserResult(Result<User, Error>)
 
     case onRefreshSections
     case _fetchHomeSectionListResult(Result<[ConcertSection], Error>)
 }
 
 struct HomeState {
+    var userName: String = ""
     var interestConcert: Concert? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
@@ -59,6 +61,7 @@ final class HomeStore: ObservableObject {
     func send(_ intent: HomeIntent) {
         switch intent {
         case .onAppear:
+            performFetchUser()
             performFetchUserInterestedConcert()
             
         case .onErrorToastDisappear:
@@ -135,6 +138,14 @@ final class HomeStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
+
+        case ._fetchUserResult(let result):
+            switch result {
+            case .success(let user):
+                state.userName = user.nickname
+            case .failure(let error):
+                state.errorMessage = getErrorMessage(from: error)
+            }
         
         case .onRefreshSections:
             state.isSectionsLoading = true
@@ -164,6 +175,18 @@ private extension HomeStore {
                 await send(._fetchUserInterestConcertResult(.success(result)))
             } catch {
                 await send(._fetchUserInterestConcertResult(.failure(error)))
+            }
+        }
+    }
+
+    func performFetchUser() {
+        cancellables[.fetchUser]?.cancel()
+        cancellables[.fetchUser] = Task {
+            do {
+                let result = try await userRepository.fetchUser()
+                await send(._fetchUserResult(.success(result)))
+            } catch {
+                await send(._fetchUserResult(.failure(error)))
             }
         }
     }
@@ -257,5 +280,6 @@ private extension HomeStore {
         case fetchMainSetlist
         case fetchSetlistSongList
         case refreshSections
+        case fetchUser
     }
 }
