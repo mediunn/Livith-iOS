@@ -27,6 +27,7 @@ struct NicknameSettingView: View {
     }
 
     var body: some View {
+        // TODO: - 회원가입 API 연결 취향 설정 이후로 빼기
         NicknameEditView(
             config: .signup(marketingConsent: marketingConsent, tempUser: tempUser),
             onDismiss: { coordinator?.pop() },
