@@ -66,7 +66,10 @@ struct SearchView: View {
                 onConfirm: { showError = false }
             )
         }
-        .sheet(isPresented: $showFilter) {
+        .livithSheet(
+            isPresented: $showFilter,
+            detents: [.fraction(366.0 / 812.0)]
+        ) {
             FilterBottomSheetView(
                 selectedGenreList: Binding(
                     get: { store.state.selectedGenreList },
@@ -82,10 +85,6 @@ struct SearchView: View {
                 ),
                 showFilter: $showFilter
             )
-            .presentationDetents([.fraction(366.0 / 812.0)])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Color.livithColor(.black90))
-            .presentationCornerRadius(20)
         }
     }
 }

@@ -43,15 +43,14 @@ struct HomeInterestConcertView: View {
                 }
             )
         }
-        .sheet(isPresented: $showBottomSheet) {
+        .livithSheet(
+            isPresented: $showBottomSheet,
+            detents: [.fraction(180.0 / 812.0)]
+        ) {
             HomeInterestConcertBottomSheetView(
                 onChangeMainConcert: handleChangeMainConcert,
                 onDeleteConcert: handleDeleteConcert
             )
-            .presentationDetents([.fraction(180.0 / 812.0)])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Color.livithColor(.black90))
-            .presentationCornerRadius(20)
         }
     }
 }
