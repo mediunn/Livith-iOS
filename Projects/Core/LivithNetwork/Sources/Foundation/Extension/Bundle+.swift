@@ -9,11 +9,19 @@
 import Foundation
 
 public extension Bundle {
+    static let apiVersion: String = {
+        #if DEBUG
+        return "v5"
+        #else
+        return "v4"
+        #endif
+    }()
+
     static let baseURL: URL = {
-        guard let url = URL(string: baseURLString) else {
+        guard let url = URL(string: "\(baseURLString)/api/\(apiVersion)") else {
             fatalError("BASE_URL에서 추출한 문자열을 URL로 변환할 수 없습니다.")
         }
-        
+
         return url
     }()
 }

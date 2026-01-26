@@ -22,15 +22,15 @@ extension OnboardingEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .appleLogin:
-            return "/api/v4/auth/apple/mobile"
+            return "/auth/apple/mobile"
         case .kakaoLogin:
-            return "/api/v4/auth/kakao/mobile"
+            return "/auth/kakao/mobile"
         case .signup:
-            return "/api/v4/auth/signup"
+            return "/auth/signup"
         case .checkNicknameDuplicate:
-            return "/api/v4/users/check-nickname"
+            return "/users/check-nickname"
         case .fetchUserInfo:
-            return "/api/v4/users/me"
+            return "/users/me"
         }
     }
     

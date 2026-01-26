@@ -32,15 +32,15 @@ extension SearchEndpoint: NetworkEndpoint {
     public var path: String? {
         switch self {
         case .fetchSections:
-            return "/api/v4/search/sections"
+            return "/search/sections"
         case .fetchBanners:
-            return "/api/v4/search/banners"
+            return "/search/banners"
         case .fetchFilterSearchResult:
-            return "/api/v4/search"
+            return "/search/concerts"
         case .fetchRecommendedSearchResult:
-            return "/api/v4/search/suggestions"
+            return "/search/suggestions"
         case .fetchConcertList:
-            return "/api/v4/concerts"
+            return "/concerts"
         }
     }
 
