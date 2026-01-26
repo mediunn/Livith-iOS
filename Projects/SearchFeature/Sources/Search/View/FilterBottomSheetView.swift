@@ -35,7 +35,7 @@ public struct FilterBottomSheetView: View {
                 .notosans(.body2Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.top, 24)
             
             genreOptions
                 .padding(.horizontal, 16)
@@ -59,7 +59,6 @@ public struct FilterBottomSheetView: View {
             setupButtons
                 .padding(.top, 24)
                 .padding(.horizontal, 16)
-                .padding(.bottom, 24)
         }
         .onChange(of: showFilter) { _, isShowing in
             if isShowing {
