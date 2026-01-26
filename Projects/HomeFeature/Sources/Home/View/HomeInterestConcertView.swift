@@ -43,11 +43,15 @@ struct HomeInterestConcertView: View {
                 }
             )
         }
-        .bottomSheet(isPresented: $showBottomSheet, handleStyle: .light) {
+        .sheet(isPresented: $showBottomSheet) {
             HomeInterestConcertBottomSheetView(
                 onChangeMainConcert: handleChangeMainConcert,
                 onDeleteConcert: handleDeleteConcert
             )
+            .presentationDetents([.fraction(180.0 / 812.0)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Color.livithColor(.black90))
+            .presentationCornerRadius(20)
         }
     }
 }
@@ -146,7 +150,10 @@ private extension HomeInterestConcertView {
 
     func handleChangeMainConcert() {
         showBottomSheet = false
-        coordinator?.push(to: .interest)
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.5))
+            coordinator?.push(to: .interest)
+        }
     }
     
     func handleDeleteConcert() {
