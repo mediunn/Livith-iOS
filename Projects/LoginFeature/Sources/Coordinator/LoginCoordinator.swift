@@ -20,11 +20,11 @@ final class LoginCoordinator: Coordinator {
     
     private var tempUser: Domain.TempUser?
     
-    private let onLoginCompleted: ((String) -> Void)
+    private let onLoginCompleted: (() -> Void)
     private let onSignupCompleted: ((String) -> Void)
     
     init(
-        onLoginCompleted: @escaping (String) -> Void = { _ in },
+        onLoginCompleted: @escaping () -> Void = { },
         onSignupCompleted: @escaping (String) -> Void = { _ in }
     ) {
         self.navigationController = UINavigationController()
@@ -68,8 +68,8 @@ final class LoginCoordinator: Coordinator {
         }
     }
     
-    func completeLogin(with nickname: String) {
-        onLoginCompleted(nickname)
+    func completeLogin() {
+        onLoginCompleted()
     }
     
     func completeSignup(with nickname: String) {

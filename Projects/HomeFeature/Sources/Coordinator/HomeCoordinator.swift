@@ -9,25 +9,19 @@
 import SwiftUI
 
 import ConcertFeature
-
-import LivithDesignSystem
 import Coordinator
 
 final class HomeCoordinator: Coordinator {
     typealias R = HomeRoute
 
     let navigationController: UINavigationController
-
-    private let nickname: Binding<String>
+    
     private var concertCoordinator: ConcertCoordinator?
     private let isTabBarHidden: Binding<Bool>
-    private let showToast: ((LivithToastType, String) -> Void)?
 
-    init(nickname: Binding<String>, isTabBarHidden: Binding<Bool>, showToast: ((LivithToastType, String) -> Void)? = nil) {
+    init(isTabBarHidden: Binding<Bool>) {
         self.navigationController = UINavigationController()
-        self.nickname = nickname
         self.isTabBarHidden = isTabBarHidden
-        self.showToast = showToast
 
         self.navigationController.setNavigationBarHidden(true, animated: false)
     }
@@ -39,7 +33,7 @@ final class HomeCoordinator: Coordinator {
     func buildViewController(for route: R) -> UIViewController {
         switch route {
         case .home:
-            return UIHostingController(rootView: HomeView(nickname: nickname, isTabBarHidden: isTabBarHidden, showToast: showToast).environment(\.homeCoordinator, self))
+            return UIHostingController(rootView: HomeView(isTabBarHidden: isTabBarHidden).environment(\.homeCoordinator, self))
 
         case .interest:
             return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))

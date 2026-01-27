@@ -17,12 +17,10 @@ public struct HomeContentView: View {
     @Binding private var deepLinkConcertID: Int?
 
     public init(
-        nickname: Binding<String>,
         isTabBarHidden: Binding<Bool>,
-        deepLinkConcertID: Binding<Int?> = .constant(nil),
-        showToast: ((LivithToastType, String) -> Void)? = nil
+        deepLinkConcertID: Binding<Int?> = .constant(nil)
     ) {
-        self._coordinator = State(initialValue: HomeCoordinator(nickname: nickname, isTabBarHidden: isTabBarHidden, showToast: showToast))
+        self._coordinator = State(initialValue: HomeCoordinator(isTabBarHidden: isTabBarHidden))
         self._isTabBarHidden = isTabBarHidden
         self._deepLinkConcertID = deepLinkConcertID
     }

@@ -46,8 +46,7 @@ public struct NicknameUpdateView: View {
         .livithToast(
             isPresented: $showFailureToast,
             type: .failure,
-            message: toastMessage,
-            position: .safeAreaTop
+            message: toastMessage
         )
     }
 }

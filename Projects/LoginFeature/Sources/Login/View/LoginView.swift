@@ -36,9 +36,7 @@ struct LoginView: View {
                 set: { _ in store.send(.setErrorMessage("")) }
             ),
             type: .failure,
-            message: store.state.errorMessage,
-            duration: 2,
-            position: .safeAreaTop
+            message: store.state.errorMessage
         )
         .crossDissolve(isPresented: $isForbiddenModalPresented, dismissOnTapOutside: false) {
             LivithModal(
@@ -60,8 +58,8 @@ struct LoginView: View {
     
     private func handleLoginSuccess(_ status: LoginStatus) {
         switch status {
-        case .existingUser(let nickname):
-            coordinator?.completeLogin(with: nickname)
+        case .existingUser:
+            coordinator?.completeLogin()
         case .newUser(let tempUser):
             coordinator?.push(to: .terms(tempUser))
         case .forbidden:

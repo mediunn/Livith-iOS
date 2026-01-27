@@ -42,24 +42,19 @@ public struct UserView: View {
     @State private var showLogoutToast: Bool = false
     @State private var logoutToastType: LivithToastType = .success
     @State private var logoutToastMessage: String = ""
+    @State private var showNicknameSuccessToast: Bool = false
 
     @Binding private var isTabBarHidden: Bool
-    @Binding private var nickname: String
-
+    
+    @StateObject private var store = UserStore()
     @StateObject private var logoutStore = LogoutStore()
-
-    private let showToast: ((LivithToastType, String) -> Void)?
 
     // MARK: - LifeCycle
 
     public init(
-        nickname: Binding<String>,
-        isTabBarHidden: Binding<Bool>,
-        showToast: ((LivithToastType, String) -> Void)? = nil
+        isTabBarHidden: Binding<Bool>
     ) {
-        self._nickname = nickname
         self._isTabBarHidden = isTabBarHidden
-        self.showToast = showToast
     }
     
     // MARK: - Body
@@ -108,8 +103,8 @@ public struct UserView: View {
                         onDismiss: { if !path.isEmpty { path.removeLast() } },
                         onSuccess: { newNickname in
                             if !path.isEmpty { path.removeLast() }
-                            nickname = newNickname
-                            showToast?(.success, Literals.toastSuccess)
+                            store.send(.fetchNickname)
+                            showNicknameSuccessToast = true
                         }
                     )
                     .navigationBarBackButtonHidden()
@@ -156,9 +151,16 @@ public struct UserView: View {
         .livithToast(
             isPresented: $showLogoutToast,
             type: logoutToastType,
-            message: logoutToastMessage,
-            position: .safeAreaTop
+            message: logoutToastMessage
         )
+        .livithToast(
+            isPresented: $showNicknameSuccessToast,
+            type: .success,
+            message: Literals.toastSuccess
+        )
+        .onAppear {
+            store.send(.fetchNickname)
+        }
     }
 }
 
@@ -183,8 +185,8 @@ private extension UserView {
     
     var titleText: some View {
         Text.init(
-            String(format: Literals.titleFormat, nickname),
-            highlighting: "\(nickname)",
+            String(format: Literals.titleFormat, store.state.nickname),
+            highlighting: "\(store.state.nickname)",
             color: .livithColor(.white100),
             font: .notosans(.headSemibold)
         )
@@ -272,11 +274,10 @@ private extension UserView {
         case .idle:
             break
         case .success:
-            NotificationCenter.default.post(
-                name: .reloginRequired,
-                object: nil,
-                userInfo: ["toastMessage": Literals.logoutSuccessMessage]
-            )
+            NotificationCenter.default.post(name: .reloginRequired, object: nil)
+            logoutToastType = .success
+            logoutToastMessage = Literals.logoutSuccessMessage
+            showLogoutToast = true
         case .failure(let message):
             logoutToastType = .failure
             logoutToastMessage = message

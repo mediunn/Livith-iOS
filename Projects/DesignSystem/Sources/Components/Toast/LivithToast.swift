@@ -8,16 +8,16 @@
 
 import SwiftUI
 
+// MARK: - Toast Type
+
 public enum LivithToastType {
     case success
     case failure
-
+    
     var icon: Image {
         switch self {
-        case .success:
-            return .livithIcon(.checkYellow)
-        case .failure:
-            return .livithIcon(.cautionTriangleSmall)
+        case .success: return .livithIcon(.checkYellow)
+        case .failure: return .livithIcon(.cautionTriangleSmall)
         }
     }
 }
@@ -30,93 +30,49 @@ public enum LivithToastPosition {
     case aboveKeyboard
 }
 
+// MARK: - Toast View
+
 public struct LivithToast: View {
-
-    // MARK: - Property
-
+    
+    private enum Layout {
+        static let iconSize: CGFloat = 30
+        static let horizontalSpacing: CGFloat = 10
+        static let leadingPadding: CGFloat = 20
+        static let verticalPadding: CGFloat = 12
+        static let toastWidth: CGFloat = 343
+        static let cornerRadius: CGFloat = 8
+        static let shadowRadius: CGFloat = 18
+        static let shadowOpacity: Double = 0.4
+    }
+    
     private let type: LivithToastType
     private let message: String
-
-    // MARK: - LifeCycle
-
+    
     public init(type: LivithToastType, message: String) {
         self.type = type
         self.message = message
     }
-
-    // MARK: - Body
-
+    
     public var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: Layout.horizontalSpacing) {
             type.icon
                 .resizable()
-                .frame(width: 30, height: 30)
-
+                .frame(width: Layout.iconSize, height: Layout.iconSize)
+            
             Text(message)
                 .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .lineLimit(2)
-
+                .multilineTextAlignment(.leading)
+            
             Spacer()
         }
-        .padding(.leading, 20)
-        .padding(.vertical, 12)
-        .frame(width: 343)
+        .padding(.leading, Layout.leadingPadding)
+        .padding(.vertical, Layout.verticalPadding)
+        .frame(width: Layout.toastWidth)
         .background(Color.livithColor(.black80))
-        .shadow(color: .livithColor(.black100).opacity(0.4), radius: 18)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-// MARK: - Toast ViewModifier
-
-private struct LivithToastModifier: ViewModifier {
-    @Binding var isPresented: Bool
-    let type: LivithToastType
-    let message: String
-    let duration: TimeInterval?
-    let topPadding: CGFloat
-    let position: LivithToastPosition
-    let keyboardSpacing: CGFloat
-
-    @State private var keyboardHeight: CGFloat = KeyboardHeightObserver.shared.height
-
-    func body(content: Content) -> some View {
-        content
-            .overlay {
-                if isPresented {
-                    GeometryReader { geometry in
-                        let toastHeight: CGFloat = 54
-                        let toastY: CGFloat = {
-                            switch position {
-                            case .top:
-                                return geometry.safeAreaInsets.top + topPadding
-                            case .safeAreaTop:
-                                return geometry.safeAreaInsets.top
-                            case .aboveKeyboard:
-                                return geometry.size.height - keyboardHeight - keyboardSpacing - toastHeight / 2
-                            }
-                        }()
-
-                        LivithToast(type: type, message: message)
-                            .position(x: geometry.size.width / 2, y: toastY)
-                            .transition(.opacity)
-                    }
-                    .onAppear {
-                        keyboardHeight = KeyboardHeightObserver.shared.height
-                    }
-                    .task(id: isPresented) {
-                        guard let duration else { return }
-                        try? await Task.sleep(for: .seconds(duration))
-                        guard !Task.isCancelled else { return }
-                        withAnimation { isPresented = false }
-                    }
-                }
-            }
-            .animation(.easeInOut(duration: 0.3), value: isPresented)
-            .onReceive(KeyboardHeightObserver.shared.$height) { height in
-                keyboardHeight = height
-            }
+        .clipShape(RoundedRectangle(cornerRadius: Layout.cornerRadius))
+        .shadow(color: Color.livithColor(.black100).opacity(Layout.shadowOpacity), radius: Layout.shadowRadius)
     }
 }
 
@@ -126,23 +82,17 @@ public extension View {
     func livithToast(
         isPresented: Binding<Bool>,
         type: LivithToastType,
-        message: String,
-        duration: TimeInterval? = 2,
-        topPadding: CGFloat = 60,
-        position: LivithToastPosition = .top,
-        keyboardSpacing: CGFloat = 16
+        message: String
     ) -> some View {
         modifier(LivithToastModifier(
             isPresented: isPresented,
             type: type,
-            message: message,
-            duration: duration,
-            topPadding: topPadding,
-            position: position,
-            keyboardSpacing: keyboardSpacing
+            message: message
         ))
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     VStack(spacing: 20) {

@@ -46,9 +46,7 @@ struct InterestConcertSearchView: View {
                     set: { _ in store.send(.onToastDisappear) }
                 ),
                 type: .failure,
-                message: store.state.errorMessage,
-                duration: 2,
-                position: .safeAreaTop
+                message: store.state.errorMessage
             )
             .onChange(of: isTextFieldFocused) { _, isFocused in
                 if isFocused {

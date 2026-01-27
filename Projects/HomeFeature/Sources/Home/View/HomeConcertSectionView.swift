@@ -13,12 +13,10 @@ import Domain
 import LivithDesignSystem
 
 struct HomeConcertSectionView: View {
-    @Binding var nickname: String
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
 
-    init(nickname: Binding<String>, store: HomeStore) {
-        self._nickname = nickname
+    init(store: HomeStore) {
         self.store = store
     }
 
@@ -29,7 +27,7 @@ struct HomeConcertSectionView: View {
             ScrollView {
                 VStack(spacing: .zero) {                    
                     HomeHeaderView(
-                        nickname: nickname,
+                        nickname: store.state.userName,
                         action: { coordinator?.push(to: .interest) }
                     )
 

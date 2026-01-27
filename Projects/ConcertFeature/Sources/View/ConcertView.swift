@@ -64,22 +64,17 @@ public struct ConcertView: View {
                 set: { if !$0 { dismissCurrentToast() } }
             ),
             type: toastInfo?.type ?? .failure,
-            message: toastInfo?.message ?? "",
-            topPadding: 16
+            message: toastInfo?.message ?? ""
         )
         .livithToast(
             isPresented: $isExceedingLineLimit,
             type: .failure,
-            message: "댓글은 15줄을 초과할 수 없어요",
-            duration: nil,
-            topPadding: 16
+            message: "댓글은 15줄을 초과할 수 없어요"
         )
         .livithToast(
             isPresented: $isExceedingCharacterLimit,
             type: .failure,
-            message: "댓글은 400자를 초과할 수 없어요",
-            duration: nil,
-            topPadding: 16
+            message: "댓글은 400자를 초과할 수 없어요"
         )
         .crossDissolve(isPresented: $showInterestConfirmDialog, dismissOnTapOutside: true) {
             LivithDangerModal(

@@ -9,54 +9,29 @@
 import SwiftUI
 
 import LivithDesignSystem
-import LivithNetwork
+import Domain
 import LoginFeature
 import Persistence
 
 struct AppRootView: View {
-    @State private var currentRoute: AppRoute?
-    @State private var isLaunchScreenVisible: Bool = true
+    @State private var currentRoute: AppRoute = .launch
     @State private var nickname: String = ""
-    @State private var isWelcomeSheetVisible: Bool = false
-    @State private var showToast: Bool = false
-    @State private var toastMessage: String = ""
-
-    private let localStorage: UserDefaultsStorage
-    
-    init(localStorage: UserDefaultsStorage = .init()) {
-        self.localStorage = localStorage
-    }
+    @State private var showWelcomeSheet: Bool = false
     
     var body: some View {
-        ZStack {
-            contentView()
-            splashOverlay()
-        }
-        .animation(.easeInOut(duration: Constants.animationDuration), value: isLaunchScreenVisible)
-        .animation(.easeInOut(duration: Constants.animationDuration), value: currentRoute)
-        .crossDissolve(isPresented: $isWelcomeSheetVisible, dismissOnTapOutside: false) {
-            LivithModal(
-                type: .welcome(nickname: nickname),
-                onConfirm: {
-                    isWelcomeSheetVisible = false
-                }
-            )
-        }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { notification in
-            if let message = notification.userInfo?["toastMessage"] as? String {
-                toastMessage = message
-                transition(to: .login)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showToast = true
-                }
-            } else {
+        contentView
+            .crossDissolve(isPresented: $showWelcomeSheet, dismissOnTapOutside: false) {
+                LivithModal(
+                    type: .welcome(nickname: nickname),
+                    onConfirm: { showWelcomeSheet = false }
+                )
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { notification in
                 transition(to: .login)
             }
-        }
-        .livithToast(isPresented: $showToast, type: .success, message: toastMessage, position: .safeAreaTop)
-        .onAppear {
-            handleOnAppear()
-        }
+            .onAppear {
+                handleOnAppear()
+            }
     }
 }
 
@@ -64,73 +39,44 @@ struct AppRootView: View {
 
 private extension AppRootView {
     @ViewBuilder
-    func contentView() -> some View {
-        if let route = currentRoute {
-            switch route {
-            case .login:
-                LoginContentView(
-                    onLoginCompleted: { nickname in
-                        handleLoginCompleted(nickname: nickname)
-                    },
-                    onSignupCompleted: { nickname in
-                        handleSignupCompleted(nickname: nickname)
-                    }
-                )
-
-            case .main:
-                LivithMainTabView(nickname: $nickname)
-            }
-        } else {
-            Color.clear
-        }
-    }
-    
-    @ViewBuilder
-    func splashOverlay() -> some View {
-        if isLaunchScreenVisible {
+    var contentView: some View {
+        switch currentRoute {
+        case .launch:
             LaunchScreenView()
-                .transition(.opacity)
-                .zIndex(1)
+        case .login:
+            LoginContentView(
+                onLoginCompleted: { transition(to: .main) },
+                onSignupCompleted: { nickname in
+                    transition(to: .main)
+                    self.nickname = nickname
+                    self.showWelcomeSheet = true
+                }
+            )
+        case .main:
+            LivithMainTabView()
         }
-    }
-
-    func handleLoginCompleted(nickname: String) {
-        transition(to: .main, nickname: nickname)
     }
     
-    func handleSignupCompleted(nickname: String) {
-        transition(to: .main, nickname: nickname, showWelcome: true)
-    }
-
     func handleOnAppear() {
-        checkInitialRoute()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            withAnimation(.easeInOut(duration: Constants.animationDuration)) {
-                isLaunchScreenVisible = false
-            }
-        }
-    }
-
-    func checkInitialRoute() {
+        if currentRoute != .launch { return }
+        
+        let targetRoute: AppRoute
         do {
-            let user: DTO.Response.FetchUserInfo = try localStorage.fetch(for: .currentUser)
-            self.nickname = user.nickname
-            currentRoute = .main
+            let _: User = try UserDefaultsStorage().fetch(for: .currentUser)
+            targetRoute = .main
         } catch {
-            currentRoute = .login
+            targetRoute = .login
+        }
+
+        Task {
+            try? await Task.sleep(nanoseconds: UInt64(Constants.startupDelay * 1_000_000_000))
+            await MainActor.run { transition(to: targetRoute) }
         }
     }
-
-    func transition(to route: AppRoute, nickname: String? = nil, showWelcome: Bool = false) {
+    
+    func transition(to route: AppRoute) {
         withAnimation(.easeInOut(duration: Constants.animationDuration)) {
             currentRoute = route
-
-            if let nickname = nickname {
-                self.nickname = nickname
-            }
-
-            isWelcomeSheetVisible = showWelcome
         }
     }
 }
@@ -140,5 +86,6 @@ private extension AppRootView {
 private extension AppRootView {
     enum Constants {
         static let animationDuration = 0.5
+        static let startupDelay: TimeInterval = 3.0
     }
 }

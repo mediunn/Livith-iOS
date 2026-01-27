@@ -81,7 +81,7 @@ struct UserRepositoryImpl: UserRepository {
             return concert
         } catch NetworkError.noData {
             return nil
-        }catch {
+        } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
         }

@@ -23,18 +23,13 @@ struct LivithMainTabView: View {
     
     // MARK: - Property
     
-    @Binding private var nickname: String
     @State private var selectedTab: Tab = .home
     @State private var isTabBarHidden: Bool = false
-    @State private var showToast: Bool = false
-    @State private var toastType: LivithToastType = .success
-    @State private var toastMessage: String = ""
     @State private var deepLinkConcertID: Int?
     
     // MARK: - LifeCycle
     
-    init(nickname: Binding<String>) {
-        self._nickname = nickname
+    init() {
         configureTabBarAppearance()
     }
     
@@ -43,14 +38,8 @@ struct LivithMainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeContentView(
-                nickname: $nickname,
                 isTabBarHidden: $isTabBarHidden,
-                deepLinkConcertID: $deepLinkConcertID,
-                showToast: { type, message in
-                    toastType = type
-                    toastMessage = message
-                    showToast = true
-                }
+                deepLinkConcertID: $deepLinkConcertID
             )
             .tag(Tab.home)
             .tabItem {
@@ -65,15 +54,7 @@ struct LivithMainTabView: View {
                 }
                 .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
             
-            UserView(
-                nickname: $nickname,
-                isTabBarHidden: $isTabBarHidden,
-                showToast: { type, message in
-                    toastType = type
-                    toastMessage = message
-                    showToast = true
-                }
-            )
+            UserView(isTabBarHidden: $isTabBarHidden)
             .tag(Tab.my)
             .tabItem {
                 makeTabItem(.my)
@@ -81,12 +62,6 @@ struct LivithMainTabView: View {
             .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         }
         .preferredColorScheme(.dark)
-        .livithToast(
-            isPresented: $showToast,
-            type: toastType,
-            message: toastMessage,
-            position: .safeAreaTop
-        )
         .onReceive(NotificationCenter.default.publisher(for: .openConcertDetail)) { notification in
             if let concertID = notification.userInfo?["concertID"] as? Int {
                 selectedTab = .home

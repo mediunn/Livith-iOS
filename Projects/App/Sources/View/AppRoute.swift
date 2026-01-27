@@ -9,6 +9,7 @@
 import Foundation
 
 enum AppRoute {
+    case launch
     case login
     case main
 }
