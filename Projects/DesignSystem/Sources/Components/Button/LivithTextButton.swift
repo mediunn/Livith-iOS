@@ -15,15 +15,18 @@ public struct LivithTextButton: View {
     // MARK: - Property
 
     private let title: String
+    private let color: Color
     private let action: () -> Void
 
     // MARK: - Initializer
 
     public init(
         _ title: String,
+        color: Color = .livithColor(.black50),
         action: @escaping () -> Void
     ) {
         self.title = title
+        self.color = color
         self.action = action
     }
 
@@ -33,7 +36,7 @@ public struct LivithTextButton: View {
         Button(action: action) {
             Text(title)
                 .notosans(.body4Regular)
-                .foregroundStyle(Color.livithColor(.black50))
+                .foregroundStyle(color)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
         }

@@ -35,10 +35,6 @@ public struct NoticeView: View {
         VStack(spacing: 0) {
             navigationBar
 
-            infoText
-                .padding(.top, 12)
-                .padding(.horizontal, 16)
-
             noticeList
                 .padding(.top, 12)
         }
@@ -66,11 +62,11 @@ private extension NoticeView {
 
             Spacer()
 
-            Button(action: onSettingTap) {
-                Text(Literals.settingButton)
-                    .notosans(.body4Medium)
-                    .foregroundStyle(Color.livithColor(.black30))
-            }
+            LivithTextButton(
+                Literals.settingButton,
+                color: .livithColor(.white100),
+                action: onSettingTap
+            )
             .padding(.trailing, 16)
         }
         .frame(height: 66)
@@ -80,8 +76,8 @@ private extension NoticeView {
     var infoText: some View {
         HStack {
             Text(Literals.infoMessage)
-                .notosans(.caption1Regular)
-                .foregroundStyle(Color.livithColor(.black50))
+                .notosans(.body4Semibold)
+                .foregroundStyle(Color.livithColor(.black30))
 
             Spacer()
         }
@@ -89,7 +85,11 @@ private extension NoticeView {
 
     var noticeList: some View {
         ScrollView {
-            LazyVStack(spacing: 8) {
+            infoText
+                .padding(.horizontal, 16)
+                .padding(.bottom, 10)
+            
+            LazyVStack(spacing: 12) {
                 // TODO: 실제 데이터 연결 필요
                 NoticeItemView(
                     title: "(광고) 추천 콘서트를 가져왔어요 🎵",
@@ -106,8 +106,17 @@ private extension NoticeView {
                     state: .read,
                     action: {}
                 )
+                
+                NoticeItemView(
+                    title: "(광고) 추천 콘서트를 가져왔어요 🎵",
+                    description: "선택하신 취향을 바탕으로\n지금 가장 잘 맞는 콘서트 하나를 골라봤어요!",
+                    timeAgo: "5시간 전",
+                    state: .read,
+                    action: {}
+                )
+                
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 4)
         }
     }
 }
