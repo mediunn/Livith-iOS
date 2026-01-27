@@ -42,6 +42,8 @@ struct HomeState {
 
     var sectionList: [ConcertSection] = []
     var isSectionsLoading: Bool = false
+
+    var hasNewNotice: Bool = false
 }
 
 final class HomeStore: ObservableObject {

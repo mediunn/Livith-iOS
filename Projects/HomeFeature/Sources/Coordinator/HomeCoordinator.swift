@@ -47,6 +47,15 @@ final class HomeCoordinator: Coordinator {
                 )
                 .environment(\.homeCoordinator, self)
             )
+
+        case .notice:
+            return UIHostingController(
+                rootView: NoticeView(
+                    onBack: { [weak self] in self?.pop() },
+                    onSettingTap: { /* TODO: 알림 설정 화면 */ }
+                )
+                .environment(\.homeCoordinator, self)
+            )
         }
     }
 

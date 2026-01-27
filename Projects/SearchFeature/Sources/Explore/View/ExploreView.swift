@@ -18,7 +18,7 @@ struct ExploreView: View {
     
     var body: some View {
         VStack(spacing: .zero) {
-            LivithNavigationView(type: .logo)
+            LivithNavigationView(type: .logo())
             
             ZStack(alignment: .top) {
                 ExploreSearchButton(onTap: { coordinator?.push(to: .search) })

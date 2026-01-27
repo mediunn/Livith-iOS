@@ -11,7 +11,7 @@ import SwiftUI
 // MARK: - LivithNavigationViewType
 
 public enum LivithNavigationViewType {
-    case logo
+    case logo(hasNewNotice: Bool = false, onNoticeTap: (() -> Void)? = nil)
     case back(title: String, onBack: () -> Void)
     case backOnly(onBack: () -> Void)
 
@@ -42,8 +42,8 @@ public struct LivithNavigationView: View {
     public var body: some View {
         Group {
             switch type {
-            case .logo:
-                logoContent
+            case .logo(let hasNewNotice, let onNoticeTap):
+                logoContent(hasNewNotice: hasNewNotice, onNoticeTap: onNoticeTap)
             case .back(let title, let onBack):
                 backContent(title: title, onBack: onBack)
             case .backOnly(let onBack):
@@ -57,17 +57,24 @@ public struct LivithNavigationView: View {
 // MARK: - Subviews
 
 private extension LivithNavigationView {
-    var logoContent: some View {
-        HStack {
+    func logoContent(hasNewNotice: Bool, onNoticeTap: (() -> Void)?) -> some View {
+        HStack(alignment: .center) {
             Image.livithImage(.livithLogo)
                 .resizable()
                 .frame(width: 100, height: 24)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
                 .padding(.leading, 16)
 
             Spacer()
+
+            if let onNoticeTap {
+                Button(action: onNoticeTap) {
+                    Image.livithIcon(hasNewNotice ? .noticeEnabled : .noticeDefault)
+                }
+                .padding(.trailing, 16)
+            }
         }
+        .padding(.top, 20)
+        .padding(.bottom, 16)
     }
 
     func backContent(title: String, onBack: @escaping () -> Void) -> some View {
@@ -94,7 +101,7 @@ private extension LivithNavigationView {
             Button(action: onBack) {
                 Image.livithIcon(.backLineDefault)
                     .resizable()
-                    .frame(width: 36, height: 36)
+                    .frame(width: 38, height: 38)
             }
             .padding(.leading, 16)
 
@@ -108,7 +115,16 @@ private extension LivithNavigationView {
 
 #Preview("Logo Type") {
     VStack {
-        LivithNavigationView(type: .logo)
+        LivithNavigationView(type: .logo())
+        Spacer()
+    }
+    .background(Color.livithColor(.black100))
+}
+
+#Preview("Logo with Notice") {
+    VStack {
+        LivithNavigationView(type: .logo(hasNewNotice: false, onNoticeTap: {}))
+        LivithNavigationView(type: .logo(hasNewNotice: true, onNoticeTap: {}))
         Spacer()
     }
     .background(Color.livithColor(.black100))
