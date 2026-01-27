@@ -10,6 +10,8 @@ import SwiftUI
 
 public extension Image {
     enum LivithIcon: String {
+        case noticeDefault = "icn_notice_default"
+        case noticeEnabled = "icn_notice_enabled"
         case apple = "icn_apple"
         case badge = "icn_badge"
         case backLineDefault = "icn_back_line_default"
