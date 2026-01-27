@@ -16,4 +16,5 @@ enum HomeRoute: Route {
     case home
     case interest
     case interestComplete(posterURL: URL?, title: String, prefetchedImage: UIImage?)
+    case notice
 }

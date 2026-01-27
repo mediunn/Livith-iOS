@@ -24,7 +24,10 @@ struct HomeConcertSectionView: View {
 
     var body: some View {
         VStack(spacing: .zero) {
-            LivithNavigationView(type: .logo)
+            LivithNavigationView(type: .logo(
+                hasNewNotice: store.state.hasNewNotice,
+                onNoticeTap: { coordinator?.push(to: .notice) }
+            ))
 
             ScrollView {
                 VStack(spacing: .zero) {                    
