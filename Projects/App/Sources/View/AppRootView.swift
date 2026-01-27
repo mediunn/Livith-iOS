@@ -67,9 +67,10 @@ private extension AppRootView {
         } catch {
             targetRoute = .login
         }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            transition(to: targetRoute)
+
+        Task {
+            try? await Task.sleep(nanoseconds: UInt64(Constants.startupDelay * 1_000_000_000))
+            await MainActor.run { transition(to: targetRoute) }
         }
     }
     
@@ -85,5 +86,6 @@ private extension AppRootView {
 private extension AppRootView {
     enum Constants {
         static let animationDuration = 0.5
+        static let startupDelay: TimeInterval = 3.0
     }
 }

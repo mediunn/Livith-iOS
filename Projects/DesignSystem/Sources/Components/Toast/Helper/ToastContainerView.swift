@@ -92,6 +92,9 @@ private extension ToastContainerView {
     func dismissToast() {
         guard isVisible else { return }
         withAnimation { isVisible = false }
-        DispatchQueue.main.asyncAfter(deadline: .now() + Animation.dismissDelay) { onDismiss() }
+        Task {
+            try? await Task.sleep(nanoseconds: UInt64(Animation.dismissDelay * 1_000_000_000))
+            await MainActor.run { onDismiss() }
+        }
     }
 }
