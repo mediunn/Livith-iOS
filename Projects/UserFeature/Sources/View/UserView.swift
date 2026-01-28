@@ -16,17 +16,10 @@ public struct UserView: View {
 
     enum OverlayType: Equatable {
         case none
-        case terms
-        case updateNote
         case feedbackForm
-        case logout
 
         var sheetURL: URL? {
             switch self {
-            case .terms:
-                return Constant.termsURL
-            case .updateNote:
-                return Constant.updateNoteURL
             case .feedbackForm:
                 return Constant.feedbackFormURL
             default:
@@ -37,122 +30,69 @@ public struct UserView: View {
 
     // MARK: - Property
 
-    @State private var path = NavigationPath()
     @State private var overlayType: OverlayType = .none
-    @State private var showLogoutToast: Bool = false
-    @State private var logoutToastType: LivithToastType = .success
-    @State private var logoutToastMessage: String = ""
     @State private var showNicknameSuccessToast: Bool = false
 
     @Binding private var isTabBarHidden: Bool
-    
+
     @StateObject private var store = UserStore()
-    @StateObject private var logoutStore = LogoutStore()
+
+    private let onSetting: () -> Void
+    private let onNicknameEdit: () -> Void
+    private let onGenreSetting: () -> Void
+    private let onArtistSetting: () -> Void
 
     // MARK: - LifeCycle
 
     public init(
-        isTabBarHidden: Binding<Bool>
+        isTabBarHidden: Binding<Bool>,
+        onSetting: @escaping () -> Void,
+        onNicknameEdit: @escaping () -> Void,
+        onGenreSetting: @escaping () -> Void,
+        onArtistSetting: @escaping () -> Void
     ) {
         self._isTabBarHidden = isTabBarHidden
+        self.onSetting = onSetting
+        self.onNicknameEdit = onNicknameEdit
+        self.onGenreSetting = onGenreSetting
+        self.onArtistSetting = onArtistSetting
     }
-    
+
     // MARK: - Body
 
     public var body: some View {
-        NavigationStack(path: $path) {
-            VStack(spacing: 0) {
-                HStack(alignment: .center) {
-                    titleText
-                    Spacer()
-                    editButton
-                }
-                .padding(.top, 168)
+        VStack(spacing: 0) {
+            settingButton
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.top, 12)
+                .padding(.trailing, 16)
+
+            headerSection
+                .padding(.top, 78)
                 .padding(.horizontal, 16)
+
+            divideLine
+                .padding(.top, 20)
                 .padding(.bottom, 20)
 
-                divideLine
-                    .padding(.bottom, 20)
+            feedbackButton
+                .frame(height: 84)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
 
-                feedbackButton
-                    .frame(height: 84)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 24)
+            preferenceSection
+                .padding(.horizontal, 16)
 
-                LivithListItem(Literals.versionInfo, type: .value(Constant.versionString))
-                    .padding(.bottom, 12)
-
-                LivithListItem(Literals.updateNote, type: .navigation, action: { showUpdateNote() })
-                    .padding(.bottom, 12)
-
-                LivithListItem(Literals.terms, type: .navigation, action: { showTerms() })
-                    .padding(.bottom, 12)
-
-                LivithListItem(Literals.logout, type: .action, action: { logout() })
-                    .padding(.bottom, 12)
-
-                LivithListItem(Literals.deleteAccount, type: .action, action: { deleteAccount() })
-                    .padding(.bottom, 50)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(backgroundGradient)
-            .navigationDestination(for: Path.self) { destination in
-                switch destination {
-                case .nicknameUpdate:
-                    NicknameUpdateView(
-                        onDismiss: { if !path.isEmpty { path.removeLast() } },
-                        onSuccess: { newNickname in
-                            if !path.isEmpty { path.removeLast() }
-                            store.send(.fetchNickname)
-                            showNicknameSuccessToast = true
-                        }
-                    )
-                    .navigationBarBackButtonHidden()
-                case .deleteUser:
-                    DeleteUserView(
-                        store: DeleteUserStore(),
-                        onDismiss: { if !path.isEmpty { path.removeLast() } }
-                    )
-                    .navigationBarBackButtonHidden()
-                }
-            }
+            Spacer()
         }
-        .onChange(of: logoutStore.state.logoutResult) { _, newResult in
-            handleLogoutResult(newResult)
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.livithColor(.black100))
         .sheet(isPresented: isSheetPresented) {
             if let url = overlayType.sheetURL {
                 SafariView(url: url)
                     .ignoresSafeArea(edges: .bottom)
             }
         }
-        .crossDissolve(isPresented: Binding(
-            get: { overlayType == .logout },
-            set: { if !$0 { overlayType = .none } }
-        ), dismissOnTapOutside: false) {
-            LivithDangerModal(
-                message: Literals.logoutAlertMessage,
-                confirmTitle: Literals.logoutAlertConfirm,
-                cancelTitle: Literals.logoutAlertCancel,
-                type: .confirm(onConfirm: {
-                    overlayType = .none
-                    performLogout()
-                }),
-                onCancel: {
-                    overlayType = .none
-                }
-            )
-        }
-        .onChange(of: path) { _, newPath in
-            Task { @MainActor in
-                isTabBarHidden = !newPath.isEmpty
-            }
-        }
-        .livithToast(
-            isPresented: $showLogoutToast,
-            type: logoutToastType,
-            message: logoutToastMessage
-        )
         .livithToast(
             isPresented: $showNicknameSuccessToast,
             type: .success,
@@ -167,22 +107,22 @@ public struct UserView: View {
 // MARK: - UIComponents
 
 private extension UserView {
-    var backgroundGradient: some View {
-        GeometryReader { _ in
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [Color.init(hex: "2F3745"), Color.init(hex: "14171B")],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 297)
-                
-                Color.livithColor(.black100)
-            }
+    var settingButton: some View {
+        Button(action: onSetting) {
+            Image.livithIcon(.settingFill)
+                .resizable()
+                .frame(width: 36, height: 36)
         }
-        .ignoresSafeArea()
     }
-    
+
+    var headerSection: some View {
+        HStack(alignment: .center) {
+            titleText
+            Spacer()
+            editButton
+        }
+    }
+
     var titleText: some View {
         Text.init(
             String(format: Literals.titleFormat, store.state.nickname),
@@ -197,9 +137,7 @@ private extension UserView {
     }
 
     var editButton: some View {
-        Button {
-            showEditView()
-        } label: {
+        Button(action: onNicknameEdit) {
             Text(Literals.editNickname)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
@@ -209,13 +147,13 @@ private extension UserView {
         .background(Color.livithColor(.black80))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-    
+
     var divideLine: some View {
         Divider()
             .frame(height: 5)
             .background(Color.init(hex: "29303C", opacity: 1.0))
     }
-    
+
     var feedbackButton: some View {
         Button {
             showFeedbackForm()
@@ -224,6 +162,103 @@ private extension UserView {
                 .resizable()
                 .scaledToFill()
         }
+    }
+
+    var preferenceSection: some View {
+        VStack(spacing: 24) {
+            genreSection
+            artistSection
+        }
+    }
+
+    var genreSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text(Literals.preferredGenre)
+                    .notosans(.body2Medium)
+                    .foregroundStyle(Color.livithColor(.white100))
+
+                Spacer()
+                
+                LivithTextButton(
+                    store.state.hasGenreData ? Literals.change : Literals.setup,
+                    action: onGenreSetting
+                )
+            }
+
+            if store.state.hasGenreData {
+                genreCards
+            } else {
+                placeholderText(Literals.genrePlaceholder)
+            }
+        }
+    }
+
+    var artistSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text(Literals.preferredArtist)
+                    .notosans(.body2Medium)
+                    .foregroundStyle(Color.livithColor(.white100))
+
+                Spacer()
+                
+                LivithTextButton(
+                    store.state.hasArtistData ? Literals.change : Literals.setup,
+                    action: onArtistSetting
+                )
+            }
+
+            if store.state.hasArtistData {
+                artistCards
+            } else {
+                placeholderText(Literals.artistPlaceholder)
+            }
+        }
+    }
+
+    func placeholderText(_ text: String) -> some View {
+        Text(text)
+            .notosans(.body2Medium)
+            .foregroundStyle(Color.livithColor(.black50))
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+    }
+
+    var genreCards: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(store.state.genres, id: \.self) { genre in
+                    PreferenceCard(title: genre)
+                }
+            }
+        }
+    }
+
+    var artistCards: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(store.state.artists, id: \.self) { artist in
+                    PreferenceCard(title: artist)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - PreferenceCard
+
+private struct PreferenceCard: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .notosans(.body2Semibold)
+            .foregroundStyle(Color.livithColor(.white100))
+            .frame(width: 108, height: 108)
+            .background(Color.livithColor(.black80))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -236,83 +271,44 @@ private extension UserView {
             set: { if !$0 { overlayType = .none } }
         )
     }
-}
-
-// MARK: - Helper Method
-
-private extension UserView {
-    func showEditView() {
-        path.append(Path.nicknameUpdate)
-    }
 
     func showFeedbackForm() {
         overlayType = .feedbackForm
     }
 
-    func showUpdateNote() {
-        overlayType = .updateNote
-    }
-
-    func showTerms() {
-        overlayType = .terms
-    }
-
-    func logout() {
-        overlayType = .logout
-    }
-
-    func performLogout() {
-        logoutStore.send(.logout)
-    }
-
-    func deleteAccount() {
-        path.append(Path.deleteUser)
-    }
-
-    func handleLogoutResult(_ result: LogoutResult) {
-        switch result {
-        case .idle:
-            break
-        case .success:
-            NotificationCenter.default.post(name: .reloginRequired, object: nil)
-            logoutToastType = .success
-            logoutToastMessage = Literals.logoutSuccessMessage
-            showLogoutToast = true
-        case .failure(let message):
-            logoutToastType = .failure
-            logoutToastMessage = message
-            showLogoutToast = true
-        }
+    func showNicknameSuccess() {
+        showNicknameSuccessToast = true
     }
 }
 
 // MARK: - Constants
 
 private extension UserView {
-    enum Path: Hashable {
-        case nicknameUpdate
-        case deleteUser
-    }
-
     enum Constant {
-        static let versionString: String = "2.0.0"
-        static let updateNoteURL = URL(string: "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0")!
-        static let termsURL = URL(string: "https://youz2me.notion.site/Livith-v-25-11-18-1d402dd0e5fc800dab7fc177f325eade")!
         static let feedbackFormURL = URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSe-d5MhQrwsRRrk9isYiYVw1afI7a60Xm0IHbxmmAHe8AUiMA/viewform")!
     }
 
     enum Literals {
         static let titleFormat = "%@님, 반가워요!\n공연 준비 시작해볼까요?"
         static let editNickname = "닉네임 수정"
-        static let versionInfo = "버전정보"
-        static let updateNote = "업데이트 노트"
-        static let terms = "이용약관"
-        static let logout = "로그아웃"
-        static let deleteAccount = "회원탈퇴"
         static let toastSuccess = "닉네임이 수정되었어요"
-        static let logoutAlertMessage = "정말 로그아웃 하시겠어요?"
-        static let logoutAlertCancel = "취소할래요"
-        static let logoutAlertConfirm = "로그아웃 할래요"
-        static let logoutSuccessMessage = "로그아웃이 완료되었어요"
+        static let preferredGenre = "선호 장르"
+        static let preferredArtist = "선호 아티스트"
+        static let setup = "설정하기"
+        static let change = "변경하기"
+        static let genrePlaceholder = "선호 장르를 선택하면\n기반으로 맞춤 콘서트를 알려드려요"
+        static let artistPlaceholder = "선호 아티스트를 선택하면\n기반으로 맞춤 콘서트를 알려드려요"
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    UserView(
+        isTabBarHidden: .constant(false),
+        onSetting: {},
+        onNicknameEdit: {},
+        onGenreSetting: {},
+        onArtistSetting: {}
+    )
 }
