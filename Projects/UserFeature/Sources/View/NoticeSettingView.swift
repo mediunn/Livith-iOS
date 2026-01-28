@@ -204,10 +204,9 @@ private extension NoticeSettingView {
 
 private extension NoticeSettingView {
     func checkNotificationPermission() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            DispatchQueue.main.async {
-                isDeviceNotificationEnabled = settings.authorizationStatus == .authorized
-            }
+        Task { @MainActor in
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+            isDeviceNotificationEnabled = settings.authorizationStatus == .authorized
         }
     }
 
