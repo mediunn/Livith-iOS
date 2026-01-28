@@ -10,6 +10,7 @@ import SwiftUI
 
 import ConcertFeature
 import Coordinator
+import UserFeature
 
 final class HomeCoordinator: Coordinator {
     typealias R = HomeRoute
@@ -52,7 +53,15 @@ final class HomeCoordinator: Coordinator {
             return UIHostingController(
                 rootView: NoticeView(
                     onBack: { [weak self] in self?.pop() },
-                    onSettingTap: { /* TODO: 알림 설정 화면 */ }
+                    onSettingTap: { [weak self] in self?.push(to: .noticeSetting) }
+                )
+                .environment(\.homeCoordinator, self)
+            )
+
+        case .noticeSetting:
+            return UIHostingController(
+                rootView: NoticeSettingView(
+                    onBack: { [weak self] in self?.pop() }
                 )
                 .environment(\.homeCoordinator, self)
             )
