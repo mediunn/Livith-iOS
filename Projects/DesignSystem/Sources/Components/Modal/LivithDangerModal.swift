@@ -125,6 +125,7 @@ private extension LivithDangerModal {
             Text(message)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color(hex: "363636"))
+                .multilineTextAlignment(.center)
         }
     }
 }

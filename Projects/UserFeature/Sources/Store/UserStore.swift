@@ -13,6 +13,11 @@ import Domain
 
 struct UserState {
     var nickname: String = ""
+    var genres: [String] = []
+    var artists: [String] = []
+
+    var hasGenreData: Bool { !genres.isEmpty }
+    var hasArtistData: Bool { !artists.isEmpty }
 }
 
 enum UserIntent {
