@@ -14,6 +14,7 @@ public extension Image {
         case instagram = "image_instagram"
         case livithLogo = "image_livith_logo"
         case livithEmpty = "image_livith_empty"
+        case notice = "image_notice"
         case splash = "image_splash"
         case feedback = "btn_feedback"
         case polygon = "image_polygon"
