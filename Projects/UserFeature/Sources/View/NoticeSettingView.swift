@@ -25,6 +25,8 @@ public struct NoticeSettingView: View {
     @State private var favoriteArtistConcert: Bool = true
     @State private var preferenceBasedConcert: Bool = true
     @State private var noticeModalType: LivithModalType? = nil
+    
+    @State private var showPreferenceConfirmModal: Bool = false
 
     private let onBack: () -> Void
 
@@ -81,6 +83,11 @@ public struct NoticeSettingView: View {
                 message: noticeModalMessage(action: action)
             )
         }
+        .onChange(of: preferenceBasedConcert) { _, newValue in
+            if !newValue {
+                showPreferenceConfirmModal = true
+            }
+        }
         .crossDissolve(isPresented: Binding(
             get: { noticeModalType != nil },
             set: { if !$0 { noticeModalType = nil } }
@@ -91,6 +98,20 @@ public struct NoticeSettingView: View {
                     onConfirm: { noticeModalType = nil }
                 )
             }
+        }
+        .crossDissolve(isPresented: $showPreferenceConfirmModal) {
+            LivithDangerModal(
+                message: "취향 기반 콘서트 알림을 끄시나요?\n알림으로 맞춤 소식을 받아볼 수 있어요",
+                confirmTitle: "해제할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: {
+                    showPreferenceConfirmModal = false
+                }),
+                onCancel: {
+                    preferenceBasedConcert = true
+                    showPreferenceConfirmModal = false
+                }
+            )
         }
     }
 }
