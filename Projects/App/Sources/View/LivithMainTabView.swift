@@ -54,12 +54,12 @@ struct LivithMainTabView: View {
                 }
                 .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
             
-            UserView(isTabBarHidden: $isTabBarHidden)
-            .tag(Tab.my)
-            .tabItem {
-                makeTabItem(.my)
-            }
-            .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
+            UserContentView(isTabBarHidden: $isTabBarHidden)
+                .tag(Tab.my)
+                .tabItem {
+                    makeTabItem(.my)
+                }
+                .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         }
         .preferredColorScheme(.dark)
         .onReceive(NotificationCenter.default.publisher(for: .openConcertDetail)) { notification in
