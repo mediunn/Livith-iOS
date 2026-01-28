@@ -23,6 +23,9 @@ public enum DateFormatType: String {
     /// 점 구분 날짜: "2024.03.15"
     case dotDate = "yyyy.MM.dd"
 
+    /// 점 구분 날짜+시간: "2024.03.15 14:30"
+    case dotDateTime = "yyyy.MM.dd HH:mm"
+
     /// 짧은 날짜: "03.15"
     case shortDate = "MM.dd"
 
@@ -52,6 +55,7 @@ extension DateFormatType {
         case .iso8601: return Self._iso8601
         case .dashDate: return Self._dashDate
         case .dotDate: return Self._dotDate
+        case .dotDateTime: return Self._dotDateTime
         case .shortDate: return Self._shortDate
         case .koreanDateTime: return Self._koreanDateTime
         case .koreanDateOnly: return Self._koreanDateOnly
@@ -63,7 +67,7 @@ extension DateFormatType {
 
     var isNetworkFormat: Bool {
         switch self {
-        case .iso8601, .dashDate, .dotDate, .shortDate:
+        case .iso8601, .dashDate, .dotDate, .dotDateTime, .shortDate:
             return true
         case .koreanDateTime, .koreanDateOnly, .koreanFullDate, .timeOnly, .ampm:
             return false
@@ -96,6 +100,14 @@ private extension DateFormatType {
     static let _dotDate: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy.MM.dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        return formatter
+    }()
+
+    static let _dotDateTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd HH:mm"
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
         return formatter
