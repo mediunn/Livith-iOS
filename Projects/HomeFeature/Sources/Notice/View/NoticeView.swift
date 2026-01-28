@@ -47,30 +47,14 @@ public struct NoticeView: View {
 
 private extension NoticeView {
     var navigationBar: some View {
-        HStack(spacing: 4) {
-            Button(action: onBack) {
-                Image.livithIcon(.backLineDefault)
-                    .resizable()
-                    .frame(width: 36, height: 36)
-            }
-            .padding(.leading, 16)
-
-            Text(Literals.title)
-                .notosans(.body1Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .lineLimit(1)
-
-            Spacer()
-
-            LivithTextButton(
-                Literals.settingButton,
-                color: .livithColor(.white100),
-                action: onSettingTap
+        LivithNavigationView(
+            type: .back(
+                title: Literals.title,
+                onBack: onBack,
+                rightButtonTitle: Literals.settingButton,
+                onRightButtonTap: onSettingTap
             )
-            .padding(.trailing, 16)
-        }
-        .frame(height: 66)
-        .padding(.top, 12)
+        )
     }
 
     var infoText: some View {
