@@ -220,7 +220,7 @@ private extension UserView {
     func placeholderText(_ text: String) -> some View {
         Text(text)
             .notosans(.body2Medium)
-            .foregroundStyle(Color.livithColor(.black50))
+            .foregroundStyle(Color.livithColor(.black80))
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
