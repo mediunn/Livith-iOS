@@ -1,5 +1,5 @@
 //
-//  Genre.swift
+//  PreferredGenre.swift
 //  Domain
 //
 //  Created by 김진웅 on 29/1/26.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Genre: Hashable, Identifiable {
+public struct PreferredGenre: Hashable, Identifiable {
     public let id: Int
     public let name: String
     public let imageURL: URL
@@ -20,7 +20,7 @@ public struct Genre: Hashable, Identifiable {
     }
 }
 
-public extension Genre {
+public extension PreferredGenre {
     var displayName: String {
         switch name {
         case "JPOP": return "J-POP"
