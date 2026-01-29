@@ -103,6 +103,47 @@ public extension Font {
             }
         }
     }
+
+    // MARK: - Pretendard
+
+    /// `PretendardWeight`는 Pretendard 폰트의 굵기를 정의하는 열거형입니다.
+    enum PretendardWeight: String, CaseIterable {
+        case thin = "Pretendard-Thin"
+        case extraLight = "Pretendard-ExtraLight"
+        case light = "Pretendard-Light"
+        case regular = "Pretendard-Regular"
+        case medium = "Pretendard-Medium"
+        case semiBold = "Pretendard-SemiBold"
+        case bold = "Pretendard-Bold"
+        case extraBold = "Pretendard-ExtraBold"
+        case black = "Pretendard-Black"
+    }
+
+    /// `Pretendard` 폰트를 반환하는 정적 메서드.
+    ///
+    /// 사용 예시:
+    /// ```swift
+    /// Text("Hello")
+    ///     .font(.pretendard(.semiBold, 18))
+    /// ```
+    static func pretendard(_ weight: PretendardWeight, _ size: CGFloat) -> Font {
+        return .custom(weight.rawValue, size: size)
+    }
+
+    static func registerPretendardFont() {
+        let bundle = Bundle.livithDesignSystem
+
+        for weight in PretendardWeight.allCases {
+            guard let url = bundle.url(forResource: weight.rawValue, withExtension: "otf") else {
+                print("[LivithDesignSystem] 폰트 파일을 찾을 수 없습니다: \(weight.rawValue).otf")
+                continue
+            }
+
+            if !CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) {
+                print("[LivithDesignSystem] 폰트 등록 실패: \(weight.rawValue)")
+            }
+        }
+    }
 }
 
 // MARK: - NotosansModifier
@@ -157,5 +198,40 @@ public extension View {
     /// ```
     func notosans(_ style: Font.Notosans) -> some View {
         modifier(NotosansModifier(style: style))
+    }
+
+    /// Pretendard 폰트를 적용하는 View Modifier
+    ///
+    /// 사용 예시:
+    /// ```swift
+    /// Text("Hello")
+    ///     .pretendard(.semiBold, 18)
+    /// ```
+    func pretendard(_ weight: Font.PretendardWeight, _ size: CGFloat) -> some View {
+        modifier(PretendardModifier(weight: weight, size: size))
+    }
+}
+
+// MARK: - PretendardModifier
+
+public struct PretendardModifier: ViewModifier {
+    let weight: Font.PretendardWeight
+    let size: CGFloat
+
+    private static var isFontRegistered = false
+
+    init(weight: Font.PretendardWeight, size: CGFloat) {
+        self.weight = weight
+        self.size = size
+
+        if !Self.isFontRegistered {
+            Font.registerPretendardFont()
+            Self.isFontRegistered = true
+        }
+    }
+
+    public func body(content: Content) -> some View {
+        content
+            .font(.pretendard(weight, size))
     }
 }
