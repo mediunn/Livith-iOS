@@ -17,7 +17,6 @@ struct LivithWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LivithWidgetProvider()) { entry in
             LivithWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("관심 콘서트")
         .description("관심 콘서트의 D-day를 확인하세요")
@@ -33,7 +32,6 @@ struct LivithLargeWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LargeWidgetProvider()) { entry in
             LargeWidgetView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("관심 콘서트 (일정 포함)")
         .description("관심 콘서트의 D-day와 일정을 확인하세요")
