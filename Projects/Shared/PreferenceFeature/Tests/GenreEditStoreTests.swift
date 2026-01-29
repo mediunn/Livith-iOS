@@ -131,4 +131,41 @@ struct GenreEditStoreTests {
         #expect(sut.state.selectedGenreList.contains { $0.id == 1 })
         #expect(sut.state.selectedGenreList.contains { $0.id == 3 })
     }
+    
+    @Test("edit 모드에서 변경 실패 시 isUpdateFailureToastPresented가 true여야 한다")
+    func testUpdateFailureShowsToastInEditMode() async {
+        // Given
+        let sut = GenreEditStore(mode: .edit)
+        
+        // When
+        await sut.send(.submitFailed)
+        
+        // Then
+        #expect(sut.state.isUpdateFailureToastPresented)
+    }
+    
+    @Test("onboarding 모드에서는 submitFailed가 토스트에 영향을 주지 않아야 한다")
+    func testUpdateFailureDoesNotAffectOnboardingMode() async {
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
+        
+        // When
+        await sut.send(.submitFailed)
+        
+        // Then
+        #expect(!sut.state.isUpdateFailureToastPresented)
+    }
+    
+    @Test("resetUpdateFailureToast intent는 isUpdateFailureToastPresented를 false로 만든다")
+    func testResetUpdateFailureToast() async {
+        // Given
+        let sut = GenreEditStore(mode: .edit)
+        await sut.send(.submitFailed)
+        
+        // When
+        await sut.send(.resetUpdateFailureToast)
+        
+        // Then
+        #expect(!sut.state.isUpdateFailureToastPresented)
+    }
 }

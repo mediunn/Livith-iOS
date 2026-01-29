@@ -90,6 +90,11 @@ struct GenreEditView: View {
             type: .failure,
             message: Literals.exceedMaxSelectionToastMessage
         )
+        .livithToast(
+            isPresented: updateFailureToastBinding,
+            type: .failure,
+            message: Literals.updateFailureToastMessage
+        )
     }
 }
 
@@ -140,6 +145,16 @@ private extension GenreEditView {
         )
     }
     
+    var updateFailureToastBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isUpdateFailureToastPresented },
+            set: { isPresented in
+                guard !isPresented else { return }
+                store.send(.resetUpdateFailureToast)
+            }
+        )
+    }
+    
     var selectedCountText: String {
         "\(store.state.selectedGenreList.count)/\(Constants.maxSelectionCount)"
     }
@@ -164,6 +179,7 @@ private extension GenreEditView {
     enum Literals {
         static let selectionGuideText = "선호하는 장르를\n3개 선택해 주세요"
         static let exceedMaxSelectionToastMessage = "해제 후 선택해 주세요"
+        static let updateFailureToastMessage = "장르 변경에 실패했어요"
     }
 }
 

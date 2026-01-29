@@ -13,6 +13,8 @@ import Domain
 enum GenreEditIntent {
     case toggle(id: Int)
     case resetMaxSelectionToast
+    case submitFailed
+    case resetUpdateFailureToast
 }
 
 struct GenreEditState: Equatable {
@@ -27,6 +29,7 @@ struct GenreEditState: Equatable {
     ]
     var selectedGenreList: [Genre] = []
     var isMaxSelectionToastPresented: Bool = false
+    var isUpdateFailureToastPresented: Bool = false
 
     var isSubmitButtonEnabled: Bool { !selectedGenreList.isEmpty }
 }
@@ -57,6 +60,13 @@ final class GenreEditStore: ObservableObject {
 
         case .resetMaxSelectionToast:
             state.isMaxSelectionToastPresented = false
+            
+        case .submitFailed:
+            guard state.mode == .edit else { return }
+            state.isUpdateFailureToastPresented = true
+            
+        case .resetUpdateFailureToast:
+            state.isUpdateFailureToastPresented = false
         }
     }
 }

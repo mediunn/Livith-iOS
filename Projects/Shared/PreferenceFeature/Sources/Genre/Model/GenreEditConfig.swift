@@ -38,7 +38,7 @@ enum GenreEditConfig {
         case .onboarding, .home:
             return "다음"
         case .edit:
-            return "장르 변경하기"
+            return "변경하기"
         }
     }
 }
