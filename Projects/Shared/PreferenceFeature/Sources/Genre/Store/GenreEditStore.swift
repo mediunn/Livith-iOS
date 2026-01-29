@@ -18,7 +18,7 @@ enum GenreEditIntent {
 }
 
 struct GenreEditState: Equatable {
-    let mode: GenreEditConfig
+    let config: GenreEditConfig
     var genreList: [Genre] = [
         Genre(id: 1, name: "JPOP", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!),
         Genre(id: 2, name: "ROCK_METAL", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!),
@@ -38,8 +38,8 @@ final class GenreEditStore: ObservableObject {
     private static let maxSelectionCount = 3
     @Published private(set) var state: GenreEditState
     
-    init(mode: GenreEditConfig) {
-        self.state = GenreEditState(mode: mode)
+    init(config: GenreEditConfig) {
+        self.state = GenreEditState(config: config)
     }
     
     @MainActor
@@ -62,7 +62,7 @@ final class GenreEditStore: ObservableObject {
             state.isMaxSelectionToastPresented = false
             
         case .submitFailed:
-            guard state.mode == .edit else { return }
+            guard state.config == .edit else { return }
             state.isUpdateFailureToastPresented = true
             
         case .resetUpdateFailureToast:

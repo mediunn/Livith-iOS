@@ -27,7 +27,7 @@ struct GenreEditView: View {
         onBack: @escaping () -> Void,
         onSubmit: @escaping () -> Void
     ) {
-        self._store = StateObject(wrappedValue: GenreEditStore(mode: mode))
+        self._store = StateObject(wrappedValue: GenreEditStore(config: mode))
         self.onBack = onBack
         self.onSubmit = onSubmit
     }
@@ -38,30 +38,19 @@ struct GenreEditView: View {
         VStack(spacing: .zero) {
             LivithNavigationView(
                 type: .back(
-                    title: store.state.mode.title,
+                    title: store.state.config.navigationTitle,
                     onBack: onBack
                 )
             )
             
             VStack(spacing: .zero) {
-                if let indicator = store.state.mode.stepIndicator {
+                if let indicator = store.state.config.stepIndicator {
                     StepIndicatorView(currentStep: indicator.current, totalSteps: indicator.total)
                         .padding(.top, Constants.indicatorTopPadding)
                 }
                 
-                HStack(alignment: .top) {
-                    Text(Literals.selectionGuideText)
-                        .notosans(.body1Semibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                        .multilineTextAlignment(.leading)
-                    
-                    Spacer()
-                    
-                    Text(selectedCountText)
-                        .notosans(.body4Medium)
-                        .foregroundStyle(Color.livithColor(.black50))
-                }
-                .padding(.top, Constants.titleTopPadding)
+                titleSection
+                    .padding(.top, Constants.titleTopPadding)
                 
                 ScrollView {
                     genreGrid
@@ -77,7 +66,7 @@ struct GenreEditView: View {
                         .padding(.bottom, Constants.chipBottomPadding)
                 }
                 
-                LivithButton(store.state.mode.submitTitle, action: onSubmit)
+                LivithButton(store.state.config.submitTitle, action: onSubmit)
                     .disabled(!store.state.isSubmitButtonEnabled)
                     .padding(.bottom, Constants.bottomPadding)
             }
@@ -101,6 +90,29 @@ struct GenreEditView: View {
 // MARK: - Subviews
 
 private extension GenreEditView {
+    var titleSection: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(store.state.config.title)
+                    .notosans(.body1Semibold)
+                    .foregroundStyle(Color.livithColor(.white100))
+                    .multilineTextAlignment(.leading)
+                
+                if let subtitle = store.state.config.subtitle {
+                    Text(subtitle)
+                        .notosans(.body4Semibold)
+                        .foregroundStyle(.livithColor(.black50))
+                }
+            }
+            
+            Spacer()
+            
+            Text(selectedCountText)
+                .notosans(.body4Medium)
+                .foregroundStyle(Color.livithColor(.black50))
+        }
+    }
+    
     var genreGrid: some View {
         LazyVGrid(
             columns: Array(repeating: GridItem(.flexible(), spacing: Constants.gridSpacing), count: Constants.gridColumns),
