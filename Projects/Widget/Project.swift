@@ -25,6 +25,7 @@ let project = Project.make(
             entitlements: .file(path: "Resources/LivithWidget.entitlements"),
             dependencies: [
                 .designSystem(.designSystem),
+                .domain(.domain),
                 .core(.livithNetwork),
                 .core(.livithFoundation),
                 .core(.persistence),
