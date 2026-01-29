@@ -11,40 +11,40 @@ import SwiftUI
 import Domain
 import LivithDesignSystem
 
-struct GenreEditView: View {
+public struct GenreEditView: View {
     
     // MARK: - Properties
     
-    @StateObject private var store: GenreEditStore
+    @StateObject private var selectionStore: GenreSelectionStore
     
-    @Environment(\.dismiss) private var dismiss
-    
+    private let config: GenreEditConfig
     private let onBack: () -> Void
-    private let onSubmit: () -> Void
+    private let onSubmit: ([PreferredGenre]) -> Void
     
-    init(
+    public init(
         mode: GenreEditConfig,
         onBack: @escaping () -> Void,
-        onSubmit: @escaping () -> Void
+        onSubmit: @escaping ([PreferredGenre]) -> Void
     ) {
-        self._store = StateObject(wrappedValue: GenreEditStore(config: mode))
+        self._selectionStore = StateObject(wrappedValue: GenreSelectionStore())
+        self.config = mode
         self.onBack = onBack
         self.onSubmit = onSubmit
     }
     
     // MARK: - Body
     
-    var body: some View {
+    public var body: some View {
         VStack(spacing: .zero) {
             LivithNavigationView(
                 type: .back(
-                    title: store.state.config.navigationTitle,
+                    title: config.navigationTitle,
                     onBack: onBack
                 )
             )
             
             VStack(spacing: .zero) {
-                if let indicator = store.state.config.stepIndicator {
+                if let indicator = config.stepIndicator {
                     StepIndicatorView(currentStep: indicator.current, totalSteps: indicator.total)
                         .padding(.top, Constants.indicatorTopPadding)
                 }
@@ -52,38 +52,20 @@ struct GenreEditView: View {
                 titleSection
                     .padding(.top, Constants.titleTopPadding)
                 
-                ScrollView {
-                    genreGrid
-                        .padding(.top, Constants.sectionSpacing)
-                }
-                .scrollIndicators(.hidden)
+                GenreSelectionView(store: selectionStore)
                 
                 Spacer()
                 
-                if !store.state.selectedGenreList.isEmpty {
-                    selectedGenreChips
-                        .padding(.top, Constants.sectionSpacing)
-                        .padding(.bottom, Constants.chipBottomPadding)
+                LivithButton(config.submitTitle) {
+                    onSubmit(selectionStore.state.selectedGenreList)
                 }
-                
-                LivithButton(store.state.config.submitTitle, action: onSubmit)
-                    .disabled(!store.state.isSubmitButtonEnabled)
-                    .padding(.bottom, Constants.bottomPadding)
+                .disabled(selectionStore.state.selectedGenreList.isEmpty)
+                .padding(.bottom, Constants.bottomPadding)
             }
             .padding(.horizontal, Constants.horizontalPadding)
         }
         .background(Color.livithColor(.black100))
         .navigationBarHidden(true)
-        .livithToast(
-            isPresented: exceedMaxSelectionToastBinding,
-            type: .failure,
-            message: Literals.exceedMaxSelectionToastMessage
-        )
-        .livithToast(
-            isPresented: updateFailureToastBinding,
-            type: .failure,
-            message: Literals.updateFailureToastMessage
-        )
     }
 }
 
@@ -93,12 +75,12 @@ private extension GenreEditView {
     var titleSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(store.state.config.title)
+                Text(config.title)
                     .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .multilineTextAlignment(.leading)
                 
-                if let subtitle = store.state.config.subtitle {
+                if let subtitle = config.subtitle {
                     Text(subtitle)
                         .notosans(.body4Semibold)
                         .foregroundStyle(.livithColor(.black50))
@@ -112,63 +94,13 @@ private extension GenreEditView {
                 .foregroundStyle(Color.livithColor(.black50))
         }
     }
-    
-    var genreGrid: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: Constants.gridSpacing), count: Constants.gridColumns),
-            spacing: Constants.gridSpacing
-        ) {
-            ForEach(store.state.genreList) { genre in
-                PreferenceCard(
-                    title: genre.displayName,
-                    imageURL: genre.imageURL,
-                    isSelected: store.state.selectedGenreList.contains(where: { $0.id == genre.id }),
-                    action: {
-                        store.send(.toggle(id: genre.id))
-                    }
-                )
-            }
-        }
-    }
-    
-    var selectedGenreChips: some View {
-        HStack(spacing: Constants.chipSpacing) {
-            ForEach(store.state.selectedGenreList) { genre in
-                RemovableChip(genre.displayName) {
-                    store.send(.toggle(id: genre.id))
-                }
-            }
-            
-            Spacer()
-        }
-    }
 }
 
 // MARK: - Helpers
 
 private extension GenreEditView {
-    var exceedMaxSelectionToastBinding: Binding<Bool> {
-        Binding(
-            get: { store.state.isMaxSelectionToastPresented },
-            set: { isPresented in
-                guard !isPresented else { return }
-                store.send(.resetMaxSelectionToast)
-            }
-        )
-    }
-    
-    var updateFailureToastBinding: Binding<Bool> {
-        Binding(
-            get: { store.state.isUpdateFailureToastPresented },
-            set: { isPresented in
-                guard !isPresented else { return }
-                store.send(.resetUpdateFailureToast)
-            }
-        )
-    }
-    
     var selectedCountText: String {
-        "\(store.state.selectedGenreList.count)/\(Constants.maxSelectionCount)"
+        "\(selectionStore.state.selectedGenreList.count)/\(PreferenceSelectionRule.maxCount)"
     }
 }
 
@@ -176,22 +108,10 @@ private extension GenreEditView {
 
 private extension GenreEditView {
     enum Constants {
-        static let maxSelectionCount = 3
-        static let gridColumns = 3
-        static let gridSpacing: CGFloat = 12
         static let horizontalPadding: CGFloat = 16
-        static let sectionSpacing: CGFloat = 30
         static let titleTopPadding: CGFloat = 30
         static let indicatorTopPadding: CGFloat = 10
-        static let chipSpacing: CGFloat = 10
-        static let chipBottomPadding: CGFloat = 20
         static let bottomPadding: CGFloat = 16
-    }
-    
-    enum Literals {
-        static let selectionGuideText = "선호하는 장르를\n3개 선택해 주세요"
-        static let exceedMaxSelectionToastMessage = "해제 후 선택해 주세요"
-        static let updateFailureToastMessage = "장르 변경에 실패했어요"
     }
 }
 
@@ -199,24 +119,30 @@ private extension GenreEditView {
 
 #Preview {
     GenreEditView(
-        mode: .onboarding,
+        mode: .onboarding(),
         onBack: { print("뒤로가기 눌림") },
-        onSubmit: { print("다음이 눌림") }
+        onSubmit: { selectedGenres in
+            print("다음이 눌림: \(selectedGenres.map(\.displayName))")
+        }
     )
 }
 
 #Preview {
     GenreEditView(
-        mode: .home,
+        mode: .home(),
         onBack: { print("뒤로가기 눌림") },
-        onSubmit: { print("다음이 눌림") }
+        onSubmit: { selectedGenres in
+            print("다음이 눌림: \(selectedGenres.map(\.displayName))")
+        }
     )
 }
 
 #Preview {
     GenreEditView(
-        mode: .edit,
+        mode: .edit(),
         onBack: { print("뒤로가기 눌림") },
-        onSubmit: { print("다음이 눌림") }
+        onSubmit: { selectedGenres in
+            print("다음이 눌림: \(selectedGenres.map(\.displayName))")
+        }
     )
 }
