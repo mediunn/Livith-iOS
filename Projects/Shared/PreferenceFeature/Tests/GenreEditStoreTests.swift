@@ -18,56 +18,117 @@ struct GenreEditStoreTests {
     
     @Test("초기 상태에서 선택된 장르가 없어야 한다")
     func testInitialState() {
-        let store = GenreEditStore()
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
         
-        #expect(store.state.selectedGenreList.isEmpty)
+        // Then
+        #expect(sut.state.selectedGenreList.isEmpty)
     }
     
     @Test("장르를 토글하면 선택된 목록에 추가되어야 한다")
     func testToggleAddsGenreWhenNotSelected() async {
-        let store = GenreEditStore()
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
         
-        await store.send(.toggle(id: 1))
+        // When
+        await sut.send(.toggle(id: 1))
         
-        #expect(store.state.selectedGenreList.count == 1)
-        #expect(store.state.selectedGenreList.first?.id == 1)
+        // Then
+        #expect(sut.state.selectedGenreList.count == 1)
+        #expect(sut.state.selectedGenreList.first?.id == 1)
     }
     
     @Test("이미 선택된 장르를 토글하면 목록에서 제거되어야 한다")
     func testToggleRemovesGenreWhenAlreadySelected() async {
-        let store = GenreEditStore()
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
+        await sut.send(.toggle(id: 1))
         
-        await store.send(.toggle(id: 1))
-        await store.send(.toggle(id: 1))
+        // When
+        await sut.send(.toggle(id: 1))
         
-        #expect(store.state.selectedGenreList.isEmpty)
+        // Then
+        #expect(sut.state.selectedGenreList.isEmpty)
     }
     
     @Test("3개 선택된 상태에서 새로운 장르를 토글해도 추가되지 않아야 한다")
     func testToggleDoesNotAddWhenMaxSelectionReached() async {
-        let store = GenreEditStore()
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
+        await sut.send(.toggle(id: 1))
+        await sut.send(.toggle(id: 2))
+        await sut.send(.toggle(id: 3))
         
-        await store.send(.toggle(id: 1))
-        await store.send(.toggle(id: 2))
-        await store.send(.toggle(id: 3))
-        await store.send(.toggle(id: 4))
+        // When
+        await sut.send(.toggle(id: 4))
         
-        #expect(store.state.selectedGenreList.count == 3)
-        #expect(!store.state.selectedGenreList.contains { $0.id == 4 })
+        // Then
+        #expect(sut.state.selectedGenreList.count == 3)
+        #expect(!sut.state.selectedGenreList.contains { $0.id == 4 })
+    }
+
+    @Test("최대 선택 수를 초과하려고 하면 isMaxSelectionToastPresented가 true여야 한다")
+    func testExceedMaxSelectionFlagWhenAddingOverLimit() async {
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
+        await sut.send(.toggle(id: 1))
+        await sut.send(.toggle(id: 2))
+        await sut.send(.toggle(id: 3))
+
+        // When
+        await sut.send(.toggle(id: 4))
+
+        // Then
+        #expect(sut.state.isMaxSelectionToastPresented)
+    }
+
+    @Test("선택이 유효하게 변경되면 isMaxSelectionToastPresented는 false여야 한다")
+    func testExceedMaxSelectionResetOnValidToggle() async {
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
+        await sut.send(.toggle(id: 1))
+        await sut.send(.toggle(id: 2))
+        await sut.send(.toggle(id: 3))
+        await sut.send(.toggle(id: 4))
+
+        // When
+        await sut.send(.toggle(id: 3))
+
+        // Then
+        #expect(!sut.state.isMaxSelectionToastPresented)
+    }
+
+    @Test("resetMaxSelectionToast intent는 isMaxSelectionToastPresented를 false로 만든다")
+    func testResetExceedMaxSelectionIntent() async {
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
+        await sut.send(.toggle(id: 1))
+        await sut.send(.toggle(id: 2))
+        await sut.send(.toggle(id: 3))
+        await sut.send(.toggle(id: 4))
+
+        // When
+        await sut.send(.resetMaxSelectionToast)
+
+        // Then
+        #expect(!sut.state.isMaxSelectionToastPresented)
     }
     
     @Test("3개 선택된 상태에서 이미 선택된 장르를 토글하면 제거되어야 한다")
     func testToggleRemovesGenreEvenWhenMaxSelectionReached() async {
-        let store = GenreEditStore()
+        // Given
+        let sut = GenreEditStore(mode: .onboarding)
+        await sut.send(.toggle(id: 1))
+        await sut.send(.toggle(id: 2))
+        await sut.send(.toggle(id: 3))
         
-        await store.send(.toggle(id: 1))
-        await store.send(.toggle(id: 2))
-        await store.send(.toggle(id: 3))
-        await store.send(.toggle(id: 2))
+        // When
+        await sut.send(.toggle(id: 2))
         
-        #expect(store.state.selectedGenreList.count == 2)
-        #expect(!store.state.selectedGenreList.contains { $0.id == 2 })
-        #expect(store.state.selectedGenreList.contains { $0.id == 1 })
-        #expect(store.state.selectedGenreList.contains { $0.id == 3 })
+        // Then
+        #expect(sut.state.selectedGenreList.count == 2)
+        #expect(!sut.state.selectedGenreList.contains { $0.id == 2 })
+        #expect(sut.state.selectedGenreList.contains { $0.id == 1 })
+        #expect(sut.state.selectedGenreList.contains { $0.id == 3 })
     }
 }
