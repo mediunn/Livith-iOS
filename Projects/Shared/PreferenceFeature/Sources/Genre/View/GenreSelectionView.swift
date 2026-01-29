@@ -19,7 +19,7 @@ public struct GenreSelectionView: View {
     }
     
     public var body: some View {
-        VStack(spacing: .zero) {
+        ZStack(alignment: .bottom) {
             if store.state.isLoading {
                 loadingIndicator
             } else {
@@ -34,6 +34,7 @@ public struct GenreSelectionView: View {
                     selectedGenreChips
                         .padding(.top, Constants.sectionTopSpacing)
                         .padding(.bottom, Constants.chipBottomPadding)
+                        .background(BackgroundGradientView())
                 }
             }
         }
