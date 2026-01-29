@@ -25,13 +25,14 @@ public struct GenreSelectionView: View {
             } else {
                 ScrollView {
                     genreGrid
-                        .padding(.top, Constants.sectionSpacing)
+                        .padding(.top, Constants.sectionTopSpacing)
+                        .padding(.horizontal, Constants.sectionHorizontalSpacing)
                 }
                 .scrollIndicators(.hidden)
                 
                 if !store.state.selectedGenreList.isEmpty {
                     selectedGenreChips
-                        .padding(.top, Constants.sectionSpacing)
+                        .padding(.top, Constants.sectionTopSpacing)
                         .padding(.bottom, Constants.chipBottomPadding)
                 }
             }
@@ -112,7 +113,8 @@ private extension GenreSelectionView {
     enum Constants {
         static let gridColumns = 3
         static let gridSpacing: CGFloat = 12
-        static let sectionSpacing: CGFloat = 30
+        static let sectionTopSpacing: CGFloat = 30
+        static let sectionHorizontalSpacing: CGFloat = 2
         static let chipSpacing: CGFloat = 10
         static let chipBottomPadding: CGFloat = 20
     }
@@ -125,5 +127,5 @@ private extension GenreSelectionView {
 #Preview {
     GenreSelectionView(store: GenreSelectionStore())
         .frame(width: 375, height: 400)
-        .background(Color.livithColor(.black5))
+        .background(Color.livithColor(.black100))
 }
