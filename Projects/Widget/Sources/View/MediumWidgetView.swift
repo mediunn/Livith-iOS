@@ -55,6 +55,7 @@ private extension MediumWidgetView {
                         .pretendard(.semiBold, 14)
                         .foregroundStyle(Color.livithColor(.white100))
                         .lineLimit(2)
+                        .frame(height: 36, alignment: .top)
                         .padding(.bottom, 6)
                 }
 

@@ -43,9 +43,6 @@ private extension LargeWidgetView {
         VStack(spacing: 0) {
             concertInfoSection
 
-            Divider()
-                .background(Color.livithColor(.black80))
-
             scheduleSection
                 .padding(.top, 12)
 
@@ -62,26 +59,24 @@ private extension LargeWidgetView {
                     Text("| \(formattedDDay)")
                         .pretendard(.semiBold, 26)
                         .foregroundStyle(Color.livithColor(.white100))
+                        .padding(.bottom, 20)
                 }
-
-                Spacer()
 
                 if let concertTitle = entry.concertTitle {
                     Text(concertTitle)
                         .pretendard(.semiBold, 14)
                         .foregroundStyle(Color.livithColor(.white100))
                         .lineLimit(2)
+                        .frame(height: 36, alignment: .bottom)
+                        .padding(.bottom, 4)
                 }
-
-                Spacer()
-                    .frame(height: 8)
 
                 if let dateRange = entry.concertDateRange {
                     HStack(spacing: 6) {
                         Image.livithIcon(.calendarLine)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 16, height: 16)
+                            .frame(width: 20, height: 20)
                             .foregroundStyle(Color.livithColor(.black30))
                         Text(dateRange)
                             .pretendard(.regular, 12)
@@ -94,19 +89,17 @@ private extension LargeWidgetView {
                         Image.livithIcon(.locationLine)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 16, height: 16)
+                            .frame(width: 20, height: 20)
                             .foregroundStyle(Color.livithColor(.black30))
                         Text(venue)
                             .pretendard(.regular, 12)
                             .foregroundStyle(Color.livithColor(.black30))
                             .lineLimit(1)
                     }
-                    .padding(.top, 4)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.bottom, 12)
     }
 
     var posterImage: some View {
@@ -120,7 +113,7 @@ private extension LargeWidgetView {
                 Color.livithColor(.black90)
             }
         }
-        .frame(width: 110, height: 155)
+        .frame(width: 109, height: 145)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
