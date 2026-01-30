@@ -6,11 +6,12 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
+import UIKit
 import SwiftUI
 import WidgetKit
+
 import LivithDesignSystem
 import LivithFoundation
-import UIKit
 
 struct LargeWidgetView: View {
     let entry: LivithWidgetEntry
@@ -41,59 +42,71 @@ private extension LargeWidgetView {
     var contentView: some View {
         VStack(spacing: 0) {
             concertInfoSection
-                .padding(16)
-                .padding(.top, 16)
-                .background(
-                    Color.livithColor(.black90)
-                        .padding(-16)
-                )
 
-            VStack {
-                scheduleSection
-                Spacer()
-            }
-            .padding(16)
-            .padding(.top, 16)
+            Divider()
+                .background(Color.livithColor(.black80))
+
+            scheduleSection
+                .padding(.top, 12)
+
+            Spacer(minLength: 0)
         }
     }
 
     var concertInfoSection: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(spacing: 12) {
             posterImage
 
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Spacer()
-                    Image.livithImage(.livithLogo)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 12)
+                if let formattedDDay = entry.formattedDDay {
+                    Text("| \(formattedDDay)")
+                        .pretendard(.semiBold, 26)
+                        .foregroundStyle(Color.livithColor(.white100))
                 }
 
                 Spacer()
 
-                VStack(alignment: .leading, spacing: 4) {
-                    if let formattedDDay = entry.formattedDDay {
-                        Text(formattedDDay)
-                            .notosans(.headSemibold)
-                            .foregroundStyle(Color.livithColor(.black50))
-                    }
+                if let concertTitle = entry.concertTitle {
+                    Text(concertTitle)
+                        .pretendard(.semiBold, 14)
+                        .foregroundStyle(Color.livithColor(.white100))
+                        .lineLimit(2)
+                }
 
-                    if let title = entry.concertTitle {
-                        Text(title)
-                            .notosans(.body4Semibold)
-                            .foregroundStyle(Color.livithColor(.white100))
-                    }
+                Spacer()
+                    .frame(height: 8)
 
-                    if let artistName = entry.artistName {
-                        Text(artistName)
-                            .notosans(.caption2Regular)
+                if let dateRange = entry.concertDateRange {
+                    HStack(spacing: 6) {
+                        Image.livithIcon(.calendarLine)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                            .foregroundStyle(Color.livithColor(.black30))
+                        Text(dateRange)
+                            .pretendard(.regular, 12)
                             .foregroundStyle(Color.livithColor(.black30))
                     }
                 }
+
+                if let venue = entry.venue {
+                    HStack(spacing: 6) {
+                        Image.livithIcon(.locationLine)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                            .foregroundStyle(Color.livithColor(.black30))
+                        Text(venue)
+                            .pretendard(.regular, 12)
+                            .foregroundStyle(Color.livithColor(.black30))
+                            .lineLimit(1)
+                    }
+                    .padding(.top, 4)
+                }
             }
-            .frame(height: 147)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(.bottom, 12)
     }
 
     var posterImage: some View {
@@ -107,12 +120,12 @@ private extension LargeWidgetView {
                 Color.livithColor(.black90)
             }
         }
-        .frame(width: 104, height: 147)
+        .frame(width: 110, height: 155)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     var scheduleSection: some View {
-        VStack(spacing: .zero) {
+        VStack(spacing: 0) {
             ForEach(entry.schedules) { schedule in
                 LivithScheduleItem(
                     daysLeft: schedule.dDay,
