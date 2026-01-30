@@ -55,6 +55,8 @@ struct WidgetDataService {
                 concertTitle: concert.title,
                 dDay: dDay,
                 startDate: concert.startDate,
+                endDate: concert.endDate,
+                venue: concert.venue,
                 schedules: []
             )
         } catch {
@@ -81,6 +83,8 @@ struct WidgetDataService {
                 concertTitle: concert.title,
                 dDay: dDay,
                 startDate: concert.startDate,
+                endDate: concert.endDate,
+                venue: concert.venue,
                 schedules: schedules
             )
         } catch {
