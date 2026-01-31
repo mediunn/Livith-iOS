@@ -36,6 +36,14 @@ actor InterestConcertCache {
         else {
             return nil
         }
+
+        let stored: Concert? = try? userdefaultsStorage.fetch(for: .interestConcert)
+        if stored == nil {
+            cachedConcert = nil
+            self.timestamp = nil
+            return nil
+        }
+
         return cachedConcert
     }
 
