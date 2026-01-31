@@ -42,11 +42,19 @@ private extension LargeWidgetView {
     var contentView: some View {
         VStack(spacing: 0) {
             concertInfoSection
+                .padding(.bottom, 16)
 
-            scheduleSection
-                .padding(.top, 12)
+            VStack(spacing: 0) {
+                scheduleSection
+                    .padding(.top, 16)
+                    .padding(.horizontal, 16)
 
-            Spacer(minLength: 0)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.livithColor(.black90))
+            .padding(.horizontal, -16)
+            .padding(.bottom, -16)
         }
     }
 
@@ -124,7 +132,7 @@ private extension LargeWidgetView {
                     daysLeft: schedule.dDay,
                     title: schedule.category,
                     dateTime: formatScheduleDate(schedule.scheduledAt),
-                    isActive: schedule.dDay >= 0
+                    isActive: true
                 )
                 .frame(height: 48)
             }
