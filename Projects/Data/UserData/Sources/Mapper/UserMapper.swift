@@ -21,7 +21,7 @@ struct UserMapper {
             providerID: dto.providerID,
             email: dto.email,
             nickname: dto.nickname,
-            marketingConsent: dto.marketingConsent
+            authority: UserAuthority(deviceNotification: true, marketingConsent: dto.marketingConsent)
         )
     }
 
@@ -33,7 +33,7 @@ struct UserMapper {
             providerID: dto.providerID,
             email: dto.email,
             nickname: dto.nickname,
-            marketingConsent: dto.marketingConsent
+            authority: UserAuthority(deviceNotification: true, marketingConsent: dto.marketingConsent)
         )
     }
 
