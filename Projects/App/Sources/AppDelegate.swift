@@ -15,7 +15,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
-        requestNotificationAuthorization()
         return true
     }
 
@@ -23,8 +22,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
-        let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        print("APNs Device Token: \(token)")
+        // TODO: FCM 토큰 등록
     }
 
     func application(
@@ -32,27 +30,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
         print("Failed to register for remote notifications: \(error.localizedDescription)")
-    }
-}
-
-// MARK: - Notification Authorization
-
-private extension AppDelegate {
-    func requestNotificationAuthorization() {
-        let options: UNAuthorizationOptions = [.alert, .badge, .sound]
-
-        UNUserNotificationCenter.current().requestAuthorization(options: options) { granted, error in
-            if let error {
-                print("Notification authorization error: \(error.localizedDescription)")
-                return
-            }
-
-            if granted {
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
-            }
-        }
     }
 }
 

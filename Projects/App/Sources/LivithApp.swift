@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 import KakaoSDKAuth
 import KakaoSDKCommon
@@ -20,6 +21,9 @@ struct LivithApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView()
+                .task {
+                    await requestNotificationAuthorization()
+                }
                 .onOpenURL { url in
                     handleOpenURL(url)
                 }
@@ -68,6 +72,15 @@ private extension LivithApp {
     func initializeKakaoSDK() {
         guard let kakaoAppKey = Bundle.main.infoDictionary?["NATIVE_APP_KEY"] as? String else { return }
         KakaoSDK.initSDK(appKey: kakaoAppKey)
+    }
+}
+
+// MARK: - Notification
+
+private extension LivithApp {
+    func requestNotificationAuthorization() async {
+        let options: UNAuthorizationOptions = [.alert, .badge, .sound]
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: options)
     }
 }
 
