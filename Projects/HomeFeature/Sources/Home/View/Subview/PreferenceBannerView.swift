@@ -16,16 +16,11 @@ struct PreferenceBannerView: View {
     let onTapBanner: () -> Void
 
     var body: some View {
-        VStack {
-            if isExpanded {
-                expandedBanner
-                    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
-            } else {
-                collapsedBanner
-                    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
-            }
+        if isExpanded {
+            expandedBanner
+        } else {
+            collapsedBanner
         }
-        .animation(.easeInOut(duration: 0.3), value: isExpanded)
     }
 }
 
@@ -34,16 +29,18 @@ struct PreferenceBannerView: View {
 private extension PreferenceBannerView {
     var expandedBanner: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .top) {
+            HStack {
                 Text(Literals.expandedTitle)
                     .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
-                    isExpanded = false
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isExpanded = false
+                    }
                 } label: {
-                    Image.livithIcon(.closeLineSmall)
+                    Image.livithIcon(.close)
                         .resizable()
                         .frame(width: 24, height: 24)
                         .foregroundStyle(Color.livithColor(.black50))
@@ -52,24 +49,24 @@ private extension PreferenceBannerView {
 
             Image.livithImage(.recommendedConcert)
                 .resizable()
-                .frame(width: 91, height: 86)
-                .padding(.top, 16)
+                .frame(width: 56, height: 56)
+                .padding(.top, 20)
 
             Button {
                 onTapBanner()
             } label: {
                 Text(Literals.buttonTitle)
-                    .notosans(.body3Semibold)
+                    .notosans(.body2Semibold)
                     .foregroundStyle(Color.livithColor(.black100))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(Color.livithColor(.original))
+                    .background(Color.livithColor(.black30))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .padding(.top, 16)
+            .padding(.top, 20)
         }
-        .padding(16)
-        .background(Color.livithColor(.black100))
+        .padding(20)
+        .background(Color.livithColor(.black80))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
@@ -96,11 +93,13 @@ private extension PreferenceBannerView {
 
                 Image.livithImage(.recommendedConcert)
                     .resizable()
-                    .frame(width: 61, height: 58)
+                    .frame(width: 40, height: 40)
+                    .padding(8)
+                    .background(Color.livithColor(.black90))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .padding(16)
-            .background(Color.livithColor(.black100))
+            .background(Color.livithColor(.black80))
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
@@ -123,11 +122,11 @@ private extension PreferenceBannerView {
 #Preview("Expanded") {
     PreferenceBannerView(isExpanded: .constant(true), onTapBanner: {})
         .padding()
-        .background(Color.livithColor(.black90))
+        .background(Color.livithColor(.black100))
 }
 
 #Preview("Collapsed") {
     PreferenceBannerView(isExpanded: .constant(false), onTapBanner: {})
         .padding()
-        .background(Color.livithColor(.black90))
+        .background(Color.livithColor(.black100))
 }
