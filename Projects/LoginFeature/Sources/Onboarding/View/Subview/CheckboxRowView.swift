@@ -43,11 +43,9 @@ struct CheckboxRow: View {
                         .notosans(.body2Medium)
                         .foregroundStyle(Color.livithColor(.white100))
                     
-                    if isRequired {
-                        Text(Literals.requiredText)
-                            .notosans(.caption1Regular)
-                            .foregroundStyle(Color.livithColor(.black50))
-                    }
+                    Text(isRequired ? Literals.requiredText : Literals.optionalText)
+                        .notosans(.caption1Regular)
+                        .foregroundStyle(Color.livithColor(.black50))
                 }
             }
             .buttonStyle(.plain)
@@ -64,5 +62,6 @@ struct CheckboxRow: View {
 private extension CheckboxRow {
     enum Literals {
         static let requiredText = "필수"
+        static let optionalText = "선택"
     }
 }
