@@ -11,6 +11,7 @@ import Foundation
 public struct UserAuthority: Hashable, Codable {
     public let deviceNotification: Bool
     public let marketingConsent: Bool
+    public let benefitNotification: Bool
     public let nightNotification: Bool
     public let ticketSchedule: Bool
     public let concertInfoUpdate: Bool
@@ -20,6 +21,7 @@ public struct UserAuthority: Hashable, Codable {
     public init(
         deviceNotification: Bool,
         marketingConsent: Bool,
+        benefitNotification: Bool? = nil,
         nightNotification: Bool = false,
         ticketSchedule: Bool = true,
         concertInfoUpdate: Bool = true,
@@ -28,6 +30,7 @@ public struct UserAuthority: Hashable, Codable {
     ) {
         self.deviceNotification = deviceNotification
         self.marketingConsent = marketingConsent
+        self.benefitNotification = benefitNotification ?? marketingConsent
         self.nightNotification = nightNotification
         self.ticketSchedule = ticketSchedule
         self.concertInfoUpdate = concertInfoUpdate
