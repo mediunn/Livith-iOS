@@ -25,6 +25,7 @@ public struct NoticeSettingView: View {
     @State private var favoriteArtistConcert: Bool = true
     @State private var preferenceBasedConcert: Bool = true
     @State private var showMarketingConsentSheet: Bool = false
+    @State private var noticeModalType: LivithModalType? = nil
 
     private let onBack: () -> Void
 
@@ -70,18 +71,45 @@ public struct NoticeSettingView: View {
         .onChange(of: benefitNotification) { oldValue, newValue in
             if !oldValue && newValue {
                 showMarketingConsentSheet = true
+            } else if oldValue && !newValue {
+                noticeModalType = .normal(
+                    title: "알림 거부 안내",
+                    message: noticeModalMessage(action: "거부")
+                )
             }
+        }
+        .onChange(of: nightNotification) { _, newValue in
+            let action = newValue ? "동의" : "거부"
+            noticeModalType = .normal(
+                title: "야간 푸시 알림 \(action) 안내",
+                message: noticeModalMessage(action: action)
+            )
         }
         .livithSheet(isPresented: $showMarketingConsentSheet, detents: [.height(260)]) {
             MarketingConsentBottomSheet(
                 onConfirm: {
                     showMarketingConsentSheet = false
+                    noticeModalType = .normal(
+                        title: "알림 동의 안내",
+                        message: noticeModalMessage(action: "동의")
+                    )
                 },
                 onCancel: {
                     benefitNotification = false
                     showMarketingConsentSheet = false
                 }
             )
+        }
+        .crossDissolve(isPresented: Binding(
+            get: { noticeModalType != nil },
+            set: { if !$0 { noticeModalType = nil } }
+        )) {
+            if let modalType = noticeModalType {
+                LivithModal(
+                    type: modalType,
+                    onConfirm: { noticeModalType = nil }
+                )
+            }
         }
     }
 }
@@ -204,6 +232,11 @@ private extension NoticeSettingView {
     func openAppSettings() {
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(settingsURL)
+    }
+
+    func noticeModalMessage(action: String) -> String {
+        let dateString = DateFormatterService.string(from: Date(), type: .dotDateTime)
+        return "전송자 : 라이빗\n수신 일시 : \(dateString)\n처리 내용 : 알림 \(action) 처리 완료"
     }
 }
 
