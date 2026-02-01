@@ -15,6 +15,7 @@ final class DeepLinkService {
 
     private init() {}
 
+    @MainActor
     func handle(url: URL) {
         if AuthApi.isKakaoTalkLoginUrl(url) {
             _ = AuthController.handleOpenUrl(url: url)
