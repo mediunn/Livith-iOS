@@ -6,16 +6,17 @@ import LivithFoundation
 
 @main
 struct LivithApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var isLaunchScreenVisible = true
-    
+
     // MARK: - LifeCycle
-    
+
     init() {
         registerDependency()
-        
+
         initializeKakaoSDK()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             AppRootView()
