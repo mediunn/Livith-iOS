@@ -15,6 +15,7 @@ import LivithDesignSystem
 struct HomeConcertSectionView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
+    // TODO: 일단 AppStorage로 놨는데 고쳐쓰시길...
     @AppStorage("isPreferenceBannerExpanded") private var isPreferenceBannerExpanded: Bool = true
 
     init(store: HomeStore) {
@@ -30,7 +31,6 @@ struct HomeConcertSectionView: View {
 
             ScrollView {
                 VStack(spacing: .zero) {
-                    // MARK: - Header Section (black90)
                     VStack(spacing: .zero) {
                         PreferenceBannerView(
                             isExpanded: $isPreferenceBannerExpanded,
@@ -46,7 +46,6 @@ struct HomeConcertSectionView: View {
                     }
                     .background(Color.livithColor(.black90))
 
-                    // MARK: - Concert Section (black100)
                     VStack(spacing: .zero) {
                         if !store.state.isSectionsLoading && store.state.sectionList.isEmpty {
                             LivithEmptyView(text: emptyMessage)
