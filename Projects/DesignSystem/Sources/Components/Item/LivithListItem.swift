@@ -68,6 +68,7 @@ public struct LivithListItem: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
+        .contentShape(Rectangle())
     }
 }
 
