@@ -47,7 +47,7 @@ private extension PreferenceBannerView {
                 }
             }
 
-            Image.livithIcon(.musicDefault)
+            Image.livithImage(.recommandConcert)
                 .resizable()
                 .frame(width: 56, height: 56)
                 .padding(.top, 20)
@@ -91,7 +91,7 @@ private extension PreferenceBannerView {
 
                 Spacer()
 
-                Image.livithIcon(.musicDefault)
+                Image.livithImage(.recommandConcert)
                     .resizable()
                     .frame(width: 40, height: 40)
                     .padding(8)
