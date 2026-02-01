@@ -33,17 +33,7 @@ struct HomeHeaderView: View {
                 .padding(.top, 24)
                 .padding(.bottom, 28)
         }
-        .background(
-            UnevenRoundedRectangle(
-                cornerRadii: .init(
-                    topLeading: 0,
-                    bottomLeading: 20,
-                    bottomTrailing: 0,
-                    topTrailing: 0
-                )
-            )
-            .fill(.livithColor(.black90))
-        )
+        .background(Color.livithColor(.black90))
     }
 }
 

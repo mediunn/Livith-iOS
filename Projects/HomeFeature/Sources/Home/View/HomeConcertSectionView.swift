@@ -15,6 +15,7 @@ import LivithDesignSystem
 struct HomeConcertSectionView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
+    @AppStorage("isPreferenceBannerExpanded") private var isPreferenceBannerExpanded: Bool = true
 
     init(store: HomeStore) {
         self.store = store
@@ -28,7 +29,14 @@ struct HomeConcertSectionView: View {
             ))
 
             ScrollView {
-                VStack(spacing: .zero) {                    
+                VStack(spacing: .zero) {
+                    PreferenceBannerView(
+                        isExpanded: $isPreferenceBannerExpanded,
+                        onTapBanner: { coordinator?.push(to: .preference) }
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
                     HomeHeaderView(
                         nickname: store.state.userName,
                         action: { coordinator?.push(to: .interest) }

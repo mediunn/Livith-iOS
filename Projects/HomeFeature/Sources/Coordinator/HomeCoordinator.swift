@@ -65,6 +65,10 @@ final class HomeCoordinator: Coordinator {
                 )
                 .environment(\.homeCoordinator, self)
             )
+
+        case .preference:
+            // TODO: 취향 선택 화면 구현 필요
+            return UIViewController()
         }
     }
 
