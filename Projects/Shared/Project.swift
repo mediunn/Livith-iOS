@@ -27,6 +27,22 @@ let project = Project.make(
             dependencies: [
                 .shared(.nicknameEditFeature)
             ]
+        ),
+        .make(
+            target: .shared(.preferenceFeature),
+            product: .framework,
+            dependencies: [
+                .designSystem(.designSystem),
+                .core(.diContainer),
+                .domain(.domain)
+            ]
+        ),
+        .make(
+            target: .shared(.preferenceFeatureTests),
+            product: .unitTests,
+            dependencies: [
+                .shared(.preferenceFeature)
+            ]
         )
     ]
 )

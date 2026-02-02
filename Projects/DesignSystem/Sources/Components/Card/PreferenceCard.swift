@@ -85,7 +85,7 @@ public struct PreferenceCard: View {
             Color(hex: Layout.overlayHex, opacity: Layout.overlayOpacity)
 
             Text(title)
-                .font(.notosans(.body2Semibold))
+                .notosans(.body2Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Layout.horizontalPadding)

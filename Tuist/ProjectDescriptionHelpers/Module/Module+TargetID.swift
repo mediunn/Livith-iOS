@@ -133,6 +133,10 @@ private extension TargetID {
             return ["NicknameEditFeature/Sources/**"]
         case .nicknameEditFeatureTests:
             return ["NicknameEditFeature/Tests/**"]
+        case .preferenceFeature:
+            return ["PreferenceFeature/Sources/**"]
+        case .preferenceFeatureTests:
+            return ["PreferenceFeature/Tests/**"]
         }
     }
 }
