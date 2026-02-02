@@ -67,11 +67,6 @@ public struct ArtistEditView: View {
         .simultaneousGesture(TapGesture().onEnded { _ in
             isSearchFocused = false
         })
-        .livithToast(
-            isPresented: exceedMaxSelectionToastBinding,
-            type: .failure,
-            message: Literals.exceedMaxSelectionToastMessage
-        )
         .onAppear {
             store.send(.onAppear)
         }
@@ -178,14 +173,6 @@ private extension ArtistEditView {
         static let titleTopPadding: CGFloat = 30
         static let indicatorTopPadding: CGFloat = 10
         static let bottomPadding: CGFloat = 16
-    }
-}
-
-// MARK: - Literals
-
-private extension ArtistEditView {
-    enum Literals {
-        static let exceedMaxSelectionToastMessage = "해제 후 선택해 주세요"
     }
 }
 
