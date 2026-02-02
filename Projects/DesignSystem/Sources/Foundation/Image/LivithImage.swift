@@ -21,6 +21,7 @@ public extension Image {
         case welcome = "image_welcome"
         case interestConcertComplete = "image_interest_concert_complete"
         case youtubeEmpty = "image_youtube_empty"
+        case recommendedConcert = "image_recommended_concert"
 
         public var image: Image {
             Image(rawValue, bundle: .livithDesignSystem)

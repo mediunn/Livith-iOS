@@ -51,7 +51,7 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.providerID, "4484239560")
         XCTAssertEqual(result.email, "test@example.com")
         XCTAssertEqual(result.nickname, "라이빗")
-        XCTAssertTrue(result.marketingConsent)
+        XCTAssertTrue(result.authority.marketingConsent)
     }
     
     func test_UpdateUserNickname_Optional필드가_null일때_User로_변환해야_한다() throws {
@@ -80,7 +80,7 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.providerID, "4484239560")
         XCTAssertNil(result.email)
         XCTAssertEqual(result.nickname, "라이빗")
-        XCTAssertFalse(result.marketingConsent)
+        XCTAssertFalse(result.authority.marketingConsent)
     }
 
     func test_FetchUserInfo_모든_필드가_있을때_User로_변환해야_한다() throws {
@@ -109,7 +109,7 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.providerID, "001234.abcd1234")
         XCTAssertEqual(result.email, "user@icloud.com")
         XCTAssertEqual(result.nickname, "테스트유저")
-        XCTAssertTrue(result.marketingConsent)
+        XCTAssertTrue(result.authority.marketingConsent)
     }
 
     func test_FetchUserInfo_Optional필드가_null일때_User로_변환해야_한다() throws {
@@ -138,7 +138,7 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.providerID, "9876543210")
         XCTAssertNil(result.email)
         XCTAssertEqual(result.nickname, "익명")
-        XCTAssertFalse(result.marketingConsent)
+        XCTAssertFalse(result.authority.marketingConsent)
     }
 
     func test_FetchUserInterestConcert_모든_필드가_있을때_Concert로_변환해야_한다() throws {

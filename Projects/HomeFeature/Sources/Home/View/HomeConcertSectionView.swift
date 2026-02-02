@@ -15,6 +15,8 @@ import LivithDesignSystem
 struct HomeConcertSectionView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
+    // TODO: 일단 AppStorage로 놨는데 고쳐쓰시길...
+    @AppStorage("isPreferenceBannerExpanded") private var isPreferenceBannerExpanded: Bool = true
 
     init(store: HomeStore) {
         self.store = store
@@ -28,26 +30,38 @@ struct HomeConcertSectionView: View {
             ))
 
             ScrollView {
-                VStack(spacing: .zero) {                    
-                    HomeHeaderView(
-                        nickname: store.state.userName,
-                        action: { coordinator?.push(to: .interest) }
-                    )
+                VStack(spacing: .zero) {
+                    VStack(spacing: .zero) {
+                        PreferenceBannerView(
+                            isExpanded: $isPreferenceBannerExpanded,
+                            onTapBanner: { coordinator?.push(to: .preference) }
+                        )
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
 
-                    if !store.state.isSectionsLoading && store.state.sectionList.isEmpty {
-                        LivithEmptyView(text: emptyMessage)
-                            .frame(minHeight: Constants.emptyStateMinHeight)
+                        HomeHeaderView(
+                            nickname: store.state.userName,
+                            action: { coordinator?.push(to: .interest) }
+                        )
                     }
+                    .background(Color.livithColor(.black90))
 
-                    ForEach(store.state.sectionList, id: \.id) { section in
-                        concertSectionRow(for: section)
-                            .padding(.top, 28)
-                            .padding(.leading, 16)
+                    VStack(spacing: .zero) {
+                        if !store.state.isSectionsLoading && store.state.sectionList.isEmpty {
+                            LivithEmptyView(text: emptyMessage)
+                                .frame(minHeight: Constants.emptyStateMinHeight)
+                        }
+
+                        ForEach(store.state.sectionList, id: \.id) { section in
+                            concertSectionRow(for: section)
+                                .padding(.top, 28)
+                                .padding(.leading, 16)
+                        }
+
+                        Spacer(minLength: Constants.emptySpaceHeight)
                     }
-
-                    Spacer(minLength: Constants.emptySpaceHeight)
+                    .background(Color.livithColor(.black100))
                 }
-                .background(.livithColor(.black100))
             }
             .refreshable { store.send(.onRefreshSections) }
             .ignoresSafeArea(edges: .bottom)

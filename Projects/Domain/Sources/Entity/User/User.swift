@@ -15,7 +15,7 @@ public struct User: Identifiable, Hashable, Codable {
     public let providerID: String
     public let email: String?
     public let nickname: String
-    public let marketingConsent: Bool
+    public let authority: UserAuthority
 
     public init(
         id: Int,
@@ -24,7 +24,7 @@ public struct User: Identifiable, Hashable, Codable {
         providerID: String,
         email: String?,
         nickname: String,
-        marketingConsent: Bool
+        authority: UserAuthority
     ) {
         self.id = id
         self.interestConcertID = interestConcertID
@@ -32,9 +32,9 @@ public struct User: Identifiable, Hashable, Codable {
         self.providerID = providerID
         self.email = email
         self.nickname = nickname
-        self.marketingConsent = marketingConsent
+        self.authority = authority
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case interestConcertID = "interestConcertId"
@@ -42,6 +42,6 @@ public struct User: Identifiable, Hashable, Codable {
         case providerID = "providerId"
         case email
         case nickname
-        case marketingConsent
+        case authority
     }
 }
