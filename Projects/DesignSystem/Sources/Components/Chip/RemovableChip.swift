@@ -52,8 +52,7 @@ public struct RemovableChip: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.leading, Constants.horizontalPadding)
-        .padding(.trailing, Constants.horizontalPadding)
+        .padding(.horizontal, Constants.horizontalPadding)
         .padding(.vertical, Constants.verticalPadding)
         .background(Color.livithColor(.yellow30))
         .clipShape(RoundedRectangle(cornerRadius: Constants.cornerRadius))
