@@ -37,8 +37,7 @@ struct TermsView: View {
 
                 termsSection
                     .padding(.top, 20)
-                    .padding(.leading, 36)
-                    .padding(.trailing, 20)
+                    .padding(.horizontal, 20)
 
                 Spacer()
 
@@ -65,9 +64,15 @@ private extension TermsView {
     }
     
     var title: some View {
-        Text(Literals.title)
-            .notosans(.body1Semibold)
-            .foregroundStyle(Color.livithColor(.white100))
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Literals.title)
+                .notosans(.body1Semibold)
+                .foregroundStyle(Color.livithColor(.white100))
+
+            Text(Literals.subtitle)
+                .notosans(.body4Regular)
+                .foregroundStyle(Color.livithColor(.black50))
+        }
     }
     
     var allAgreeButton: some View {
@@ -93,11 +98,13 @@ private extension TermsView {
     var termsSection: some View {
         VStack(alignment: .leading, spacing: 24) {
             termRow
-            
+
+            privacyRow
+
             marketingRow
         }
     }
-    
+
     var termRow: some View {
         CheckboxRow(
             Literals.termsAgreementText,
@@ -116,12 +123,41 @@ private extension TermsView {
             )
         )
     }
-    
+
+    var privacyRow: some View {
+        CheckboxRow(
+            Literals.privacyAgreementText,
+            isRequired: true,
+            isChecked: isPrivacyAgreed,
+            action: { store.send(.togglePrivacyAgreement) },
+            trailingView: AnyView(
+                Button {
+                    guard let url = URL(string: Literals.privacyURLString) else { return }
+                    coordinator?.present(to: .safari(url))
+                } label: {
+                    Text(Literals.moreButtonText)
+                        .notosans(.caption2Semibold)
+                        .foregroundStyle(Color.livithColor(.white100))
+                }
+            )
+        )
+    }
+
     var marketingRow: some View {
         CheckboxRow(
             Literals.marketingAgreementText,
             isChecked: isMarketingAgreed,
-            action: { store.send(.toggleMarketingAgreement) }
+            action: { store.send(.toggleMarketingAgreement) },
+            trailingView: AnyView(
+                Button {
+                    guard let url = URL(string: Literals.marketingURLString) else { return }
+                    coordinator?.present(to: .safari(url))
+                } label: {
+                    Text(Literals.moreButtonText)
+                        .notosans(.caption2Semibold)
+                        .foregroundStyle(Color.livithColor(.white100))
+                }
+            )
         )
     }
     
@@ -139,9 +175,10 @@ private extension TermsView {
 
 private extension TermsView {
     var isTermsAgreed: Bool { store.state.isTermsAgreed }
+    var isPrivacyAgreed: Bool { store.state.isPrivacyAgreed }
     var isMarketingAgreed: Bool { store.state.isMarketingAgreed }
-    var isAllAgreed: Bool { isTermsAgreed && isMarketingAgreed }
-    var canProceed: Bool { isTermsAgreed }
+    var isAllAgreed: Bool { isTermsAgreed && isPrivacyAgreed && isMarketingAgreed }
+    var canProceed: Bool { isTermsAgreed && isPrivacyAgreed }
 }
 
 // MARK: - Literals
@@ -150,11 +187,16 @@ private extension TermsView {
     enum Literals {
         static let navigationTitle = "회원가입"
         static let title = "서비스 이용을 위해\n약관 동의가 필요해요"
+        static let subtitle = "서비스 이용에 필요한 알림이 발송될 예정이에요"
         static let allAgreeText = "약관 모두 동의"
         static let termsAgreementText = "이용약관 동의"
-        static let moreButtonText = "더보기 >"
+        static let privacyAgreementText = "개인정보 이용 동의"
         static let marketingAgreementText = "마케팅 활용 / 광고성 정보 수신 동의"
+        static let moreButtonText = "더보기 >"
         static let nextButtonText = "다음"
         static let termsURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0?pvs=4"
+        // TODO: 실제 링크로 연결 필요
+        static let privacyURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0?pvs=4"
+        static let marketingURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0?pvs=4"
     }
 }
