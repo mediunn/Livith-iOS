@@ -1,14 +1,14 @@
 //
-//  GenreEditConfig.swift
+//  ArtistEditConfig.swift
 //  PreferenceFeature
 //
-//  Created by 김진웅 on 1/29/26.
+//  Created by 김진웅 on 2/2/26.
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
 import Foundation
 
-public struct GenreEditConfig {
+public struct ArtistEditConfig {
     public let stepIndicator: (current: Int, total: Int)?
     public let navigationTitle: String
     public let title: String
@@ -30,34 +30,32 @@ public struct GenreEditConfig {
     }
 }
 
-// MARK: - Factory Methods
-
-public extension GenreEditConfig {
-    static func onboarding() -> GenreEditConfig {
-        GenreEditConfig(
-            stepIndicator: (current: 3, total: 4),
+public extension ArtistEditConfig {
+    static func onboarding() -> ArtistEditConfig {
+        ArtistEditConfig(
+            stepIndicator: (current: 4, total: 4),
             navigationTitle: "회원가입",
-            title: "선호하는 장르를\n3개 선택해 주세요",
+            title: "선호하는 아티스트를\n3명 선택해 주세요",
             subtitle: "마이페이지에서 언제든 바꿀 수 있어요",
-            submitTitle: "다음"
+            submitTitle: "가입 완료"
         )
     }
     
-    static func home() -> GenreEditConfig {
-        GenreEditConfig(
-            stepIndicator: (current: 1, total: 2),
+    static func home() -> ArtistEditConfig {
+        ArtistEditConfig(
+            stepIndicator: (current: 2, total: 2),
             navigationTitle: "취향 선택",
-            title: "좋아하는 장르를\n3개 선택해 주세요",
+            title: "좋아하는 아티스트를\n3명 선택해 주세요",
             subtitle: nil,
-            submitTitle: "다음"
+            submitTitle: "취향 선택 완료"
         )
     }
     
-    static func edit() -> GenreEditConfig {
-        GenreEditConfig(
+    static func edit() -> ArtistEditConfig {
+        ArtistEditConfig(
             stepIndicator: nil,
-            navigationTitle: "장르 변경",
-            title: "선호하는 장르를\n3개 선택해 주세요",
+            navigationTitle: "아티스트 변경",
+            title: "선호하는 아티스트를\n3명 선택해 주세요",
             subtitle: nil,
             submitTitle: "변경하기"
         )
