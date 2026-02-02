@@ -78,7 +78,7 @@ final class MockUserRepository: UserRepository {
             providerID: "123",
             email: nil,
             nickname: "test",
-            marketingConsent: false
+            authority: UserAuthority(deviceNotification: true, marketingConsent: false)
         )
     }
 

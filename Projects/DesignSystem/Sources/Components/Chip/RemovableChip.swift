@@ -48,7 +48,7 @@ public struct RemovableChip: View {
                 Image.livithIcon(.closeLineSmall)
                     .renderingMode(.template)
                     .frame(width: Constants.iconSize, height: Constants.iconSize)
-                    .tint(Color.livithColor(.black100))
+                    .foregroundStyle(Color.livithColor(.black100))
             }
             .buttonStyle(.plain)
         }
