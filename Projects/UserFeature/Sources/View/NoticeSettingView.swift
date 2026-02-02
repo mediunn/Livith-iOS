@@ -24,9 +24,8 @@ public struct NoticeSettingView: View {
     @State private var concertInfoUpdate: Bool = true
     @State private var favoriteArtistConcert: Bool = true
     @State private var preferenceBasedConcert: Bool = true
+    @State private var showMarketingConsentSheet: Bool = false
     @State private var noticeModalType: LivithModalType? = nil
-    
-    @State private var showPreferenceConfirmModal: Bool = false
 
     private let onBack: () -> Void
 
@@ -69,12 +68,15 @@ public struct NoticeSettingView: View {
         .onAppear {
             checkNotificationPermission()
         }
-        .onChange(of: benefitNotification) { _, newValue in
-            let action = newValue ? "동의" : "거부"
-            noticeModalType = .normal(
-                title: "알림 \(action) 안내",
-                message: noticeModalMessage(action: action)
-            )
+        .onChange(of: benefitNotification) { oldValue, newValue in
+            if !oldValue && newValue {
+                showMarketingConsentSheet = true
+            } else if oldValue && !newValue {
+                noticeModalType = .normal(
+                    title: "알림 거부 안내",
+                    message: noticeModalMessage(action: "거부")
+                )
+            }
         }
         .onChange(of: nightNotification) { _, newValue in
             let action = newValue ? "동의" : "거부"
@@ -83,10 +85,20 @@ public struct NoticeSettingView: View {
                 message: noticeModalMessage(action: action)
             )
         }
-        .onChange(of: preferenceBasedConcert) { _, newValue in
-            if !newValue {
-                showPreferenceConfirmModal = true
-            }
+        .livithSheet(isPresented: $showMarketingConsentSheet, detents: [.height(260)]) {
+            MarketingConsentBottomSheet(
+                onConfirm: {
+                    showMarketingConsentSheet = false
+                    noticeModalType = .normal(
+                        title: "알림 동의 안내",
+                        message: noticeModalMessage(action: "동의")
+                    )
+                },
+                onCancel: {
+                    benefitNotification = false
+                    showMarketingConsentSheet = false
+                }
+            )
         }
         .crossDissolve(isPresented: Binding(
             get: { noticeModalType != nil },
@@ -98,20 +110,6 @@ public struct NoticeSettingView: View {
                     onConfirm: { noticeModalType = nil }
                 )
             }
-        }
-        .crossDissolve(isPresented: $showPreferenceConfirmModal) {
-            LivithDangerModal(
-                message: "취향 기반 콘서트 알림을 끄시나요?\n알림으로 맞춤 소식을 받아볼 수 있어요",
-                confirmTitle: "해제할래요",
-                cancelTitle: "잘못 눌렀어요",
-                type: .confirm(onConfirm: {
-                    showPreferenceConfirmModal = false
-                }),
-                onCancel: {
-                    preferenceBasedConcert = true
-                    showPreferenceConfirmModal = false
-                }
-            )
         }
     }
 }

@@ -85,9 +85,9 @@ final class AuthMapperTests: XCTestCase {
         XCTAssertEqual(result.providerID, "provider123")
         XCTAssertEqual(result.email, "test@example.com")
         XCTAssertEqual(result.nickname, "테스트유저")
-        XCTAssertTrue(result.marketingConsent)
+        XCTAssertTrue(result.authority.marketingConsent)
     }
-    
+
     func test_FetchUserInfo_interestConcertId가_nil일때_변환해야_한다() throws {
         // Given
         let json = """
@@ -114,7 +114,7 @@ final class AuthMapperTests: XCTestCase {
         XCTAssertEqual(result.providerID, "apple456")
         XCTAssertNil(result.email)
         XCTAssertEqual(result.nickname, "애플유저")
-        XCTAssertFalse(result.marketingConsent)
+        XCTAssertFalse(result.authority.marketingConsent)
     }
 }
 
