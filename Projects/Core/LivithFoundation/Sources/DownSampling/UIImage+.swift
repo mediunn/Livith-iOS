@@ -11,8 +11,8 @@ import UIKit
 public extension UIImage {
     /// 이미지의 픽셀 면적이 maxPixelArea를 초과하면 비율을 유지하며 축소한 JPEG Data를 반환합니다.
     func downsampledData(
-        maxPixelArea: CGFloat = 1_000_000,
-        compressionQuality: CGFloat = 0.8
+        maxPixelArea: CGFloat = 400_000,
+        compressionQuality: CGFloat = 0.7
     ) -> Data? {
         let pixelWidth = size.width * scale
         let pixelHeight = size.height * scale
