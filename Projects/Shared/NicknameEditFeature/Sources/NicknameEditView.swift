@@ -52,7 +52,7 @@ public struct NicknameEditView: View {
 
                 if config.showStepIndicator {
                     stepIndicator
-                        .padding(.top, 20)
+                        .padding(.top, 10)
                         .padding(.horizontal, 16)
                 }
 
