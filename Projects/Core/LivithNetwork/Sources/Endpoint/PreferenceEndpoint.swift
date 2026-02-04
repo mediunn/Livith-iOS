@@ -12,7 +12,7 @@ public typealias PreferenceService = NetworkService<PreferenceEndpoint>
 
 public enum PreferenceEndpoint {
     case fetchGenreList
-    case fetchArtistList(keyword: String?, size: Int?, cursor: String?)
+    case searchArtistList(keyword: String?, size: Int?, cursor: String?)
     case fetchUserPreferredGenreList
     case fetchUserPreferredArtistList
     case updateUserPreferredGenreList(genreIDs: [Int])
@@ -24,7 +24,7 @@ extension PreferenceEndpoint: NetworkEndpoint {
         switch self {
         case .fetchGenreList:
             return "/genres"
-        case .fetchArtistList:
+        case .searchArtistList:
             return "/artists"
         case .fetchUserPreferredGenreList, .updateUserPreferredGenreList:
             return "/users/genre-preferences"
@@ -35,7 +35,7 @@ extension PreferenceEndpoint: NetworkEndpoint {
     
     public var method: HTTPMethod {
         switch self {
-        case .fetchGenreList, .fetchArtistList, .fetchUserPreferredGenreList, .fetchUserPreferredArtistList:
+        case .fetchGenreList, .searchArtistList, .fetchUserPreferredGenreList, .fetchUserPreferredArtistList:
             return .get
         case .updateUserPreferredGenreList, .updateUserPreferredArtistList:
             return .put
@@ -44,7 +44,7 @@ extension PreferenceEndpoint: NetworkEndpoint {
     
     public var query: [String: Any]? {
         switch self {
-        case .fetchArtistList(let keyword, let size, let cursor):
+        case .searchArtistList(let keyword, let size, let cursor):
             let query: [String: Any?] = [
                 "cursor": cursor,
                 "size": size,
@@ -69,7 +69,7 @@ extension PreferenceEndpoint: NetworkEndpoint {
     
     public var requiresInterceptor: Bool {
         switch self {
-        case .fetchGenreList, .fetchArtistList:
+        case .fetchGenreList, .searchArtistList:
             return false
         case .fetchUserPreferredGenreList, .fetchUserPreferredArtistList,
              .updateUserPreferredGenreList, .updateUserPreferredArtistList:
