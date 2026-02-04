@@ -14,39 +14,42 @@ struct TermsView: View {
     @StateObject private var store = TermsStore()
     @Environment(\.loginCoordinator) private var coordinator
     @Environment(\.openURL) private var openURL
+    @State private var showSafari = false
+    @State private var safariURL: URL?
     
     var body: some View {
-        ZStack {
-            Color.livithColor(.black100)
-                .ignoresSafeArea()
+        VStack(alignment: .leading, spacing: 0) {
+            navigationBar
 
-            VStack(alignment: .leading, spacing: 0) {
-                navigationBar
+            stepIndicator
+                .padding(.top, 20)
+                .padding(.horizontal, 16)
 
-                stepIndicator
-                    .padding(.top, 20)
-                    .padding(.horizontal, 16)
+            title
+                .padding(.top, 32)
+                .padding(.horizontal, 16)
 
-                title
-                    .padding(.top, 32)
-                    .padding(.horizontal, 16)
+            allAgreeButton
+                .padding(.top, 20)
+                .padding(.horizontal, 16)
 
-                allAgreeButton
-                    .padding(.top, 20)
-                    .padding(.horizontal, 16)
+            termsSection
+                .padding(.top, 20)
+                .padding(.horizontal, 20)
 
-                termsSection
-                    .padding(.top, 20)
-                    .padding(.horizontal, 20)
+            Spacer()
 
-                Spacer()
-
-                nextButton
-                    .padding(.bottom, 50)
-                    .padding(.horizontal, 16)
+            nextButton
+                .padding(.bottom, 50)
+                .padding(.horizontal, 16)
+        }
+        .background(Color.livithColor(.black100))
+        .ignoresSafeArea(.all, edges: .bottom)
+        .sheet(isPresented: $showSafari) {
+            if let url = safariURL {
+                SafariView(url: url)
             }
         }
-        .ignoresSafeArea(.all, edges: .bottom)
     }
 }
 
@@ -60,7 +63,7 @@ private extension TermsView {
     }
     
     var stepIndicator: some View {
-        StepIndicatorView(currentStep: 1, totalSteps: 2)
+        StepIndicatorView(currentStep: 1, totalSteps: 4)
     }
     
     var title: some View {
@@ -113,8 +116,8 @@ private extension TermsView {
             action: { store.send(.toggleTermsAgreement) },
             trailingView: AnyView(
                 Button {
-                    guard let url = URL(string: Literals.termsURLString) else { return }
-                    coordinator?.present(to: .safari(url))
+                    safariURL = URL(string: Literals.termsURLString)
+                    showSafari = true
                 } label: {
                     Text(Literals.moreButtonText)
                         .notosans(.caption2Semibold)
@@ -132,8 +135,8 @@ private extension TermsView {
             action: { store.send(.togglePrivacyAgreement) },
             trailingView: AnyView(
                 Button {
-                    guard let url = URL(string: Literals.privacyURLString) else { return }
-                    coordinator?.present(to: .safari(url))
+                    safariURL = URL(string: Literals.privacyURLString)
+                    showSafari = true
                 } label: {
                     Text(Literals.moreButtonText)
                         .notosans(.caption2Semibold)
@@ -150,8 +153,8 @@ private extension TermsView {
             action: { store.send(.toggleMarketingAgreement) },
             trailingView: AnyView(
                 Button {
-                    guard let url = URL(string: Literals.marketingURLString) else { return }
-                    coordinator?.present(to: .safari(url))
+                    safariURL = URL(string: Literals.marketingURLString)
+                    showSafari = true
                 } label: {
                     Text(Literals.moreButtonText)
                         .notosans(.caption2Semibold)
