@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 
 struct TermsView: View {
@@ -17,12 +18,18 @@ struct TermsView: View {
     @State private var showSafari = false
     @State private var safariURL: URL?
     
+    private let tempUser: TempUser
+    
+    init(tempUser: TempUser) {
+        self.tempUser = tempUser
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             navigationBar
 
             stepIndicator
-                .padding(.top, 20)
+                .padding(.top, 10)
                 .padding(.horizontal, 16)
 
             title
@@ -164,11 +171,9 @@ private extension TermsView {
         )
     }
     
-    
-    
     var nextButton: some View {
         LivithButton(Literals.nextButtonText, variant: .primary) {
-            coordinator?.push(to: .nickname(isMarketingAgreed))
+            coordinator?.push(to: .nickname(.start(tempUser: tempUser, isMarketingAgreed: isMarketingAgreed)))
         }
         .disabled(!canProceed)
     }

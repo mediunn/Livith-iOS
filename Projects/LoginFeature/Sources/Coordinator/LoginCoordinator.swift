@@ -18,8 +18,6 @@ final class LoginCoordinator: Coordinator {
     
     let navigationController: UINavigationController
     
-    private var tempUser: Domain.TempUser?
-    
     private let onLoginCompleted: (() -> Void)
     private let onSignupCompleted: ((String) -> Void)
     
@@ -44,14 +42,17 @@ final class LoginCoordinator: Coordinator {
             return UIHostingController(rootView: LoginView().environment(\.loginCoordinator, self))
             
         case .terms(let tempUser):
-            self.tempUser = tempUser
-            return UIHostingController(rootView: TermsView().environment(\.loginCoordinator, self))
+            return UIHostingController(
+                rootView: TermsView(tempUser: tempUser)
+                    .environment(\.loginCoordinator, self)
+            )
             
-        case .nickname(let marketingConsent):
-            guard let tempUser = tempUser else {
-                return UIHostingController(rootView: EmptyView())
-            }
-
+        case .nickname(let builder):
+            return UIHostingController(
+                rootView: NicknameSettingView(builder: builder)
+                    .environment(\.loginCoordinator, self)
+            )
+            
             return UIHostingController(
                 rootView: NicknameSettingView(
                     marketingConsent: marketingConsent,
