@@ -9,11 +9,14 @@
 import Foundation
 
 import Domain
+import DIContainer
 
 enum GenreSelectionIntent {
     case onAppear
     case toggle(id: Int)
     case resetMaxSelectionToast
+    case resetErrorToast
+    case _fetchGenreListResult(Result<[PreferredGenre], Error>)
 }
 
 public struct GenreSelectionState: Equatable {
@@ -21,27 +24,25 @@ public struct GenreSelectionState: Equatable {
     var isLoading: Bool = false
     var genreList: [PreferredGenre] = []
     var isMaxSelectionToastPresented: Bool = false
+    var isErrorToastPresented: Bool = false
+    var errorMessage: String = ""
 }
 
-public final class GenreSelectionStore: ObservableObject {
+public final class GenreSelectionStore: ObservableObject {    
     @Published public private(set) var state: GenreSelectionState = GenreSelectionState()
     
-    public init() {}
+    @Injected private var preferenceRepository: PreferenceRepository
+    
+    public init(selectedGenres: [PreferredGenre] = []) {
+        self.state.selectedGenreList = selectedGenres
+    }
     
     @MainActor
     func send(_ intent: GenreSelectionIntent) {
         switch intent {
         case .onAppear:
             state.isLoading = true
-            state.genreList = [
-                PreferredGenre(id: 1, name: "JPOP", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!),
-                PreferredGenre(id: 2, name: "ROCK_METAL", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!),
-                PreferredGenre(id: 3, name: "RAP_HIPHOP", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!),
-                PreferredGenre(id: 4, name: "CLASSIC_JAZZ", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!),
-                PreferredGenre(id: 5, name: "ACOUSTIC", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!),
-                PreferredGenre(id: 6, name: "ELECTRONIC", imageURL: URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")!)
-            ]
-            state.isLoading = false
+            fetchGenreList()
             
         case .toggle(let id):
             guard let genre = state.genreList.first(where: { $0.id == id }) else { return }
@@ -58,6 +59,34 @@ public final class GenreSelectionStore: ObservableObject {
             
         case .resetMaxSelectionToast:
             state.isMaxSelectionToastPresented = false
+            
+        case .resetErrorToast:
+            state.isErrorToastPresented = false
+            
+        case ._fetchGenreListResult(let result):
+            state.isLoading = false
+            switch result {
+            case .success(let genres):
+                state.genreList = genres
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+                state.isErrorToastPresented = true
+            }
+        }
+    }
+}
+
+// MARK: - Helpers
+
+private extension GenreSelectionStore {
+    func fetchGenreList() {
+        Task {
+            do {
+                let genres = try await preferenceRepository.fetchGenreList()
+                await send(._fetchGenreListResult(.success(genres)))
+            } catch {
+                await send(._fetchGenreListResult(.failure(error)))
+            }
         }
     }
 }

@@ -43,6 +43,11 @@ public struct GenreSelectionView: View {
             type: .failure,
             message: Literals.exceedMaxSelectionToastMessage
         )
+        .livithToast(
+            isPresented: errorToastBinding,
+            type: .failure,
+            message: store.state.errorMessage
+        )
         .onAppear {
             store.send(.onAppear)
         }
@@ -103,6 +108,16 @@ private extension GenreSelectionView {
             set: { isPresented in
                 guard !isPresented else { return }
                 store.send(.resetMaxSelectionToast)
+            }
+        )
+    }
+    
+    var errorToastBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isErrorToastPresented },
+            set: { isPresented in
+                guard !isPresented else { return }
+                store.send(.resetErrorToast)
             }
         )
     }
