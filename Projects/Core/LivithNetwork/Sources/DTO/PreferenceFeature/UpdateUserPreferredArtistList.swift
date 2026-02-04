@@ -12,14 +12,14 @@ import Foundation
 
 public extension DTO.Request {
     struct UpdateUserPreferredArtistList: Encodable {
-        public let artistIDs: [Int]
+        public let artistIDList: [Int]
         
         public init(artistIDs: [Int]) {
-            self.artistIDs = artistIDs
+            self.artistIDList = artistIDs
         }
         
         enum CodingKeys: String, CodingKey {
-            case artistIDs = "artistIds"
+            case artistIDList = "artistIds"
         }
     }
 }
