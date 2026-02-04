@@ -53,12 +53,10 @@ final class LoginCoordinator: Coordinator {
                     .environment(\.loginCoordinator, self)
             )
             
+        case .preferredGenre(let builder):
             return UIHostingController(
-                rootView: NicknameSettingView(
-                    marketingConsent: marketingConsent,
-                    tempUser: tempUser
-                )
-                .environment(\.loginCoordinator, self)
+                rootView: PreferredGenreSettingView(builder: builder)
+                    .environment(\.loginCoordinator, self)
             )
             
         case .safari(let url):
