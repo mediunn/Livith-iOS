@@ -99,7 +99,7 @@ private extension NicknameEditView {
     }
 
     var stepIndicator: some View {
-        StepIndicatorView(currentStep: 2, totalSteps: 2)
+        StepIndicatorView(currentStep: 2, totalSteps: 4)
     }
 
     var title: some View {
