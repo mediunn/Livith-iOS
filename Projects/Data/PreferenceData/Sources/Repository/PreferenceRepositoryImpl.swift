@@ -35,7 +35,7 @@ struct PreferenceRepositoryImpl: PreferenceRepository {
         cursor: String?
     ) async throws(PreferenceError) -> ArtistSearchResult {
         do {
-            let response: DTO.Response.FetchArtistList = try await preferenceService.request(
+            let response: DTO.Response.SearchArtistList = try await preferenceService.request(
                 .searchArtistList(keyword: keyword, size: size, cursor: cursor)
             )
             return mapper.toDomain(from: response)

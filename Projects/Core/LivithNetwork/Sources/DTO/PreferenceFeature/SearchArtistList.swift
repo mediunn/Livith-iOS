@@ -1,5 +1,5 @@
 //
-//  FetchArtistList.swift
+//  SearchArtistList.swift
 //  LivithNetwork
 //
 //  Created by 김진웅 on 2/4/26.
@@ -8,8 +8,10 @@
 
 import Foundation
 
+// MARK: - 40. 대표 아티스트 검색 결과 목록 조회
+
 public extension DTO.Response {
-    struct FetchArtistList: Decodable {
+    struct SearchArtistList: Decodable {
         public let data: [Artist]
         public let cursor: Int?
         public let totalCount: Int?

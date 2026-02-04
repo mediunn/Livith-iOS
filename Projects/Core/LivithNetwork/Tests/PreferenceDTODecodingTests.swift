@@ -40,7 +40,7 @@ struct PreferenceDTODecodingTests {
         """.data(using: .utf8)!
         
         // When
-        let result = try JSONDecoder().decode(DTO.Response.FetchArtistList.self, from: json)
+        let result = try JSONDecoder().decode(DTO.Response.SearchArtistList.self, from: json)
         
         // Then
         #expect(result.data.count == 2)
@@ -70,7 +70,7 @@ struct PreferenceDTODecodingTests {
         """.data(using: .utf8)!
         
         // When
-        let result = try JSONDecoder().decode(DTO.Response.FetchArtistList.self, from: json)
+        let result = try JSONDecoder().decode(DTO.Response.SearchArtistList.self, from: json)
         
         // Then
         #expect(result.data.isEmpty)
@@ -97,7 +97,7 @@ struct PreferenceDTODecodingTests {
         """.data(using: .utf8)!
         
         // When
-        let result = try JSONDecoder().decode(DTO.Response.FetchArtistList.self, from: json)
+        let result = try JSONDecoder().decode(DTO.Response.SearchArtistList.self, from: json)
         
         // Then
         #expect(result.data.count == 1)

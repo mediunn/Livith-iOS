@@ -23,7 +23,7 @@ struct PreferenceMapper {
         }
     }
     
-    func toDomain(from dto: DTO.Response.FetchArtistList) -> ArtistSearchResult {
+    func toDomain(from dto: DTO.Response.SearchArtistList) -> ArtistSearchResult {
         let artists = dto.data.map { artist in
             PreferredArtist(
                 id: artist.id,

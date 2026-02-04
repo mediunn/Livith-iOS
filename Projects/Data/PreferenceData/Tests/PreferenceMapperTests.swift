@@ -55,7 +55,7 @@ struct PreferenceMapperTests {
         }
         """.data(using: .utf8)!
         
-        let dto = try! JSONDecoder().decode(DTO.Response.FetchArtistList.self, from: json)
+        let dto = try! JSONDecoder().decode(DTO.Response.SearchArtistList.self, from: json)
         
         // When
         let result = mapper.toDomain(from: dto)
