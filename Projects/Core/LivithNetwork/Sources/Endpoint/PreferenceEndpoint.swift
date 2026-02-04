@@ -25,7 +25,7 @@ extension PreferenceEndpoint: NetworkEndpoint {
         case .fetchGenreList:
             return "/genres"
         case .searchArtistList:
-            return "/artists"
+            return "/search/artists"
         case .fetchUserPreferredGenreList, .updateUserPreferredGenreList:
             return "/users/genre-preferences"
         case .fetchUserPreferredArtistList, .updateUserPreferredArtistList:
