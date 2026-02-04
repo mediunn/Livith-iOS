@@ -1,0 +1,33 @@
+//
+//  SearchArtistList.swift
+//  LivithNetwork
+//
+//  Created by 김진웅 on 2/4/26.
+//  Copyright © 2026 Livith. All rights reserved.
+//
+
+import Foundation
+
+// MARK: - 40. 대표 아티스트 검색 결과 목록 조회
+
+public extension DTO.Response {
+    struct SearchArtistList: Decodable {
+        public let data: [Artist]
+        public let cursor: Int?
+        public let totalCount: Int?
+        
+        public struct Artist: Decodable {
+            public let id: Int
+            public let name: String
+            public let genreId: Int
+            public let imageURLString: String?
+            
+            enum CodingKeys: String, CodingKey {
+                case id
+                case name
+                case genreId
+                case imageURLString = "imgUrl"
+            }
+        }
+    }
+}

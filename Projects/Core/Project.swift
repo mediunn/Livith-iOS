@@ -25,6 +25,13 @@ let project = Project.make(
             settings: .environment
         ),
         .make(
+            target: .core(.livithNetworkTests),
+            product: .unitTests,
+            dependencies: [
+                .core(.livithNetwork)
+            ]
+        ),
+        .make(
             target: .core(.persistence),
             product: .framework,
             dependencies: [
