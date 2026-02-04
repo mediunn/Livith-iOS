@@ -88,6 +88,8 @@ public enum DataModule: String {
     case commentDataTests = "CommentDataTests"
     case concertData = "ConcertData"
     case concertDataTests = "ConcertDataTests"
+    case preferenceData = "PreferenceData"
+    case preferenceDataTests = "PreferenceDataTests"
     case searchData = "SearchData"
     case searchDataTests = "SearchDataTests"
     case setlistData = "SetlistData"

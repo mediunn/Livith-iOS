@@ -126,6 +126,7 @@ private extension TargetID {
             .authDataTests: "AuthData",
             .commentDataTests: "CommentData",
             .concertDataTests: "ConcertData",
+            .preferenceDataTests: "PreferenceData",
             .searchDataTests: "SearchData",
             .setlistDataTests: "SetlistData",
             .songDataTests: "SongData",

@@ -65,6 +65,23 @@ let project = Project.make(
             ]
         ),
         .make(
+            target: .data(.preferenceData),
+            product: .framework,
+            dependencies: [
+                .domain(.domain),
+                .core(.diContainer),
+                .core(.livithFoundation),
+                .core(.livithNetwork)
+            ]
+        ),
+        .make(
+            target: .data(.preferenceDataTests),
+            product: .unitTests,
+            dependencies: [
+                .data(.preferenceData)
+            ]
+        ),
+        .make(
             target: .data(.searchData),
             product: .framework,
             dependencies: [
