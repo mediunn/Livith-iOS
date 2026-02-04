@@ -134,13 +134,13 @@ struct PreferenceDTODecodingTests {
         
         let firstGenre = result[0]
         #expect(firstGenre.id == 1)
-        #expect(firstGenre.userId == 1)
+        #expect(firstGenre.userID == 1)
         #expect(firstGenre.name == "JPOP")
         #expect(firstGenre.imageURLString == "https://i.imgur.com/Odi5v7K.jpeg")
         
         let secondGenre = result[1]
         #expect(secondGenre.id == 2)
-        #expect(secondGenre.userId == 1)
+        #expect(secondGenre.userID == 1)
         #expect(secondGenre.name == "ROCK_METAL")
         #expect(secondGenre.imageURLString == "https://i.imgur.com/uCkAExC.jpeg")
     }
@@ -166,13 +166,13 @@ struct PreferenceDTODecodingTests {
         [
           {
             "id": 1,
-            "userId": 1,
+            "genreId": 1,
             "name": "Lisa",
             "imgUrl": "https://yt3.ggpht.com/n03wNjboLyFI5IZmagYapJASpYH6H7d9deJx4WGTRxwRKPOQaYgOSgudEuPBKl__Xz3LwjR11Q=s800-c-k-c0xffffffff-no-rj-mo"
           },
           {
             "id": 4,
-            "userId": 1,
+            "genreId": 2,
             "name": "Ado",
             "imgUrl": "https://yt3.ggpht.com/BKpE74RwbPJ8zLaad9Y2XoX7SmIEsoma1KB8dNzwtWwiOqgTNnYI_guEP1iAaTBrdk4nHakx=s800-c-k-c0xffffffff-no-rj-mo"
           }
@@ -187,13 +187,13 @@ struct PreferenceDTODecodingTests {
         
         let firstArtist = result[0]
         #expect(firstArtist.id == 1)
-        #expect(firstArtist.userId == 1)
+        #expect(firstArtist.genreID == 1)
         #expect(firstArtist.name == "Lisa")
         #expect(firstArtist.imageURLString != nil)
         
         let secondArtist = result[1]
         #expect(secondArtist.id == 4)
-        #expect(secondArtist.userId == 1)
+        #expect(secondArtist.genreID == 2)
         #expect(secondArtist.name == "Ado")
     }
     

@@ -54,7 +54,18 @@ struct PreferenceMapper {
             PreferredArtist(
                 id: artist.id,
                 name: artist.name,
-                genreID: 0, // User preferred artist doesn't have genreID in response
+                genreID: artist.genreID,
+                imageURL: artist.imageURLString.flatMap { URL(string: $0) }
+            )
+        }
+    }
+    
+    func toDomain(from dto: DTO.Response.UpdateUserPreferredArtistList) -> [PreferredArtist] {
+        dto.map { artist in
+            PreferredArtist(
+                id: artist.id,
+                name: artist.name,
+                genreID: artist.genreID,
                 imageURL: artist.imageURLString.flatMap { URL(string: $0) }
             )
         }

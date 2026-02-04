@@ -25,6 +25,21 @@ public extension DTO.Request {
 }
 
 public extension DTO.Response {
-    /// API 명세상 조회 API와 동일한 응답
-    typealias UpdateUserPreferredArtistList = FetchUserPreferredArtistList
+    typealias UpdateUserPreferredArtistList = [UpdatedUserPreferredArtist]
+    
+    struct UpdatedUserPreferredArtist: Decodable {
+        public let id: Int
+        public let userID: Int
+        public let genreID: Int
+        public let name: String
+        public let imageURLString: String?
+        
+        enum CodingKeys: String, CodingKey {
+            case id
+            case userID = "userId"
+            case genreID = "genreId"
+            case name
+            case imageURLString = "imgUrl"
+        }
+    }
 }

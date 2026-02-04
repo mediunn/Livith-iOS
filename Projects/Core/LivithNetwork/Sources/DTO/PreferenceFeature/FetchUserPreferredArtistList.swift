@@ -15,13 +15,13 @@ public extension DTO.Response {
     
     struct UserPreferredArtist: Decodable {
         public let id: Int
-        public let userId: Int
+        public let genreID: Int
         public let name: String
         public let imageURLString: String?
         
         enum CodingKeys: String, CodingKey {
             case id
-            case userId
+            case genreID = "genreId"
             case name
             case imageURLString = "imgUrl"
         }
