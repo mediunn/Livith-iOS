@@ -9,54 +9,73 @@
 import Foundation
 
 import Domain
+import DIContainer
 
 enum ArtistSelectionIntent {
     case onAppear
     case search(keyword: String)
     case toggle(id: Int)
     case resetMaxSelectionToast
+    case resetErrorToast
+    case _searchResult(Result<[PreferredArtist], Error>)
+    case loadMore
+    case _searchMoreResult(Result<[PreferredArtist], Error>)
 }
 
 public struct ArtistSelectionState: Equatable {
     public var selectedArtistList: [PreferredArtist] = []
     var isLoading: Bool = false
-    var allArtistList: [PreferredArtist] = []
-    var filteredArtistList: [PreferredArtist] = []
+    var isLoadingMore: Bool = false
+    var hasNextPage: Bool = true
+    var artistList: [PreferredArtist] = []
     var searchKeyword: String = ""
     var isMaxSelectionToastPresented: Bool = false
+    var isErrorToastPresented: Bool = false
+    var errorMessage: String = ""
 }
 
 public final class ArtistSelectionStore: ObservableObject {
     @Published public private(set) var state: ArtistSelectionState = ArtistSelectionState()
     
-    public init() {}
+    @Injected private var preferenceRepository: PreferenceRepository
+    
+    private var searchTask: Task<Void, Never>?
+    
+    public init(selectedArtists: [PreferredArtist] = []) {
+        self.state.selectedArtistList = selectedArtists
+    }
     
     @MainActor
     func send(_ intent: ArtistSelectionIntent) {
         switch intent {
         case .onAppear:
             state.isLoading = true
-            state.allArtistList = ArtistSelectionStore.mockArtists()
-            state.filteredArtistList = state.allArtistList
-            state.isLoading = false
+            searchArtistList(keyword: nil)
             
         case .search(let keyword):
             state.searchKeyword = keyword
-            if keyword.isEmpty {
-                state.filteredArtistList = state.allArtistList
-            } else {
-                state.filteredArtistList = state.allArtistList.filter { artist in
-                    artist.name.lowercased().contains(keyword.lowercased())
+            
+            searchTask?.cancel()
+            searchTask = Task {
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                guard !Task.isCancelled else { return }
+                
+                if keyword.isEmpty {
+                    searchArtistList(keyword: nil)
+                } else {
+                    searchArtistList(keyword: keyword)
                 }
             }
             
         case .toggle(let id):
-            guard let artist = state.allArtistList.first(where: { $0.id == id }) else { return }
-            
             if let index = state.selectedArtistList.firstIndex(where: { $0.id == id }) {
                 state.selectedArtistList.remove(at: index)
                 state.isMaxSelectionToastPresented = false
-            } else if state.selectedArtistList.count < PreferenceSelectionRule.maxCount {
+                return
+            }
+            
+            if state.selectedArtistList.count < PreferenceSelectionRule.maxCount {
+                guard let artist = state.artistList.first(where: { $0.id == id }) else { return }
                 state.selectedArtistList.append(artist)
                 state.isMaxSelectionToastPresented = false
             } else {
@@ -65,49 +84,67 @@ public final class ArtistSelectionStore: ObservableObject {
             
         case .resetMaxSelectionToast:
             state.isMaxSelectionToastPresented = false
+            
+        case .resetErrorToast:
+            state.isErrorToastPresented = false
+            
+        case ._searchResult(let result):
+            state.isLoading = false
+            switch result {
+            case .success(let artists):
+                state.artistList = artists
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+                state.isErrorToastPresented = true
+            }
+            
+        case .loadMore:
+            guard !state.isLoading, !state.isLoadingMore, state.hasNextPage else { return }
+            guard let lastID = state.artistList.last?.id else { return }
+            
+            state.isLoadingMore = true
+            searchMoreArtistList(keyword: state.searchKeyword, cursor: String(lastID))
+            
+        case ._searchMoreResult(let result):
+            state.isLoadingMore = false
+            switch result {
+            case .success(let artists):
+                if artists.isEmpty {
+                    state.hasNextPage = false
+                } else {
+                    state.artistList.append(contentsOf: artists)
+                }
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+                state.isErrorToastPresented = true
+            }
         }
     }
 }
 
-// MARK: - Mock Data
+// MARK: - Helpers
 
-extension ArtistSelectionStore {
-    static func mockArtists() -> [PreferredArtist] {
-        [
-            PreferredArtist(id: 1, name: "34", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 2, name: "Sunset Rollercoaster", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 3, name: "IU", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 4, name: "IUee", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 5, name: "IUeee434", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 6, name: "Day6", genreID: 3, imageURL: mockImageURL()),
-            PreferredArtist(id: 7, name: "Seventeen", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 8, name: "NewJeans", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 9, name: "Stray Kids", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 10, name: "BTS", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 11, name: "BLACKPINK", genreID: 3, imageURL: mockImageURL()),
-            PreferredArtist(id: 12, name: "EXO", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 13, name: "TWICE", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 14, name: "Red Velvet", genreID: 3, imageURL: mockImageURL()),
-            PreferredArtist(id: 15, name: "GOT7", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 16, name: "Aespa", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 17, name: "Enhypen", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 18, name: "IVE", genreID: 3, imageURL: mockImageURL()),
-            PreferredArtist(id: 19, name: "Le Sserafim", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 20, name: "CL", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 21, name: "Psy", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 22, name: "Jay Park", genreID: 3, imageURL: mockImageURL()),
-            PreferredArtist(id: 23, name: "Taeyeon", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 24, name: "Taemin", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 25, name: "Jungkook", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 26, name: "Lisa", genreID: 3, imageURL: mockImageURL()),
-            PreferredArtist(id: 27, name: "Jennie", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 28, name: "Rose", genreID: 1, imageURL: mockImageURL()),
-            PreferredArtist(id: 29, name: "Jisoo", genreID: 2, imageURL: mockImageURL()),
-            PreferredArtist(id: 30, name: "HyunA", genreID: 3, imageURL: mockImageURL())
-        ]
+private extension ArtistSelectionStore {
+    func searchArtistList(keyword: String?) {
+        Task {
+            do {
+                let result = try await preferenceRepository.searchArtistList(keyword: keyword, size: 12, cursor: nil)
+                await send(._searchResult(.success(result.artists)))
+            } catch {
+                await send(._searchResult(.failure(error)))
+            }
+        }
     }
     
-    private static func mockImageURL() -> URL? {
-        URL(string: "https://fastly.picsum.photos/id/366/108/108.jpg?hmac=aV1brwLNkVd52uapZPMKWfSPXS2oPwaXCrko27s_hwQ")
+    func searchMoreArtistList(keyword: String, cursor: String) {
+        Task {
+            do {
+                let searchKeyword = keyword.isEmpty ? nil : keyword
+                let result = try await preferenceRepository.searchArtistList(keyword: searchKeyword, size: 12, cursor: cursor)
+                await send(._searchMoreResult(.success(result.artists)))
+            } catch {
+                await send(._searchMoreResult(.failure(error)))
+            }
+        }
     }
 }

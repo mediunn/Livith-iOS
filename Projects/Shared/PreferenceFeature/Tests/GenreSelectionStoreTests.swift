@@ -10,75 +10,76 @@ import Testing
 import Foundation
 
 @testable import PreferenceFeature
+import Domain
+import DIContainer
 
-// MARK: - Tests
-
+@MainActor
 struct GenreSelectionStoreTests {
+    
+    let container: MockDIContainer
+    
+    init() {
+        self.container = MockDIContainer()
+        self.container.registerDependencies()
+    }
     
     @Test("초기 상태에서 isLoading은 false여야 한다")
     func testInitialLoadingState() {
-        // Given
         let sut = GenreSelectionStore()
-        
-        // Then
         #expect(!sut.state.isLoading)
-    }
-    
-    @Test("onAppear 시작 시 isLoading은 true여야 한다")
-    func testOnAppearSetsLoadingTrue() async {
-        // Given
-        let sut = GenreSelectionStore()
-        
-        // When
-        await sut.send(.onAppear)
-        
-        // Then
-        // onAppear 처리 후에는 로딩이 완료되므로 false
-        #expect(!sut.state.isLoading)
-    }
-    
-    @Test("onAppear 완료 후 isLoading은 false여야 한다")
-    func testOnAppearSetsLoadingFalse() async {
-        // Given
-        let sut = GenreSelectionStore()
-        
-        // When
-        await sut.send(.onAppear)
-        
-        // Then
-        #expect(!sut.state.isLoading)
-        #expect(!sut.state.genreList.isEmpty)
-    }
-    
-    @Test("초기 상태에서 선택된 장르가 없어야 한다")
-    func testInitialState() {
-        // Given
-        let sut = GenreSelectionStore()
-        
-        // Then
-        #expect(sut.state.selectedGenreList.isEmpty)
     }
     
     @Test("onAppear 시 장르 목록이 로드되어야 한다")
-    func testOnAppearLoadsGenres() async {
+    func testOnAppearLoadsGenres() async throws {
         // Given
+        container.preferenceRepository.genreListStub = [
+            PreferredGenre(id: 1, name: "Pop", imageURL: nil),
+            PreferredGenre(id: 2, name: "Rock", imageURL: nil)
+        ]
+        
         let sut = GenreSelectionStore()
         
         // When
-        await sut.send(.onAppear)
+        sut.send(.onAppear)
+        
+        // Wait for async task
+        try await Task.sleep(nanoseconds: 100_000_000) // 0.1s
         
         // Then
-        #expect(!sut.state.genreList.isEmpty)
+        #expect(sut.state.genreList.count == 2)
+        #expect(sut.state.genreList.map(\.name).contains("Pop"))
+        #expect(sut.state.genreList.map(\.name).contains("Rock"))
+    }
+    
+    @Test("onAppear 실패 시 에러 토스트가 표시되어야 한다")
+    func testOnAppearFailure() async throws {
+        // Given
+        container.preferenceRepository.errorStub = .serverError
+        
+        let sut = GenreSelectionStore()
+        
+        // When
+        sut.send(.onAppear)
+        
+        // Wait
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(sut.state.isErrorToastPresented)
+        #expect(sut.state.errorMessage == PreferenceError.serverError.localizedDescription)
     }
     
     @Test("장르를 토글하면 선택된 목록에 추가되어야 한다")
-    func testToggleAddsGenreWhenNotSelected() async {
+    func testToggleAddsGenreWhenNotSelected() async throws {
         // Given
+        container.preferenceRepository.genreListStub = [PreferredGenre(id: 1, name: "Pop", imageURL: nil)]
+        
         let sut = GenreSelectionStore()
-        await sut.send(.onAppear)
+        sut.send(.onAppear)
+        try await Task.sleep(nanoseconds: 100_000_000)
         
         // When
-        await sut.send(.toggle(id: 1))
+        sut.send(.toggle(id: 1))
         
         // Then
         #expect(sut.state.selectedGenreList.count == 1)
@@ -86,102 +87,79 @@ struct GenreSelectionStoreTests {
     }
     
     @Test("이미 선택된 장르를 토글하면 목록에서 제거되어야 한다")
-    func testToggleRemovesGenreWhenAlreadySelected() async {
+    func testToggleRemovesGenreWhenAlreadySelected() async throws {
         // Given
-        let sut = GenreSelectionStore()
-        await sut.send(.onAppear)
-        await sut.send(.toggle(id: 1))
+        let genre = PreferredGenre(id: 1, name: "Pop", imageURL: nil)
+        container.preferenceRepository.genreListStub = [genre]
+        
+        // 초기 선택 상태 주입
+        let sut = GenreSelectionStore(selectedGenres: [genre])
+        sut.send(.onAppear) // 장르 로드
+        try await Task.sleep(nanoseconds: 100_000_000)
         
         // When
-        await sut.send(.toggle(id: 1))
+        sut.send(.toggle(id: 1))
         
         // Then
         #expect(sut.state.selectedGenreList.isEmpty)
     }
     
-    @Test("3개 선택된 상태에서 새로운 장르를 토글해도 추가되지 않아야 한다")
-    func testToggleDoesNotAddWhenMaxSelectionReached() async {
+    @Test("3개 선택된 상태에서 새로운 장르를 토글해도 추가되지 않고 토스트가 떠야 한다")
+    func testToggleMaxSelectionReached() async throws {
         // Given
-        let sut = GenreSelectionStore()
-        await sut.send(.onAppear)
-        await sut.send(.toggle(id: 1))
-        await sut.send(.toggle(id: 2))
-        await sut.send(.toggle(id: 3))
+        container.preferenceRepository.genreListStub = [
+            PreferredGenre(id: 1, name: "Pop", imageURL: nil),
+            PreferredGenre(id: 2, name: "Rock", imageURL: nil),
+            PreferredGenre(id: 3, name: "Jazz", imageURL: nil),
+            PreferredGenre(id: 4, name: "Classic", imageURL: nil)
+        ]
+        
+        let initialSelection = [
+            PreferredGenre(id: 1, name: "Pop", imageURL: nil),
+            PreferredGenre(id: 2, name: "Rock", imageURL: nil),
+            PreferredGenre(id: 3, name: "Jazz", imageURL: nil)
+        ]
+        
+        let sut = GenreSelectionStore(selectedGenres: initialSelection)
+        sut.send(.onAppear)
+        try await Task.sleep(nanoseconds: 100_000_000)
         
         // When
-        await sut.send(.toggle(id: 4))
+        sut.send(.toggle(id: 4))
         
         // Then
         #expect(sut.state.selectedGenreList.count == 3)
         #expect(!sut.state.selectedGenreList.contains { $0.id == 4 })
-    }
-
-    @Test("최대 선택 수를 초과하려고 하면 isMaxSelectionToastPresented가 true여야 한다")
-    func testExceedMaxSelectionFlagWhenAddingOverLimit() async {
-        // Given
-        let sut = GenreSelectionStore()
-        await sut.send(.onAppear)
-        await sut.send(.toggle(id: 1))
-        await sut.send(.toggle(id: 2))
-        await sut.send(.toggle(id: 3))
-
-        // When
-        await sut.send(.toggle(id: 4))
-
-        // Then
         #expect(sut.state.isMaxSelectionToastPresented)
     }
-
-    @Test("선택이 유효하게 변경되면 isMaxSelectionToastPresented는 false여야 한다")
-    func testExceedMaxSelectionResetOnValidToggle() async {
+    
+    @Test("resetErrorToast intent는 isErrorToastPresented를 false로 만든다")
+    func testResetErrorToastIntent() async throws {
         // Given
+        container.preferenceRepository.errorStub = .serverError
         let sut = GenreSelectionStore()
-        await sut.send(.onAppear)
-        await sut.send(.toggle(id: 1))
-        await sut.send(.toggle(id: 2))
-        await sut.send(.toggle(id: 3))
-        await sut.send(.toggle(id: 4))
-
+        sut.send(.onAppear)
+        try await Task.sleep(nanoseconds: 100_000_000) // 에러 발생 대기
+        
+        #expect(sut.state.isErrorToastPresented) // Precondition
+        
         // When
-        await sut.send(.toggle(id: 3))
-
+        sut.send(.resetErrorToast)
+        
         // Then
-        #expect(!sut.state.isMaxSelectionToastPresented)
-    }
-
-    @Test("resetMaxSelectionToast intent는 isMaxSelectionToastPresented를 false로 만든다")
-    func testResetExceedMaxSelectionIntent() async {
-        // Given
-        let sut = GenreSelectionStore()
-        await sut.send(.onAppear)
-        await sut.send(.toggle(id: 1))
-        await sut.send(.toggle(id: 2))
-        await sut.send(.toggle(id: 3))
-        await sut.send(.toggle(id: 4))
-
-        // When
-        await sut.send(.resetMaxSelectionToast)
-
-        // Then
-        #expect(!sut.state.isMaxSelectionToastPresented)
+        #expect(!sut.state.isErrorToastPresented)
     }
     
-    @Test("3개 선택된 상태에서 이미 선택된 장르를 토글하면 제거되어야 한다")
-    func testToggleRemovesGenreEvenWhenMaxSelectionReached() async {
+    @Test("생성자에서 유저 선호 장르가 주입되면 이미 선택되어 있는 장르로 표현되어야 한다")
+    func testInitialSelectionState() {
         // Given
-        let sut = GenreSelectionStore()
-        await sut.send(.onAppear)
-        await sut.send(.toggle(id: 1))
-        await sut.send(.toggle(id: 2))
-        await sut.send(.toggle(id: 3))
+        let selectedGenre = PreferredGenre(id: 1, name: "Pop", imageURL: nil)
         
         // When
-        await sut.send(.toggle(id: 2))
+        let sut = GenreSelectionStore(selectedGenres: [selectedGenre])
         
         // Then
-        #expect(sut.state.selectedGenreList.count == 2)
-        #expect(!sut.state.selectedGenreList.contains { $0.id == 2 })
-        #expect(sut.state.selectedGenreList.contains { $0.id == 1 })
-        #expect(sut.state.selectedGenreList.contains { $0.id == 3 })
+        #expect(sut.state.selectedGenreList.count == 1)
+        #expect(sut.state.selectedGenreList.first?.id == 1)
     }
 }

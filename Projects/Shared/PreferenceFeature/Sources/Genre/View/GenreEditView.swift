@@ -23,10 +23,11 @@ public struct GenreEditView: View {
     
     public init(
         mode: GenreEditConfig,
+        selectedGenres: [PreferredGenre] = [],
         onBack: @escaping () -> Void,
         onSubmit: @escaping ([PreferredGenre]) -> Void
     ) {
-        self._selectionStore = StateObject(wrappedValue: GenreSelectionStore())
+        self._selectionStore = StateObject(wrappedValue: GenreSelectionStore(selectedGenres: selectedGenres))
         self.config = mode
         self.onBack = onBack
         self.onSubmit = onSubmit

@@ -25,11 +25,12 @@ public struct ArtistEditView: View {
     
     public init(
         config: ArtistEditConfig,
+        selectedArtists: [PreferredArtist] = [],
         onBack: @escaping () -> Void,
         onSkip: (() -> Void)? = nil,
         onSubmit: @escaping ([PreferredArtist]) -> Void
     ) {
-        self._store = StateObject(wrappedValue: ArtistSelectionStore())
+        self._store = StateObject(wrappedValue: ArtistSelectionStore(selectedArtists: selectedArtists))
         self.config = config
         self.onBack = onBack
         self.onSkip = onSkip
