@@ -33,6 +33,11 @@ public struct ArtistSelectionView: View {
             type: .failure,
             message: Literals.exceedMaxSelectionToastMessage
         )
+        .livithToast(
+            isPresented: errorToastBinding,
+            type: .failure,
+            message: store.state.errorMessage
+        )
         .onAppear {
             store.send(.onAppear)
         }
@@ -91,7 +96,8 @@ private extension ArtistSelectionView {
             columns: Array(repeating: GridItem(.flexible(), spacing: Constants.gridSpacing), count: Constants.gridColumns),
             spacing: Constants.gridSpacing
         ) {
-            ForEach(store.state.filteredArtistList) { artist in
+
+            ForEach(store.state.artistList) { artist in
                 PreferenceCard(
                     title: artist.name,
                     imageURL: artist.imageURL,
@@ -100,6 +106,11 @@ private extension ArtistSelectionView {
                         store.send(.toggle(id: artist.id))
                     }
                 )
+                .onAppear {
+                    if artist == store.state.artistList.last {
+                        store.send(.loadMore)
+                    }
+                }
             }
         }
     }
@@ -133,6 +144,16 @@ private extension ArtistSelectionView {
             set: { isPresented in
                 guard !isPresented else { return }
                 store.send(.resetMaxSelectionToast)
+            }
+        )
+    }
+    
+    var errorToastBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isErrorToastPresented },
+            set: { isPresented in
+                guard !isPresented else { return }
+                store.send(.resetErrorToast)
             }
         )
     }
