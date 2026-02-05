@@ -43,6 +43,12 @@ struct HomeStoreTests {
         #expect(sut.state.interestConcert.scheduleList.isEmpty)
     }
     
+    @Test("초기 상태에서 shouldShowPreferenceBanner는 false이어야 한다")
+    func testInitialPreferenceBannerState() {
+        let sut = HomeStore()
+        #expect(sut.state.sections.shouldShowPreferenceBanner == false)
+    }
+    
     // MARK: - onAppear 테스트
     
     @Test("onAppear 시 사용자 정보가 로드되어야 한다")
@@ -275,6 +281,79 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount > 0)
         #expect(!sut.state.sections.sectionList.isEmpty)
         #expect(sut.state.sections.isLoading == false)
+    }
+    
+    // MARK: - Preference 배너 테스트
+    
+    @Test("선호 장르가 비어있으면 배너를 표시해야 한다")
+    func testShowPreferenceBannerWhenGenreListEmpty() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser()
+        container.preferenceRepository.preferredGenreListStub = []
+        
+        let sut = HomeStore()
+        
+        // When
+        sut.send(.concertSection(.checkShowBanner))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(sut.state.sections.shouldShowPreferenceBanner == true)
+    }
+    
+    @Test("선호 장르가 있으면 배너를 표시하지 않아야 한다")
+    func testHidePreferenceBannerWhenGenreListNotEmpty() async throws {
+        // Given
+        let mockGenre = PreferredGenre(id: 1, name: "팝", imageURL: nil)
+        container.userRepository.userStub = makeMockUser()
+        container.preferenceRepository.preferredGenreListStub = [mockGenre]
+        
+        let sut = HomeStore()
+        
+        // When
+        sut.send(.concertSection(.checkShowBanner))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(sut.state.sections.shouldShowPreferenceBanner == false)
+    }
+    
+    @Test("선호 장르 로드 실패 시 배너를 표시하지 않아야 한다")
+    func testHidePreferenceBannerWhenFetchFails() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser()
+        container.preferenceRepository.errorStub = PreferenceError.invalidResponse
+        
+        let sut = HomeStore()
+        
+        // When
+        sut.send(.concertSection(.checkShowBanner))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(sut.state.sections.shouldShowPreferenceBanner == false)
+    }
+    
+    @Test("onAppear 시 선호 배너 체크가 자동으로 수행되어야 한다")
+    func testCheckShowBannerOnAppear() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser()
+        container.userRepository.interestedConcertStub = nil
+        container.preferenceRepository.preferredGenreListStub = []
+        container.concertRepository.homeSectionListStub = []
+        
+        let sut = HomeStore()
+        
+        // Reset call count
+        container.preferenceRepository.fetchUserPreferredGenreListCallCount = 0
+        
+        // When
+        sut.send(.onAppear)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(container.preferenceRepository.fetchUserPreferredGenreListCallCount > 0)
+        #expect(sut.state.sections.shouldShowPreferenceBanner == true)
     }
     
     // MARK: - 연쇄 호출 테스트

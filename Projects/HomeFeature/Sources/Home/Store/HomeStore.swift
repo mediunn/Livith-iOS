@@ -32,7 +32,9 @@ enum HomeIntent {
     
     enum ConcertSectionIntent {
         case onRefreshSections
+        case checkShowBanner
         case _fetchHomeSectionListResult(Result<[ConcertSection], Error>)
+        case _fetchUserPreferredGenreListResult(Result<[PreferredGenre], Error>)
     }
 }
 
@@ -54,6 +56,7 @@ struct HomeState {
     struct ConcertSectionState {
         var sectionList: [ConcertSection] = []
         var isLoading: Bool = false
+        var shouldShowPreferenceBanner: Bool = false
     }
 }
 
@@ -69,6 +72,7 @@ final class HomeStore: ObservableObject {
         case fetchSetlistSongList
         case refreshSections
         case fetchUser
+        case fetchUserPreferredGenreList
     }
     
     @Published private(set) var state: HomeState = .init()
@@ -76,6 +80,7 @@ final class HomeStore: ObservableObject {
     @Injected private var userRepository: UserRepository
     @Injected private var concertRepository: ConcertRepository
     @Injected private var setlistRepository: SetlistRepository
+    @Injected private var preferenceRepository: PreferenceRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
     
@@ -88,6 +93,7 @@ final class HomeStore: ObservableObject {
         case .onAppear:
             performFetchUser()
             performFetchUserInterestedConcert()
+            send(.concertSection(.checkShowBanner))
             
         case .onErrorToastDisappear:
             state.errorMessage = ""
@@ -218,8 +224,12 @@ private extension HomeStore {
         switch intent {
         case .onRefreshSections:
             executeRefreshSections()
+        case .checkShowBanner:
+            performFetchUserPreferredGenreList()
         case ._fetchHomeSectionListResult(let result):
             handleFetchHomeSectionListResult(result)
+        case ._fetchUserPreferredGenreListResult(let result):
+            handleFetchUserPreferredGenreListResult(result)
         }
     }
     
@@ -236,6 +246,15 @@ private extension HomeStore {
             state.sections.sectionList = sectionList
         case .failure(let error):
             state.errorMessage = getErrorMessage(from: error)
+        }
+    }
+    
+    func handleFetchUserPreferredGenreListResult(_ result: Result<[PreferredGenre], Error>) {
+        switch result {
+        case .success(let genreList):
+            state.sections.shouldShowPreferenceBanner = genreList.isEmpty
+        case .failure:
+            state.sections.shouldShowPreferenceBanner = false
         }
     }
 }
@@ -330,6 +349,18 @@ private extension HomeStore {
                 send(.concertSection(._fetchHomeSectionListResult(.success(result))))
             } catch {
                 send(.concertSection(._fetchHomeSectionListResult(.failure(error))))
+            }
+        }
+    }
+    
+    func performFetchUserPreferredGenreList() {
+        cancellables[.fetchUserPreferredGenreList]?.cancel()
+        cancellables[.fetchUserPreferredGenreList] = Task {
+            do {
+                let genreList = try await preferenceRepository.fetchUserPreferredGenreList()
+                send(.concertSection(._fetchUserPreferredGenreListResult(.success(genreList))))
+            } catch {
+                send(.concertSection(._fetchUserPreferredGenreListResult(.failure(error))))
             }
         }
     }

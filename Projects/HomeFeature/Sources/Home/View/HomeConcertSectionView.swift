@@ -33,36 +33,8 @@ struct HomeConcertSectionView: View {
             
             ScrollView {
                 VStack(spacing: .zero) {
-                    VStack(spacing: .zero) {
-                        PreferenceBannerView(
-                            isExpanded: $isPreferenceBannerExpanded,
-                            onTapBanner: { coordinator?.push(to: .preference) }
-                        )
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
-                        
-                        HomeHeaderView(
-                            nickname: store.state.userName,
-                            action: { coordinator?.push(to: .interest) }
-                        )
-                    }
-                    .background(Color.livithColor(.black90))
-                    
-                    VStack(spacing: .zero) {
-                        if !sectionState.isLoading && sectionState.sectionList.isEmpty {
-                            LivithEmptyView(text: emptyMessage)
-                                .frame(minHeight: Constants.emptyStateMinHeight)
-                        }
-                        
-                        ForEach(sectionState.sectionList, id: \.id) { section in
-                            concertSectionRow(for: section)
-                                .padding(.top, 28)
-                                .padding(.leading, 16)
-                        }
-                        
-                        Spacer(minLength: Constants.emptySpaceHeight)
-                    }
-                    .background(Color.livithColor(.black100))
+                    headerView
+                    contentView
                 }
             }
             .refreshable { store.send(.concertSection(.onRefreshSections)) }
@@ -73,6 +45,47 @@ struct HomeConcertSectionView: View {
     
     private var emptyMessage: String {
         store.state.errorMessage.isEmpty ? "콘텐츠가 없습니다." : store.state.errorMessage
+    }
+}
+
+// MARK: - Subviews
+
+private extension HomeConcertSectionView {
+    var headerView: some View {
+        VStack(spacing: .zero) {
+            if sectionState.shouldShowPreferenceBanner {
+                PreferenceBannerView(
+                    isExpanded: $isPreferenceBannerExpanded,
+                    onTapBanner: { coordinator?.push(to: .preference) }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+            }
+            
+            HomeHeaderView(
+                nickname: store.state.userName,
+                action: { coordinator?.push(to: .interest) }
+            )
+        }
+        .background(Color.livithColor(.black90))
+    }
+    
+    var contentView: some View {
+        VStack(spacing: .zero) {
+            if !sectionState.isLoading && sectionState.sectionList.isEmpty {
+                LivithEmptyView(text: emptyMessage)
+                    .frame(minHeight: Constants.emptyStateMinHeight)
+            }
+            
+            ForEach(sectionState.sectionList, id: \.id) { section in
+                concertSectionRow(for: section)
+                    .padding(.top, 28)
+                    .padding(.leading, 16)
+            }
+            
+            Spacer(minLength: Constants.emptySpaceHeight)
+        }
+        .background(Color.livithColor(.black100))
     }
 }
 
