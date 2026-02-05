@@ -1,0 +1,24 @@
+//
+//  MockDIContainer.swift
+//  HomeFeatureTests
+//
+//  Created by 김진웅 on 2/5/26.
+//  Copyright © 2026 Livith. All rights reserved.
+//
+
+import Foundation
+
+import DIContainer
+import Domain
+
+final class MockDIContainer {
+    let userRepository = MockUserRepository()
+    let concertRepository = MockConcertRepository()
+    let setlistRepository = MockSetlistRepository()
+    
+    func registerDependencies() {
+        DIContainer.shared.register(userRepository, for: UserRepository.self)
+        DIContainer.shared.register(concertRepository, for: ConcertRepository.self)
+        DIContainer.shared.register(setlistRepository, for: SetlistRepository.self)
+    }
+}

@@ -21,6 +21,13 @@ let project = Project.make(
                 .core(.diContainer),
                 .core(.livithFoundation)
             ]
+        ),
+        .make(
+            target: .home(.homeFeatureTests),
+            product: .unitTests,
+            dependencies: [
+                .home(.homeFeature)
+            ]
         )
     ]
 )
