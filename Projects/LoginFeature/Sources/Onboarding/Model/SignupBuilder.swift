@@ -61,10 +61,10 @@ struct SignupBuilder: Hashable {
     }
     
     /// Step 4: 최종 빌드 - 회원가입 요청 데이터 생성
-    func build(preferredArtistList: [PreferredArtist]) throws -> Signup {
+    func build(preferredArtistList: [PreferredArtist]) throws -> SignupInfo {
         let validatedNickname = try Nickname(nickname)
         
-        return try Signup(
+        return try SignupInfo(
             provider: tempUser.provider,
             providerID: tempUser.providerID,
             email: tempUser.email,

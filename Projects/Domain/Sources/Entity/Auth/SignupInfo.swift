@@ -1,5 +1,5 @@
 //
-//  Signup.swift
+//  SignupInfo.swift
 //  Domain
 //
 //  Created by 김진웅 on 2/5/26.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Signup: Hashable {
+public struct SignupInfo: Hashable {
     
     // MARK: - Constants
     

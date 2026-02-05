@@ -70,7 +70,7 @@ struct AuthRepositoryImpl: AuthRepository {
         }
     }
     
-    func signup(_ signup: Signup) async throws(AuthError) {
+    func signup(_ signup: SignupInfo) async throws(AuthError) {
         do {
             let request: DTO.Request.Signup = .init(
                 nickname: signup.nickname.value,
