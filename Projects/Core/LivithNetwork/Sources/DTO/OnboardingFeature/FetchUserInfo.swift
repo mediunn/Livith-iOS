@@ -19,30 +19,23 @@ public extension DTO.Response {
         public let email: String?
         public let nickname: String
         public let marketingConsent: Bool
-        
-        public init(
-            id: Int,
-            interestConcertID: Int?,
-            provider: String,
-            providerID: String,
-            email: String?,
-            nickname: String,
-            marketingConsent: Bool
-        ) {
-            self.id = id
-            self.interestConcertID = interestConcertID
-            self.provider = provider
-            self.providerID = providerID
-            self.email = email
-            self.nickname = nickname
-            self.marketingConsent = marketingConsent
-        }
+        public let preferredGenreList: [PreferenceInfo]
+        public let preferredArtistList: [PreferenceInfo]
         
         enum CodingKeys: String, CodingKey {
             case id
             case interestConcertID = "interestConcertId"
             case providerID = "providerId"
             case provider, email, nickname, marketingConsent
+            case preferredGenreList = "preferredGenres"
+            case preferredArtistList = "preferredArtists"
         }
+    }
+}
+
+public extension DTO.Response.FetchUserInfo {
+    struct PreferenceInfo: Codable {
+        public let id: Int
+        public let name: String
     }
 }

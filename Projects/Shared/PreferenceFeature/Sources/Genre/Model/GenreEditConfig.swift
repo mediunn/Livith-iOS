@@ -8,7 +8,10 @@
 
 import Foundation
 
+import Domain
+
 public struct GenreEditConfig {
+    public let initialSelection: [PreferredGenre]
     public let stepIndicator: (current: Int, total: Int)?
     public let navigationTitle: String
     public let title: String
@@ -16,12 +19,14 @@ public struct GenreEditConfig {
     public let submitTitle: String
     
     public init(
+        initialSelection: [PreferredGenre] = [],
         stepIndicator: (current: Int, total: Int)? = nil,
         navigationTitle: String,
         title: String,
         subtitle: String? = nil,
         submitTitle: String
     ) {
+        self.initialSelection = initialSelection
         self.stepIndicator = stepIndicator
         self.navigationTitle = navigationTitle
         self.title = title
@@ -53,8 +58,9 @@ public extension GenreEditConfig {
         )
     }
     
-    static func edit() -> GenreEditConfig {
+    static func edit(selectedGenres: [PreferredGenre]) -> GenreEditConfig {
         GenreEditConfig(
+            initialSelection: selectedGenres,
             stepIndicator: nil,
             navigationTitle: "장르 변경",
             title: "선호하는 장르를\n3개 선택해 주세요",

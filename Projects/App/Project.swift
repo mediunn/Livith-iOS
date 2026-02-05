@@ -34,6 +34,7 @@ let project = Project.make(
                 .data(.userData),
                 .user(.userFeature),
                 .widget(.widget),
+                .data(.preferenceData)
             ]
         )
     ],

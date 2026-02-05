@@ -18,10 +18,18 @@ public enum AuthError: DomainError {
     case duplicateNickname
     case nicknameTooLong
     case emptyNickname
+    case invalidNickname
     case userNotFound
     case alreadyWithdrawn
     case emptyReason
     case cancelled
+    
+    // 회원가입 - 장르/아티스트 검증
+    case emptyGenreList
+    case genreNotFound
+    case genreExceedsLimit
+    case artistNotFound
+    case artistExceedsLimit
     
     public var errorDescription: String? {
         switch self {
@@ -43,6 +51,8 @@ public enum AuthError: DomainError {
             return "닉네임은 10자 이내여야 해요."
         case .emptyNickname:
             return "닉네임을 입력해주세요."
+        case .invalidNickname:
+            return "닉네임 형식이 올바르지 않아요."
         case .userNotFound:
             return "해당 유저를 찾을 수 없어요."
         case .alreadyWithdrawn:
@@ -51,6 +61,16 @@ public enum AuthError: DomainError {
             return "탈퇴 사유를 선택해주세요."
         case .cancelled:
             return "요청이 취소되었습니다."
+        case .emptyGenreList:
+            return "최소 1개의 장르는 선택해야 합니다."
+        case .genreNotFound:
+            return "해당 장르를 찾을 수 없습니다."
+        case .genreExceedsLimit:
+            return "최대 3개의 장르만 선택할 수 있습니다."
+        case .artistNotFound:
+            return "해당 아티스트를 찾을 수 없습니다."
+        case .artistExceedsLimit:
+            return "최대 3개의 아티스트만 선택할 수 있습니다."
         }
     }
     
@@ -72,8 +92,19 @@ public enum AuthError: DomainError {
             return .alreadyWithdrawn
         case "reason should not be empty":
             return .emptyReason
+        case "최소 1개의 장르는 선택해야 합니다.":
+            return .emptyGenreList
+        case "해당 장르를 찾을 수 없습니다.":
+            return .genreNotFound
+        case "최대 3개의 장르만 선택할 수 있습니다.":
+            return .genreExceedsLimit
+        case "해당 아티스를 찾을 수 없습니다.":
+            return .artistNotFound
+        case "최대 3개의 아티스트만 선택할 수 있습니다.":
+            return .artistExceedsLimit
         default:
             return .unknown
         }
     }
 }
+

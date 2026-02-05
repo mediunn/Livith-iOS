@@ -18,8 +18,6 @@ final class LoginCoordinator: Coordinator {
     
     let navigationController: UINavigationController
     
-    private var tempUser: Domain.TempUser?
-    
     private let onLoginCompleted: (() -> Void)
     private let onSignupCompleted: ((String) -> Void)
     
@@ -44,27 +42,28 @@ final class LoginCoordinator: Coordinator {
             return UIHostingController(rootView: LoginView().environment(\.loginCoordinator, self))
             
         case .terms(let tempUser):
-            self.tempUser = tempUser
-            return UIHostingController(rootView: TermsView().environment(\.loginCoordinator, self))
-            
-        case .nickname(let marketingConsent):
-            guard let tempUser = tempUser else {
-                return UIHostingController(rootView: EmptyView())
-            }
-
             return UIHostingController(
-                rootView: NicknameSettingView(
-                    marketingConsent: marketingConsent,
-                    tempUser: tempUser
-                )
-                .environment(\.loginCoordinator, self)
+                rootView: TermsView(tempUser: tempUser)
+                    .environment(\.loginCoordinator, self)
             )
             
-        case .safari(let url):
-            let safariView = SafariView(url: url) { [weak self] in
-                self?.dismiss()
-            }.ignoresSafeArea()
-            return UIHostingController(rootView: safariView)
+        case .nickname(let builder):
+            return UIHostingController(
+                rootView: NicknameSettingView(builder: builder)
+                    .environment(\.loginCoordinator, self)
+            )
+            
+        case .preferredGenre(let builder):
+            return UIHostingController(
+                rootView: PreferredGenreSettingView(builder: builder)
+                    .environment(\.loginCoordinator, self)
+            )
+            
+        case .preferredArtist(let builder):
+            return UIHostingController(
+                rootView: PreferredArtistSettingView(builder: builder)
+                    .environment(\.loginCoordinator, self)
+            )
         }
     }
     
@@ -76,4 +75,3 @@ final class LoginCoordinator: Coordinator {
         onSignupCompleted(nickname)
     }
 }
-

@@ -18,27 +18,18 @@ struct NicknameSettingView: View {
     @State private var isSignupFailureModalPresented: Bool = false
     @State private var signupFailureMessage: String = ""
 
-    private let marketingConsent: Bool
-    private let tempUser: TempUser
+    private let builder: SignupBuilder
 
-    init(marketingConsent: Bool, tempUser: TempUser) {
-        self.marketingConsent = marketingConsent
-        self.tempUser = tempUser
+    init(builder: SignupBuilder) {
+        self.builder = builder
     }
 
     var body: some View {
-        // TODO: - 회원가입 API 연결 취향 설정 이후로 빼기
-        NicknameEditView(
-            config: .signup(marketingConsent: marketingConsent, tempUser: tempUser),
-            onDismiss: { coordinator?.pop() },
-            onSubmitSuccess: { nickname in
-                coordinator?.completeSignup(with: nickname)
-            },
-            onSubmitFailure: { message in
-                signupFailureMessage = message
-                isSignupFailureModalPresented = true
-            }
-        )
+        NicknameEditView(config: .signup) {
+            coordinator?.pop()
+        } onSubmitSuccess: { nickname in
+            coordinator?.push(to: .preferredGenre(builder.withNickname(nickname)))
+        }
         .crossDissolve(isPresented: $isSignupFailureModalPresented, dismissOnTapOutside: false) {
             LivithModal(
                 type: .error(title: "오류가 발생했어요!", message: signupFailureMessage),

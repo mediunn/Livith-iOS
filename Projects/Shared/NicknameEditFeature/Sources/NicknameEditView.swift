@@ -52,7 +52,7 @@ public struct NicknameEditView: View {
 
                 if config.showStepIndicator {
                     stepIndicator
-                        .padding(.top, 20)
+                        .padding(.top, 10)
                         .padding(.horizontal, 16)
                 }
 
@@ -99,7 +99,7 @@ private extension NicknameEditView {
     }
 
     var stepIndicator: some View {
-        StepIndicatorView(currentStep: 2, totalSteps: 2)
+        StepIndicatorView(currentStep: 2, totalSteps: 4)
     }
 
     var title: some View {

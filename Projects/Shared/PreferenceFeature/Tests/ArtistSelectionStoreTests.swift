@@ -246,4 +246,37 @@ struct ArtistSelectionStoreTests {
         #expect(sut.state.artistList.count == 1)
         #expect(sut.state.hasNextPage) // 검색 시 hasNextPage true 리셋 (구현 확인 필요: 현재 구현엔 리셋 로직 누락 가능성 있음)
     }
+
+    @Test("리스트 재조회(검색 등) 시 페이지네이션 상태가 초기화되어야 한다")
+    func testRefetchingListResetsPaginationState() async throws {
+        // Given
+        // 1. 초기 상태: 리스트가 있고, 페이징 끝에 도달하여 hasNextPage가 false인 상태를 만든다.
+        let initialArtists = [PreferredArtist(id: 1, name: "A", genreID: 1, imageURL: nil)]
+        container.preferenceRepository.artistSearchResultStub = ArtistSearchResult(artists: initialArtists, cursor: nil, totalCount: 1)
+        
+        let sut = ArtistSelectionStore()
+        sut.send(.onAppear)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // loadMore 호출 -> 빈 결과 -> hasNextPage = false
+        container.preferenceRepository.artistSearchResultStub = ArtistSearchResult(artists: [], cursor: nil, totalCount: 1)
+        sut.send(.loadMore)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        #expect(!sut.state.hasNextPage)
+        
+        // When
+        // 2. 리스트를 처음부터 다시 로드 (검색어 변경 등)
+        let newArtists = [PreferredArtist(id: 2, name: "B", genreID: 1, imageURL: nil)]
+        container.preferenceRepository.artistSearchResultStub = ArtistSearchResult(artists: newArtists, cursor: nil, totalCount: 2)
+        
+        // 검색 실행 (또는 onAppear 재호출 등, 여기선 search로 시뮬레이션)
+        sut.send(.search(keyword: "B"))
+        try await Task.sleep(nanoseconds: 500_000_000)
+        
+        // Then
+        // 3. hasNextPage가 true로 돌아왔는지 확인
+        #expect(sut.state.artistList.first?.name == "B")
+        #expect(sut.state.hasNextPage)
+    }
 }

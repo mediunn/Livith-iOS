@@ -69,7 +69,9 @@ final class AuthMapperTests: XCTestCase {
           "providerId": "provider123",
           "email": "test@example.com",
           "nickname": "테스트유저",
-          "marketingConsent": true
+          "marketingConsent": true,
+          "preferredGenres": [],
+          "preferredArtists": []
         }
         """.data(using: .utf8)!
         
@@ -98,7 +100,9 @@ final class AuthMapperTests: XCTestCase {
           "providerId": "apple456",
           "email": null,
           "nickname": "애플유저",
-          "marketingConsent": false
+          "marketingConsent": false,
+          "preferredGenres": [],
+          "preferredArtists": []
         }
         """.data(using: .utf8)!
         

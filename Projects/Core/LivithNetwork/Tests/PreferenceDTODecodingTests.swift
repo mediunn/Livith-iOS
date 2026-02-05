@@ -13,10 +13,10 @@ import Testing
 
 struct PreferenceDTODecodingTests {
     
-    // MARK: - FetchArtistList Tests
+    // MARK: - SearchArtistList Tests
     
-    @Test("FetchArtistList 디코딩이 정상적으로 되어야 한다")
-    func fetchArtistList_디코딩이_정상적으로_되어야_한다() throws {
+    @Test("SearchArtistList 디코딩이 정상적으로 되어야 한다")
+    func searchArtistList_디코딩이_정상적으로_되어야_한다() throws {
         // Given
         let json = """
         {
@@ -58,8 +58,8 @@ struct PreferenceDTODecodingTests {
         #expect(secondArtist.name == "YOASOBI")
     }
     
-    @Test("FetchArtistList cursor가 nil일때 디코딩이 되어야 한다")
-    func fetchArtistList_cursor가_nil일때_디코딩이_되어야_한다() throws {
+    @Test("SearchArtistList cursor가 nil일때 디코딩이 되어야 한다")
+    func searchArtistList_cursor가_nil일때_디코딩이_되어야_한다() throws {
         // Given
         let json = """
         {
@@ -78,8 +78,8 @@ struct PreferenceDTODecodingTests {
         #expect(result.totalCount == 0)
     }
     
-    @Test("FetchArtistList imgUrl이 nil일때 디코딩이 되어야 한다")
-    func fetchArtistList_imgUrl이_nil일때_디코딩이_되어야_한다() throws {
+    @Test("SearchArtistList imgUrl이 nil일때 디코딩이 되어야 한다")
+    func searchArtistList_imgUrl이_nil일때_디코딩이_되어야_한다() throws {
         // Given
         let json = """
         {
@@ -164,19 +164,21 @@ struct PreferenceDTODecodingTests {
         // Given
         let json = """
         [
-          {
-            "id": 1,
-            "genreId": 1,
-            "name": "Lisa",
-            "imgUrl": "https://yt3.ggpht.com/n03wNjboLyFI5IZmagYapJASpYH6H7d9deJx4WGTRxwRKPOQaYgOSgudEuPBKl__Xz3LwjR11Q=s800-c-k-c0xffffffff-no-rj-mo"
-          },
-          {
-            "id": 4,
-            "genreId": 2,
-            "name": "Ado",
-            "imgUrl": "https://yt3.ggpht.com/BKpE74RwbPJ8zLaad9Y2XoX7SmIEsoma1KB8dNzwtWwiOqgTNnYI_guEP1iAaTBrdk4nHakx=s800-c-k-c0xffffffff-no-rj-mo"
-          }
-        ]
+            {
+              "id": 1,
+              "userId": 1,
+              "genreId": 1,
+              "name": "Lisa",
+              "imgUrl": "https://yt3.ggpht.com/n03wNjboLyFI5IZmagYapJASpYH6H7d9deJx4WGTRxwRKPOQaYgOSgudEuPBKl__Xz3LwjR11Q=s800-c-k-c0xffffffff-no-rj-mo"
+            },
+            {
+              "id": 4,
+              "userId": 1,
+              "genreId": 4,
+              "name": "Ado",
+              "imgUrl": "https://yt3.ggpht.com/BKpE74RwbPJ8zLaad9Y2XoX7SmIEsoma1KB8dNzwtWwiOqgTNnYI_guEP1iAaTBrdk4nHakx=s800-c-k-c0xffffffff-no-rj-mo"
+            }
+          ]
         """.data(using: .utf8)!
         
         // When
@@ -187,13 +189,15 @@ struct PreferenceDTODecodingTests {
         
         let firstArtist = result[0]
         #expect(firstArtist.id == 1)
+        #expect(firstArtist.userID == 1)
         #expect(firstArtist.genreID == 1)
         #expect(firstArtist.name == "Lisa")
         #expect(firstArtist.imageURLString != nil)
         
         let secondArtist = result[1]
         #expect(secondArtist.id == 4)
-        #expect(secondArtist.genreID == 2)
+        #expect(secondArtist.userID == 1)
+        #expect(secondArtist.genreID == 4)
         #expect(secondArtist.name == "Ado")
     }
     

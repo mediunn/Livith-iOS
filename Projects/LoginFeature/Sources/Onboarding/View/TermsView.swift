@@ -8,45 +8,55 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 
 struct TermsView: View {
     @StateObject private var store = TermsStore()
     @Environment(\.loginCoordinator) private var coordinator
     @Environment(\.openURL) private var openURL
+    @State private var showSafari = false
+    @State private var safariURL: URL?
+    
+    private let tempUser: TempUser
+    
+    init(tempUser: TempUser) {
+        self.tempUser = tempUser
+    }
     
     var body: some View {
-        ZStack {
-            Color.livithColor(.black100)
-                .ignoresSafeArea()
+        VStack(alignment: .leading, spacing: 0) {
+            navigationBar
 
-            VStack(alignment: .leading, spacing: 0) {
-                navigationBar
+            stepIndicator
+                .padding(.top, 10)
+                .padding(.horizontal, 16)
 
-                stepIndicator
-                    .padding(.top, 20)
-                    .padding(.horizontal, 16)
+            title
+                .padding(.top, 32)
+                .padding(.horizontal, 16)
 
-                title
-                    .padding(.top, 32)
-                    .padding(.horizontal, 16)
+            allAgreeButton
+                .padding(.top, 20)
+                .padding(.horizontal, 16)
 
-                allAgreeButton
-                    .padding(.top, 20)
-                    .padding(.horizontal, 16)
+            termsSection
+                .padding(.top, 20)
+                .padding(.horizontal, 20)
 
-                termsSection
-                    .padding(.top, 20)
-                    .padding(.horizontal, 20)
+            Spacer()
 
-                Spacer()
-
-                nextButton
-                    .padding(.bottom, 50)
-                    .padding(.horizontal, 16)
+            nextButton
+                .padding(.bottom, 50)
+                .padding(.horizontal, 16)
+        }
+        .background(Color.livithColor(.black100))
+        .ignoresSafeArea(.all, edges: .bottom)
+        .sheet(isPresented: $showSafari) {
+            if let url = safariURL {
+                SafariView(url: url)
             }
         }
-        .ignoresSafeArea(.all, edges: .bottom)
     }
 }
 
@@ -60,7 +70,7 @@ private extension TermsView {
     }
     
     var stepIndicator: some View {
-        StepIndicatorView(currentStep: 1, totalSteps: 2)
+        StepIndicatorView(currentStep: 1, totalSteps: 4)
     }
     
     var title: some View {
@@ -111,16 +121,7 @@ private extension TermsView {
             isRequired: true,
             isChecked: isTermsAgreed,
             action: { store.send(.toggleTermsAgreement) },
-            trailingView: AnyView(
-                Button {
-                    guard let url = URL(string: Literals.termsURLString) else { return }
-                    coordinator?.present(to: .safari(url))
-                } label: {
-                    Text(Literals.moreButtonText)
-                        .notosans(.caption2Semibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                }
-            )
+            trailingView: AnyView(moreButton(urlString: Literals.termsURLString))
         )
     }
 
@@ -130,16 +131,7 @@ private extension TermsView {
             isRequired: true,
             isChecked: isPrivacyAgreed,
             action: { store.send(.togglePrivacyAgreement) },
-            trailingView: AnyView(
-                Button {
-                    guard let url = URL(string: Literals.privacyURLString) else { return }
-                    coordinator?.present(to: .safari(url))
-                } label: {
-                    Text(Literals.moreButtonText)
-                        .notosans(.caption2Semibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                }
-            )
+            trailingView: AnyView(moreButton(urlString: Literals.privacyURLString))
         )
     }
 
@@ -148,26 +140,26 @@ private extension TermsView {
             Literals.marketingAgreementText,
             isChecked: isMarketingAgreed,
             action: { store.send(.toggleMarketingAgreement) },
-            trailingView: AnyView(
-                Button {
-                    guard let url = URL(string: Literals.marketingURLString) else { return }
-                    coordinator?.present(to: .safari(url))
-                } label: {
-                    Text(Literals.moreButtonText)
-                        .notosans(.caption2Semibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                }
-            )
+            trailingView: AnyView(moreButton(urlString: Literals.marketingURLString))
         )
     }
     
-    
-    
     var nextButton: some View {
         LivithButton(Literals.nextButtonText, variant: .primary) {
-            coordinator?.push(to: .nickname(isMarketingAgreed))
+            coordinator?.push(to: .nickname(.start(tempUser: tempUser, isMarketingAgreed: isMarketingAgreed)))
         }
         .disabled(!canProceed)
+    }
+    
+    func moreButton(urlString: String) -> some View {
+        Button {
+            safariURL = URL(string: urlString)
+            showSafari = true
+        } label: {
+            Text(Literals.moreButtonText)
+                .notosans(.caption2Semibold)
+                .foregroundStyle(Color.livithColor(.white100))
+        }
     }
 }
 
@@ -194,9 +186,8 @@ private extension TermsView {
         static let marketingAgreementText = "마케팅 활용 / 광고성 정보 수신 동의"
         static let moreButtonText = "더보기 >"
         static let nextButtonText = "다음"
-        static let termsURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0?pvs=4"
-        // TODO: 실제 링크로 연결 필요
-        static let privacyURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0?pvs=4"
-        static let marketingURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0?pvs=4"
+        static let termsURLString = "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0"
+        static let privacyURLString = "https://youz2me.notion.site/v-26-02-03-2fb02dd0e5fc806ca182ecaf18099979"
+        static let marketingURLString = "https://youz2me.notion.site/v-26-02-03-2fb02dd0e5fc80af9708cf5e39f44f77"
     }
 }

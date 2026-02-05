@@ -93,6 +93,7 @@ public final class ArtistSelectionStore: ObservableObject {
             switch result {
             case .success(let artists):
                 state.artistList = artists
+                state.hasNextPage = true
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
                 state.isErrorToastPresented = true

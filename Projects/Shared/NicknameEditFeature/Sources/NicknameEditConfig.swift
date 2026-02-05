@@ -6,10 +6,8 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-import Domain
-
 public enum NicknameEditConfig {
-    case signup(marketingConsent: Bool, tempUser: TempUser)
+    case signup
     case update
 
     public var navigationTitle: String {
@@ -25,7 +23,7 @@ public enum NicknameEditConfig {
 
     public var submitButtonText: String {
         switch self {
-        case .signup: return "가입 완료"
+        case .signup: return "다음"
         case .update: return "닉네임 변경"
         }
     }
