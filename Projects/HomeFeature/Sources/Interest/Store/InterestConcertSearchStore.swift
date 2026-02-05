@@ -127,7 +127,6 @@ final class InterestConcertSearchStore: ObservableObject {
             switch result {
             case .success(let keywordList):
                 state.recommendKeywordList = keywordList
-                print("Fetched recommend keywords: \(keywordList)")
             case .failure(let error):
                 state.recommendKeywordList = []
                 state.errorMessage = error.localizedDescription
