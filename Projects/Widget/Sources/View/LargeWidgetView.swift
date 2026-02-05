@@ -126,17 +126,32 @@ private extension LargeWidgetView {
     }
 
     var scheduleSection: some View {
-        VStack(spacing: 0) {
-            ForEach(entry.schedules) { schedule in
-                LivithScheduleItem(
-                    daysLeft: schedule.dDay,
-                    title: schedule.category,
-                    dateTime: formatScheduleDate(schedule.scheduledAt),
-                    isActive: true
-                )
-                .frame(height: 48)
+        Group {
+            if entry.schedules.isEmpty {
+                scheduleEmptyView
+                    .padding(.bottom, 8)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(entry.schedules) { schedule in
+                        LivithScheduleItem(
+                            daysLeft: schedule.dDay,
+                            title: schedule.category,
+                            dateTime: formatScheduleDate(schedule.scheduledAt),
+                            isActive: true
+                        )
+                        .frame(height: 48)
+                    }
+                }
             }
         }
+    }
+
+    var scheduleEmptyView: some View {
+        Text("아직 공연 일정이 없어요 :(\n알림으로 가장 먼저 알려드릴게요")
+            .notosans(.body2Medium)
+            .foregroundStyle(Color.livithColor(.black30))
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     func formatScheduleDate(_ dateString: String) -> String {
