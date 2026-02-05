@@ -42,6 +42,8 @@ public struct LivithScheduleItem: View {
             Text(title)
                 .notosans(.body3Medium)
                 .foregroundStyle(Color.livithColor(.white100))
+                .frame(maxWidth: 92, alignment: .leading)
+                .lineLimit(1)
 
             Spacer()
 
@@ -64,8 +66,8 @@ private extension LivithScheduleItem {
         Text(dDayText)
             .notosans(.caption1Bold)
             .foregroundStyle(Color.livithColor(.black100))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 13)
+            .padding(.vertical, 7)
             .background(
                 Capsule()
                     .fill(Color.livithColor(.yellow30))

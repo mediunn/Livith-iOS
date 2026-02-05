@@ -7,6 +7,9 @@
 //
 
 import Foundation
+import UIKit
+
+import LivithFoundation
 
 public struct WidgetImageStorage {
     private static let appGroupID = "group.com.youz2me.livith"
@@ -53,7 +56,12 @@ public struct WidgetImageStorage {
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            save(data, forKey: key)
+            if let image = UIImage(data: data),
+               let resizedData = image.downsampledData() {
+                save(resizedData, forKey: key)
+            } else {
+                save(data, forKey: key)
+            }
         } catch {
             #if DEBUG
             print("[WidgetImageStorage] Failed to download and save for key '\(key)': \(error)")

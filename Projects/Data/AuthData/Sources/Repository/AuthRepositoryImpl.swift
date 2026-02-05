@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import WidgetKit
 
 import Domain
 import LivithNetwork
@@ -19,21 +20,24 @@ struct AuthRepositoryImpl: AuthRepository {
     private let userService: UserService
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenService: TokenService
+    private let widgetImageStorage: WidgetImageStorage
     private let mapper: AuthMapper = .init()
     private let errorMapper: AuthErrorMapper = .init()
-    
+
     init(
         socialAuthService: SocialAuthService,
         onboardingService: OnboardingService,
         userService: UserService,
         userdefaultsStorage: UserDefaultsStorage,
-        tokenService: TokenService
+        tokenService: TokenService,
+        widgetImageStorage: WidgetImageStorage
     ) {
         self.socialAuthService = socialAuthService
         self.onboardingService = onboardingService
         self.userService = userService
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenService = tokenService
+        self.widgetImageStorage = widgetImageStorage
     }
     
     func withdraw(reason: String) async throws(AuthError) {
@@ -147,6 +151,9 @@ private extension AuthRepositoryImpl {
     func handleLogout() async {
         try? await tokenService.removeToken()
         userdefaultsStorage.remove(for: .currentUser)
+        userdefaultsStorage.remove(for: .interestConcert)
+        widgetImageStorage.remove(forKey: "interestConcertPoster")
+        WidgetCenter.shared.reloadAllTimelines()
     }
     
     func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws {
