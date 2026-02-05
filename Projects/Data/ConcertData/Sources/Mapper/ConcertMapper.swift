@@ -156,6 +156,10 @@ struct ConcertMapper {
             )
         }
     }
+
+    func toDomain(from response: DTO.Response.FetchRecommendedConcertList) -> [Concert] {
+        response.compactMap { toDomain(from: $0) }
+    }
 }
 
 // MARK: - Helpers

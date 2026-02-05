@@ -15,6 +15,7 @@ public enum HomeEndpoint {
     case fetchInterestedConcert
     case updateInterestedConcert(id: Int)
     case deleteInterestedConcert
+    case fetchRecommendedConcertList
 }
 
 extension HomeEndpoint: NetworkEndpoint {
@@ -28,6 +29,8 @@ extension HomeEndpoint: NetworkEndpoint {
             return "/users/interest-concert"
         case .deleteInterestedConcert:
             return "/users/interest-concert"
+        case .fetchRecommendedConcertList:
+            return "/recommendation/concerts"
         }
     }
     
@@ -39,13 +42,8 @@ extension HomeEndpoint: NetworkEndpoint {
             return .post
         case .deleteInterestedConcert:
             return .delete
-        }
-    }
-    
-    public var query: [String: Any]? {
-        switch self {
-        case .fetchSectionList, .fetchInterestedConcert, .updateInterestedConcert, .deleteInterestedConcert:
-            return nil
+        case .fetchRecommendedConcertList:
+            return .get
         }
     }
     
@@ -60,7 +58,7 @@ extension HomeEndpoint: NetworkEndpoint {
     
     public var requiresInterceptor: Bool {
         switch self {
-        case .fetchInterestedConcert, .updateInterestedConcert, .deleteInterestedConcert:
+        case .fetchInterestedConcert, .updateInterestedConcert, .deleteInterestedConcert, .fetchRecommendedConcertList:
             return true
         case .fetchSectionList:
             return false

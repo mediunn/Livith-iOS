@@ -159,6 +159,15 @@ struct ConcertRepositoryImpl: ConcertRepository {
             throw errorMapper.mapToConcertError(error)
         }
     }
+
+    func fetchRecommendedConcertList() async throws(ConcertError) -> [Concert] {
+        do {
+            let response: DTO.Response.FetchRecommendedConcertList = try await homeService.request(.fetchRecommendedConcertList)
+            return mapper.toDomain(from: response)
+        } catch {
+            throw errorMapper.mapToConcertError(error)
+        }
+    }
 }
 
 // MARK: - Helpers
