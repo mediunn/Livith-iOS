@@ -16,4 +16,6 @@ enum LoginRoute: Route {
     case login
     case terms(TempUser)
     case nickname(SignupBuilder)
+    case preferredGenre(SignupBuilder)
+    case preferredArtist(SignupBuilder)
 }

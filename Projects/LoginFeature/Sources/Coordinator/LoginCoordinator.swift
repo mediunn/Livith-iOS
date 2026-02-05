@@ -59,11 +59,11 @@ final class LoginCoordinator: Coordinator {
                     .environment(\.loginCoordinator, self)
             )
             
-        case .safari(let url):
-            let safariView = SafariView(url: url) { [weak self] in
-                self?.dismiss()
-            }.ignoresSafeArea()
-            return UIHostingController(rootView: safariView)
+        case .preferredArtist(let builder):
+            return UIHostingController(
+                rootView: PreferredArtistSettingView(builder: builder)
+                    .environment(\.loginCoordinator, self)
+            )
         }
     }
     
@@ -75,4 +75,3 @@ final class LoginCoordinator: Coordinator {
         onSignupCompleted(nickname)
     }
 }
-
