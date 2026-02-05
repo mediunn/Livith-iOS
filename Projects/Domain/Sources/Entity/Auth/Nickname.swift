@@ -12,7 +12,7 @@ public struct Nickname: Hashable {
     
     // MARK: - Constants
     
-    private static let pattern = "^[a-zA-Z0-9가-힣]{1,10}$"
+    private static let regex: Regex = /^[a-zA-Z0-9가-힣]{1,10}$/
     
     // MARK: - Properties
     
@@ -25,9 +25,7 @@ public struct Nickname: Hashable {
             throw AuthError.emptyNickname
         }
         
-        guard let regex = try? Regex(Self.pattern),
-              value.wholeMatch(of: regex) != nil 
-        else {
+        guard value.wholeMatch(of: Self.regex) != nil else {
             throw AuthError.invalidNickname
         }
         
