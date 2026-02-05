@@ -229,8 +229,7 @@ struct NicknameEditStoreTests {
     @Test("signup 제출 성공하면 success 상태여야 한다")
     func signupSuccessShouldBeSuccess() async {
         mockAuthRepository.signupResult = .success(())
-        let tempUser = TempUser(provider: .kakao, providerID: "123", email: "test@test.com")
-        let sut = NicknameEditStore(config: .signup(marketingConsent: true, tempUser: tempUser))
+        let sut = NicknameEditStore(config: .signup)
         sut.updateNickname("테스트")
 
         sut.submit()
@@ -238,26 +237,7 @@ struct NicknameEditStoreTests {
 
         #expect(sut.state.submitResult == .success)
         #expect(sut.state.isSubmitting == false)
-        #expect(mockAuthRepository.signupCallCount == 1)
-        #expect(mockAuthRepository.lastSignupNickname == "테스트")
-    }
-
-    @Test("signup 제출 실패하면 failure 상태여야 한다")
-    func signupFailureShouldBeFailure() async {
-        mockAuthRepository.signupResult = .failure(.serverError)
-        let tempUser = TempUser(provider: .kakao, providerID: "123", email: nil)
-        let sut = NicknameEditStore(config: .signup(marketingConsent: false, tempUser: tempUser))
-        sut.updateNickname("테스트")
-
-        sut.submit()
-        try? await Task.sleep(for: .milliseconds(100))
-
-        if case .failure = sut.state.submitResult {
-            #expect(true)
-        } else {
-            Issue.record("Expected failure state")
-        }
-        #expect(sut.state.isSubmitting == false)
+        #expect(mockAuthRepository.signupCallCount == 0)
     }
 
     // MARK: - Submit Tests (Update)
