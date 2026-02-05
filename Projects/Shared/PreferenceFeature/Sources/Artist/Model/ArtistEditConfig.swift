@@ -8,7 +8,10 @@
 
 import Foundation
 
+import Domain
+
 public struct ArtistEditConfig {
+    public let initialSelection: [PreferredArtist]
     public let stepIndicator: (current: Int, total: Int)?
     public let navigationTitle: String
     public let title: String
@@ -16,12 +19,14 @@ public struct ArtistEditConfig {
     public let submitTitle: String
     
     public init(
+        initialSelection: [PreferredArtist] = [],
         stepIndicator: (current: Int, total: Int)? = nil,
         navigationTitle: String,
         title: String,
         subtitle: String? = nil,
         submitTitle: String
     ) {
+        self.initialSelection = initialSelection
         self.stepIndicator = stepIndicator
         self.navigationTitle = navigationTitle
         self.title = title
@@ -51,8 +56,9 @@ public extension ArtistEditConfig {
         )
     }
     
-    static func edit() -> ArtistEditConfig {
+    static func edit(selectedArtists: [PreferredArtist]) -> ArtistEditConfig {
         ArtistEditConfig(
+            initialSelection: selectedArtists,
             stepIndicator: nil,
             navigationTitle: "아티스트 변경",
             title: "선호하는 아티스트를\n3명 선택해 주세요",

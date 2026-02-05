@@ -19,7 +19,8 @@ let project = Project.make(
                 .shared(.nicknameEditFeature),
                 .designSystem(.designSystem),
                 .core(.coordinator),
-                .core(.diContainer)
+                .core(.diContainer),
+                .shared(.preferenceFeature)
             ]
         )
     ]

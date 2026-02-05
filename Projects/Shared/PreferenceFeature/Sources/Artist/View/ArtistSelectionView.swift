@@ -70,6 +70,7 @@ private extension ArtistSelectionView {
                         .padding(2)
                 }
                 .scrollIndicators(.hidden)
+                .scrollDismissesKeyboard(.immediately)
                 
                 if !store.state.selectedArtistList.isEmpty {
                     selectedArtistChips

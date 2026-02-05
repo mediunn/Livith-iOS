@@ -6,10 +6,11 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
+import UIKit
 import SwiftUI
 import WidgetKit
+
 import LivithDesignSystem
-import UIKit
 
 struct SmallWidgetView: View {
     let entry: LivithWidgetEntry
@@ -30,7 +31,20 @@ struct SmallWidgetView: View {
             }
         }
         .widgetURL(deepLinkURL)
-        .containerBackground(Color.livithColor(.black100), for: .widget)
+        .containerBackground(for: .widget) {
+            if entry.hasData {
+                ZStack {
+                    backgroundImage
+                    LinearGradient(
+                        colors: [.black, .black.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+            } else {
+                Color.livithColor(.black100)
+            }
+        }
     }
 }
 
@@ -38,54 +52,41 @@ struct SmallWidgetView: View {
 
 private extension SmallWidgetView {
     var contentView: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 0) {
-                posterImage
-                    .padding(.trailing, 8)
-
-                VStack(alignment: .trailing) {
-                    Image.livithImage(.livithLogo)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 32)
-
-                    if let formattedDDay = entry.formattedDDay {
-                        Text(formattedDDay)
-                            .notosans(.headSemibold)
-                            .foregroundStyle(Color.livithColor(.black50))
-                    }
-
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, alignment: .trailing)
+        VStack(alignment: .leading, spacing: 0) {
+            if let formattedDDay = entry.formattedDDay {
+                Text("| \(formattedDDay)")
+                    .pretendard(.semiBold, 26)
+                    .foregroundStyle(Color.livithColor(.white100))
             }
-            .padding(.bottom, 8)
-            
+
+            Spacer()
+
             if let concertTitle = entry.concertTitle {
                 Text(concertTitle)
-                    .notosans(.body4Semibold)
+                    .pretendard(.semiBold, 12)
                     .foregroundStyle(Color.livithColor(.white100))
                     .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            
-            Spacer()
+
+            if let concertDate = entry.concertDate {
+                Text(concertDate)
+                    .pretendard(.regular, 12)
+                    .foregroundStyle(Color.livithColor(.black30))
+                    .padding(.top, 8)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    var posterImage: some View {
+    var backgroundImage: some View {
         Group {
             if let imageData = entry.posterImageData,
                let uiImage = UIImage(data: imageData) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
-            } else {
-                Color.livithColor(.black90)
             }
         }
-        .frame(width: 60, height: 80)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 

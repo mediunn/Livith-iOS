@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 import Domain
 import Persistence
@@ -14,6 +15,7 @@ import Persistence
 actor InterestConcertCache {
     private static let cacheExpirationInterval: TimeInterval = 5 * 60
     private static let imageKey: String = "interestConcertPoster"
+    private static let logger = Logger(subsystem: "com.youz2me.livith", category: "InterestConcertCache")
 
     private let userdefaultsStorage: UserDefaultsStorage
     private let widgetImageStorage: WidgetImageStorage
@@ -34,6 +36,14 @@ actor InterestConcertCache {
         else {
             return nil
         }
+
+        let stored: Concert? = try? userdefaultsStorage.fetch(for: .interestConcert)
+        if stored == nil {
+            cachedConcert = nil
+            self.timestamp = nil
+            return nil
+        }
+
         return cachedConcert
     }
 
@@ -51,8 +61,17 @@ actor InterestConcertCache {
     func saveInterestConcert(_ concert: Concert) async {
         cachedConcert = concert
         timestamp = Date()
-        try? userdefaultsStorage.save(concert, for: .interestConcert)
+
+        do {
+            try userdefaultsStorage.save(concert, for: .interestConcert)
+            Self.logger.debug("[Save] Concert 저장 성공: \(concert.title) (id: \(concert.id))")
+        } catch {
+            Self.logger.error("[Save] Concert 저장 실패: \(error.localizedDescription)")
+        }
+
+        Self.logger.debug("[Save] 이미지 다운로드 시작: \(concert.posterURL.absoluteString)")
         await widgetImageStorage.download(from: concert.posterURL.absoluteString, forKey: Self.imageKey)
+        Self.logger.debug("[Save] 이미지 다운로드 완료")
     }
 
     func deleteInterestConcert() {

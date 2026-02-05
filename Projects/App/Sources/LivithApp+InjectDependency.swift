@@ -16,6 +16,7 @@ import SearchData
 import SetlistData
 import SongData
 import UserData
+import PreferenceData
 
 extension LivithApp {
     func registerDependency() {
@@ -27,7 +28,8 @@ extension LivithApp {
                 SearchDataAssembler(),
                 SetlistDataAssembler(),
                 SongDataAssembler(),
-                UserDataAssembler()
+                UserDataAssembler(),
+                PreferenceDataAssembler()
             ]
         )
     }

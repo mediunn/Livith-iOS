@@ -18,17 +18,19 @@ public struct GenreEditView: View {
     @StateObject private var selectionStore: GenreSelectionStore
     
     private let config: GenreEditConfig
+    private let isSubmitting: Bool
     private let onBack: () -> Void
     private let onSubmit: ([PreferredGenre]) -> Void
     
     public init(
         mode: GenreEditConfig,
-        selectedGenres: [PreferredGenre] = [],
+        isSubmitting: Bool = false,
         onBack: @escaping () -> Void,
         onSubmit: @escaping ([PreferredGenre]) -> Void
     ) {
-        self._selectionStore = StateObject(wrappedValue: GenreSelectionStore(selectedGenres: selectedGenres))
+        self._selectionStore = StateObject(wrappedValue: GenreSelectionStore(selectedGenres: mode.initialSelection))
         self.config = mode
+        self.isSubmitting = isSubmitting
         self.onBack = onBack
         self.onSubmit = onSubmit
     }
@@ -57,7 +59,7 @@ public struct GenreEditView: View {
                 
                 Spacer()
                 
-                LivithButton(config.submitTitle) {
+                LivithButton(config.submitTitle, isLoading: isSubmitting) {
                     onSubmit(selectionStore.state.selectedGenreList)
                 }
                 .disabled(selectionStore.state.selectedGenreList.isEmpty)
@@ -105,7 +107,7 @@ private extension GenreEditView {
     }
 }
 
-// MARK: - Constants & Literals
+// MARK: - Constants
 
 private extension GenreEditView {
     enum Constants {
@@ -114,36 +116,4 @@ private extension GenreEditView {
         static let indicatorTopPadding: CGFloat = 10
         static let bottomPadding: CGFloat = 16
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    GenreEditView(
-        mode: .onboarding(),
-        onBack: { print("뒤로가기 눌림") },
-        onSubmit: { selectedGenres in
-            print("다음이 눌림: \(selectedGenres.map(\.displayName))")
-        }
-    )
-}
-
-#Preview {
-    GenreEditView(
-        mode: .home(),
-        onBack: { print("뒤로가기 눌림") },
-        onSubmit: { selectedGenres in
-            print("다음이 눌림: \(selectedGenres.map(\.displayName))")
-        }
-    )
-}
-
-#Preview {
-    GenreEditView(
-        mode: .edit(),
-        onBack: { print("뒤로가기 눌림") },
-        onSubmit: { selectedGenres in
-            print("다음이 눌림: \(selectedGenres.map(\.displayName))")
-        }
-    )
 }

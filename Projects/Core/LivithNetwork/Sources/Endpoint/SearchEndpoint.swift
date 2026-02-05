@@ -24,7 +24,8 @@ public enum SearchEndpoint {
     case fetchRecommendedSearchResult(letter: String)
     case fetchConcertList(
         cursor: String?,
-        size: Int?
+        size: Int?,
+        id: Int?
     )
 }
 
@@ -69,10 +70,12 @@ extension SearchEndpoint: NetworkEndpoint {
             return ["letter": letter]
         case .fetchConcertList(
             cursor: let cursor,
-            size: let size):
+            size: let size,
+            id: let id):
             let params: [String: Any?] = [
                 "cursor": cursor,
-                "size": size
+                "size": size,
+                "id": id
             ]
 
             return params.compactMapValues { $0 }

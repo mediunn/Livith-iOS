@@ -87,7 +87,8 @@ final class HomeStore: ObservableObject {
             switch result {
             case .success(let concert):
                 state.interestConcert = concert
-                
+                WidgetCenter.shared.reloadAllTimelines()
+
                 if let concert {
                     performFetchScheduleList(concertID: concert.id)
                     performFetchMainSetlist(concertID: concert.id)

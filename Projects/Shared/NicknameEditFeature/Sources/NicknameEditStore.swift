@@ -79,14 +79,13 @@ private extension NicknameEditStore {
             state.validationState = .idle
             return
         }
-
-        guard let regex = try? Regex("^[a-zA-Z0-9가-힣]{1,10}$"),
-              state.nickname.wholeMatch(of: regex) != nil else {
+        
+        do {
+            _ = try Nickname(state.nickname)
+            state.validationState = .valid
+        } catch {
             state.validationState = .invalid
-            return
         }
-
-        state.validationState = .valid
     }
 
     func performDuplicateCheck() {
@@ -104,12 +103,8 @@ private extension NicknameEditStore {
         Task {
             do {
                 switch config {
-                case .signup(let marketingConsent, let tempUser):
-                    try await authRepository.signup(
-                        tempUser: tempUser,
-                        marketingConsent: marketingConsent,
-                        nickname: state.nickname
-                    )
+                case .signup:
+                    break // 회원가입 API는 PreferredArtistSettingView에서 호출
                 case .update:
                     try await userRepository.updateNickname(state.nickname)
                 }

@@ -6,10 +6,11 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
+import UIKit
 import SwiftUI
 import WidgetKit
+
 import LivithDesignSystem
-import UIKit
 
 struct MediumWidgetView: View {
     let entry: LivithWidgetEntry
@@ -42,24 +43,52 @@ private extension MediumWidgetView {
             posterImage
 
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Spacer()
-                    Image.livithImage(.livithLogo)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24)
+                if let formattedDDay = entry.formattedDDay {
+                    Text("| \(formattedDDay)")
+                        .pretendard(.semiBold, 26)
+                        .foregroundStyle(Color.livithColor(.white100))
+                        .padding(.bottom, 3)
                 }
 
-                Spacer()
+                if let concertTitle = entry.concertTitle {
+                    Text(concertTitle)
+                        .pretendard(.semiBold, 14)
+                        .foregroundStyle(Color.livithColor(.white100))
+                        .lineLimit(2)
+                        .frame(height: 36, alignment: .top)
+                        .padding(.bottom, 6)
+                }
 
-                infoSection
+                if let dateRange = entry.concertDateRange {
+                    HStack(spacing: 6) {
+                        Image.livithIcon(.calendarLine)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(Color.livithColor(.black30))
+                        Text(dateRange)
+                            .pretendard(.regular, 12)
+                            .foregroundStyle(Color.livithColor(.black30))
+                    }
+                }
 
-                Spacer()
-
-                moreInfoButton
+                if let venue = entry.venue {
+                    HStack(spacing: 6) {
+                        Image.livithIcon(.locationLine)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(Color.livithColor(.black30))
+                        Text(venue)
+                            .pretendard(.regular, 12)
+                            .foregroundStyle(Color.livithColor(.black30))
+                            .lineLimit(1)
+                    }
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(4)
         }
-        .padding(12)
     }
 
     var posterImage: some View {
@@ -73,51 +102,8 @@ private extension MediumWidgetView {
                 Color.livithColor(.black90)
             }
         }
-        .frame(width: 100, height: 130)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
-    }
-
-    var infoSection: some View {
-        HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .leading, spacing: 4) {
-                if let formattedDDay = entry.formattedDDay {
-                    Text(formattedDDay)
-                        .notosans(.headSemibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                }
-                
-                if let title = entry.concertTitle {
-                    Text(title)
-                        .notosans(.caption1Semibold)
-                        .foregroundStyle(Color.livithColor(.white100))
-                        .lineLimit(2)
-                }
-
-                if let artistName = entry.artistName {
-                    Text(artistName)
-                        .notosans(.caption2Regular)
-                        .foregroundStyle(Color.livithColor(.black30))
-                        .lineLimit(1)
-                }
-            }
-
-            Spacer()
-
-        }
-    }
-
-    var moreInfoButton: some View {
-        HStack(spacing: 4) {
-            Text("더 많은 정보 확인하기")
-                .notosans(.caption2Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-            Image.livithIcon(.rightLineSmall)
-                .foregroundStyle(Color.livithColor(.white100))
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.livithColor(.black100))
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .frame(width: 81, height: 123)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
