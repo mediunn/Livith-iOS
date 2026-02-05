@@ -2,7 +2,7 @@
 //  OnboardingFeatureDTOTests.swift
 //  LivithNetworkTests
 //
-//  Created by antigravity on 2/5/26.
+//  Created by 김진웅 on 2/5/26.
 //  Copyright © 2026 Livith. All rights reserved.
 //
 

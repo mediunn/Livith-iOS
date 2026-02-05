@@ -1,5 +1,5 @@
 //
-//  PreferenceDTODecodingTests.swift
+//  PreferenceDTOTests.swift
 //  LivithNetworkTests
 //
 //  Created by 김진웅 on 2/4/26.
