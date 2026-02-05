@@ -296,8 +296,8 @@ private extension UserView {
         static let preferredArtist = "선호 아티스트"
         static let setup = "설정하기"
         static let change = "변경하기"
-        static let genrePlaceholder = "선호 장르를 선택하면\n기반으로 맞춤 콘서트를 알려드려요"
-        static let artistPlaceholder = "선호 아티스트를 선택하면\n기반으로 맞춤 콘서트를 알려드려요"
+        static let genrePlaceholder = "선호 장르를 기반으로\n맞춤 콘서트를 알려드려요"
+        static let artistPlaceholder = "선호 아티스트를 기반으로\n맞춤 콘서트를 알려드려요"
     }
 }
 
