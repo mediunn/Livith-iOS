@@ -19,19 +19,21 @@ public struct ArtistEditView: View {
     @State private var isSearchFocused: Bool = false
     
     private let config: ArtistEditConfig
+    private let isSubmitting: Bool
     private let onBack: () -> Void
     private let onSkip: (() -> Void)?
     private let onSubmit: ([PreferredArtist]) -> Void
     
     public init(
         config: ArtistEditConfig,
-        selectedArtists: [PreferredArtist] = [],
+        isSubmitting: Bool = false,
         onBack: @escaping () -> Void,
         onSkip: (() -> Void)? = nil,
         onSubmit: @escaping ([PreferredArtist]) -> Void
     ) {
-        self._store = StateObject(wrappedValue: ArtistSelectionStore(selectedArtists: selectedArtists))
+        self._store = StateObject(wrappedValue: ArtistSelectionStore(selectedArtists: config.initialSelection))
         self.config = config
+        self.isSubmitting = isSubmitting
         self.onBack = onBack
         self.onSkip = onSkip
         self.onSubmit = onSubmit
@@ -134,10 +136,10 @@ private extension ArtistEditView {
     }
     
     var submitButton: some View {
-        LivithButton(config.submitTitle) {
+        LivithButton(config.submitTitle, isLoading: isSubmitting) {
             onSubmit(store.state.selectedArtistList)
         }
-        .disabled(store.state.selectedArtistList.isEmpty)
+        .disabled(store.state.selectedArtistList.isEmpty || isSubmitting)
     }
 }
 
