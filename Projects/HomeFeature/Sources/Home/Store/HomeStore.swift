@@ -16,39 +16,63 @@ enum HomeIntent {
     case onAppear
     case onErrorToastDisappear
     case onToastDisappear
-
-    case onDelete
-    case onRefreshInterestConcert
-    case _fetchUserInterestConcertResult(Result<Concert?, Error>)
-    case _fetchScheduleListResult(Result<[ConcertSchedule], Error>)
-    case _fetchMainSetlistResult(Result<Setlist, Error>)
-    case _fetchSetlistSongListResult(Result<[SetlistSong], Error>)
-    case _deleteInterestConcertResult(Result<Void, Error>)
     case _fetchUserResult(Result<User, Error>)
-
-    case onRefreshSections
-    case _fetchHomeSectionListResult(Result<[ConcertSection], Error>)
+    case interestConcert(InterestConcertIntent)
+    case concertSection(ConcertSectionIntent)
+    
+    enum InterestConcertIntent {
+        case onDelete
+        case onRefresh
+        case _fetchUserInterestConcertResult(Result<Concert?, Error>)
+        case _fetchScheduleListResult(Result<[ConcertSchedule], Error>)
+        case _fetchMainSetlistResult(Result<Setlist, Error>)
+        case _fetchSetlistSongListResult(Result<[SetlistSong], Error>)
+        case _deleteInterestConcertResult(Result<Void, Error>)
+    }
+    
+    enum ConcertSectionIntent {
+        case onRefreshSections
+        case _fetchHomeSectionListResult(Result<[ConcertSection], Error>)
+    }
 }
 
 struct HomeState {
     var userName: String = ""
-    var interestConcert: Concert? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
-
-    var scheduleList: [ConcertSchedule] = []
-    var setlist: Setlist? = nil
-    var songList: [SetlistSong] = []
-
-    var sectionList: [ConcertSection] = []
-    var isSectionsLoading: Bool = false
-
+    var interestConcert: InterestConcertState = .init()
+    var sections: ConcertSectionState = .init()
     var hasNewNotice: Bool = false
+    
+    struct InterestConcertState {
+        var concert: Concert? = nil
+        var scheduleList: [ConcertSchedule] = []
+        var setlist: Setlist? = nil
+        var songList: [SetlistSong] = []
+    }
+    
+    struct ConcertSectionState {
+        var sectionList: [ConcertSection] = []
+        var isLoading: Bool = false
+    }
 }
 
+@MainActor
 final class HomeStore: ObservableObject {
+    
+    // MARK: - CancelID
+    
+    private enum CancelID {
+        case fetchInterestedConcert
+        case fetchScheduleList
+        case fetchMainSetlist
+        case fetchSetlistSongList
+        case refreshSections
+        case fetchUser
+    }
+    
     @Published private(set) var state: HomeState = .init()
-
+    
     @Injected private var userRepository: UserRepository
     @Injected private var concertRepository: ConcertRepository
     @Injected private var setlistRepository: SetlistRepository
@@ -59,7 +83,6 @@ final class HomeStore: ObservableObject {
         performFetchHomeSectionList()
     }
     
-    @MainActor
     func send(_ intent: HomeIntent) {
         switch intent {
         case .onAppear:
@@ -72,75 +95,6 @@ final class HomeStore: ObservableObject {
         case .onToastDisappear:
             state.toastMessage = ""
             
-        case .onDelete:
-            performDeleteInterestConcert()
-            
-        case .onRefreshInterestConcert:
-            if let concert = state.interestConcert {
-                performFetchScheduleList(concertID: concert.id)
-                performFetchMainSetlist(concertID: concert.id)
-            } else {
-                performFetchUserInterestedConcert()
-            }
-            
-        case ._fetchUserInterestConcertResult(let result):
-            switch result {
-            case .success(let concert):
-                state.interestConcert = concert
-                
-                if let concert {
-                    performFetchScheduleList(concertID: concert.id)
-                    performFetchMainSetlist(concertID: concert.id)
-                } else {
-                    state.scheduleList = []
-                    state.setlist = nil
-                    state.songList = []
-                }
-            case .failure(let error):
-                state.interestConcert = nil
-                state.errorMessage = getErrorMessage(from: error)
-            }
-            
-        case ._fetchScheduleListResult(let result):
-            switch result {
-            case .success(let schedules):
-                state.scheduleList = schedules
-            case .failure(let error):
-                state.scheduleList = []
-                state.errorMessage = getErrorMessage(from: error)
-            }
-            
-        case ._fetchMainSetlistResult(let result):
-            switch result {
-            case .success(let setlist):
-                state.setlist = setlist
-            case .failure(let error):
-                state.setlist = nil
-                state.songList = []
-                state.errorMessage = getErrorMessage(from: error)
-            }
-            
-        case ._fetchSetlistSongListResult(let result):
-            switch result {
-            case .success(let songs):
-                state.songList = songs
-            case .failure(let error):
-                state.songList = []
-                state.errorMessage = getErrorMessage(from: error)
-            }
-            
-        case ._deleteInterestConcertResult(let result):
-            switch result {
-            case .success:
-                state.interestConcert = nil
-                state.scheduleList = []
-                state.setlist = nil
-                state.songList = []
-                state.toastMessage = "관심 공연을 삭제했어요"
-            case .failure(let error):
-                state.errorMessage = error.localizedDescription
-            }
-
         case ._fetchUserResult(let result):
             switch result {
             case .success(let user):
@@ -148,25 +102,145 @@ final class HomeStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
-        
-        case .onRefreshSections:
-            state.isSectionsLoading = true
-            performFetchHomeSectionList()
-            performFetchUserInterestedConcert()
-
-        case ._fetchHomeSectionListResult(let result):
-            state.isSectionsLoading = false
-            switch result {
-            case .success(let sectionList):
-                state.sectionList = sectionList
-            case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
-            }
+            
+        case .interestConcert(let intent):
+            handleInterestConcertIntent(intent)
+            
+        case .concertSection(let intent):
+            handleConcertSectionIntent(intent)
         }
     }
 }
 
-// MARK: - Helpers
+// MARK: - Interest Concert Intent Handlers
+
+private extension HomeStore {
+    func handleInterestConcertIntent(_ intent: HomeIntent.InterestConcertIntent) {
+        switch intent {
+        case .onDelete:
+            executeDeleteInterestConcert()
+        case .onRefresh:
+            executeRefreshInterestConcert()
+        case ._fetchUserInterestConcertResult(let result):
+            handleFetchUserInterestConcertResult(result)
+        case ._fetchScheduleListResult(let result):
+            handleFetchScheduleListResult(result)
+        case ._fetchMainSetlistResult(let result):
+            handleFetchMainSetlistResult(result)
+        case ._fetchSetlistSongListResult(let result):
+            handleFetchSetlistSongListResult(result)
+        case ._deleteInterestConcertResult(let result):
+            handleDeleteInterestConcertResult(result)
+        }
+    }
+    
+    func executeDeleteInterestConcert() {
+        performDeleteInterestConcert()
+    }
+    
+    func executeRefreshInterestConcert() {
+        if let concert = state.interestConcert.concert {
+            performFetchScheduleList(concertID: concert.id)
+            performFetchMainSetlist(concertID: concert.id)
+        } else {
+            performFetchUserInterestedConcert()
+        }
+    }
+    
+    func handleFetchUserInterestConcertResult(_ result: Result<Concert?, Error>) {
+        switch result {
+        case .success(let concert):
+            state.interestConcert.concert = concert
+            
+            if let concert {
+                performFetchScheduleList(concertID: concert.id)
+                performFetchMainSetlist(concertID: concert.id)
+            } else {
+                state.interestConcert.scheduleList = []
+                state.interestConcert.setlist = nil
+                state.interestConcert.songList = []
+            }
+        case .failure(let error):
+            state.interestConcert.concert = nil
+            state.errorMessage = getErrorMessage(from: error)
+        }
+    }
+    
+    func handleFetchScheduleListResult(_ result: Result<[ConcertSchedule], Error>) {
+        switch result {
+        case .success(let schedules):
+            state.interestConcert.scheduleList = schedules
+        case .failure(let error):
+            state.interestConcert.scheduleList = []
+            state.errorMessage = getErrorMessage(from: error)
+        }
+    }
+    
+    func handleFetchMainSetlistResult(_ result: Result<Setlist, Error>) {
+        switch result {
+        case .success(let setlist):
+            state.interestConcert.setlist = setlist
+        case .failure(let error):
+            state.interestConcert.setlist = nil
+            state.interestConcert.songList = []
+            state.errorMessage = getErrorMessage(from: error)
+        }
+    }
+    
+    func handleFetchSetlistSongListResult(_ result: Result<[SetlistSong], Error>) {
+        switch result {
+        case .success(let songs):
+            state.interestConcert.songList = songs
+        case .failure(let error):
+            state.interestConcert.songList = []
+            state.errorMessage = getErrorMessage(from: error)
+        }
+    }
+    
+    func handleDeleteInterestConcertResult(_ result: Result<Void, Error>) {
+        switch result {
+        case .success:
+            state.interestConcert.concert = nil
+            state.interestConcert.scheduleList = []
+            state.interestConcert.setlist = nil
+            state.interestConcert.songList = []
+            state.toastMessage = "관심 공연을 삭제했어요"
+        case .failure(let error):
+            state.errorMessage = error.localizedDescription
+        }
+    }
+}
+
+// MARK: - Concert Section Intent Handlers
+
+private extension HomeStore {
+    func handleConcertSectionIntent(_ intent: HomeIntent.ConcertSectionIntent) {
+        switch intent {
+        case .onRefreshSections:
+            executeRefreshSections()
+        case ._fetchHomeSectionListResult(let result):
+            handleFetchHomeSectionListResult(result)
+        }
+    }
+    
+    func executeRefreshSections() {
+        state.sections.isLoading = true
+        performFetchHomeSectionList()
+        performFetchUserInterestedConcert()
+    }
+    
+    func handleFetchHomeSectionListResult(_ result: Result<[ConcertSection], Error>) {
+        state.sections.isLoading = false
+        switch result {
+        case .success(let sectionList):
+            state.sections.sectionList = sectionList
+        case .failure(let error):
+            state.errorMessage = getErrorMessage(from: error)
+        }
+    }
+}
+
+// MARK: - Network Operations
 
 private extension HomeStore {
     func performFetchUserInterestedConcert() {
@@ -174,114 +248,105 @@ private extension HomeStore {
         cancellables[.fetchInterestedConcert] = Task {
             do {
                 let result = try await userRepository.fetchInterestedConcert()
-                await send(._fetchUserInterestConcertResult(.success(result)))
+                send(.interestConcert(._fetchUserInterestConcertResult(.success(result))))
             } catch {
-                await send(._fetchUserInterestConcertResult(.failure(error)))
+                send(.interestConcert(._fetchUserInterestConcertResult(.failure(error))))
             }
         }
     }
-
+    
     func performFetchUser() {
         cancellables[.fetchUser]?.cancel()
         cancellables[.fetchUser] = Task {
             do {
                 let result = try await userRepository.fetchUser()
-                await send(._fetchUserResult(.success(result)))
+                send(._fetchUserResult(.success(result)))
             } catch {
-                await send(._fetchUserResult(.failure(error)))
+                send(._fetchUserResult(.failure(error)))
             }
         }
     }
-
+    
     func performFetchScheduleList(concertID: Int) {
         cancellables[.fetchScheduleList]?.cancel()
         cancellables[.fetchScheduleList] = Task {
             do {
                 let schedules = try await concertRepository.fetchConcertScheduleList(concertID: concertID)
-                await send(._fetchScheduleListResult(.success(schedules)))
+                send(.interestConcert(._fetchScheduleListResult(.success(schedules))))
             } catch {
-                await send(._fetchScheduleListResult(.failure(error)))
+                send(.interestConcert(._fetchScheduleListResult(.failure(error))))
             }
         }
     }
-
+    
     func performFetchMainSetlist(concertID: Int) {
         cancellables[.fetchMainSetlist]?.cancel()
         cancellables[.fetchMainSetlist] = Task {
             do {
                 guard let setlist = try await concertRepository.fetchMainSetlist(concertID: concertID) else {
-                    await send(._fetchMainSetlistResult(.failure(ConcertError.cancelled)))
+                    send(.interestConcert(._fetchMainSetlistResult(.failure(ConcertError.cancelled))))
                     return
                 }
                 let songList = try await setlistRepository.fetchSetlistSongs(setlistID: setlist.id)
-                await send(._fetchMainSetlistResult(.success(setlist)))
-                await send(._fetchSetlistSongListResult(.success(songList)))
+                send(.interestConcert(._fetchMainSetlistResult(.success(setlist))))
+                send(.interestConcert(._fetchSetlistSongListResult(.success(songList))))
             } catch ConcertError.invalidResponse {
-                await send(._fetchMainSetlistResult(.failure(ConcertError.cancelled)))
+                send(.interestConcert(._fetchMainSetlistResult(.failure(ConcertError.cancelled))))
             } catch {
-                await send(._fetchMainSetlistResult(.failure(error)))
+                send(.interestConcert(._fetchMainSetlistResult(.failure(error))))
             }
         }
     }
-
+    
     func performFetchSetlistSongList(setlistID: Int) {
         cancellables[.fetchSetlistSongList]?.cancel()
         cancellables[.fetchSetlistSongList] = Task {
             do {
                 let songList = try await setlistRepository.fetchSetlistSongs(setlistID: setlistID)
-                await send(._fetchSetlistSongListResult(.success(songList)))
+                send(.interestConcert(._fetchSetlistSongListResult(.success(songList))))
             } catch {
-                await send(._fetchSetlistSongListResult(.failure(error)))
+                send(.interestConcert(._fetchSetlistSongListResult(.failure(error))))
             }
         }
     }
-
+    
     func performDeleteInterestConcert() {
         Task {
             do {
                 try await userRepository.deleteInterestedConcert()
                 WidgetCenter.shared.reloadAllTimelines()
-                await send(._deleteInterestConcertResult(.success(())))
+                send(.interestConcert(._deleteInterestConcertResult(.success(()))))
             } catch {
-                await send(._deleteInterestConcertResult(.failure(error)))
+                send(.interestConcert(._deleteInterestConcertResult(.failure(error))))
             }
         }
     }
-
-    func getErrorMessage(from error: Error) -> String {
-        if error is CancellationError {
-            return ""
-        }
-
-        if case let error as ConcertError = error, error == .cancelled {
-            return ""
-        }
-
-        return error.localizedDescription
-    }
-
+    
     func performFetchHomeSectionList() {
         cancellables[.refreshSections]?.cancel()
         cancellables[.refreshSections] = Task {
             do {
                 let result = try await concertRepository.fetchHomeConcertSectionList()
-                await send(._fetchHomeSectionListResult(.success(result)))
+                send(.concertSection(._fetchHomeSectionListResult(.success(result))))
             } catch {
-                await send(._fetchHomeSectionListResult(.failure(error)))
+                send(.concertSection(._fetchHomeSectionListResult(.failure(error))))
             }
         }
     }
 }
 
-// MARK: - CancelID
+// MARK: - Utilities
 
 private extension HomeStore {
-    enum CancelID {
-        case fetchInterestedConcert
-        case fetchScheduleList
-        case fetchMainSetlist
-        case fetchSetlistSongList
-        case refreshSections
-        case fetchUser
+    func getErrorMessage(from error: Error) -> String {
+        if error is CancellationError {
+            return ""
+        }
+        
+        if case let error as ConcertError = error, error == .cancelled {
+            return ""
+        }
+        
+        return error.localizedDescription
     }
 }

@@ -17,18 +17,20 @@ struct HomeConcertSectionView: View {
     @ObservedObject private var store: HomeStore
     // TODO: 일단 AppStorage로 놨는데 고쳐쓰시길...
     @AppStorage("isPreferenceBannerExpanded") private var isPreferenceBannerExpanded: Bool = true
-
+    
     init(store: HomeStore) {
         self.store = store
     }
-
+    
+    private var sectionState: HomeState.ConcertSectionState { store.state.sections }
+    
     var body: some View {
         VStack(spacing: .zero) {
             LivithNavigationView(type: .logo(
                 hasNewNotice: store.state.hasNewNotice,
                 onNoticeTap: { coordinator?.push(to: .notice) }
             ))
-
+            
             ScrollView {
                 VStack(spacing: .zero) {
                     VStack(spacing: .zero) {
@@ -38,37 +40,37 @@ struct HomeConcertSectionView: View {
                         )
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
-
+                        
                         HomeHeaderView(
                             nickname: store.state.userName,
                             action: { coordinator?.push(to: .interest) }
                         )
                     }
                     .background(Color.livithColor(.black90))
-
+                    
                     VStack(spacing: .zero) {
-                        if !store.state.isSectionsLoading && store.state.sectionList.isEmpty {
+                        if !sectionState.isLoading && sectionState.sectionList.isEmpty {
                             LivithEmptyView(text: emptyMessage)
                                 .frame(minHeight: Constants.emptyStateMinHeight)
                         }
-
-                        ForEach(store.state.sectionList, id: \.id) { section in
+                        
+                        ForEach(sectionState.sectionList, id: \.id) { section in
                             concertSectionRow(for: section)
                                 .padding(.top, 28)
                                 .padding(.leading, 16)
                         }
-
+                        
                         Spacer(minLength: Constants.emptySpaceHeight)
                     }
                     .background(Color.livithColor(.black100))
                 }
             }
-            .refreshable { store.send(.onRefreshSections) }
+            .refreshable { store.send(.concertSection(.onRefreshSections)) }
             .ignoresSafeArea(edges: .bottom)
         }
         .background(.livithColor(.black90))
     }
-
+    
     private var emptyMessage: String {
         store.state.errorMessage.isEmpty ? "콘텐츠가 없습니다." : store.state.errorMessage
     }

@@ -34,13 +34,13 @@ struct HomeStoreTests {
     @Test("초기 상태에서 interestConcert는 nil이어야 한다")
     func testInitialInterestConcertState() {
         let sut = HomeStore()
-        #expect(sut.state.interestConcert == nil)
+        #expect(sut.state.interestConcert.concert == nil)
     }
     
     @Test("초기 상태에서 scheduleList는 비어있어야 한다")
     func testInitialScheduleListState() {
         let sut = HomeStore()
-        #expect(sut.state.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.scheduleList.isEmpty)
     }
     
     // MARK: - onAppear 테스트
@@ -78,10 +78,10 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 150_000_000)
         
         // Then
-        #expect(sut.state.interestConcert?.id == concert.id)
-        #expect(!sut.state.scheduleList.isEmpty)
-        #expect(sut.state.setlist != nil)
-        #expect(!sut.state.songList.isEmpty)
+        #expect(sut.state.interestConcert.concert?.id == concert.id)
+        #expect(!sut.state.interestConcert.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.setlist != nil)
+        #expect(!sut.state.interestConcert.songList.isEmpty)
     }
     
     @Test("onAppear 사용자 정보 로드 실패 시 에러 메시지가 설정되어야 한다")
@@ -96,6 +96,7 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
+        #expect(container.userRepository.fetchUserCallCount > 0)
         #expect(!sut.state.errorMessage.isEmpty)
     }
     
@@ -126,7 +127,7 @@ struct HomeStoreTests {
         container.userRepository.interestedConcertStub = makeMockConcert()
         
         let sut = HomeStore()
-        sut.send(.onDelete)
+        sut.send(.interestConcert(.onDelete))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Precondition
@@ -147,17 +148,32 @@ struct HomeStoreTests {
         container.userRepository.userStub = makeMockUser()
         container.userRepository.interestedConcertStub = makeMockConcert()
         
+        let concert = makeMockConcert()
+        let schedule = makeMockSchedule()
+        let setlist = makeMockSetlist()
+        let song = makeMockSong()
+        
         let sut = HomeStore()
+        sut.send(.interestConcert(._fetchUserInterestConcertResult(.success(concert))))
+        sut.send(.interestConcert(._fetchScheduleListResult(.success([schedule]))))
+        sut.send(.interestConcert(._fetchMainSetlistResult(.success(setlist))))
+        sut.send(.interestConcert(._fetchSetlistSongListResult(.success([song]))))
+        
+        // Precondition
+        #expect(sut.state.interestConcert.concert != nil)
+        #expect(!sut.state.interestConcert.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.setlist != nil)
+        #expect(!sut.state.interestConcert.songList.isEmpty)
         
         // When
-        sut.send(.onDelete)
+        sut.send(.interestConcert(.onDelete))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
-        #expect(sut.state.interestConcert == nil)
-        #expect(sut.state.scheduleList.isEmpty)
-        #expect(sut.state.setlist == nil)
-        #expect(sut.state.songList.isEmpty)
+        #expect(sut.state.interestConcert.concert == nil)
+        #expect(sut.state.interestConcert.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.setlist == nil)
+        #expect(sut.state.interestConcert.songList.isEmpty)
         #expect(sut.state.toastMessage == "관심 공연을 삭제했어요")
     }
     
@@ -169,7 +185,7 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.onDelete)
+        sut.send(.interestConcert(.onDelete))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -197,7 +213,7 @@ struct HomeStoreTests {
         container.concertRepository.fetchMainSetlistCallCount = 0
         
         // When
-        sut.send(.onRefreshInterestConcert)
+        sut.send(.interestConcert(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -217,7 +233,7 @@ struct HomeStoreTests {
         container.userRepository.fetchInterestedConcertCallCount = 0
         
         // When
-        sut.send(.onRefreshInterestConcert)
+        sut.send(.interestConcert(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -235,10 +251,10 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.onRefreshSections)
+        sut.send(.concertSection(.onRefreshSections))
         
         // Then - 즉시 체크
-        #expect(sut.state.isSectionsLoading == true)
+        #expect(sut.state.sections.isLoading == true)
     }
     
     @Test("섹션 로드 성공 시 sectionList가 업데이트되고 로딩이 false가 되어야 한다")
@@ -248,14 +264,17 @@ struct HomeStoreTests {
         container.concertRepository.homeSectionListStub = [makeMockSection()]
         
         let sut = HomeStore()
+        try await Task.sleep(nanoseconds: 100_000_000)
+        container.concertRepository.fetchHomeConcertSectionListCallCount = 0
         
         // When
-        sut.send(.onRefreshSections)
+        sut.send(.concertSection(.onRefreshSections))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
-        #expect(!sut.state.sectionList.isEmpty)
-        #expect(sut.state.isSectionsLoading == false)
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount > 0)
+        #expect(!sut.state.sections.sectionList.isEmpty)
+        #expect(sut.state.sections.isLoading == false)
     }
     
     // MARK: - 연쇄 호출 테스트
@@ -275,16 +294,16 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 150_000_000)
         
         // Precondition
-        #expect(!sut.state.scheduleList.isEmpty)
+        #expect(!sut.state.interestConcert.scheduleList.isEmpty)
         
         // When - 관심 공연을 nil로 받음
-        sut.send(._fetchUserInterestConcertResult(.success(nil)))
+        sut.send(.interestConcert(._fetchUserInterestConcertResult(.success(nil))))
         
         // Then
-        #expect(sut.state.interestConcert == nil)
-        #expect(sut.state.scheduleList.isEmpty)
-        #expect(sut.state.setlist == nil)
-        #expect(sut.state.songList.isEmpty)
+        #expect(sut.state.interestConcert.concert == nil)
+        #expect(sut.state.interestConcert.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.setlist == nil)
+        #expect(sut.state.interestConcert.songList.isEmpty)
     }
 }
 

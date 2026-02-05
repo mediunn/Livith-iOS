@@ -16,7 +16,7 @@ struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
     @Binding private var isTabBarHidden: Bool
-
+    
     @State private var selectedTab: SegmentedTabBarType.HomeTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
@@ -25,6 +25,8 @@ struct HomeInterestConcertView: View {
         self.store = store
         self._isTabBarHidden = isTabBarHidden
     }
+    
+    private var interestState: HomeState.InterestConcertState { store.state.interestConcert }
     
     var body: some View {
         mainContent
@@ -68,11 +70,11 @@ private extension HomeInterestConcertView {
                     textHeaderView
                     
                     InterestConcertCardView(
-                        posterURL: store.state.interestConcert?.posterURL,
-                        remainDays: store.state.interestConcert?.daysLeft ?? 0,
-                        date: formatDate(store.state.interestConcert?.startDate),
-                        location: store.state.interestConcert?.venue ?? "",
-                        title: store.state.interestConcert?.title ?? "",
+                        posterURL: interestState.concert?.posterURL,
+                        remainDays: interestState.concert?.daysLeft ?? 0,
+                        date: formatDate(interestState.concert?.startDate),
+                        location: interestState.concert?.venue ?? "",
+                        title: interestState.concert?.title ?? "",
                         onMoreInfoTap: handleMoreInfoTap
                     )
                     
@@ -83,11 +85,11 @@ private extension HomeInterestConcertView {
                     
                     Group {
                         if selectedTab == .schedule {
-                            ConcertScheduleTabView(schedules: store.state.scheduleList)
+                            ConcertScheduleTabView(schedules: interestState.scheduleList)
                         } else {
                             ConcertSetlistTabView(
-                                setlist: store.state.setlist,
-                                songs: store.state.songList,
+                                setlist: interestState.setlist,
+                                songs: interestState.songList,
                                 onSongTap: { songID in
                                     handleSongTap(songID: songID)
                                 },
@@ -103,7 +105,7 @@ private extension HomeInterestConcertView {
             }
             .refreshable {
                 await MainActor.run {
-                    store.send(.onRefreshInterestConcert)
+                    store.send(.interestConcert(.onRefresh))
                 }
             }
         }
@@ -133,21 +135,24 @@ private extension HomeInterestConcertView {
 
 private extension HomeInterestConcertView {
     func handleMoreInfoTap() {
-        guard let concertID = store.state.interestConcert?.id else { return }
+        guard let concertID = interestState.concert?.id else { return }
         coordinator?.showConcertDetail(concertID: concertID)
     }
-
+    
     func handleSongTap(songID: Int) {
-        guard let setlistID = store.state.setlist?.id,
-              let song = store.state.songList.first(where: { $0.id == songID }) else { return }
+        guard let setlistID = interestState.setlist?.id,
+              let song = interestState.songList.first(where: { $0.id == songID })
+        else {
+            return
+        }
         coordinator?.showSongDetail(songID: songID, setlistID: setlistID, songTitle: song.title)
     }
-
+    
     func handleSetlistMoreTap(setlistID: Int) {
-        guard let concertID = store.state.interestConcert?.id else { return }
+        guard let concertID = interestState.concert?.id else { return }
         coordinator?.showSetlistDetail(concertID: concertID, setlistID: setlistID)
     }
-
+    
     func handleChangeMainConcert() {
         showBottomSheet = false
         Task { @MainActor in
@@ -164,10 +169,10 @@ private extension HomeInterestConcertView {
     func handleDeleteConfirm() {
         showDeleteDialog = false
         isTabBarHidden = false
-
-        store.send(.onDelete)
+        
+        store.send(.interestConcert(.onDelete))
     }
-
+    
     func formatDate(_ date: Date?) -> String {
         guard let date else { return "" }
         return DateFormatterService.string(from: date, type: .koreanFullDate)
