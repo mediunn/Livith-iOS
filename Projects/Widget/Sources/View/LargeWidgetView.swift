@@ -125,22 +125,21 @@ private extension LargeWidgetView {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
+    @ViewBuilder
     var scheduleSection: some View {
-        Group {
-            if entry.schedules.isEmpty {
-                scheduleEmptyView
-                    .padding(.bottom, 8)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(entry.schedules) { schedule in
-                        LivithScheduleItem(
-                            daysLeft: schedule.dDay,
-                            title: schedule.category,
-                            dateTime: formatScheduleDate(schedule.scheduledAt),
-                            isActive: true
-                        )
-                        .frame(height: 48)
-                    }
+        if entry.schedules.isEmpty {
+            scheduleEmptyView
+                .padding(.bottom, 8)
+        } else {
+            VStack(spacing: 0) {
+                ForEach(entry.schedules) { schedule in
+                    LivithScheduleItem(
+                        daysLeft: schedule.dDay,
+                        title: schedule.category,
+                        dateTime: formatScheduleDate(schedule.scheduledAt),
+                        isActive: true
+                    )
+                    .frame(height: 48)
                 }
             }
         }
