@@ -35,6 +35,7 @@ enum HomeIntent {
         case checkShowBanner
         case _fetchHomeSectionListResult(Result<[ConcertSection], Error>)
         case _fetchUserPreferredGenreListResult(Result<[PreferredGenre], Error>)
+        case _fetchRecommendedConcertListResult(Result<[Concert], Error>)
     }
 }
 
@@ -57,6 +58,7 @@ struct HomeState {
         var sectionList: [ConcertSection] = []
         var isLoading: Bool = false
         var shouldShowPreferenceBanner: Bool = false
+        var recommendedConcerts: [Concert] = []
     }
 }
 
@@ -73,6 +75,7 @@ final class HomeStore: ObservableObject {
         case refreshSections
         case fetchUser
         case fetchUserPreferredGenreList
+        case fetchRecommendedConcertList
     }
     
     @Published private(set) var state: HomeState = .init()
@@ -230,6 +233,8 @@ private extension HomeStore {
             handleFetchHomeSectionListResult(result)
         case ._fetchUserPreferredGenreListResult(let result):
             handleFetchUserPreferredGenreListResult(result)
+        case ._fetchRecommendedConcertListResult(let result):
+            handleFetchRecommendedConcertListResult(result)
         }
     }
     
@@ -253,8 +258,25 @@ private extension HomeStore {
         switch result {
         case .success(let genreList):
             state.sections.shouldShowPreferenceBanner = genreList.isEmpty
+            
+            if !genreList.isEmpty {
+                performFetchRecommendedConcertList()
+            } else {
+                state.sections.recommendedConcerts = []
+            }
         case .failure:
             state.sections.shouldShowPreferenceBanner = false
+            state.sections.recommendedConcerts = []
+        }
+    }
+    
+    func handleFetchRecommendedConcertListResult(_ result: Result<[Concert], Error>) {
+        switch result {
+        case .success(let concerts):
+            state.sections.recommendedConcerts = concerts
+        case .failure(let error):
+            state.sections.recommendedConcerts = []
+            state.errorMessage = getErrorMessage(from: error)
         }
     }
 }
@@ -349,6 +371,18 @@ private extension HomeStore {
                 send(.concertSection(._fetchHomeSectionListResult(.success(result))))
             } catch {
                 send(.concertSection(._fetchHomeSectionListResult(.failure(error))))
+            }
+        }
+    }
+    
+    func performFetchRecommendedConcertList() {
+        cancellables[.fetchRecommendedConcertList]?.cancel()
+        cancellables[.fetchRecommendedConcertList] = Task {
+            do {
+                let concerts = try await concertRepository.fetchRecommendedConcertList()
+                send(.concertSection(._fetchRecommendedConcertListResult(.success(concerts))))
+            } catch {
+                send(.concertSection(._fetchRecommendedConcertListResult(.failure(error))))
             }
         }
     }

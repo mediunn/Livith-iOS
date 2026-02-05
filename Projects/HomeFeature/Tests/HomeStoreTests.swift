@@ -49,6 +49,12 @@ struct HomeStoreTests {
         #expect(sut.state.sections.shouldShowPreferenceBanner == false)
     }
     
+    @Test("초기 상태에서 recommendedConcerts는 비어있어야 한다")
+    func testInitialRecommendedConcertsState() {
+        let sut = HomeStore()
+        #expect(sut.state.sections.recommendedConcerts.isEmpty)
+    }
+    
     // MARK: - onAppear 테스트
     
     @Test("onAppear 시 사용자 정보가 로드되어야 한다")
@@ -354,6 +360,71 @@ struct HomeStoreTests {
         // Then
         #expect(container.preferenceRepository.fetchUserPreferredGenreListCallCount > 0)
         #expect(sut.state.sections.shouldShowPreferenceBanner == true)
+    }
+    
+    // MARK: - 추천 콘서트 테스트
+    
+    @Test("선호 장르가 있을 때 추천 콘서트가 로드되어야 한다")
+    func testFetchRecommendedConcertWhenGenreExists() async throws {
+        // Given
+        let mockGenre = PreferredGenre(id: 1, name: "팝", imageURL: nil)
+        let mockRecommendedConcerts = [makeMockConcert(id: 1), makeMockConcert(id: 2)]
+        
+        container.userRepository.userStub = makeMockUser()
+        container.preferenceRepository.preferredGenreListStub = [mockGenre]
+        container.concertRepository.recommendedConcertListStub = mockRecommendedConcerts
+        
+        let sut = HomeStore()
+        
+        // When
+        sut.send(.concertSection(.checkShowBanner))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount > 0)
+        #expect(!sut.state.sections.recommendedConcerts.isEmpty)
+        #expect(sut.state.sections.recommendedConcerts.count == 2)
+    }
+    
+    @Test("선호 장르가 없을 때 추천 콘서트가 로드되지 않아야 한다")
+    func testFetchRecommendedConcertWhenGenreNotExists() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser()
+        container.preferenceRepository.preferredGenreListStub = []
+        container.concertRepository.recommendedConcertListStub = []
+        
+        let sut = HomeStore()
+        
+        // Reset call count
+        container.concertRepository.fetchRecommendedConcertListCallCount = 0
+        
+        // When
+        sut.send(.concertSection(.checkShowBanner))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
+        #expect(sut.state.sections.recommendedConcerts.isEmpty)
+    }
+    
+    @Test("추천 콘서트 로드 실패 시 에러가 설정되어야 한다")
+    func testFetchRecommendedConcertFailure() async throws {
+        // Given
+        let mockGenre = PreferredGenre(id: 1, name: "팝", imageURL: nil)
+        
+        container.userRepository.userStub = makeMockUser()
+        container.preferenceRepository.preferredGenreListStub = [mockGenre]
+        container.concertRepository.errorStub = ConcertError.serverError
+        
+        let sut = HomeStore()
+        
+        // When
+        sut.send(.concertSection(.checkShowBanner))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(sut.state.sections.recommendedConcerts.isEmpty)
+        #expect(!sut.state.errorMessage.isEmpty)
     }
     
     // MARK: - 연쇄 호출 테스트
