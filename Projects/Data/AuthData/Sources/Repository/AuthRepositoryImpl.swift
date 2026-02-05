@@ -70,16 +70,23 @@ struct AuthRepositoryImpl: AuthRepository {
         }
     }
     
-    func signup(tempUser: TempUser, marketingConsent: Bool, nickname: String) async throws(AuthError) {
+    func signup(_ signup: Signup) async throws(AuthError) {
         do {
-            let response: DTO.Response.Signup = try await onboardingService.request(
-                .signup(
-                    nickname: nickname,
-                    marketingConsent: marketingConsent,
-                    providerID: tempUser.providerID,
-                    provider: tempUser.provider.description,
-                    email: tempUser.email
-                )
+            let request: DTO.Request.Signup = .init(
+                nickname: signup.nickname.value,
+                preferredArtistIDList: signup.preferredArtistIDList,
+                preferredGenreIDList: signup.preferredGenreIDList,
+                email: signup.email,
+                provider: signup.provider.description,
+                providerID: signup.providerID,
+                marketingConsent: signup.isMarketingAgreed
+            )
+            let response: DTO.Response.Signup = try await onboardingService.request(.signup(request))
+            
+            let tempUser = TempUser(
+                provider: signup.provider,
+                providerID: signup.providerID,
+                email: signup.email
             )
             
             try await handleSignup(response: response, tempUser: tempUser)

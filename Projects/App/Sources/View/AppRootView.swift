@@ -47,8 +47,8 @@ private extension AppRootView {
             LoginContentView(
                 onLoginCompleted: { transition(to: .main) },
                 onSignupCompleted: { nickname in
-                    transition(to: .main)
                     self.nickname = nickname
+                    transition(to: .main)
                     self.showWelcomeSheet = true
                 }
             )

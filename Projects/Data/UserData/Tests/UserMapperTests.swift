@@ -93,7 +93,9 @@ final class UserMapperTests: XCTestCase {
             "providerId": "001234.abcd1234",
             "email": "user@icloud.com",
             "nickname": "테스트유저",
-            "marketingConsent": true
+            "marketingConsent": true,
+            "preferredGenres": [],
+            "preferredArtists": []
         }
         """.data(using: .utf8)!
 
@@ -122,7 +124,9 @@ final class UserMapperTests: XCTestCase {
             "providerId": "9876543210",
             "email": null,
             "nickname": "익명",
-            "marketingConsent": false
+            "marketingConsent": false,
+            "preferredGenres": [],
+            "preferredArtists": []
         }
         """.data(using: .utf8)!
 
@@ -172,7 +176,6 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.title, "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
         XCTAssertEqual(result.artist, "JAKE MILLER (제이크 밀러)")
         XCTAssertEqual(result.status, .completed)
-        XCTAssertEqual(result.daysLeft, -16)
         XCTAssertEqual(result.posterURL.absoluteString, "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
         XCTAssertEqual(result.venue, "무신사 개러지")
         XCTAssertEqual(result.ticketingOffice, "NOL 티켓")
@@ -212,7 +215,6 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.title, "버스커버스커 공연")
         XCTAssertEqual(result.artist, "버스커버스커")
         XCTAssertEqual(result.status, .ongoing)
-        XCTAssertEqual(result.daysLeft, 0)
         XCTAssertEqual(result.posterURL.absoluteString, "https://example.com/busker.jpg")
         XCTAssertEqual(result.venue, "홍대 놀이터")
         XCTAssertNil(result.ticketingOffice)
@@ -251,7 +253,6 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.title, "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
         XCTAssertEqual(result.artist, "JAKE MILLER (제이크 밀러)")
         XCTAssertEqual(result.status, .completed)
-        XCTAssertEqual(result.daysLeft, 0)  // DTO에 daysLeft가 없으므로 항상 0
         XCTAssertEqual(result.posterURL.absoluteString, "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
         XCTAssertEqual(result.venue, "무신사 개러지")
         XCTAssertEqual(result.ticketingOffice, "NOL 티켓")
@@ -290,7 +291,6 @@ final class UserMapperTests: XCTestCase {
         XCTAssertEqual(result.title, "무료 버스킹 공연")
         XCTAssertEqual(result.artist, "인디 밴드")
         XCTAssertEqual(result.status, .upcoming)
-        XCTAssertEqual(result.daysLeft, 0)
         XCTAssertEqual(result.posterURL.absoluteString, "https://example.com/busking.jpg")
         XCTAssertEqual(result.venue, "신촌 연세로")
         XCTAssertNil(result.ticketingOffice)

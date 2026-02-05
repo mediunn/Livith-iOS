@@ -35,9 +35,9 @@ final class MockAuthRepository: AuthRepository {
         }
     }
 
-    func signup(tempUser: TempUser, marketingConsent: Bool, nickname: String) async throws(AuthError) {
+    func signup(_ signup: Signup) async throws(AuthError) {
         signupCallCount += 1
-        lastSignupNickname = nickname
+        lastSignupNickname = signup.nickname.value
         switch signupResult {
         case .success:
             return

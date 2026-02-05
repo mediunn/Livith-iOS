@@ -66,11 +66,7 @@ private extension SignupStore {
             do {
                 let signup = try builder.build(preferredArtistList: preferredArtistList)
                 
-                try await authRepository.signup(
-                    tempUser: builder.tempUser,
-                    marketingConsent: builder.isMarketingAgreed,
-                    nickname: signup.nickname.value
-                )
+                try await authRepository.signup(signup)
                 
                 await send(._signupResult(.success(())))
             } catch {
@@ -80,7 +76,7 @@ private extension SignupStore {
     }
     
     func getErrorMessage(from error: Error) -> String {
-        let unknownMessage = AuthError.unknown.errorDescription ?? ""
+        let unknownMessage = AuthError.unknown.errorDescription ?? "로그인에서 다시 시도 주세요"
         guard let authError = error as? AuthError else { return error.localizedDescription }
         return authError.errorDescription ?? unknownMessage
     }

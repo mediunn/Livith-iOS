@@ -13,7 +13,7 @@ public typealias OnboardingService = NetworkService<OnboardingEndpoint>
 public enum OnboardingEndpoint {
     case appleLogin(identityToken: String)
     case kakaoLogin(accessToken: String)
-    case signup(nickname: String, marketingConsent: Bool, providerID: String, provider: String, email: String?)
+    case signup(DTO.Request.Signup)
     case checkNicknameDuplicate(nickname: String)
     case fetchUserInfo
 }
@@ -60,14 +60,8 @@ extension OnboardingEndpoint: NetworkEndpoint {
             return DTO.Request.AppleLogin(identityToken: identityToken)
         case .kakaoLogin(let accessToken):
             return DTO.Request.KakaoLogin(accessToken: accessToken)
-        case .signup(let nickname, let marketingConsent, let providerID, let provider, let email):
-            return DTO.Request.Signup(
-                nickname: nickname,
-                marketingConsent: marketingConsent,
-                providerID: providerID,
-                provider: provider,
-                email: email
-            )
+        case .signup(let requestDTO):
+            return requestDTO
         case .checkNicknameDuplicate:
             return nil
         case .fetchUserInfo:
