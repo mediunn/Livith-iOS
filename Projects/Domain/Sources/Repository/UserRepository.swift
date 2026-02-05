@@ -13,4 +13,10 @@ public protocol UserRepository {
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert
     func deleteInterestedConcert() async throws(UserError)
+    func updateNotificationConsent(
+        field: NotificationConsentField,
+        isAgreed: Bool
+    ) async throws(UserError) -> NotificationConsentResult
+    func updateMarketingConsent() async throws(UserError) -> NotificationConsentResult
+    func fetchNotificationSettings() async throws(UserError) -> NotificationSettings
 }
