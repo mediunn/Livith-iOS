@@ -99,7 +99,7 @@ public struct UserView: View {
             message: Literals.toastSuccess
         )
         .onAppear {
-            store.send(.fetchNickname)
+            store.send(.fetchUserInfo)
         }
     }
 }
@@ -114,7 +114,7 @@ private extension UserView {
                 .frame(width: 36, height: 36)
         }
     }
-
+    
     var headerSection: some View {
         HStack(alignment: .center) {
             titleText
@@ -122,7 +122,7 @@ private extension UserView {
             editButton
         }
     }
-
+    
     var titleText: some View {
         Text.init(
             String(format: Literals.titleFormat, store.state.nickname),
@@ -135,7 +135,7 @@ private extension UserView {
         .lineLimit(nil)
         .fixedSize(horizontal: false, vertical: true)
     }
-
+    
     var editButton: some View {
         Button(action: onNicknameEdit) {
             Text(Literals.editNickname)
@@ -147,13 +147,13 @@ private extension UserView {
         .background(Color.livithColor(.black80))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-
+    
     var divideLine: some View {
         Divider()
             .frame(height: 5)
             .background(Color.init(hex: "29303C", opacity: 1.0))
     }
-
+    
     var feedbackButton: some View {
         Button {
             showFeedbackForm()
@@ -163,21 +163,21 @@ private extension UserView {
                 .scaledToFill()
         }
     }
-
+    
     var preferenceSection: some View {
         VStack(spacing: 24) {
             genreSection
             artistSection
         }
     }
-
+    
     var genreSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text(Literals.preferredGenre)
                     .notosans(.body2Medium)
                     .foregroundStyle(Color.livithColor(.white100))
-
+                
                 Spacer()
                 
                 LivithTextButton(
@@ -185,22 +185,22 @@ private extension UserView {
                     action: onGenreSetting
                 )
             }
-
+            
             if store.state.hasGenreData {
-                genreCards
+                genreCardList
             } else {
                 placeholderText(Literals.genrePlaceholder)
             }
         }
     }
-
+    
     var artistSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text(Literals.preferredArtist)
                     .notosans(.body2Medium)
                     .foregroundStyle(Color.livithColor(.white100))
-
+                
                 Spacer()
                 
                 LivithTextButton(
@@ -208,15 +208,15 @@ private extension UserView {
                     action: onArtistSetting
                 )
             }
-
+            
             if store.state.hasArtistData {
-                artistCards
+                artistCardList
             } else {
                 placeholderText(Literals.artistPlaceholder)
             }
         }
     }
-
+    
     func placeholderText(_ text: String) -> some View {
         Text(text)
             .notosans(.body2Medium)
@@ -225,40 +225,35 @@ private extension UserView {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
     }
-
-    var genreCards: some View {
+    
+    var genreCardList: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(store.state.genres, id: \.self) { genre in
-                    PreferenceCard(title: genre)
+                ForEach(store.state.genres) { genre in
+                    PreferenceCard(
+                        title: genre.displayName,
+                        imageURL: genre.imageURL,
+                        isSelected: false
+                    )
+                    .frame(width: 108, height: 108)
                 }
             }
         }
     }
-
-    var artistCards: some View {
+    
+    var artistCardList: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(store.state.artists, id: \.self) { artist in
-                    PreferenceCard(title: artist)
+                ForEach(store.state.artists) { artist in
+                    PreferenceCard(
+                        title: artist.name,
+                        imageURL: artist.imageURL,
+                        isSelected: false
+                    )
+                    .frame(width: 108, height: 108)
                 }
             }
         }
-    }
-}
-
-// MARK: - PreferenceCard
-
-private struct PreferenceCard: View {
-    let title: String
-
-    var body: some View {
-        Text(title)
-            .notosans(.body2Semibold)
-            .foregroundStyle(Color.livithColor(.white100))
-            .frame(width: 108, height: 108)
-            .background(Color.livithColor(.black80))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
