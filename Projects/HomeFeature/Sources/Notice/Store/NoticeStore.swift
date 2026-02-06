@@ -26,6 +26,7 @@ struct NoticeState {
 enum NoticeIntent {
     case onAppear
     case loadNextPage
+    case markAsRead(id: Int)
     case _fetchNotificationListResult(Result<[NotificationItem], Error>)
 }
 
@@ -50,6 +51,10 @@ final class NoticeStore: ObservableObject {
             guard !state.isLoadingMore, state.hasMorePages else { return }
             state.isLoadingMore = true
             performFetchNotificationList()
+
+        case .markAsRead(let id):
+            guard let index = state.notifications.firstIndex(where: { $0.id == id }) else { return }
+            state.notifications[index].isRead = true
 
         case ._fetchNotificationListResult(let result):
             state.isLoading = false

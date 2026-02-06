@@ -18,6 +18,7 @@ public struct NoticeView: View {
     // MARK: - Property
 
     @StateObject private var store = NoticeStore()
+    @State private var tappedNotificationID: Int?
 
     private let onBack: () -> Void
     private let onSettingTap: () -> Void
@@ -54,6 +55,10 @@ public struct NoticeView: View {
         .background(Color.livithColor(.black100))
         .onAppear {
             store.send(.onAppear)
+            if let id = tappedNotificationID {
+                store.send(.markAsRead(id: id))
+                tappedNotificationID = nil
+            }
         }
     }
 }
@@ -115,6 +120,7 @@ private extension NoticeView {
                         timeAgo: notification.createdAt,
                         state: notification.isRead ? .read : .normal,
                         action: {
+                            tappedNotificationID = notification.id
                             if let targetID = notification.targetID {
                                 onConcertTap(targetID)
                             }
