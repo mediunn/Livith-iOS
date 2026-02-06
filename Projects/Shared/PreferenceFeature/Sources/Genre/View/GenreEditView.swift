@@ -19,13 +19,13 @@ public struct GenreEditView: View {
     
     private let config: GenreEditConfig
     private let isSubmitting: Bool
-    private let onBack: () -> Void
+    private let onBack: (Bool) -> Void
     private let onSubmit: ([PreferredGenre]) -> Void
     
     public init(
         mode: GenreEditConfig,
         isSubmitting: Bool = false,
-        onBack: @escaping () -> Void,
+        onBack: @escaping (Bool) -> Void,
         onSubmit: @escaping ([PreferredGenre]) -> Void
     ) {
         self._selectionStore = StateObject(wrappedValue: GenreSelectionStore(selectedGenres: mode.initialSelection))
@@ -42,7 +42,7 @@ public struct GenreEditView: View {
             LivithNavigationView(
                 type: .back(
                     title: config.navigationTitle,
-                    onBack: onBack
+                    onBack: { onBack(selectionStore.state.isModified) }
                 )
             )
             

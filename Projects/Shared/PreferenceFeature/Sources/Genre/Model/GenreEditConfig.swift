@@ -12,21 +12,21 @@ import Domain
 
 public struct GenreEditConfig {
     public let initialSelection: [PreferredGenre]
-    public let stepIndicator: (current: Int, total: Int)?
     public let navigationTitle: String
+    public let stepIndicator: (current: Int, total: Int)?
     public let showSubtitle: Bool
     public let submitTitle: String
     
     public init(
         initialSelection: [PreferredGenre] = [],
-        stepIndicator: (current: Int, total: Int)? = nil,
         navigationTitle: String,
-        showSubtitle: Bool,
+        stepIndicator: (current: Int, total: Int)? = nil,
+        showSubtitle: Bool = false,
         submitTitle: String
     ) {
         self.initialSelection = initialSelection
-        self.stepIndicator = stepIndicator
         self.navigationTitle = navigationTitle
+        self.stepIndicator = stepIndicator
         self.showSubtitle = showSubtitle
         self.submitTitle = submitTitle
     }
@@ -37,8 +37,8 @@ public struct GenreEditConfig {
 public extension GenreEditConfig {
     static func onboarding() -> GenreEditConfig {
         GenreEditConfig(
-            stepIndicator: (current: 3, total: 4),
             navigationTitle: "회원가입",
+            stepIndicator: (current: 3, total: 4),
             showSubtitle: true,
             submitTitle: "다음"
         )
@@ -46,9 +46,8 @@ public extension GenreEditConfig {
     
     static func home() -> GenreEditConfig {
         GenreEditConfig(
-            stepIndicator: (current: 1, total: 2),
             navigationTitle: "취향 선택",
-            showSubtitle: false,
+            stepIndicator: (current: 1, total: 2),
             submitTitle: "다음"
         )
     }
@@ -56,9 +55,7 @@ public extension GenreEditConfig {
     static func edit(selectedGenres: [PreferredGenre]) -> GenreEditConfig {
         GenreEditConfig(
             initialSelection: selectedGenres,
-            stepIndicator: nil,
             navigationTitle: "장르 변경",
-            showSubtitle: false,
             submitTitle: "변경하기"
         )
     }

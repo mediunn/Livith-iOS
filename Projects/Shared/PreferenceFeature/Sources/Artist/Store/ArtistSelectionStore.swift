@@ -32,17 +32,26 @@ public struct ArtistSelectionState: Equatable {
     var isMaxSelectionToastPresented: Bool = false
     var isErrorToastPresented: Bool = false
     var errorMessage: String = ""
+    
+    private let initialSelectedArtistList: [PreferredArtist]
+    
+    init(selectedArtists: [PreferredArtist] = []) {
+        self.selectedArtistList = selectedArtists
+        self.initialSelectedArtistList = selectedArtists
+    }
+
+    var isModified: Bool { selectedArtistList != initialSelectedArtistList }
 }
 
 public final class ArtistSelectionStore: ObservableObject {
-    @Published public private(set) var state: ArtistSelectionState = ArtistSelectionState()
+    @Published public private(set) var state: ArtistSelectionState
     
     @Injected private var preferenceRepository: PreferenceRepository
     
     private var searchTask: Task<Void, Never>?
     
     public init(selectedArtists: [PreferredArtist] = []) {
-        self.state.selectedArtistList = selectedArtists
+        self.state = ArtistSelectionState(selectedArtists: selectedArtists)
     }
     
     @MainActor

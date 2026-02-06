@@ -12,21 +12,21 @@ import Domain
 
 public struct ArtistEditConfig {
     public let initialSelection: [PreferredArtist]
-    public let stepIndicator: (current: Int, total: Int)?
     public let navigationTitle: String
+    public let stepIndicator: (current: Int, total: Int)?
     public let showSubtitle: Bool
     public let submitTitle: String
     
     public init(
         initialSelection: [PreferredArtist] = [],
-        stepIndicator: (current: Int, total: Int)? = nil,
         navigationTitle: String,
-        showSubtitle: Bool,
+        stepIndicator: (current: Int, total: Int)? = nil,
+        showSubtitle: Bool = false,
         submitTitle: String
     ) {
         self.initialSelection = initialSelection
-        self.stepIndicator = stepIndicator
         self.navigationTitle = navigationTitle
+        self.stepIndicator = stepIndicator
         self.showSubtitle = showSubtitle
         self.submitTitle = submitTitle
     }
@@ -35,8 +35,8 @@ public struct ArtistEditConfig {
 public extension ArtistEditConfig {
     static func onboarding() -> ArtistEditConfig {
         ArtistEditConfig(
-            stepIndicator: (current: 4, total: 4),
             navigationTitle: "회원가입",
+            stepIndicator: (current: 4, total: 4),
             showSubtitle: true,
             submitTitle: "가입 완료"
         )
@@ -44,9 +44,8 @@ public extension ArtistEditConfig {
     
     static func home() -> ArtistEditConfig {
         ArtistEditConfig(
-            stepIndicator: (current: 2, total: 2),
             navigationTitle: "취향 선택",
-            showSubtitle: false,
+            stepIndicator: (current: 2, total: 2),
             submitTitle: "취향 선택 완료"
         )
     }
@@ -54,9 +53,7 @@ public extension ArtistEditConfig {
     static func edit(selectedArtists: [PreferredArtist]) -> ArtistEditConfig {
         ArtistEditConfig(
             initialSelection: selectedArtists,
-            stepIndicator: nil,
             navigationTitle: "아티스트 변경",
-            showSubtitle: false,
             submitTitle: "변경하기"
         )
     }

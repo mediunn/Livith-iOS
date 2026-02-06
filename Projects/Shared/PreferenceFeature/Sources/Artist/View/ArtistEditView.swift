@@ -20,14 +20,14 @@ public struct ArtistEditView: View {
     
     private let config: ArtistEditConfig
     private let isSubmitting: Bool
-    private let onBack: () -> Void
+    private let onBack: (Bool) -> Void
     private let onSkip: (() -> Void)?
     private let onSubmit: ([PreferredArtist]) -> Void
     
     public init(
         config: ArtistEditConfig,
         isSubmitting: Bool = false,
-        onBack: @escaping () -> Void,
+        onBack: @escaping (Bool) -> Void,
         onSkip: (() -> Void)? = nil,
         onSubmit: @escaping ([PreferredArtist]) -> Void
     ) {
@@ -84,7 +84,7 @@ private extension ArtistEditView {
             LivithNavigationView(
                 type: .back(
                     title: config.navigationTitle,
-                    onBack: onBack,
+                    onBack: { onBack(store.state.isModified) },
                     rightButtonTitle: "건너뛰기",
                     onRightButtonTap: onSkip
                 )
@@ -93,7 +93,7 @@ private extension ArtistEditView {
             LivithNavigationView(
                 type: .back(
                     title: config.navigationTitle,
-                    onBack: onBack
+                    onBack: { onBack(store.state.isModified) }
                 )
             )
         }
@@ -189,7 +189,7 @@ private extension ArtistEditView {
 #Preview {
     ArtistEditView(
         config: .onboarding(),
-        onBack: { print("뒤로가기 눌림") },
+        onBack: { _ in print("뒤로가기 누름") },
         onSkip: { print("건너뛰기 눌림") },
         onSubmit: { artists in
             print("\(artists) 제출")

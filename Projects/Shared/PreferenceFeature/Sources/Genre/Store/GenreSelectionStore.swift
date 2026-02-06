@@ -26,15 +26,24 @@ public struct GenreSelectionState: Equatable {
     var isMaxSelectionToastPresented: Bool = false
     var isErrorToastPresented: Bool = false
     var errorMessage: String = ""
+    
+    private let initialSelectedGenreList: [PreferredGenre]
+    
+    init(selectedGenres: [PreferredGenre] = []) {
+        self.selectedGenreList = selectedGenres
+        self.initialSelectedGenreList = selectedGenres
+    }
+
+    var isModified: Bool { selectedGenreList != initialSelectedGenreList }
 }
 
 public final class GenreSelectionStore: ObservableObject {    
-    @Published public private(set) var state: GenreSelectionState = GenreSelectionState()
+    @Published public private(set) var state: GenreSelectionState
     
     @Injected private var preferenceRepository: PreferenceRepository
     
     public init(selectedGenres: [PreferredGenre] = []) {
-        self.state.selectedGenreList = selectedGenres
+        self.state = GenreSelectionState(selectedGenres: selectedGenres)
     }
     
     @MainActor
