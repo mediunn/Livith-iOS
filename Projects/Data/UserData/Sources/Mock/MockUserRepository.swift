@@ -72,6 +72,8 @@ public struct MockUserRepository: UserRepository {
         try? await Task.sleep(for: .milliseconds(300))
         return getPage(cursor: cursor, size: size)
     }
+
+    public func markNotificationAsRead(id: Int) async throws(UserError) {}
 }
 
 // MARK: - Mock Notification Data

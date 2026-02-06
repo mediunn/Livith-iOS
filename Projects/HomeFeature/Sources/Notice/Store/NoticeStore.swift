@@ -60,8 +60,7 @@ final class NoticeStore: ObservableObject {
             performFetchNotificationList(isRefresh: false)
 
         case .markAsRead(let id):
-            guard let index = state.notifications.firstIndex(where: { $0.id == id }) else { return }
-            state.notifications[index].isRead = true
+            performMarkNotificationAsRead(id: id)
 
         case ._fetchNotificationListResult(let result, let isRefresh):
             state.isLoading = false
@@ -101,6 +100,12 @@ private extension NoticeStore {
                     send(._fetchNotificationListResult(.failure(error), isRefresh: isRefresh))
                 }
             }
+        }
+    }
+
+    func performMarkNotificationAsRead(id: Int) {
+        Task {
+            try? await userRepository.markNotificationAsRead(id: id)
         }
     }
 }

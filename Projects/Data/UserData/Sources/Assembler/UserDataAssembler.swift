@@ -34,8 +34,8 @@ private extension UserDataAssembler {
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
             widgetImageStorage: container.resolve(WidgetImageStorage.self)
         )
-        let mock = MockUserRepository()
-        container.register(mock, for: UserRepository.self)
+        
+        container.register(userRepo, for: UserRepository.self)
     }
 }
 

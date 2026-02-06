@@ -170,4 +170,15 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
+
+    func markNotificationAsRead(id: Int) async throws(UserError) {
+        do {
+            let _: DTO.Response.EmptyResponse = try await userService.request(
+                .markNotificationAsRead(id: id)
+            )
+        } catch {
+            let userError: UserError = errorMapper.mapToUserError(error)
+            throw userError
+        }
+    }
 }

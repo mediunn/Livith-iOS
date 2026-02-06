@@ -21,6 +21,7 @@ public enum UserEndpoint {
     case updateMarketingConsent
     case fetchNotificationSettings
     case fetchNotificationList(cursor: Int?, size: Int)
+    case markNotificationAsRead(id: Int)
 }
 
 extension UserEndpoint: NetworkEndpoint {
@@ -42,6 +43,8 @@ extension UserEndpoint: NetworkEndpoint {
             return "/notifications/settings"
         case .fetchNotificationList:
             return "/notifications"
+        case .markNotificationAsRead(let id):
+            return "/notifications/\(id)/read"
         }
     }
 
@@ -81,7 +84,7 @@ extension UserEndpoint: NetworkEndpoint {
             return .post
         case .checkNicknameDuplicate, .fetchNotificationSettings, .fetchNotificationList:
             return .get
-        case .updateUserNickname:
+        case .updateUserNickname, .markNotificationAsRead:
             return .patch
         }
     }
@@ -91,7 +94,7 @@ extension UserEndpoint: NetworkEndpoint {
         case .logout, .checkNicknameDuplicate:
             return false
         case .updateUserNickname, .withdraw, .updateNotificationConsent, .updateMarketingConsent,
-             .fetchNotificationSettings, .fetchNotificationList:
+             .fetchNotificationSettings, .fetchNotificationList, .markNotificationAsRead:
             return true
         }
     }

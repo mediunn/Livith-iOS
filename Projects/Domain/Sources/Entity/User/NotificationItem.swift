@@ -14,7 +14,7 @@ public struct NotificationItem: Identifiable, Equatable {
     public let title: String
     public let content: String
     public let targetID: Int?
-    public var isRead: Bool
+    public let isRead: Bool
     public let createdAt: Date
 
     public init(
