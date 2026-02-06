@@ -69,8 +69,8 @@ public enum TargetID {
             return ["Sources/**"]
         case .concert:
             return ["Sources/**"]
-        case .home:
-            return ["Sources/**"]
+        case .home(let module):
+            return homeSourcePath(module)
         case .user:
             return ["Sources/**"]
         case .widget:
@@ -147,6 +147,15 @@ private extension TargetID {
             return ["PreferenceFeature/Sources/**"]
         case .preferenceFeatureTests:
             return ["PreferenceFeature/Tests/**"]
+        }
+    }
+
+    func homeSourcePath(_ module: HomeModule) -> SourceFilesList {
+        switch module {
+        case .homeFeature:
+            return ["Sources/**"]
+        case .homeFeatureTests:
+            return ["Tests/**"]
         }
     }
 }

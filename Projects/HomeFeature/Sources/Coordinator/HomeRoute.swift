@@ -11,6 +11,7 @@ import UIKit
 
 import LivithDesignSystem
 import Coordinator
+import Domain
 
 enum HomeRoute: Route {
     case home
@@ -19,4 +20,5 @@ enum HomeRoute: Route {
     case notice
     case noticeSetting
     case preference
+    case recommendedConcertList(concertList: [Concert])
 }

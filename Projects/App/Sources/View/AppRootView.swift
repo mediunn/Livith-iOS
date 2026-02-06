@@ -12,11 +12,14 @@ import LivithDesignSystem
 import Domain
 import LoginFeature
 import Persistence
+import DIContainer
 
 struct AppRootView: View {
     @State private var currentRoute: AppRoute = .launch
     @State private var nickname: String = ""
     @State private var showWelcomeSheet: Bool = false
+    
+    @Injected private var userRepository: UserRepository
     
     var body: some View {
         contentView
@@ -64,6 +67,8 @@ private extension AppRootView {
         do {
             let _: User = try UserDefaultsStorage().fetch(for: .currentUser)
             targetRoute = .main
+
+            preloadUserData()
         } catch {
             targetRoute = .login
         }
@@ -77,6 +82,14 @@ private extension AppRootView {
     func transition(to route: AppRoute) {
         withAnimation(.easeInOut(duration: Constants.animationDuration)) {
             currentRoute = route
+        }
+    }
+    
+    func preloadUserData() {
+        Task {
+            async let userFetch = try? userRepository.fetchUser()
+            async let concertFetch = try? userRepository.fetchInterestedConcert()
+            _ = await (userFetch, concertFetch)
         }
     }
 }

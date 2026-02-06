@@ -20,4 +20,5 @@ public protocol ConcertRepository {
     func fetchSearchConcertSectionList() async throws(ConcertError) -> [ConcertSection]
     func fetchHomeConcertSectionList() async throws(ConcertError) -> [ConcertSection]
     func fetchMainSetlist(concertID: Int) async throws(ConcertError) -> Setlist?
+    func fetchRecommendedConcertList() async throws(ConcertError) -> [Concert]
 }

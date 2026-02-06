@@ -20,11 +20,12 @@ struct SignupState: Equatable {
     enum Result: Equatable {
         case idle
         case success
-        case failure(String)
+        case failure
     }
     
     var isSubmitting: Bool = false
     var result: Result = .idle
+    var errorMessage: String = ""
 }
 
 final class SignupStore: ObservableObject {
@@ -52,7 +53,8 @@ final class SignupStore: ObservableObject {
             case .success:
                 state.result = .success
             case .failure(let error):
-                state.result = .failure(getErrorMessage(from: error))
+                state.errorMessage = getErrorMessage(from: error)
+                state.result = .failure
             }
         }
     }

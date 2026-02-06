@@ -31,9 +31,11 @@ public struct LivithEmptyView: View {
                 .padding(.top, 16)
                 .padding(.horizontal, 20)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 #Preview {
     LivithEmptyView(text: "안녕하세요")
+        .background(.livithColor(.black100))
 }

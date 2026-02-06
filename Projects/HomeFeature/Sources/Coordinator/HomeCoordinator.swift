@@ -74,6 +74,14 @@ final class HomeCoordinator: Coordinator {
         case .preference:
             // TODO: 취향 선택 화면 구현 필요
             return UIViewController()
+            
+        case .recommendedConcertList(let concertList):
+            let vc = UIHostingController(
+                rootView: RecommendedConcertGridView(concertList: concertList)
+                    .environment(\.homeCoordinator, self)
+            )
+            vc.hidesBottomBarWhenPushed = true
+            return vc
         }
     }
 
