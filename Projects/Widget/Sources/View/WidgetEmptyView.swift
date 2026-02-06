@@ -8,49 +8,31 @@
 
 import SwiftUI
 import WidgetKit
+
 import LivithDesignSystem
 
 struct WidgetEmptyView: View {
     let family: WidgetFamily
 
     var body: some View {
+        VStack(spacing: 10) {
+            Image.livithIcon(.plusFillBig)
+                .resizable()
+                .frame(width: 40, height: 40)
+
+            Text(emptyText)
+                .notosans(.body2Medium)
+                .foregroundStyle(Color.livithColor(.white100))
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    private var emptyText: String {
         switch family {
         case .systemSmall:
-            LivithEmptyView(text: "관심 콘서트\n설정하기")
-
-        case .systemMedium:
-            ZStack(alignment: .topTrailing) {
-                LivithEmptyView(text: "관심 콘서트 설정하기")
-
-                Image.livithImage(.livithLogo)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24)
-                    .padding(12)
-            }
-
-        case .systemLarge:
-            VStack {
-                HStack {
-                    Spacer()
-                    Image.livithImage(.livithLogo)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 44)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-
-                Spacer()
-
-                LivithEmptyView(text: "관심 콘서트 설정하기")
-
-                Spacer()
-                Spacer()
-            }
-
+            return "관심 콘서트 추가"
         default:
-            LivithEmptyView(text: "관심 콘서트\n설정하기")
+            return "관심 콘서트를 추가하면\n공연 소식을 한눈에 볼 수 있어요"
         }
     }
 }
@@ -60,14 +42,17 @@ struct WidgetEmptyView: View {
 #Preview("Small") {
     WidgetEmptyView(family: .systemSmall)
         .frame(width: 170, height: 170)
+        .background(Color.livithColor(.black100))
 }
 
 #Preview("Medium") {
     WidgetEmptyView(family: .systemMedium)
         .frame(width: 360, height: 170)
+        .background(Color.livithColor(.black100))
 }
 
 #Preview("Large") {
     WidgetEmptyView(family: .systemLarge)
         .frame(width: 360, height: 376)
+        .background(Color.livithColor(.black100))
 }

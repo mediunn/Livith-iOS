@@ -60,7 +60,7 @@ final class InterestConcertSearchStore: ObservableObject {
     @Injected private var userRepository: UserRepository
     @Injected private var searchRepository: SearchRepository
 
-    private var searchTask: Task<Void, Never>?
+    private var recommendKeywordTask: Task<Void, Never>?
     
     init() {
         performFetchConcertList()
@@ -75,7 +75,7 @@ final class InterestConcertSearchStore: ObservableObject {
 
             if text.isEmpty {
                 state.recommendKeywordList.removeAll()
-                searchTask?.cancel()
+                recommendKeywordTask?.cancel()
             } else {
                 performFetchRecommendKeywordList()
             }
@@ -127,7 +127,6 @@ final class InterestConcertSearchStore: ObservableObject {
             switch result {
             case .success(let keywordList):
                 state.recommendKeywordList = keywordList
-                print("Fetched recommend keywords: \(keywordList)")
             case .failure(let error):
                 state.recommendKeywordList = []
                 state.errorMessage = error.localizedDescription
@@ -188,8 +187,8 @@ private extension InterestConcertSearchStore {
     }
 
     func performFetchRecommendKeywordList() {
-        searchTask?.cancel()
-        searchTask = Task {
+        recommendKeywordTask?.cancel()
+        recommendKeywordTask = Task {
             guard await Task.wait(for: .milliseconds(400)) else { return }
 
             do {
@@ -211,7 +210,7 @@ private extension InterestConcertSearchStore {
                     sort: nil,
                     status: [],
                     keyword: state.searchText,
-                    cursor: isNextPage ? state.searchList.last?.id.description : nil,
+                    cursor: isNextPage ? nextCursor : nil,
                     size: nil
                 )
                 await send(._fetchSearchListResult(.success(result.concerts)))
@@ -267,5 +266,11 @@ private extension InterestConcertSearchStore {
                 await send(._imagePrefetchCompleted(nil))
             }
         }
+    }
+
+    var nextCursor: String? {
+        guard let lastConcert = state.searchList.last else { return nil }
+        let dateString = DateFormatterService.string(from: lastConcert.startDate, type: .dotDate)
+        return "{\"value\":\"\(dateString)\",\"id\":\(lastConcert.id)}"
     }
 }

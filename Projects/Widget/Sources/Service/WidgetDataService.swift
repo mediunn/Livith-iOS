@@ -7,13 +7,16 @@
 //
 
 import Foundation
+import os
 
+import Domain
 import LivithFoundation
 import LivithNetwork
 import Persistence
 
 struct WidgetDataService {
     private static let appGroupID = "group.com.youz2me.livith"
+    private static let logger = Logger(subsystem: "com.youz2me.livith.widget", category: "WidgetDataService")
 
     private let storage: UserDefaultsStorage
     private let imageStorage: WidgetImageStorage
@@ -29,62 +32,85 @@ struct WidgetDataService {
         self.storage = storage
         self.imageStorage = imageStorage
         self.decoder = decoder
+
+        let defaults = UserDefaults(suiteName: Self.appGroupID)
+        Self.logger.debug("[Init] App Group UserDefaults: \(defaults != nil ? "성공" : "nil → .standard 폴백")")
     }
 
     func fetchInterestConcert() -> LivithWidgetEntry {
-        guard let concert: DTO.Response.UpdateUserInterestConcert = try? storage.fetch(for: .interestConcert) else {
+        do {
+            let concert: Concert = try storage.fetch(for: .interestConcert)
+            Self.logger.debug("[Fetch] Concert 디코딩 성공: \(concert.title, privacy: .public) id=\(concert.id, privacy: .public)")
+            Self.logger.debug("[Fetch] startDate epoch: \(Int(concert.startDate.timeIntervalSince1970), privacy: .public)")
+
+            let dDay = calculateDDay(from: concert.startDate)
+            let imageData = imageStorage.load(forKey: Keys.interestConcertPoster)
+            Self.logger.debug("[Fetch] D-Day: \(dDay), 이미지: \(imageData != nil ? "\(imageData!.count) bytes" : "nil")")
+
+            return LivithWidgetEntry(
+                date: Date(),
+                concertID: concert.id,
+                posterImageData: imageData,
+                artistName: concert.artist,
+                concertTitle: concert.title,
+                dDay: dDay,
+                startDate: concert.startDate,
+                endDate: concert.endDate,
+                venue: concert.venue,
+                schedules: []
+            )
+        } catch {
+            Self.logger.error("[Fetch] Concert 디코딩 실패: \(error.localizedDescription)")
             return .placeholder
         }
-
-        let dDay = calculateDDay(from: concert.startDate)
-        let imageData = imageStorage.load(forKey: Keys.interestConcertPoster)
-
-        return LivithWidgetEntry(
-            date: Date(),
-            concertID: concert.id,
-            posterImageData: imageData,
-            artistName: concert.artist,
-            concertTitle: concert.title,
-            dDay: dDay,
-            schedules: []
-        )
     }
 
     func fetchInterestConcertWithSchedules() async -> LivithWidgetEntry {
-        guard let concert: DTO.Response.UpdateUserInterestConcert = try? storage.fetch(for: .interestConcert) else {
+        do {
+            let concert: Concert = try storage.fetch(for: .interestConcert)
+            Self.logger.debug("[FetchLarge] Concert 디코딩 성공: \(concert.title, privacy: .public) startDate: \(concert.startDate.description, privacy: .public)")
+
+            let dDay = calculateDDay(from: concert.startDate)
+            let imageData = imageStorage.load(forKey: Keys.interestConcertPoster)
+            let schedules = await fetchSchedules(concertID: concert.id)
+            Self.logger.debug("[FetchLarge] 스케줄 \(schedules.count)개 로드")
+
+            return LivithWidgetEntry(
+                date: Date(),
+                concertID: concert.id,
+                posterImageData: imageData,
+                artistName: concert.artist,
+                concertTitle: concert.title,
+                dDay: dDay,
+                startDate: concert.startDate,
+                endDate: concert.endDate,
+                venue: concert.venue,
+                schedules: schedules
+            )
+        } catch {
+            Self.logger.error("[FetchLarge] Concert 디코딩 실패: \(error.localizedDescription)")
             return .placeholder
         }
-
-        let dDay = calculateDDay(from: concert.startDate)
-        let imageData = imageStorage.load(forKey: Keys.interestConcertPoster)
-        let schedules = await fetchSchedules(concertID: concert.id)
-
-        return LivithWidgetEntry(
-            date: Date(),
-            concertID: concert.id,
-            posterImageData: imageData,
-            artistName: concert.artist,
-            concertTitle: concert.title,
-            dDay: dDay,
-            schedules: schedules
-        )
     }
 }
 
 // MARK: - Private Helpers
 
 private extension WidgetDataService {
+    func calculateDDay(from date: Date) -> Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let target = calendar.startOfDay(for: date)
+
+        let components = calendar.dateComponents([.day], from: today, to: target)
+        return components.day ?? 0
+    }
+
     func calculateDDay(from dateString: String) -> Int {
         guard let targetDate = DateFormatterService.date(from: dateString, type: .dashDate) else {
             return 0
         }
-
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let target = calendar.startOfDay(for: targetDate)
-
-        let components = calendar.dateComponents([.day], from: today, to: target)
-        return components.day ?? 0
+        return calculateDDay(from: targetDate)
     }
 
     func fetchSchedules(concertID: Int) async -> [ScheduleItem] {
