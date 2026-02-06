@@ -54,6 +54,10 @@ public struct MockNotificationRepository: NotificationRepository {
             recommendAlert: true
         )
     }
+
+    public func registerFCMToken(_ token: String) async throws(NotificationError) {}
+
+    public func deleteFCMToken(_ token: String) async throws(NotificationError) {}
 }
 
 // MARK: - Mock Notification Data
