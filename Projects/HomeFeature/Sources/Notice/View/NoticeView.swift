@@ -54,10 +54,12 @@ public struct NoticeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
         .onAppear {
-            store.send(.onAppear)
             if let id = tappedNotificationID {
                 store.send(.markAsRead(id: id))
                 tappedNotificationID = nil
+                store.send(.refresh)
+            } else {
+                store.send(.onAppear)
             }
         }
     }

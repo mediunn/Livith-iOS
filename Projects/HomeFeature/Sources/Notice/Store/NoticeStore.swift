@@ -25,9 +25,10 @@ struct NoticeState {
 
 enum NoticeIntent {
     case onAppear
+    case refresh
     case loadNextPage
     case markAsRead(id: Int)
-    case _fetchNotificationListResult(Result<[NotificationItem], Error>)
+    case _fetchNotificationListResult(Result<[NotificationItem], Error>, isRefresh: Bool)
 }
 
 // MARK: - Store
@@ -45,30 +46,36 @@ final class NoticeStore: ObservableObject {
         case .onAppear:
             guard state.notifications.isEmpty else { return }
             state.isLoading = true
-            performFetchNotificationList()
+            performFetchNotificationList(isRefresh: false)
+
+        case .refresh:
+            state.cursor = nil
+            state.hasMorePages = true
+            state.isLoading = true
+            performFetchNotificationList(isRefresh: true)
 
         case .loadNextPage:
             guard !state.isLoadingMore, state.hasMorePages else { return }
             state.isLoadingMore = true
-            performFetchNotificationList()
+            performFetchNotificationList(isRefresh: false)
 
         case .markAsRead(let id):
             guard let index = state.notifications.firstIndex(where: { $0.id == id }) else { return }
             state.notifications[index].isRead = true
 
-        case ._fetchNotificationListResult(let result):
+        case ._fetchNotificationListResult(let result, let isRefresh):
             state.isLoading = false
             state.isLoadingMore = false
 
             switch result {
             case .success(let notifications):
-                if notifications.isEmpty {
-                    state.hasMorePages = false
+                if isRefresh {
+                    state.notifications = notifications
                 } else {
                     state.notifications.append(contentsOf: notifications)
-                    state.cursor = notifications.last?.id
-                    state.hasMorePages = notifications.count >= pageSize
                 }
+                state.cursor = notifications.last?.id
+                state.hasMorePages = notifications.count >= pageSize
             case .failure:
                 state.hasMorePages = false
             }
@@ -79,19 +86,19 @@ final class NoticeStore: ObservableObject {
 // MARK: - Helper
 
 private extension NoticeStore {
-    func performFetchNotificationList() {
+    func performFetchNotificationList(isRefresh: Bool) {
         Task {
             do {
                 let notifications = try await userRepository.fetchNotificationList(
-                    cursor: state.cursor,
+                    cursor: isRefresh ? nil : state.cursor,
                     size: pageSize
                 )
                 await MainActor.run {
-                    send(._fetchNotificationListResult(.success(notifications)))
+                    send(._fetchNotificationListResult(.success(notifications), isRefresh: isRefresh))
                 }
             } catch {
                 await MainActor.run {
-                    send(._fetchNotificationListResult(.failure(error)))
+                    send(._fetchNotificationListResult(.failure(error), isRefresh: isRefresh))
                 }
             }
         }
