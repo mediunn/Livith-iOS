@@ -36,7 +36,7 @@ enum NoticeIntent {
 final class NoticeStore: ObservableObject {
     @Published private(set) var state = NoticeState()
 
-    @Injected private var userRepository: UserRepository
+    @Injected private var notificationRepository: NotificationRepository
 
     private let pageSize = 20
 
@@ -88,7 +88,7 @@ private extension NoticeStore {
     func performFetchNotificationList(isRefresh: Bool) {
         Task {
             do {
-                let notifications = try await userRepository.fetchNotificationList(
+                let notifications = try await notificationRepository.fetchNotificationList(
                     cursor: isRefresh ? nil : state.cursor,
                     size: pageSize
                 )
@@ -105,7 +105,7 @@ private extension NoticeStore {
 
     func performMarkNotificationAsRead(id: Int) {
         Task {
-            try? await userRepository.markNotificationAsRead(id: id)
+            try? await notificationRepository.markNotificationAsRead(id: id)
         }
     }
 }

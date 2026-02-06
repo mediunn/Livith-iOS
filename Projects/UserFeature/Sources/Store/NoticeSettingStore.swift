@@ -58,6 +58,7 @@ final class NoticeSettingStore: ObservableObject {
     @Published private(set) var state = NoticeSettingState()
 
     @Injected private var userRepository: UserRepository
+    @Injected private var notificationRepository: NotificationRepository
 
     @MainActor
     func send(_ intent: NoticeSettingIntent) {
@@ -180,8 +181,8 @@ private extension NoticeSettingStore {
     func performMarketingConsentThenBenefitAlert() {
         Task {
             do {
-                _ = try await userRepository.updateMarketingConsent()
-                let result = try await userRepository.updateNotificationConsent(
+                _ = try await notificationRepository.updateMarketingConsent()
+                let result = try await notificationRepository.updateNotificationConsent(
                     field: .benefitAlert,
                     isAgreed: true
                 )
@@ -200,7 +201,7 @@ private extension NoticeSettingStore {
     func performUpdateConsent(field: NotificationConsentField, isAgreed: Bool) {
         Task {
             do {
-                let result = try await userRepository.updateNotificationConsent(
+                let result = try await notificationRepository.updateNotificationConsent(
                     field: field,
                     isAgreed: isAgreed
                 )

@@ -85,6 +85,7 @@ final class HomeStore: ObservableObject {
     @Published private(set) var state: HomeState = .init()
     
     @Injected private var userRepository: UserRepository
+    @Injected private var notificationRepository: NotificationRepository
     @Injected private var concertRepository: ConcertRepository
     @Injected private var setlistRepository: SetlistRepository
     @Injected private var preferenceRepository: PreferenceRepository
@@ -310,7 +311,7 @@ private extension HomeStore {
         cancellables[.fetchUnreadNotificationCount]?.cancel()
         cancellables[.fetchUnreadNotificationCount] = Task {
             do {
-                let count = try await userRepository.fetchUnreadNotificationCount()
+                let count = try await notificationRepository.fetchUnreadNotificationCount()
                 send(._fetchUnreadNotificationCountResult(.success(count)))
             } catch {
                 send(._fetchUnreadNotificationCountResult(.failure(error)))

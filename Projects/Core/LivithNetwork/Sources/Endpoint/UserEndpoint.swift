@@ -17,12 +17,6 @@ public enum UserEndpoint {
     case checkNicknameDuplicate(nickname: String)
     case updateUserNickname(request: DTO.Request.UpdateUserNickname)
     case withdraw(request: DTO.Request.DeleteUser)
-    case updateNotificationConsent(request: DTO.Request.UpdateNotificationConsent)
-    case updateMarketingConsent
-    case fetchNotificationSettings
-    case fetchNotificationList(cursor: Int?, size: Int)
-    case markNotificationAsRead(id: Int)
-    case fetchUnreadNotificationCount
 }
 
 extension UserEndpoint: NetworkEndpoint {
@@ -36,36 +30,18 @@ extension UserEndpoint: NetworkEndpoint {
             return "/users/nickname"
         case .withdraw:
             return "/auth/withdraw"
-        case .updateNotificationConsent:
-            return "/notifications/consent"
-        case .updateMarketingConsent:
-            return "/notifications/marketing-consent"
-        case .fetchNotificationSettings:
-            return "/notifications/settings"
-        case .fetchNotificationList:
-            return "/notifications"
-        case .markNotificationAsRead(let id):
-            return "/notifications/\(id)/read"
-        case .fetchUnreadNotificationCount:
-            return "/notifications/unread-count"
         }
     }
 
-    public var query: [String : Any]? {
+    public var query: [String: Any]? {
         switch self {
         case .checkNicknameDuplicate(nickname: let nickname):
-            return ["nickname" : nickname]
-        case .fetchNotificationList(cursor: let cursor, size: let size):
-            var query: [String: Any] = ["size": size]
-            if let cursor {
-                query["cursor"] = cursor
-            }
-            return query
+            return ["nickname": nickname]
         default:
             return .none
         }
     }
-    
+
     public var body: (any Encodable)? {
         switch self {
         case .logout(request: let request):
@@ -74,20 +50,18 @@ extension UserEndpoint: NetworkEndpoint {
             return request
         case .withdraw(request: let request):
             return request
-        case .updateNotificationConsent(request: let request):
-            return request
         default:
             return .none
         }
     }
-    
+
     public var method: LivithNetwork.HTTPMethod {
         switch self {
-        case .logout, .withdraw, .updateNotificationConsent, .updateMarketingConsent:
+        case .logout, .withdraw:
             return .post
-        case .checkNicknameDuplicate, .fetchNotificationSettings, .fetchNotificationList, .fetchUnreadNotificationCount:
+        case .checkNicknameDuplicate:
             return .get
-        case .updateUserNickname, .markNotificationAsRead:
+        case .updateUserNickname:
             return .patch
         }
     }
@@ -96,8 +70,7 @@ extension UserEndpoint: NetworkEndpoint {
         switch self {
         case .logout, .checkNicknameDuplicate:
             return false
-        case .updateUserNickname, .withdraw, .updateNotificationConsent, .updateMarketingConsent,
-             .fetchNotificationSettings, .fetchNotificationList, .markNotificationAsRead, .fetchUnreadNotificationCount:
+        case .updateUserNickname, .withdraw:
             return true
         }
     }
