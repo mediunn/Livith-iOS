@@ -15,8 +15,6 @@ import LivithDesignSystem
 struct HomeConcertSectionView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
-    // TODO: 일단 AppStorage로 놨는데 고쳐쓰시길...
-    @AppStorage("isPreferenceBannerExpanded") private var isPreferenceBannerExpanded: Bool = true
     
     init(store: HomeStore) {
         self.store = store
@@ -68,7 +66,10 @@ private extension HomeConcertSectionView {
         VStack(spacing: .zero) {
             if sectionState.shouldShowPreferenceBanner {
                 PreferenceBannerView(
-                    isExpanded: $isPreferenceBannerExpanded,
+                    isExpanded: Binding(
+                        get: { sectionState.isPreferenceBannerExpanded },
+                        set: { _ in store.send(.concertSection(.collapsePreferenceBanner)) }
+                    ),
                     onTapBanner: { coordinator?.push(to: .preference) }
                 )
                 .padding(.horizontal, 16)
@@ -94,17 +95,20 @@ private extension HomeConcertSectionView {
         .background(Color.livithColor(.black100))
     }
     
+    @ViewBuilder
     var recommendedConcertSection: some View {
-        RecommendedConcertSectionView(
-            title: "\(String(describing: store.state.user?.nickname))님의\n취향이 담긴 콘서트",
-            concertList: sectionState.recommendedConcertList
-        ) { concert in
-            coordinator?.showConcertDetail(concertID: concert.id)
-        } onSeeAllTap: {
-            coordinator?.push(to: .recommendedConcertList(concertList: sectionState.recommendedConcertList))
+        if !sectionState.shouldShowPreferenceBanner {
+            RecommendedConcertSectionView(
+                title: "\(store.state.user?.nickname ?? "라이빗")님의\n취향이 담긴 콘서트",
+                concertList: sectionState.recommendedConcertList
+            ) { concert in
+                coordinator?.showConcertDetail(concertID: concert.id)
+            } onSeeAllTap: {
+                coordinator?.push(to: .recommendedConcertList(concertList: sectionState.recommendedConcertList))
+            }
+            .padding(.top, Constants.sectionTopPadding)
+            .padding(.leading, Constants.sectionLeadingPadding)
         }
-        .padding(.top, Constants.sectionTopPadding)
-        .padding(.leading, Constants.sectionLeadingPadding)
     }
     
     @ViewBuilder
