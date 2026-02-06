@@ -10,6 +10,7 @@ import SwiftUI
 
 import ConcertFeature
 import Coordinator
+import LivithDesignSystem
 import UserFeature
 
 final class HomeCoordinator: Coordinator {
@@ -53,7 +54,11 @@ final class HomeCoordinator: Coordinator {
             return UIHostingController(
                 rootView: NoticeView(
                     onBack: { [weak self] in self?.pop() },
-                    onSettingTap: { [weak self] in self?.push(to: .noticeSetting) }
+                    onSettingTap: { [weak self] in self?.push(to: .noticeSetting) },
+                    onInterestTap: { [weak self] in self?.push(to: .interest) },
+                    onConcertTap: { [weak self] concertID, initialTab in
+                        self?.showConcertDetail(concertID: concertID, initialTab: initialTab)
+                    }
                 )
                 .environment(\.homeCoordinator, self)
             )
@@ -80,7 +85,7 @@ final class HomeCoordinator: Coordinator {
         }
     }
 
-    func showConcertDetail(concertID: Int) {
+    func showConcertDetail(concertID: Int, initialTab: SegmentedTabBarType.DetailTab = .artistDetail) {
         let coordinator = ConcertCoordinator(
             navigationController: navigationController,
             onDismiss: { [weak self] in
@@ -88,7 +93,7 @@ final class HomeCoordinator: Coordinator {
             }
         )
         self.concertCoordinator = coordinator
-        coordinator.start(concertID: concertID)
+        coordinator.start(concertID: concertID, initialTab: initialTab)
     }
 
     func showSongDetail(songID: Int, setlistID: Int, songTitle: String) {

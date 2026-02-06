@@ -15,7 +15,7 @@ public struct User: Identifiable, Hashable, Codable {
     public let providerID: String
     public let email: String?
     public let nickname: String
-    public let authority: UserAuthority
+    public var authority: UserAuthority
 
     public init(
         id: Int,

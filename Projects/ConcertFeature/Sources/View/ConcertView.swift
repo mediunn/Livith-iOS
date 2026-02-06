@@ -16,6 +16,7 @@ public struct ConcertView: View {
     // MARK: - Property
 
     private let concertID: Int
+    private let initialTab: ConcertTab
     private let onDismiss: () -> Void
 
     @Environment(\.concertCoordinator) private var coordinator
@@ -31,10 +32,12 @@ public struct ConcertView: View {
     public init(
         store: ConcertStore = ConcertStore(),
         concertID: Int,
+        initialTab: ConcertTab = .artistDetail,
         onDismiss: @escaping () -> Void
     ) {
         self.store = store
         self.concertID = concertID
+        self.initialTab = initialTab
         self.onDismiss = onDismiss
     }
 
@@ -120,6 +123,7 @@ public struct ConcertView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
         .onAppear {
             store.send(.onAppear(concertID: concertID))
+            store.send(.tabSelected(initialTab))
             communityStore.send(.onAppear(concertID: concertID))
             coordinator?.onTicketSiteReturn = { [weak store] in
                 store?.send(.onTicketSiteReturn)

@@ -64,7 +64,6 @@ public struct NoticeItemView: View {
                 Text(timeAgo)
                     .notosans(.caption2Semibold)
                     .foregroundStyle(Color.livithColor(.black50))
-                    .padding(.top, 4)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)

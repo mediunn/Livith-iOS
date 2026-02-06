@@ -16,7 +16,9 @@ enum HomeIntent {
     case onAppear
     case onErrorToastDisappear
     case onToastDisappear
+    case checkUnreadNotification
     case _fetchUserResult(Result<User, Error>)
+    case _fetchUnreadNotificationCountResult(Result<Int, Error>)
     case interestConcert(InterestConcertIntent)
     case concertSection(ConcertSectionIntent)
     
@@ -77,6 +79,7 @@ final class HomeStore: ObservableObject {
         case fetchSetlistSongList
         case fetchUser
         case refreshSections
+        case fetchUnreadNotificationCount
     }
     
     @Published private(set) var state: HomeState = .init()
@@ -92,13 +95,17 @@ final class HomeStore: ObservableObject {
         switch intent {
         case .onAppear:
             performFetchUser()
-            
+            performFetchUnreadNotificationCount()
+
         case .onErrorToastDisappear:
             state.errorMessage = ""
-            
+
         case .onToastDisappear:
             state.toastMessage = ""
-            
+
+        case .checkUnreadNotification:
+            performFetchUnreadNotificationCount()
+
         case ._fetchUserResult(let result):
             switch result {
             case .success(let user):
@@ -106,10 +113,18 @@ final class HomeStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
-            
+
+        case ._fetchUnreadNotificationCountResult(let result):
+            switch result {
+            case .success(let count):
+                state.hasNewNotice = count > 0
+            case .failure:
+                state.hasNewNotice = false
+            }
+
         case .interestConcert(let intent):
             handleInterestConcertIntent(intent)
-            
+
         case .concertSection(let intent):
             handleConcertSectionIntent(intent)
         }
@@ -287,6 +302,18 @@ private extension HomeStore {
                 send(._fetchUserResult(.success(result)))
             } catch {
                 send(._fetchUserResult(.failure(error)))
+            }
+        }
+    }
+
+    func performFetchUnreadNotificationCount() {
+        cancellables[.fetchUnreadNotificationCount]?.cancel()
+        cancellables[.fetchUnreadNotificationCount] = Task {
+            do {
+                let count = try await userRepository.fetchUnreadNotificationCount()
+                send(._fetchUnreadNotificationCountResult(.success(count)))
+            } catch {
+                send(._fetchUnreadNotificationCountResult(.failure(error)))
             }
         }
     }
