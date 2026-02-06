@@ -346,7 +346,7 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.concertSection(.checkShowBanner))
+        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -363,7 +363,7 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.concertSection(.checkShowBanner))
+        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -379,7 +379,7 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.concertSection(.checkShowBanner))
+        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -444,7 +444,7 @@ struct HomeStoreTests {
         container.concertRepository.fetchRecommendedConcertListCallCount = 0
         
         // When
-        sut.send(.concertSection(.checkShowBanner))
+        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -464,7 +464,7 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.concertSection(.checkShowBanner))
+        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
