@@ -70,15 +70,25 @@ final class HomeCoordinator: Coordinator {
                 )
                 .environment(\.homeCoordinator, self)
             )
-
-        case .preference:
-            // TODO: 취향 선택 화면 구현 필요
-            return UIViewController()
             
         case .recommendedConcertList(let concertList):
             let vc = UIHostingController(
                 rootView: RecommendedConcertGridView(concertList: concertList)
                     .environment(\.homeCoordinator, self)
+            )
+            vc.hidesBottomBarWhenPushed = true
+            return vc
+            
+        case .preferredGenreUpdate:
+            let vc = UIHostingController(
+                rootView: GenreUpdateView().environment(\.homeCoordinator, self)
+            )
+            vc.hidesBottomBarWhenPushed = true
+            return vc
+            
+        case .preferredAritstUpdate(let genreList):
+            let vc = UIHostingController(
+                rootView: ArtistUpdateView(selectedGenreList: genreList).environment(\.homeCoordinator, self)
             )
             vc.hidesBottomBarWhenPushed = true
             return vc

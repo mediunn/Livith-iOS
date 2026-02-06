@@ -36,6 +36,7 @@ enum HomeIntent {
     enum ConcertSectionIntent {
         case onAppear
         case onRefresh
+        case collapsePreferenceBanner
         case _concertSectionDataResult(Result<HomeState.ConcertSectionState.Data, Error>)
     }
 }
@@ -62,6 +63,7 @@ struct HomeState {
         var isLoading: Bool = false
         var isInitialLoad: Bool = true
         var shouldShowPreferenceBanner: Bool = false
+        var isPreferenceBannerExpanded: Bool = true
         var recommendedConcertList: [Concert] = []
         var errorMessage: String = ""
     }
@@ -242,6 +244,8 @@ private extension HomeStore {
             executeConcertSectionOnAppear()
         case .onRefresh:
             executeRefreshSections()
+        case .collapsePreferenceBanner:
+            state.sections.isPreferenceBannerExpanded = false
         case ._concertSectionDataResult(let result):
             handleConcertSectionDataResult(result)
         }
