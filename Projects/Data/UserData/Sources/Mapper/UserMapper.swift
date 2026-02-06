@@ -111,14 +111,15 @@ struct UserMapper {
     }
 
     func toDomain(from dto: DTO.Response.FetchNotificationList) -> NotificationItem {
-        NotificationItem(
+        let createdAt = DateFormatterService.date(from: dto.createdAt, type: .iso8601) ?? Date()
+        return NotificationItem(
             id: dto.id,
             type: NotificationType(rawValue: dto.type)!,
             title: dto.title,
             content: dto.content,
             targetID: dto.targetID.flatMap { Int($0) },
             isRead: dto.isRead,
-            createdAt: dto.createdAt
+            createdAt: createdAt
         )
     }
 

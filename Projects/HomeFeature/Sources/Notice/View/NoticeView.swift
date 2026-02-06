@@ -117,7 +117,7 @@ private extension NoticeView {
                     NoticeItemView(
                         title: notification.title,
                         description: notification.content,
-                        timeAgo: notification.createdAt,
+                        timeAgo: notification.displayCreatedAt,
                         state: notification.isRead ? .read : .normal,
                         action: {
                             tappedNotificationID = notification.id

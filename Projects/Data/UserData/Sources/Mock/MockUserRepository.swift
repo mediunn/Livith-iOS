@@ -112,6 +112,17 @@ private extension MockUserRepository {
 
         return (1...30).map { index in
             let typeIndex = index % types.count
+            let createdAt: Date
+            if index <= 5 {
+                // 24시간 미만: n시간 전
+                createdAt = Date().addingTimeInterval(-Double(index) * 3600)
+            } else if index <= 15 {
+                // 24시간~6일: n일 전
+                createdAt = Date().addingTimeInterval(-Double(index - 4) * 86400)
+            } else {
+                // 7일 이상: 년도.월.일
+                createdAt = Date().addingTimeInterval(-Double(index) * 86400)
+            }
             return NotificationItem(
                 id: 1000 - index,
                 type: types[typeIndex],
@@ -119,7 +130,7 @@ private extension MockUserRepository {
                 content: contents[typeIndex],
                 targetID: 1600,
                 isRead: index > 5,
-                createdAt: "2026.02.\(String(format: "%02d", max(1, 6 - (index / 5)))) \(String(format: "%02d", 10 + (index % 12))):\(String(format: "%02d", (index * 7) % 60))"
+                createdAt: createdAt
             )
         }
     }

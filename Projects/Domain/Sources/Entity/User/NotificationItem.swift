@@ -15,7 +15,7 @@ public struct NotificationItem: Identifiable, Equatable {
     public let content: String
     public let targetID: Int?
     public var isRead: Bool
-    public let createdAt: String
+    public let createdAt: Date
 
     public init(
         id: Int,
@@ -24,7 +24,7 @@ public struct NotificationItem: Identifiable, Equatable {
         content: String,
         targetID: Int?,
         isRead: Bool,
-        createdAt: String
+        createdAt: Date
     ) {
         self.id = id
         self.type = type
@@ -33,5 +33,23 @@ public struct NotificationItem: Identifiable, Equatable {
         self.targetID = targetID
         self.isRead = isRead
         self.createdAt = createdAt
+    }
+
+    public var displayCreatedAt: String {
+        let now = Date()
+        let interval = now.timeIntervalSince(createdAt)
+        let hours = Int(interval / 3600)
+        let days = Int(interval / 86400)
+
+        if hours < 24 {
+            return "\(max(1, hours))시간 전"
+        } else if days < 7 {
+            return "\(days)일 전"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy.MM.dd"
+            formatter.locale = Locale(identifier: "ko_KR")
+            return formatter.string(from: createdAt)
+        }
     }
 }
