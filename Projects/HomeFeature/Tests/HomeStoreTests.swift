@@ -263,7 +263,7 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.concertSection(.onRefreshSections))
+        sut.send(.concertSection(.onRefresh))
         
         // Then - 즉시 체크
         #expect(sut.state.sections.isLoading == true)
@@ -280,13 +280,59 @@ struct HomeStoreTests {
         container.concertRepository.fetchHomeConcertSectionListCallCount = 0
         
         // When
-        sut.send(.concertSection(.onRefreshSections))
+        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount > 0)
         #expect(!sut.state.sections.sectionList.isEmpty)
         #expect(sut.state.sections.isLoading == false)
+    }
+    
+    @Test("콘서트 섹션 onAppear 최초 로드 시 로딩이 true에서 false로 전환되어야 한다")
+    func testConcertSectionOnAppearInitialLoadTogglesLoading() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser()
+        container.concertRepository.homeSectionListStub = [makeMockSection()]
+        container.preferenceRepository.preferredGenreListStub = []
+        
+        let sut = HomeStore()
+        
+        // When
+        sut.send(.concertSection(.onAppear))
+        
+        // Then - 즉시 체크
+        #expect(sut.state.sections.isLoading == true)
+        
+        // When - 비동기 완료 대기
+        try await Task.sleep(nanoseconds: 150_000_000)
+        
+        // Then
+        #expect(sut.state.sections.isLoading == false)
+    }
+    
+    @Test("콘서트 섹션 onAppear 재호출 시 섹션 조회는 수행하지 않아야 한다")
+    func testConcertSectionOnAppearSkipsSectionFetchAfterInitialLoad() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser()
+        container.concertRepository.homeSectionListStub = [makeMockSection()]
+        container.preferenceRepository.preferredGenreListStub = []
+        
+        let sut = HomeStore()
+        
+        // First onAppear
+        sut.send(.concertSection(.onAppear))
+        try await Task.sleep(nanoseconds: 150_000_000)
+        
+        // Reset call count
+        container.concertRepository.fetchHomeConcertSectionListCallCount = 0
+        
+        // When - second onAppear
+        sut.send(.concertSection(.onAppear))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Then
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
     }
     
     // MARK: - Preference 배너 테스트
@@ -377,7 +423,6 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.concertSection(.checkShowBanner))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then

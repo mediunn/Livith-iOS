@@ -32,21 +32,38 @@ struct HomeConcertSectionView: View {
             ))
             
             ScrollView {
-                VStack(spacing: .zero) {
-                    headerView
-                    contentView
+                if sectionState.isLoading {
+                    loadingView
+                } else {
+                    VStack(spacing: .zero) {
+                        headerView
+                        contentView
+                    }
                 }
             }
-            .refreshable { store.send(.concertSection(.onRefreshSections)) }
+            .refreshable { store.send(.concertSection(.onRefresh)) }
             .ignoresSafeArea(edges: .bottom)
         }
         .background(.livithColor(.black90))
+        .onAppear { store.send(.concertSection(.onAppear)) }
     }
 }
 
 // MARK: - Subviews
 
 private extension HomeConcertSectionView {
+    var loadingView: some View {
+        VStack(spacing: .zero) {
+            Spacer(minLength: Constants.loadingMinHeight)
+            
+            ProgressView()
+                .scaleEffect(1.6, anchor: .center)
+                
+            Spacer(minLength: Constants.loadingMinHeight)
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
     var headerView: some View {
         VStack(spacing: .zero) {
             if sectionState.shouldShowPreferenceBanner {
@@ -117,7 +134,7 @@ private extension HomeConcertSectionView {
     }
     
     var emptyMessage: String {
-        store.state.errorMessage.isEmpty ? "콘텐츠가 없습니다." : store.state.errorMessage
+        sectionState.errorMessage.isEmpty ? "콘텐츠가 없습니다." : sectionState.errorMessage
     }
 }
 
@@ -128,5 +145,6 @@ private extension HomeConcertSectionView {
         static let emptySpaceHeight: CGFloat = 210
         static let sectionTopPadding: CGFloat = 28
         static let sectionLeadingPadding: CGFloat = 16
+        static let loadingMinHeight: CGFloat = 240
     }
 }

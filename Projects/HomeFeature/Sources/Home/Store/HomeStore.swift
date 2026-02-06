@@ -31,8 +31,8 @@ enum HomeIntent {
     }
     
     enum ConcertSectionIntent {
-        case onRefreshSections
-        case checkShowBanner
+        case onAppear
+        case onRefresh
         case _concertSectionDataResult(Result<HomeState.ConcertSectionState.Data, Error>)
     }
 }
@@ -57,6 +57,7 @@ struct HomeState {
         
         var sectionList: [ConcertSection] = []
         var isLoading: Bool = false
+        var isInitialLoad: Bool = true
         var shouldShowPreferenceBanner: Bool = false
         var recommendedConcertList: [Concert] = []
         var errorMessage: String = ""
@@ -91,7 +92,6 @@ final class HomeStore: ObservableObject {
         case .onAppear:
             performFetchUser()
             performFetchUserInterestedConcert()
-            send(.concertSection(.checkShowBanner))
             
         case .onErrorToastDisappear:
             state.errorMessage = ""
@@ -220,17 +220,26 @@ private extension HomeStore {
 private extension HomeStore {
     func handleConcertSectionIntent(_ intent: HomeIntent.ConcertSectionIntent) {
         switch intent {
-        case .onRefreshSections:
+        case .onAppear:
+            executeConcertSectionOnAppear()
+        case .onRefresh:
             executeRefreshSections()
-        case .checkShowBanner:
-            performFetchConcertSectionData()
         case ._concertSectionDataResult(let result):
             handleConcertSectionDataResult(result)
         }
     }
     
+    func executeConcertSectionOnAppear() {
+        if state.sections.isInitialLoad {
+            state.sections.isInitialLoad = false
+            state.sections.isLoading = true
+            performFetchConcertSectionData()
+        } else {
+            performFetchConcertSectionUtilities()
+        }
+    }
+    
     func executeRefreshSections() {
-        state.sections.isLoading = true
         performFetchConcertSectionData()
         performFetchUserInterestedConcert()
     }
@@ -310,7 +319,7 @@ private extension HomeStore {
             }
         }
     }
-    
+
     func performFetchSetlistSongList(setlistID: Int) {
         cancellables[.fetchSetlistSongList]?.cancel()
         cancellables[.fetchSetlistSongList] = Task {
@@ -348,6 +357,23 @@ private extension HomeStore {
                     sections: resolvedSections,
                     hasGenres: resolvedGenresWithRecommendations.hasGenres,
                     recommended: resolvedGenresWithRecommendations.recommended
+                )
+                send(.concertSection(._concertSectionDataResult(.success(data))))
+            } catch {
+                send(.concertSection(._concertSectionDataResult(.failure(error))))
+            }
+        }
+    }
+    
+    func performFetchConcertSectionUtilities() {
+        cancellables[.refreshSections]?.cancel()
+        cancellables[.refreshSections] = Task {
+            do {
+                let genresWithRecommendations = try await fetchGenresWithRecommendations()
+                let data = (
+                    sections: state.sections.sectionList,
+                    hasGenres: genresWithRecommendations.hasGenres,
+                    recommended: genresWithRecommendations.recommended
                 )
                 send(.concertSection(._concertSectionDataResult(.success(data))))
             } catch {
