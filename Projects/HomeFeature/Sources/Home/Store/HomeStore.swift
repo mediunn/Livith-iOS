@@ -23,6 +23,7 @@ enum HomeIntent {
     enum InterestConcertIntent {
         case onDelete
         case onRefresh
+        case onAppear
         case _fetchUserInterestConcertResult(Result<Concert?, Error>)
         case _fetchScheduleListResult(Result<[ConcertSchedule], Error>)
         case _fetchMainSetlistResult(Result<Setlist, Error>)
@@ -38,7 +39,7 @@ enum HomeIntent {
 }
 
 struct HomeState {
-    var userName: String = ""
+    var user: User? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
     var interestConcert: InterestConcertState = .init()
@@ -91,7 +92,6 @@ final class HomeStore: ObservableObject {
         switch intent {
         case .onAppear:
             performFetchUser()
-            performFetchUserInterestedConcert()
             
         case .onErrorToastDisappear:
             state.errorMessage = ""
@@ -102,7 +102,7 @@ final class HomeStore: ObservableObject {
         case ._fetchUserResult(let result):
             switch result {
             case .success(let user):
-                state.userName = user.nickname
+                state.user = user
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
@@ -125,6 +125,8 @@ private extension HomeStore {
             executeDeleteInterestConcert()
         case .onRefresh:
             executeRefreshInterestConcert()
+        case .onAppear:
+            performFetchUserInterestedConcert()
         case ._fetchUserInterestConcertResult(let result):
             handleFetchUserInterestConcertResult(result)
         case ._fetchScheduleListResult(let result):

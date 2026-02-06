@@ -58,7 +58,7 @@ struct HomeView: View {
     
     @ViewBuilder
     private func content() -> some View {
-        if store.state.interestConcert.concert != nil {
+        if store.state.user?.interestConcertID != nil {
             HomeInterestConcertView(
                 store: store,
                 isTabBarHidden: $isTabBarHidden

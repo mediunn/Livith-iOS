@@ -76,7 +76,7 @@ private extension HomeConcertSectionView {
             }
             
             HomeHeaderView(
-                nickname: store.state.userName,
+                nickname: store.state.user?.nickname ?? "라이빗",
                 action: { coordinator?.push(to: .interest) }
             )
         }
@@ -96,7 +96,7 @@ private extension HomeConcertSectionView {
     
     var recommendedConcertSection: some View {
         RecommendedConcertSectionView(
-            title: "\(store.state.userName)님의\n취향이 담긴 콘서트",
+            title: "\(String(describing: store.state.user?.nickname))님의\n취향이 담긴 콘서트",
             concertList: sectionState.recommendedConcertList
         ) { concert in
             coordinator?.showConcertDetail(concertID: concert.id)
