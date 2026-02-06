@@ -78,13 +78,13 @@ private extension GenreEditView {
     var titleSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(config.title)
+                Text(Literals.title)
                     .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .multilineTextAlignment(.leading)
                 
-                if let subtitle = config.subtitle {
-                    Text(subtitle)
+                if config.showSubtitle {
+                    Text(Literals.subtitle)
                         .notosans(.body4Semibold)
                         .foregroundStyle(.livithColor(.black50))
                 }
@@ -115,5 +115,10 @@ private extension GenreEditView {
         static let titleTopPadding: CGFloat = 30
         static let indicatorTopPadding: CGFloat = 10
         static let bottomPadding: CGFloat = 16
+    }
+    
+    enum Literals {
+        static let title = "선호하는 장르를\n3개 선택해 주세요"
+        static let subtitle = "마이페이지에서 언제든 바꿀 수 있어요"
     }
 }

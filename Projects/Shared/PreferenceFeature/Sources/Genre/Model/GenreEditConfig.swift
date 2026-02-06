@@ -14,23 +14,20 @@ public struct GenreEditConfig {
     public let initialSelection: [PreferredGenre]
     public let stepIndicator: (current: Int, total: Int)?
     public let navigationTitle: String
-    public let title: String
-    public let subtitle: String?
+    public let showSubtitle: Bool
     public let submitTitle: String
     
     public init(
         initialSelection: [PreferredGenre] = [],
         stepIndicator: (current: Int, total: Int)? = nil,
         navigationTitle: String,
-        title: String,
-        subtitle: String? = nil,
+        showSubtitle: Bool,
         submitTitle: String
     ) {
         self.initialSelection = initialSelection
         self.stepIndicator = stepIndicator
         self.navigationTitle = navigationTitle
-        self.title = title
-        self.subtitle = subtitle
+        self.showSubtitle = showSubtitle
         self.submitTitle = submitTitle
     }
 }
@@ -42,8 +39,7 @@ public extension GenreEditConfig {
         GenreEditConfig(
             stepIndicator: (current: 3, total: 4),
             navigationTitle: "회원가입",
-            title: "선호하는 장르를\n3개 선택해 주세요",
-            subtitle: "마이페이지에서 언제든 바꿀 수 있어요",
+            showSubtitle: true,
             submitTitle: "다음"
         )
     }
@@ -52,8 +48,7 @@ public extension GenreEditConfig {
         GenreEditConfig(
             stepIndicator: (current: 1, total: 2),
             navigationTitle: "취향 선택",
-            title: "좋아하는 장르를\n3개 선택해 주세요",
-            subtitle: nil,
+            showSubtitle: false,
             submitTitle: "다음"
         )
     }
@@ -63,8 +58,7 @@ public extension GenreEditConfig {
             initialSelection: selectedGenres,
             stepIndicator: nil,
             navigationTitle: "장르 변경",
-            title: "선호하는 장르를\n3개 선택해 주세요",
-            subtitle: nil,
+            showSubtitle: false,
             submitTitle: "변경하기"
         )
     }
