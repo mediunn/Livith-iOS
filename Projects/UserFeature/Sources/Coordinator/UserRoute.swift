@@ -14,7 +14,6 @@ enum UserRoute: Route {
     case user
     case setting
     case noticeSetting
-    case notificationList
     case nicknameUpdate
     case deleteUser
     case genreSetting

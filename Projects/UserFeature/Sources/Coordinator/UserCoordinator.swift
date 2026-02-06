@@ -57,17 +57,6 @@ final class UserCoordinator: Coordinator {
                 )
             )
 
-        case .notificationList:
-            return UIHostingController(
-                rootView: NotificationListView(
-                    onBack: { [weak self] in self?.pop() },
-                    onConcertTap: { concertId in
-                        // TODO: 콘서트 상세 화면으로 이동
-                        print("Navigate to concert: \(concertId)")
-                    }
-                )
-            )
-
         case .nicknameUpdate:
             return UIHostingController(
                 rootView: NicknameUpdateView(

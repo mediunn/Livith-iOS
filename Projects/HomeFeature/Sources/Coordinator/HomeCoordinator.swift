@@ -53,7 +53,8 @@ final class HomeCoordinator: Coordinator {
             return UIHostingController(
                 rootView: NoticeView(
                     onBack: { [weak self] in self?.pop() },
-                    onSettingTap: { [weak self] in self?.push(to: .noticeSetting) }
+                    onSettingTap: { [weak self] in self?.push(to: .noticeSetting) },
+                    onConcertTap: { [weak self] concertID in self?.showConcertDetail(concertID: concertID) }
                 )
                 .environment(\.homeCoordinator, self)
             )
