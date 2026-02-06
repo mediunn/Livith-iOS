@@ -74,6 +74,10 @@ public struct MockUserRepository: UserRepository {
     }
 
     public func markNotificationAsRead(id: Int) async throws(UserError) {}
+
+    public func fetchUnreadNotificationCount() async throws(UserError) -> Int {
+        3
+    }
 }
 
 // MARK: - Mock Notification Data

@@ -21,4 +21,5 @@ public protocol UserRepository {
     func fetchNotificationSettings() async throws(UserError) -> NotificationSettings
     func fetchNotificationList(cursor: Int?, size: Int) async throws(UserError) -> [NotificationItem]
     func markNotificationAsRead(id: Int) async throws(UserError)
+    func fetchUnreadNotificationCount() async throws(UserError) -> Int
 }

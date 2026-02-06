@@ -200,4 +200,16 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
+
+    func fetchUnreadNotificationCount() async throws(UserError) -> Int {
+        do {
+            let response: DTO.Response.FetchUnreadNotificationCount = try await userService.request(
+                .fetchUnreadNotificationCount
+            )
+            return response.unreadCount
+        } catch {
+            let userError: UserError = errorMapper.mapToUserError(error)
+            throw userError
+        }
+    }
 }
