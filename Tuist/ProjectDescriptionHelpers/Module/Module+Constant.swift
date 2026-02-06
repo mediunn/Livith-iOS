@@ -128,4 +128,6 @@ public enum ExternalDependency: String {
     case kakaoSDKAuth = "KakaoSDKAuth"
     case kakaoSDKUser = "KakaoSDKUser"
     case youTubePlayerKit = "YouTubePlayerKit"
+    case firebaseCore = "FirebaseCore"
+    case firebaseMessaging = "FirebaseMessaging"
 }
