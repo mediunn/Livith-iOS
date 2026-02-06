@@ -17,8 +17,17 @@ public struct NotificationDataAssembler: DependencyAssembler {
     public init() {}
 
     public func assemble(to container: any DependencyContainer) {
+        registerPersistence(to: container)
         registerNetwork(to: container)
         registerNotificationRepository(to: container)
+    }
+}
+
+// MARK: - Persistence Registration
+
+private extension NotificationDataAssembler {
+    func registerPersistence(to container: any DependencyContainer) {
+        container.register(UserDefaultsStorage(), for: UserDefaultsStorage.self)
     }
 }
 
