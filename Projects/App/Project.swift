@@ -22,6 +22,7 @@ let project = Project.make(
                 .concert(.concertFeature),
                 .data(.commentData),
                 .data(.concertData),
+                .data(.notificationData),
                 .home(.homeFeature),
                 .login(.loginFeature),
                 .data(.searchData),

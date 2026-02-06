@@ -149,6 +149,24 @@ let project = Project.make(
             dependencies: [
                 .data(.userData)
             ]
+        ),
+        .make(
+            target: .data(.notificationData),
+            product: .framework,
+            dependencies: [
+                .domain(.domain),
+                .core(.diContainer),
+                .core(.livithFoundation),
+                .core(.livithNetwork),
+                .core(.persistence)
+            ]
+        ),
+        .make(
+            target: .data(.notificationDataTests),
+            product: .unitTests,
+            dependencies: [
+                .data(.notificationData)
+            ]
         )
     ]
 )
