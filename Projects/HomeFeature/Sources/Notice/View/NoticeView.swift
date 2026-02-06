@@ -18,7 +18,7 @@ public struct NoticeView: View {
     // MARK: - Property
 
     @StateObject private var store = NoticeStore()
-    @State private var tappedNotificationID: Int?
+    @State private var didNavigateToDetail = false
 
     private let onBack: () -> Void
     private let onSettingTap: () -> Void
@@ -54,9 +54,8 @@ public struct NoticeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
         .onAppear {
-            if let id = tappedNotificationID {
-                store.send(.markAsRead(id: id))
-                tappedNotificationID = nil
+            if didNavigateToDetail {
+                didNavigateToDetail = false
                 store.send(.refresh)
             } else {
                 store.send(.onAppear)
@@ -89,11 +88,15 @@ private extension NoticeView {
     }
 
     var emptyView: some View {
-        VStack {
+        VStack(spacing: 0) {
+            infoText
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+
             Spacer()
-            Text(Literals.emptyMessage)
-                .notosans(.body2Medium)
-                .foregroundStyle(Color.livithColor(.black50))
+
+            LivithEmptyView(text: Literals.emptyMessage)
+
             Spacer()
         }
     }
@@ -122,7 +125,8 @@ private extension NoticeView {
                         timeAgo: notification.displayCreatedAt,
                         state: notification.isRead ? .read : .normal,
                         action: {
-                            tappedNotificationID = notification.id
+                            store.send(.markAsRead(id: notification.id))
+                            didNavigateToDetail = true
                             if let targetID = notification.targetID {
                                 let initialTab: SegmentedTabBarType.DetailTab = notification.type.isTicketType
                                     ? .concertInfo
@@ -156,7 +160,7 @@ private extension NoticeView {
         static let title = "알림"
         static let settingButton = "알림 설정"
         static let infoMessage = "알림은 90일 이후 순차적으로 삭제돼요."
-        static let emptyMessage = "아직 받은 알림이 없어요"
+        static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
     }
 }
 
