@@ -17,6 +17,9 @@ public enum UserEndpoint {
     case checkNicknameDuplicate(nickname: String)
     case updateUserNickname(request: DTO.Request.UpdateUserNickname)
     case withdraw(request: DTO.Request.DeleteUser)
+    case updateNotificationConsent(request: DTO.Request.UpdateNotificationConsent)
+    case updateMarketingConsent
+    case fetchNotificationSettings
 }
 
 extension UserEndpoint: NetworkEndpoint {
@@ -30,6 +33,12 @@ extension UserEndpoint: NetworkEndpoint {
             return "/users/nickname"
         case .withdraw:
             return "/auth/withdraw"
+        case .updateNotificationConsent:
+            return "/notifications/consent"
+        case .updateMarketingConsent:
+            return "/notifications/marketing-consent"
+        case .fetchNotificationSettings:
+            return "/notifications/settings"
         }
     }
     
@@ -50,6 +59,8 @@ extension UserEndpoint: NetworkEndpoint {
             return request
         case .withdraw(request: let request):
             return request
+        case .updateNotificationConsent(request: let request):
+            return request
         default:
             return .none
         }
@@ -57,14 +68,12 @@ extension UserEndpoint: NetworkEndpoint {
     
     public var method: LivithNetwork.HTTPMethod {
         switch self {
-        case .logout:
+        case .logout, .withdraw, .updateNotificationConsent, .updateMarketingConsent:
             return .post
-        case .checkNicknameDuplicate:
+        case .checkNicknameDuplicate, .fetchNotificationSettings:
             return .get
         case .updateUserNickname:
             return .patch
-        case .withdraw:
-            return .post
         }
     }
 
@@ -72,7 +81,8 @@ extension UserEndpoint: NetworkEndpoint {
         switch self {
         case .logout, .checkNicknameDuplicate:
             return false
-        case .updateUserNickname, .withdraw:
+        case .updateUserNickname, .withdraw, .updateNotificationConsent, .updateMarketingConsent,
+             .fetchNotificationSettings:
             return true
         }
     }

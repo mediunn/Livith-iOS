@@ -193,7 +193,15 @@ private extension AuthRepositoryImpl {
             try? userdefaultsStorage.save(provider.description, for: .lastLoginPlatform)
             
             let userInfoResponse: DTO.Response.FetchUserInfo = try await onboardingService.request(.fetchUserInfo)
-            let user = mapper.toDomain(from: userInfoResponse)
+            let notificationSettings: DTO.Response.FetchNotificationSettings? = try? await userService.request(
+                .fetchNotificationSettings
+            )
+            let user: User
+            if let notificationSettings {
+                user = mapper.toDomain(from: userInfoResponse, notificationSettings: notificationSettings)
+            } else {
+                user = mapper.toDomain(from: userInfoResponse)
+            }
             try? userdefaultsStorage.save(user, for: .currentUser)
             
             return .existingUser(nickname: user.nickname)

@@ -91,6 +91,25 @@ struct UserMapper {
         )
     }
 
+    func toDomain(from dto: DTO.Response.FetchNotificationSettings) -> NotificationSettings {
+        NotificationSettings(
+            benefitAlert: dto.benefitAlert,
+            nightAlert: dto.nightAlert,
+            ticketAlert: dto.ticketAlert,
+            infoAlert: dto.infoAlert,
+            interestAlert: dto.interestAlert,
+            recommendAlert: dto.recommendAlert
+        )
+    }
+
+    func toDomain(from dto: DTO.Response.UpdateNotificationConsent) -> NotificationConsentResult {
+        NotificationConsentResult(
+            sender: dto.sender,
+            agreedAt: dto.agreedAt,
+            message: dto.message
+        )
+    }
+
     private func calculateDaysLeft(from date: Date) -> Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
