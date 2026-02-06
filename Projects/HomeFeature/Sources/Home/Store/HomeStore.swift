@@ -33,9 +33,7 @@ enum HomeIntent {
     enum ConcertSectionIntent {
         case onRefreshSections
         case checkShowBanner
-        case _fetchHomeSectionListResult(Result<[ConcertSection], Error>)
-        case _fetchUserPreferredGenreListResult(Result<[PreferredGenre], Error>)
-        case _fetchRecommendedConcertListResult(Result<[Concert], Error>)
+        case _concertSectionDataResult(Result<HomeState.ConcertSectionState.Data, Error>)
     }
 }
 
@@ -55,10 +53,13 @@ struct HomeState {
     }
     
     struct ConcertSectionState {
+        typealias Data = (sections: [ConcertSection], hasGenres: Bool, recommended: [Concert]?)
+        
         var sectionList: [ConcertSection] = []
         var isLoading: Bool = false
         var shouldShowPreferenceBanner: Bool = false
         var recommendedConcertList: [Concert] = []
+        var errorMessage: String = ""
     }
 }
 
@@ -72,10 +73,8 @@ final class HomeStore: ObservableObject {
         case fetchScheduleList
         case fetchMainSetlist
         case fetchSetlistSongList
-        case refreshSections
         case fetchUser
-        case fetchUserPreferredGenreList
-        case fetchRecommendedConcertList
+        case refreshSections
     }
     
     @Published private(set) var state: HomeState = .init()
@@ -86,10 +85,6 @@ final class HomeStore: ObservableObject {
     @Injected private var preferenceRepository: PreferenceRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
-    
-    init() {
-        performFetchHomeSectionList()
-    }
     
     func send(_ intent: HomeIntent) {
         switch intent {
@@ -228,55 +223,32 @@ private extension HomeStore {
         case .onRefreshSections:
             executeRefreshSections()
         case .checkShowBanner:
-            performFetchUserPreferredGenreList()
-        case ._fetchHomeSectionListResult(let result):
-            handleFetchHomeSectionListResult(result)
-        case ._fetchUserPreferredGenreListResult(let result):
-            handleFetchUserPreferredGenreListResult(result)
-        case ._fetchRecommendedConcertListResult(let result):
-            handleFetchRecommendedConcertListResult(result)
+            performFetchConcertSectionData()
+        case ._concertSectionDataResult(let result):
+            handleConcertSectionDataResult(result)
         }
     }
     
     func executeRefreshSections() {
         state.sections.isLoading = true
-        performFetchHomeSectionList()
+        performFetchConcertSectionData()
         performFetchUserInterestedConcert()
     }
     
-    func handleFetchHomeSectionListResult(_ result: Result<[ConcertSection], Error>) {
+    func handleConcertSectionDataResult(
+        _ result: Result<HomeState.ConcertSectionState.Data, Error>
+    ) {
         state.sections.isLoading = false
+        
         switch result {
-        case .success(let sectionList):
-            state.sections.sectionList = sectionList
-        case .failure(let error):
-            state.errorMessage = getErrorMessage(from: error)
-        }
-    }
-    
-    func handleFetchUserPreferredGenreListResult(_ result: Result<[PreferredGenre], Error>) {
-        switch result {
-        case .success(let genreList):
-            state.sections.shouldShowPreferenceBanner = genreList.isEmpty
+        case .success(let data):
+            state.sections.sectionList = data.sections
+            state.sections.shouldShowPreferenceBanner = !data.hasGenres
+            state.sections.recommendedConcertList = data.recommended ?? []
+            state.sections.errorMessage = ""
             
-            if !genreList.isEmpty {
-                performFetchRecommendedConcertList()
-            } else {
-                state.sections.recommendedConcertList = []
-            }
-        case .failure:
-            state.sections.shouldShowPreferenceBanner = false
-            state.sections.recommendedConcertList = []
-        }
-    }
-    
-    func handleFetchRecommendedConcertListResult(_ result: Result<[Concert], Error>) {
-        switch result {
-        case .success(let concerts):
-            state.sections.recommendedConcertList = concerts
         case .failure(let error):
-            state.sections.recommendedConcertList = []
-            state.errorMessage = getErrorMessage(from: error)
+            state.sections.errorMessage = getErrorMessage(from: error)
         }
     }
 }
@@ -363,38 +335,23 @@ private extension HomeStore {
         }
     }
     
-    func performFetchHomeSectionList() {
+    func performFetchConcertSectionData() {
         cancellables[.refreshSections]?.cancel()
         cancellables[.refreshSections] = Task {
             do {
-                let result = try await concertRepository.fetchHomeConcertSectionList()
-                send(.concertSection(._fetchHomeSectionListResult(.success(result))))
+                async let sections = concertRepository.fetchHomeConcertSectionList()
+                async let genresWithRecommendations = fetchGenresWithRecommendations()
+                
+                let resolvedSections = try await sections
+                let resolvedGenresWithRecommendations = try await genresWithRecommendations
+                let data = (
+                    sections: resolvedSections,
+                    hasGenres: resolvedGenresWithRecommendations.hasGenres,
+                    recommended: resolvedGenresWithRecommendations.recommended
+                )
+                send(.concertSection(._concertSectionDataResult(.success(data))))
             } catch {
-                send(.concertSection(._fetchHomeSectionListResult(.failure(error))))
-            }
-        }
-    }
-    
-    func performFetchRecommendedConcertList() {
-        cancellables[.fetchRecommendedConcertList]?.cancel()
-        cancellables[.fetchRecommendedConcertList] = Task {
-            do {
-                let concerts = try await concertRepository.fetchRecommendedConcertList()
-                send(.concertSection(._fetchRecommendedConcertListResult(.success(concerts))))
-            } catch {
-                send(.concertSection(._fetchRecommendedConcertListResult(.failure(error))))
-            }
-        }
-    }
-    
-    func performFetchUserPreferredGenreList() {
-        cancellables[.fetchUserPreferredGenreList]?.cancel()
-        cancellables[.fetchUserPreferredGenreList] = Task {
-            do {
-                let genreList = try await preferenceRepository.fetchUserPreferredGenreList()
-                send(.concertSection(._fetchUserPreferredGenreListResult(.success(genreList))))
-            } catch {
-                send(.concertSection(._fetchUserPreferredGenreListResult(.failure(error))))
+                send(.concertSection(._concertSectionDataResult(.failure(error))))
             }
         }
     }
@@ -403,6 +360,18 @@ private extension HomeStore {
 // MARK: - Utilities
 
 private extension HomeStore {
+    func fetchGenresWithRecommendations() async throws -> (hasGenres: Bool, recommended: [Concert]?) {
+        let genres = try await preferenceRepository.fetchUserPreferredGenreList()
+        let hasGenres = !genres.isEmpty
+        let recommended: [Concert]?
+        if hasGenres {
+            recommended = try await concertRepository.fetchRecommendedConcertList()
+        } else {
+            recommended = nil
+        }
+        return (hasGenres, recommended)
+    }
+    
     func getErrorMessage(from error: Error) -> String {
         if error is CancellationError {
             return ""

@@ -424,7 +424,7 @@ struct HomeStoreTests {
         
         // Then
         #expect(sut.state.sections.recommendedConcertList.isEmpty)
-        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(!sut.state.sections.errorMessage.isEmpty)
     }
     
     // MARK: - 연쇄 호출 테스트
