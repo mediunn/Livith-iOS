@@ -13,7 +13,7 @@ import LivithDesignSystem
 import Coordinator
 
 public enum ConcertRoute: Route {
-    case detail(concertID: Int)
+    case detail(concertID: Int, initialTab: SegmentedTabBarType.DetailTab = .artistDetail)
     case setlistDetail(concertID: Int, setlistID: Int)
     case songLyrics(songID: Int, setlistID: Int, songTitle: String)
     case safari(URL)

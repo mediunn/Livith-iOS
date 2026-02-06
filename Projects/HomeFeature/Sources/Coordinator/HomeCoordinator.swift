@@ -54,7 +54,9 @@ final class HomeCoordinator: Coordinator {
                 rootView: NoticeView(
                     onBack: { [weak self] in self?.pop() },
                     onSettingTap: { [weak self] in self?.push(to: .noticeSetting) },
-                    onConcertTap: { [weak self] concertID in self?.showConcertDetail(concertID: concertID) }
+                    onConcertTap: { [weak self] concertID, initialTab in
+                        self?.showConcertDetail(concertID: concertID, initialTab: initialTab)
+                    }
                 )
                 .environment(\.homeCoordinator, self)
             )
@@ -73,7 +75,7 @@ final class HomeCoordinator: Coordinator {
         }
     }
 
-    func showConcertDetail(concertID: Int) {
+    func showConcertDetail(concertID: Int, initialTab: SegmentedTabBarType.DetailTab = .artistDetail) {
         let coordinator = ConcertCoordinator(
             navigationController: navigationController,
             onDismiss: { [weak self] in
@@ -81,7 +83,7 @@ final class HomeCoordinator: Coordinator {
             }
         )
         self.concertCoordinator = coordinator
-        coordinator.start(concertID: concertID)
+        coordinator.start(concertID: concertID, initialTab: initialTab)
     }
 
     func showSongDetail(songID: Int, setlistID: Int, songTitle: String) {

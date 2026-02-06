@@ -16,4 +16,13 @@ public enum NotificationType: String {
     case concertInfoUpdate = "CONCERT_INFO_UPDATE"
     case artistConcertOpen = "ARTIST_CONCERT_OPEN"
     case recommend = "RECOMMEND"
+
+    public var isTicketType: Bool {
+        switch self {
+        case .ticket1D, .ticket7D, .ticketToday:
+            return true
+        default:
+            return false
+        }
+    }
 }
