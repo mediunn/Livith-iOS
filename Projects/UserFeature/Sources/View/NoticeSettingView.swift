@@ -9,7 +9,6 @@
 import SwiftUI
 
 import LivithDesignSystem
-import LivithFoundation
 
 // MARK: - NoticeSettingView
 
@@ -17,15 +16,8 @@ public struct NoticeSettingView: View {
 
     // MARK: - Property
 
-    @State private var isDeviceNotificationEnabled: Bool = false
-    @State private var benefitNotification: Bool = true
-    @State private var nightNotification: Bool = true
-    @State private var ticketSchedule: Bool = true
-    @State private var concertInfoUpdate: Bool = true
-    @State private var favoriteArtistConcert: Bool = true
-    @State private var preferenceBasedConcert: Bool = true
-    @State private var showMarketingConsentSheet: Bool = false
-    @State private var noticeModalType: LivithModalType? = nil
+    @StateObject private var store = NoticeSettingStore()
+    @Environment(\.scenePhase) private var scenePhase
 
     private let onBack: () -> Void
 
@@ -43,18 +35,18 @@ public struct NoticeSettingView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    if !isDeviceNotificationEnabled {
+                    if !store.state.isDeviceNotificationEnabled {
                         deviceNotificationSection
                             .padding(.top, 20)
                             .padding(.horizontal, 16)
-                        
+
                         Divider()
                             .frame(height: 4)
                             .background(Color.livithColor(.black80))
                     }
 
                     benefitSection
-                        .padding(.top, isDeviceNotificationEnabled ? 20 : 30)
+                        .padding(.top, store.state.isDeviceNotificationEnabled ? 20 : 30)
                         .padding(.horizontal, 16)
 
                     concertSection
@@ -66,48 +58,28 @@ public struct NoticeSettingView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
         .onAppear {
-            checkNotificationPermission()
+            store.send(.viewDidAppear)
         }
-        .onChange(of: benefitNotification) { oldValue, newValue in
-            if !oldValue && newValue {
-                showMarketingConsentSheet = true
-            } else if oldValue && !newValue {
-                noticeModalType = .normal(
-                    title: "알림 거부 안내",
-                    message: noticeModalMessage(action: "거부")
-                )
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                store.send(.checkDeviceNotification)
             }
         }
-        .onChange(of: nightNotification) { _, newValue in
-            let action = newValue ? "동의" : "거부"
-            noticeModalType = .normal(
-                title: "야간 푸시 알림 \(action) 안내",
-                message: noticeModalMessage(action: action)
-            )
-        }
-        .livithSheet(isPresented: $showMarketingConsentSheet, detents: [.height(260)]) {
+        .livithSheet(isPresented: marketingConsentSheetBinding, detents: [.height(260)]) {
             MarketingConsentBottomSheet(
                 onConfirm: {
-                    showMarketingConsentSheet = false
-                    noticeModalType = .normal(
-                        title: "알림 동의 안내",
-                        message: noticeModalMessage(action: "동의")
-                    )
+                    store.send(.confirmMarketingConsent)
                 },
                 onCancel: {
-                    benefitNotification = false
-                    showMarketingConsentSheet = false
+                    store.send(.cancelMarketingConsent)
                 }
             )
         }
-        .crossDissolve(isPresented: Binding(
-            get: { noticeModalType != nil },
-            set: { if !$0 { noticeModalType = nil } }
-        )) {
-            if let modalType = noticeModalType {
+        .crossDissolve(isPresented: modalBinding) {
+            if let modalInfo = store.state.modalInfo {
                 LivithModal(
-                    type: modalType,
-                    onConfirm: { noticeModalType = nil }
+                    type: .normal(title: modalInfo.title, message: modalInfo.message),
+                    onConfirm: { store.send(.dismissModal) }
                 )
             }
         }
@@ -133,7 +105,7 @@ private extension NoticeSettingView {
                     .scaledToFit()
                     .frame(maxWidth: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                
+
                 Text(Literals.settingPath)
                     .notosans(.caption1Regular)
                     .foregroundStyle(Color.livithColor(.black50))
@@ -161,12 +133,12 @@ private extension NoticeSettingView {
 
             notificationRow(
                 title: Literals.benefitNotification,
-                isOn: $benefitNotification
+                isOn: benefitNotificationBinding
             )
 
             notificationRow(
                 title: Literals.nightNotification,
-                isOn: $nightNotification
+                isOn: nightNotificationBinding
             )
         }
     }
@@ -185,22 +157,22 @@ private extension NoticeSettingView {
 
             notificationRow(
                 title: Literals.ticketSchedule,
-                isOn: $ticketSchedule
+                isOn: ticketScheduleBinding
             )
 
             notificationRow(
                 title: Literals.concertInfoUpdate,
-                isOn: $concertInfoUpdate
+                isOn: concertInfoUpdateBinding
             )
 
             notificationRow(
                 title: Literals.favoriteArtistConcert,
-                isOn: $favoriteArtistConcert
+                isOn: favoriteArtistConcertBinding
             )
 
             notificationRow(
                 title: Literals.preferenceBasedConcert,
-                isOn: $preferenceBasedConcert
+                isOn: preferenceBasedConcertBinding
             )
         }
     }
@@ -219,24 +191,73 @@ private extension NoticeSettingView {
     }
 }
 
+// MARK: - Bindings
+
+private extension NoticeSettingView {
+    var benefitNotificationBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.benefitNotification },
+            set: { store.send(.toggleBenefitNotification($0)) }
+        )
+    }
+
+    var nightNotificationBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.nightNotification },
+            set: { store.send(.toggleNightNotification($0)) }
+        )
+    }
+
+    var ticketScheduleBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.ticketSchedule },
+            set: { store.send(.toggleTicketSchedule($0)) }
+        )
+    }
+
+    var concertInfoUpdateBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.concertInfoUpdate },
+            set: { store.send(.toggleConcertInfoUpdate($0)) }
+        )
+    }
+
+    var favoriteArtistConcertBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.favoriteArtistConcert },
+            set: { store.send(.toggleFavoriteArtistConcert($0)) }
+        )
+    }
+
+    var preferenceBasedConcertBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.preferenceBasedConcert },
+            set: { store.send(.togglePreferenceBasedConcert($0)) }
+        )
+    }
+
+    var marketingConsentSheetBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.showMarketingConsentSheet },
+            set: { if !$0 { store.send(.cancelMarketingConsent) } }
+        )
+    }
+
+    var modalBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.modalInfo != nil },
+            set: { if !$0 { store.send(.dismissModal) } }
+        )
+    }
+}
+
 // MARK: - Helper
 
 private extension NoticeSettingView {
-    func checkNotificationPermission() {
-        Task { @MainActor in
-            let settings = await UNUserNotificationCenter.current().notificationSettings()
-            isDeviceNotificationEnabled = settings.authorizationStatus == .authorized
-        }
-    }
-
     func openAppSettings() {
-        guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
-        UIApplication.shared.open(settingsURL)
-    }
-
-    func noticeModalMessage(action: String) -> String {
-        let dateString = DateFormatterService.string(from: Date(), type: .dotDateTime)
-        return "전송자 : 라이빗\n수신 일시 : \(dateString)\n처리 내용 : 알림 \(action) 처리 완료"
+        if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
     }
 }
 
