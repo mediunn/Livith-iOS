@@ -20,7 +20,7 @@ struct UserRepositoryImpl: UserRepository {
     private let interestConcertCache: InterestConcertCache
     private let mapper: UserMapper = .init()
     private let errorMapper: UserErrorMapper = .init()
-    
+
     init(
         onboardingService: OnboardingService,
         homeService: HomeService,
@@ -34,7 +34,7 @@ struct UserRepositoryImpl: UserRepository {
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
         self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage, widgetImageStorage: widgetImageStorage)
     }
-    
+
     func updateNickname(_ nickname: String) async throws(UserError) {
         do {
             let request = DTO.Request.UpdateUserNickname(nickname: nickname)
@@ -48,12 +48,12 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
-    
+
     func fetchUser() async throws(UserError) -> User {
         if let cachedUser = await userCache.fetchUserIfValid() {
             return cachedUser
         }
-        
+
         do {
             let response: DTO.Response.FetchUserInfo = try await onboardingService.request(.fetchUserInfo)
             let user: User = mapper.toDomain(from: response)
@@ -64,12 +64,12 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
-    
+
     func fetchInterestedConcert() async throws(UserError) -> Concert? {
         if let cachedConcert = await interestConcertCache.fetchInterestConcertIfValid() {
             return cachedConcert
         }
-        
+
         do {
             let response: DTO.Response.FetchUserInterestConcert? = try await homeService.request(.fetchInterestedConcert)
             guard let response else { return nil }
@@ -86,7 +86,7 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
-    
+
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         do {
@@ -104,55 +104,12 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
-    
+
     func deleteInterestedConcert() async throws(UserError) {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
             await userCache.updateUser { $0.interestConcertID = nil }
             await interestConcertCache.deleteInterestConcert()
-        } catch {
-            let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError
-        }
-    }
-
-    func updateNotificationConsent(
-        field: NotificationConsentField,
-        isAgreed: Bool
-    ) async throws(UserError) -> NotificationConsentResult {
-        do {
-            let request = DTO.Request.UpdateNotificationConsent(
-                field: field.rawValue,
-                isAgreed: isAgreed
-            )
-            let response: DTO.Response.UpdateNotificationConsent = try await userService.request(
-                .updateNotificationConsent(request: request)
-            )
-            return mapper.toDomain(from: response)
-        } catch {
-            let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError
-        }
-    }
-
-    func fetchNotificationSettings() async throws(UserError) -> NotificationSettings {
-        do {
-            let response: DTO.Response.FetchNotificationSettings = try await userService.request(
-                .fetchNotificationSettings
-            )
-            return mapper.toDomain(from: response)
-        } catch {
-            let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError
-        }
-    }
-
-    func updateMarketingConsent() async throws(UserError) -> NotificationConsentResult {
-        do {
-            let response: DTO.Response.UpdateNotificationConsent = try await userService.request(
-                .updateMarketingConsent
-            )
-            return mapper.toDomain(from: response)
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError

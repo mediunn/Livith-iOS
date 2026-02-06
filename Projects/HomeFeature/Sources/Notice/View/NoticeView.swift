@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 
 // MARK: - NoticeView
@@ -16,17 +17,26 @@ public struct NoticeView: View {
 
     // MARK: - Property
 
+    @StateObject private var store = NoticeStore()
+    @State private var didNavigateToDetail = false
+
     private let onBack: () -> Void
     private let onSettingTap: () -> Void
+    private let onInterestTap: () -> Void
+    private let onConcertTap: (Int, SegmentedTabBarType.DetailTab) -> Void
 
     // MARK: - Initializer
 
     public init(
         onBack: @escaping () -> Void,
-        onSettingTap: @escaping () -> Void
+        onSettingTap: @escaping () -> Void,
+        onInterestTap: @escaping () -> Void,
+        onConcertTap: @escaping (Int, SegmentedTabBarType.DetailTab) -> Void
     ) {
         self.onBack = onBack
         self.onSettingTap = onSettingTap
+        self.onInterestTap = onInterestTap
+        self.onConcertTap = onConcertTap
     }
 
     // MARK: - Body
@@ -35,11 +45,25 @@ public struct NoticeView: View {
         VStack(spacing: 0) {
             navigationBar
 
-            noticeList
-                .padding(.top, 12)
+            if store.state.isLoading {
+                loadingView
+            } else if store.state.notifications.isEmpty {
+                emptyView
+            } else {
+                noticeList
+                    .padding(.top, 12)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
+        .onAppear {
+            if didNavigateToDetail {
+                didNavigateToDetail = false
+                store.send(.refresh)
+            } else {
+                store.send(.onAppear)
+            }
+        }
     }
 }
 
@@ -57,6 +81,29 @@ private extension NoticeView {
         )
     }
 
+    var loadingView: some View {
+        VStack {
+            Spacer()
+            ProgressView()
+                .tint(Color.livithColor(.white100))
+            Spacer()
+        }
+    }
+
+    var emptyView: some View {
+        VStack(spacing: 0) {
+            infoText
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+
+            Spacer()
+
+            LivithEmptyView(text: Literals.emptyMessage)
+
+            Spacer()
+        }
+    }
+
     var infoText: some View {
         HStack {
             Text(Literals.infoMessage)
@@ -72,33 +119,39 @@ private extension NoticeView {
             infoText
                 .padding(.horizontal, 16)
                 .padding(.bottom, 10)
-            
-            LazyVStack(spacing: 12) {
-                // TODO: 실제 데이터 연결 필요
-                NoticeItemView(
-                    title: "(광고) 추천 콘서트를 가져왔어요 🎵",
-                    description: "선택하신 취향을 바탕으로\n지금 가장 잘 맞는 콘서트 하나를 골라봤어요!",
-                    timeAgo: "5시간 전",
-                    state: .normal,
-                    action: {}
-                )
 
-                NoticeItemView(
-                    title: "(광고) 추천 콘서트를 가져왔어요 🎵",
-                    description: "선택하신 취향을 바탕으로\n지금 가장 잘 맞는 콘서트 하나를 골라봤어요!",
-                    timeAgo: "5시간 전",
-                    state: .read,
-                    action: {}
-                )
-                
-                NoticeItemView(
-                    title: "(광고) 추천 콘서트를 가져왔어요 🎵",
-                    description: "선택하신 취향을 바탕으로\n지금 가장 잘 맞는 콘서트 하나를 골라봤어요!",
-                    timeAgo: "5시간 전",
-                    state: .read,
-                    action: {}
-                )
-                
+            LazyVStack(spacing: 12) {
+                ForEach(store.state.notifications) { notification in
+                    NoticeItemView(
+                        title: notification.title,
+                        description: notification.content,
+                        timeAgo: notification.displayCreatedAt,
+                        state: notification.isRead ? .read : .normal,
+                        action: {
+                            store.send(.markAsRead(id: notification.id))
+                            didNavigateToDetail = true
+                            if notification.type == .interestConcert {
+                                onInterestTap()
+                            } else if let targetID = notification.targetID {
+                                let initialTab: SegmentedTabBarType.DetailTab = notification.type.isTicketType
+                                    ? .concertInfo
+                                    : .artistDetail
+                                onConcertTap(targetID, initialTab)
+                            }
+                        }
+                    )
+                    .onAppear {
+                        if notification.id == store.state.notifications.last?.id {
+                            store.send(.loadNextPage)
+                        }
+                    }
+                }
+
+                if store.state.isLoadingMore {
+                    ProgressView()
+                        .tint(Color.livithColor(.white100))
+                        .padding(.vertical, 16)
+                }
             }
             .padding(.horizontal, 4)
         }
@@ -112,6 +165,7 @@ private extension NoticeView {
         static let title = "알림"
         static let settingButton = "알림 설정"
         static let infoMessage = "알림은 90일 이후 순차적으로 삭제돼요."
+        static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
     }
 }
 
@@ -120,6 +174,8 @@ private extension NoticeView {
 #Preview {
     NoticeView(
         onBack: {},
-        onSettingTap: {}
+        onSettingTap: {},
+        onInterestTap: {},
+        onConcertTap: { _, _ in }
     )
 }

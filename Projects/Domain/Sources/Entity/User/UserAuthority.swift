@@ -10,13 +10,13 @@ import Foundation
 
 public struct UserAuthority: Hashable, Codable {
     public let deviceNotification: Bool
-    public let marketingConsent: Bool
-    public let benefitNotification: Bool
-    public let nightNotification: Bool
-    public let ticketSchedule: Bool
-    public let concertInfoUpdate: Bool
-    public let favoriteArtistConcert: Bool
-    public let preferenceBasedConcert: Bool
+    public var marketingConsent: Bool
+    public var benefitNotification: Bool
+    public var nightNotification: Bool
+    public var ticketSchedule: Bool
+    public var concertInfoUpdate: Bool
+    public var favoriteArtistConcert: Bool
+    public var preferenceBasedConcert: Bool
 
     public init(
         deviceNotification: Bool,

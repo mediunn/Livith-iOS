@@ -18,6 +18,7 @@ struct AuthRepositoryImpl: AuthRepository {
     private let socialAuthService: SocialAuthService
     private let onboardingService: OnboardingService
     private let userService: UserService
+    private let notificationService: NotificationService
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenService: TokenService
     private let widgetImageStorage: WidgetImageStorage
@@ -28,6 +29,7 @@ struct AuthRepositoryImpl: AuthRepository {
         socialAuthService: SocialAuthService,
         onboardingService: OnboardingService,
         userService: UserService,
+        notificationService: NotificationService,
         userdefaultsStorage: UserDefaultsStorage,
         tokenService: TokenService,
         widgetImageStorage: WidgetImageStorage
@@ -35,6 +37,7 @@ struct AuthRepositoryImpl: AuthRepository {
         self.socialAuthService = socialAuthService
         self.onboardingService = onboardingService
         self.userService = userService
+        self.notificationService = notificationService
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenService = tokenService
         self.widgetImageStorage = widgetImageStorage
@@ -193,8 +196,8 @@ private extension AuthRepositoryImpl {
             try? userdefaultsStorage.save(provider.description, for: .lastLoginPlatform)
             
             let userInfoResponse: DTO.Response.FetchUserInfo = try await onboardingService.request(.fetchUserInfo)
-            let notificationSettings: DTO.Response.FetchNotificationSettings? = try? await userService.request(
-                .fetchNotificationSettings
+            let notificationSettings: DTO.Response.FetchNotificationSettings? = try? await notificationService.request(
+                .fetchSettings
             )
             let user: User
             if let notificationSettings {

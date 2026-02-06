@@ -12,6 +12,7 @@ import DIContainer
 import AuthData
 import CommentData
 import ConcertData
+import NotificationData
 import SearchData
 import SetlistData
 import SongData
@@ -25,6 +26,7 @@ extension LivithApp {
                 AuthDataAssembler(),
                 CommentDataAssembler(),
                 ConcertDataAssembler(),
+                NotificationDataAssembler(),
                 SearchDataAssembler(),
                 SetlistDataAssembler(),
                 SongDataAssembler(),

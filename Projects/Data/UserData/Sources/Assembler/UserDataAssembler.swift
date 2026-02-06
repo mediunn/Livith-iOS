@@ -34,6 +34,7 @@ private extension UserDataAssembler {
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
             widgetImageStorage: container.resolve(WidgetImageStorage.self)
         )
+        
         container.register(userRepo, for: UserRepository.self)
     }
 }
