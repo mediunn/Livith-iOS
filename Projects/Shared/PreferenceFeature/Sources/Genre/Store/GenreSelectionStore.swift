@@ -29,11 +29,11 @@ public struct GenreSelectionState: Equatable {
     
     private let initialSelectedGenreList: [PreferredGenre]
     
-    init(selectedGenres: [PreferredGenre] = []) {
-        self.selectedGenreList = selectedGenres
-        self.initialSelectedGenreList = selectedGenres
+    init(selectedGenreList: [PreferredGenre] = []) {
+        self.selectedGenreList = selectedGenreList
+        self.initialSelectedGenreList = selectedGenreList
     }
-
+    
     var isModified: Bool { selectedGenreList != initialSelectedGenreList }
 }
 
@@ -42,8 +42,8 @@ public final class GenreSelectionStore: ObservableObject {
     
     @Injected private var preferenceRepository: PreferenceRepository
     
-    public init(selectedGenres: [PreferredGenre] = []) {
-        self.state = GenreSelectionState(selectedGenres: selectedGenres)
+    public init(selectedGenreList: [PreferredGenre] = []) {
+        self.state = GenreSelectionState(selectedGenreList: selectedGenreList)
     }
     
     @MainActor

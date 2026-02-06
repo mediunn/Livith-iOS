@@ -35,11 +35,11 @@ public struct ArtistSelectionState: Equatable {
     
     private let initialSelectedArtistList: [PreferredArtist]
     
-    init(selectedArtists: [PreferredArtist] = []) {
-        self.selectedArtistList = selectedArtists
-        self.initialSelectedArtistList = selectedArtists
+    init(selectedArtistList: [PreferredArtist] = []) {
+        self.selectedArtistList = selectedArtistList
+        self.initialSelectedArtistList = selectedArtistList
     }
-
+    
     var isModified: Bool { selectedArtistList != initialSelectedArtistList }
 }
 
@@ -50,8 +50,8 @@ public final class ArtistSelectionStore: ObservableObject {
     
     private var searchTask: Task<Void, Never>?
     
-    public init(selectedArtists: [PreferredArtist] = []) {
-        self.state = ArtistSelectionState(selectedArtists: selectedArtists)
+    public init(selectedArtistList: [PreferredArtist] = []) {
+        self.state = ArtistSelectionState(selectedArtistList: selectedArtistList)
     }
     
     @MainActor

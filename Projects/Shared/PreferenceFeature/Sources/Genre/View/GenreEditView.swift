@@ -17,19 +17,20 @@ public struct GenreEditView: View {
     
     @StateObject private var selectionStore: GenreSelectionStore
     
-    private let config: GenreEditConfig
+    private let config: PreferenceEditConfig
     private let isSubmitting: Bool
     private let onBack: (Bool) -> Void
     private let onSubmit: ([PreferredGenre]) -> Void
     
     public init(
-        mode: GenreEditConfig,
+        config: PreferenceEditConfig,
+        selectedGenreList: [PreferredGenre] = [],
         isSubmitting: Bool = false,
         onBack: @escaping (Bool) -> Void,
         onSubmit: @escaping ([PreferredGenre]) -> Void
     ) {
-        self._selectionStore = StateObject(wrappedValue: GenreSelectionStore(selectedGenres: mode.initialSelection))
-        self.config = mode
+        self._selectionStore = StateObject(wrappedValue: GenreSelectionStore(selectedGenreList: selectedGenreList))
+        self.config = config
         self.isSubmitting = isSubmitting
         self.onBack = onBack
         self.onSubmit = onSubmit

@@ -28,7 +28,7 @@ struct PreferredArtistSettingView: View {
     
     var body: some View {
         ArtistEditView(
-            config: .onboarding(),
+            config: .artistOnboarding(),
             isSubmitting: store.state.isSubmitting
         ) { isModified in
             if isModified {

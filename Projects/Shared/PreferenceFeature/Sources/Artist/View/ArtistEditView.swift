@@ -18,20 +18,21 @@ public struct ArtistEditView: View {
     @StateObject private var store: ArtistSelectionStore
     @State private var isSearchFocused: Bool = false
     
-    private let config: ArtistEditConfig
+    private let config: PreferenceEditConfig
     private let isSubmitting: Bool
     private let onBack: (Bool) -> Void
     private let onSkip: (() -> Void)?
     private let onSubmit: ([PreferredArtist]) -> Void
     
     public init(
-        config: ArtistEditConfig,
+        config: PreferenceEditConfig,
+        selectedArtistList: [PreferredArtist] = [],
         isSubmitting: Bool = false,
         onBack: @escaping (Bool) -> Void,
         onSkip: (() -> Void)? = nil,
         onSubmit: @escaping ([PreferredArtist]) -> Void
     ) {
-        self._store = StateObject(wrappedValue: ArtistSelectionStore(selectedArtists: config.initialSelection))
+        self._store = StateObject(wrappedValue: ArtistSelectionStore(selectedArtistList: selectedArtistList))
         self.config = config
         self.isSubmitting = isSubmitting
         self.onBack = onBack
@@ -177,7 +178,7 @@ private extension ArtistEditView {
         static let indicatorTopPadding: CGFloat = 10
         static let bottomPadding: CGFloat = 16
     }
-
+    
     enum Literals {
         static let title = "선호하는 아티스트를\n3명 선택해 주세요"
         static let subtitle = "마이페이지에서 언제든 바꿀 수 있어요"
@@ -188,7 +189,7 @@ private extension ArtistEditView {
 
 #Preview {
     ArtistEditView(
-        config: .onboarding(),
+        config: .artistOnboarding(),
         onBack: { _ in print("뒤로가기 누름") },
         onSkip: { print("건너뛰기 눌림") },
         onSubmit: { artists in
