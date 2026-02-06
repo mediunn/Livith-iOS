@@ -21,7 +21,7 @@ struct PreferredGenreSettingView: View {
     }
     
     var body: some View {
-        GenreEditView(mode: .onboarding()) {
+        GenreEditView(config: .genreOnboarding()) { _ in
             coordinator?.pop()
         } onSubmit: { selectedGenreList in
             let updated = builder.withPreferredGenreList(selectedGenreList)
@@ -29,4 +29,3 @@ struct PreferredGenreSettingView: View {
         }
     }
 }
-

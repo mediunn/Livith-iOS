@@ -18,20 +18,21 @@ public struct ArtistEditView: View {
     @StateObject private var store: ArtistSelectionStore
     @State private var isSearchFocused: Bool = false
     
-    private let config: ArtistEditConfig
+    private let config: PreferenceEditConfig
     private let isSubmitting: Bool
-    private let onBack: () -> Void
+    private let onBack: (Bool) -> Void
     private let onSkip: (() -> Void)?
     private let onSubmit: ([PreferredArtist]) -> Void
     
     public init(
-        config: ArtistEditConfig,
+        config: PreferenceEditConfig,
+        selectedArtistList: [PreferredArtist] = [],
         isSubmitting: Bool = false,
-        onBack: @escaping () -> Void,
+        onBack: @escaping (Bool) -> Void,
         onSkip: (() -> Void)? = nil,
         onSubmit: @escaping ([PreferredArtist]) -> Void
     ) {
-        self._store = StateObject(wrappedValue: ArtistSelectionStore(selectedArtists: config.initialSelection))
+        self._store = StateObject(wrappedValue: ArtistSelectionStore(selectedArtistList: selectedArtistList))
         self.config = config
         self.isSubmitting = isSubmitting
         self.onBack = onBack
@@ -84,7 +85,7 @@ private extension ArtistEditView {
             LivithNavigationView(
                 type: .back(
                     title: config.navigationTitle,
-                    onBack: onBack,
+                    onBack: { onBack(store.state.isModified) },
                     rightButtonTitle: "건너뛰기",
                     onRightButtonTap: onSkip
                 )
@@ -93,7 +94,7 @@ private extension ArtistEditView {
             LivithNavigationView(
                 type: .back(
                     title: config.navigationTitle,
-                    onBack: onBack
+                    onBack: { onBack(store.state.isModified) }
                 )
             )
         }
@@ -114,13 +115,13 @@ private extension ArtistEditView {
         if !isSearchFocused {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(config.title)
+                    Text(Literals.title)
                         .notosans(.body1Semibold)
                         .foregroundStyle(Color.livithColor(.white100))
                         .multilineTextAlignment(.leading)
                     
-                    if let subtitle = config.subtitle {
-                        Text(subtitle)
+                    if config.showSubtitle {
+                        Text(Literals.subtitle)
                             .notosans(.body4Semibold)
                             .foregroundStyle(.livithColor(.black50))
                     }
@@ -177,14 +178,19 @@ private extension ArtistEditView {
         static let indicatorTopPadding: CGFloat = 10
         static let bottomPadding: CGFloat = 16
     }
+    
+    enum Literals {
+        static let title = "선호하는 아티스트를\n3명 선택해 주세요"
+        static let subtitle = "마이페이지에서 언제든 바꿀 수 있어요"
+    }
 }
 
 // MARK: - Preview
 
 #Preview {
     ArtistEditView(
-        config: .onboarding(),
-        onBack: { print("뒤로가기 눌림") },
+        config: .artistOnboarding(),
+        onBack: { _ in print("뒤로가기 누름") },
         onSkip: { print("건너뛰기 눌림") },
         onSubmit: { artists in
             print("\(artists) 제출")
