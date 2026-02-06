@@ -335,6 +335,67 @@ final class ConcertMapperTests: XCTestCase {
         XCTAssertEqual(result[0].concertList[0].id, 1)
     }
 
+    func test_FetchRecommendedConcertList_DTO가_Concert_List로_변환되어야_한다() throws {
+        // Given
+        let json = """
+        [
+            {
+                "id": 1,
+                "code": "TS2025US02",
+                "title": "Taylor Swift | The Eras Tour2",
+                "startDate": "2025.08.10",
+                "endDate": "2025.08.10",
+                "status": "UPCOMING",
+                "poster": "https://upload.wikimedia.org/wikipedia/en/d/d6/Taylor_Swift_The_Eras_Tour_film_promotional_poster.png",
+                "artist": "Taylor Swift",
+                "createdAt": "2025-08-24T06:27:05.000Z",
+                "updatedAt": "2025-08-24T06:27:05.000Z",
+                "artistId": 1,
+                "ticketSite": "Ticketmaster",
+                "ticketUrl": "https://www.ticketmaster.com/taylor-swift-tickets/artist/1094215",
+                "venue": "고척스카이돔",
+                "introduction": "테일러 스위프트의 첫 내한! 한국에서도 인기 아티스트",
+                "label": "많이 찾는 콘서트 1위",
+                "sortedIndex": 1,
+                "daysLeft": -20
+            },
+            {
+                "id": 2,
+                "code": "HS2025UK02",
+                "title": "Harry Styles | Love On Tour2",
+                "startDate": "2025.09.15",
+                "endDate": "2025.09.15",
+                "status": "UPCOMING",
+                "poster": "https://upload.wikimedia.org/wikipedia/en/d/d5/Harry_Styles_-_Love_on_Tour.png",
+                "artist": "Harry Styles",
+                "createdAt": "2025-08-24T06:27:05.000Z",
+                "updatedAt": "2025-08-24T06:27:05.000Z",
+                "artistId": 2,
+                "ticketSite": "Ticketmaster UK",
+                "ticketUrl": "https://www.ticketmaster.co.uk/harry-styles-tickets/artist/5209323",
+                "venue": "KSPO DOME",
+                "introduction": "원디렉션 출신 해리 스타일스, 두 번째 내한 공연!",
+                "label": "많이 찾는 콘서트 2위",
+                "sortedIndex": 2,
+                "daysLeft": 16
+            }
+        ]
+        """.data(using: .utf8)!
+        
+        let dto = try JSONDecoder().decode(DTO.Response.FetchRecommendedConcertList.self, from: json)
+        
+        // When
+        let result = sut.toDomain(from: dto)
+        
+        // Then
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result[0].id, 1)
+        XCTAssertEqual(result[0].title, "Taylor Swift | The Eras Tour2")
+        XCTAssertEqual(result[0].artist, "Taylor Swift")
+        XCTAssertEqual(result[1].id, 2)
+        XCTAssertEqual(result[1].title, "Harry Styles | Love On Tour2")
+    }
+
     // MARK: - FetchConcertSchedule Tests
     func test_FetchConcertSchedule_DTO가_ConcertSchedule_List로_변환되어야_한다() throws {
         // Given

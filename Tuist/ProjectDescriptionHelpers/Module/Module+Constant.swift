@@ -43,6 +43,7 @@ public enum UserModule: String {
 
 public enum HomeModule: String {
     case homeFeature = "HomeFeature"
+    case homeFeatureTests = "HomeFeatureTests"
 }
 
 

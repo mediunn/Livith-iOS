@@ -12,12 +12,12 @@ import LivithDesignSystem
 
 struct HomeView: View {
     @StateObject private var store: HomeStore = .init()
-
+    
     @Binding private var isTabBarHidden: Bool
     
     @State private var showErrorToast = false
     @State private var showSuccessToast = false
-
+    
     init(isTabBarHidden: Binding<Bool>) {
         self._isTabBarHidden = isTabBarHidden
     }
@@ -55,10 +55,10 @@ struct HomeView: View {
                 message: store.state.toastMessage
             )
     }
-
+    
     @ViewBuilder
     private func content() -> some View {
-        if store.state.interestConcert != nil {
+        if store.state.user?.interestConcertID != nil {
             HomeInterestConcertView(
                 store: store,
                 isTabBarHidden: $isTabBarHidden
@@ -68,4 +68,3 @@ struct HomeView: View {
         }
     }
 }
-
