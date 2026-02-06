@@ -70,7 +70,7 @@ private extension HomeConcertSectionView {
                         get: { sectionState.isPreferenceBannerExpanded },
                         set: { _ in store.send(.concertSection(.collapsePreferenceBanner)) }
                     ),
-                    onTapBanner: { coordinator?.push(to: .preference) }
+                    onTapBanner: { coordinator?.push(to: .preferredGenreUpdate) }
                 )
                 .padding(.horizontal, 16)
                 .padding(.top, 12)

@@ -15,12 +15,10 @@ import Coordinator
 struct GenreUpdateView: View {
     @Environment(\.homeCoordinator) private var coordinator
     var body: some View {
-        GenreEditView(mode: .home()) {
-            self.coordinator?.pop()
+        GenreEditView(config: .genreHome()) { _ in
+            coordinator?.pop()
         } onSubmit: { genreList in
-            
-            // TODO: 다음 화면으로 전달
-            
+            coordinator?.push(to: .preferredAritstUpdate(selectedGenreList: genreList))
         }
     }
 }

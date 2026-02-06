@@ -19,14 +19,20 @@ struct ArtistUpdateView: View {
     @StateObject private var store: PreferenceUpdateStore
     
     @State private var isUpdateFailureModalPresented: Bool = false
+    @State private var isDiscardChangesModalPresented: Bool = false
+    @State private var isSuccessToastPresented: Bool = false
     
     init(selectedGenreList: [PreferredGenre]) {
         self._store = StateObject(wrappedValue: PreferenceUpdateStore(selectedGenreList))
     }
     
     var body: some View {
-        ArtistEditView(config: .home(), isSubmitting: store.state.isLoading) {
-            self.coordinator?.pop()
+        ArtistEditView(config: .artistHome(), isSubmitting: store.state.isLoading) { isModified in
+            if isModified {
+                isDiscardChangesModalPresented = true
+            } else {
+                self.coordinator?.pop()
+            }
         } onSkip: {
             store.send(.onSkip)
         } onSubmit: { artistList in
@@ -35,13 +41,19 @@ struct ArtistUpdateView: View {
         .onChange(of: store.state.result) { _, result in
             switch result {
             case .success:
-                self.coordinator?.popToRoot()
+                isSuccessToastPresented = true
+                coordinator?.popToRoot()
             case .failure:
                 isUpdateFailureModalPresented = true
             case .idle:
                 break
             }
         }
+        .livithToast(
+            isPresented: $isSuccessToastPresented,
+            type: .success,
+            message: "선호하는 음악 취향을 반영했어요"
+        )
         .crossDissolve(isPresented: $isUpdateFailureModalPresented, dismissOnTapOutside: false) {
             LivithModal(
                 type: .error(title: "오류가 발생했어요!", message: "홈에서 다시 시도해주세요"),
@@ -49,6 +61,20 @@ struct ArtistUpdateView: View {
                 onConfirm: {
                     isUpdateFailureModalPresented = false
                     coordinator?.popToRoot()
+                }
+            )
+        }
+        .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: "선택된 아티스트나 장르가 해제돼요.\n이전 페이지로 돌아가시나요?",
+                confirmTitle: "뒤로 갈게요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: {
+                    isDiscardChangesModalPresented = false
+                    coordinator?.pop()
+                }),
+                onCancel: {
+                    isDiscardChangesModalPresented = false
                 }
             )
         }
