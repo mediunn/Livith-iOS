@@ -10,6 +10,7 @@ import SwiftUI
 
 import ConcertFeature
 import Coordinator
+import LivithDesignSystem
 import UserFeature
 
 final class HomeCoordinator: Coordinator {
