@@ -9,8 +9,16 @@
 import UIKit
 import UserNotifications
 
+import DIContainer
+import Domain
+import Persistence
+
+import FirebaseMessaging
+
 final class NotificationService: NSObject {
     static let shared = NotificationService()
+
+    @Injected private var notificationRepository: NotificationRepository
 
     private override init() {
         super.init()
@@ -18,6 +26,11 @@ final class NotificationService: NSObject {
 
     func configure() {
         UNUserNotificationCenter.current().delegate = self
+        Messaging.messaging().delegate = self
+    }
+
+    func registerForRemoteNotifications() {
+        UIApplication.shared.registerForRemoteNotifications()
     }
 
     func requestAuthorization() async {
@@ -25,16 +38,30 @@ final class NotificationService: NSObject {
         _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: options)
     }
 
-    func registerForRemoteNotifications() {
-        UIApplication.shared.registerForRemoteNotifications()
-    }
-
     func handleDeviceToken(_ deviceToken: Data) {
-        // TODO: FCM 토큰 등록
+        Messaging.messaging().apnsToken = deviceToken
     }
 
     func handleRegistrationError(_ error: Error) {
         print("Failed to register for remote notifications: \(error.localizedDescription)")
+    }
+
+    func getFCMToken() async -> String? {
+        try? await Messaging.messaging().token()
+    }
+
+    func registerFCMTokenToServer() {
+        Task {
+            guard let token = await getFCMToken() else { return }
+            try? await notificationRepository.registerFCMToken(token)
+        }
+    }
+
+    func registerFCMTokenIfLoggedIn() {
+        let storage = UserDefaultsStorage()
+        let isLoggedIn: Bool = (try? storage.fetch(for: .currentUser) as User) != nil
+        guard isLoggedIn else { return }
+        registerFCMTokenToServer()
     }
 }
 
@@ -57,5 +84,15 @@ extension NotificationService: UNUserNotificationCenterDelegate {
         let userInfo = response.notification.request.content.userInfo
         DeepLinkService.shared.handle(userInfo: userInfo)
         completionHandler()
+    }
+}
+
+// MARK: - MessagingDelegate
+
+extension NotificationService: MessagingDelegate {
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        guard let fcmToken else { return }
+        print("FCM Token: \(fcmToken)")
+        registerFCMTokenIfLoggedIn()
     }
 }
