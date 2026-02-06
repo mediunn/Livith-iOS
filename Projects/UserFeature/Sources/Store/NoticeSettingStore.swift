@@ -169,13 +169,10 @@ private extension NoticeSettingStore {
 
     func performFetchUserAuthority() {
         Task {
-            do {
-                let user = try await userRepository.fetchUser()
-                await MainActor.run {
-                    send(._setAuthority(user.authority))
-                }
-            } catch {
-                // 기본값 유지
+            guard let user = try? await userRepository.fetchUser() else { return }
+            
+            await MainActor.run {
+                send(._setAuthority(user.authority))
             }
         }
     }
