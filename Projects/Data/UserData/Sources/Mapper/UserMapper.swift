@@ -110,6 +110,18 @@ struct UserMapper {
         )
     }
 
+    func toDomain(from dto: DTO.Response.FetchNotificationList) -> NotificationItem {
+        NotificationItem(
+            id: dto.id,
+            type: NotificationType(rawValue: dto.type),
+            title: dto.title,
+            content: dto.content,
+            targetID: dto.targetID.flatMap { Int($0) },
+            isRead: dto.isRead,
+            createdAt: dto.createdAt
+        )
+    }
+
     private func calculateDaysLeft(from date: Date) -> Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())

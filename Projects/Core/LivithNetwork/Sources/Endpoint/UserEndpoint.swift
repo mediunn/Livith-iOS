@@ -20,6 +20,7 @@ public enum UserEndpoint {
     case updateNotificationConsent(request: DTO.Request.UpdateNotificationConsent)
     case updateMarketingConsent
     case fetchNotificationSettings
+    case fetchNotificationList(cursor: Int?, size: Int)
 }
 
 extension UserEndpoint: NetworkEndpoint {
@@ -39,13 +40,21 @@ extension UserEndpoint: NetworkEndpoint {
             return "/notifications/marketing-consent"
         case .fetchNotificationSettings:
             return "/notifications/settings"
+        case .fetchNotificationList:
+            return "/notifications"
         }
     }
-    
+
     public var query: [String : Any]? {
         switch self {
         case .checkNicknameDuplicate(nickname: let nickname):
             return ["nickname" : nickname]
+        case .fetchNotificationList(cursor: let cursor, size: let size):
+            var query: [String: Any] = ["size": size]
+            if let cursor {
+                query["cursor"] = cursor
+            }
+            return query
         default:
             return .none
         }
@@ -70,7 +79,7 @@ extension UserEndpoint: NetworkEndpoint {
         switch self {
         case .logout, .withdraw, .updateNotificationConsent, .updateMarketingConsent:
             return .post
-        case .checkNicknameDuplicate, .fetchNotificationSettings:
+        case .checkNicknameDuplicate, .fetchNotificationSettings, .fetchNotificationList:
             return .get
         case .updateUserNickname:
             return .patch
@@ -82,7 +91,7 @@ extension UserEndpoint: NetworkEndpoint {
         case .logout, .checkNicknameDuplicate:
             return false
         case .updateUserNickname, .withdraw, .updateNotificationConsent, .updateMarketingConsent,
-             .fetchNotificationSettings:
+             .fetchNotificationSettings, .fetchNotificationList:
             return true
         }
     }

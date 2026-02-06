@@ -158,4 +158,16 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
+
+    func fetchNotificationList(cursor: Int?, size: Int) async throws(UserError) -> [NotificationItem] {
+        do {
+            let response: [DTO.Response.FetchNotificationList] = try await userService.request(
+                .fetchNotificationList(cursor: cursor, size: size)
+            )
+            return response.map { mapper.toDomain(from: $0) }
+        } catch {
+            let userError: UserError = errorMapper.mapToUserError(error)
+            throw userError
+        }
+    }
 }
