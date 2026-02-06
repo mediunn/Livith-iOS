@@ -128,6 +128,22 @@ struct UserRepositoryImpl: UserRepository {
             let response: DTO.Response.UpdateNotificationConsent = try await userService.request(
                 .updateNotificationConsent(request: request)
             )
+            await userCache.updateUser { user in
+                switch field {
+                case .benefitAlert:
+                    user.authority.benefitNotification = isAgreed
+                case .nightAlert:
+                    user.authority.nightNotification = isAgreed
+                case .ticketAlert:
+                    user.authority.ticketSchedule = isAgreed
+                case .infoAlert:
+                    user.authority.concertInfoUpdate = isAgreed
+                case .interestAlert:
+                    user.authority.favoriteArtistConcert = isAgreed
+                case .recommendAlert:
+                    user.authority.preferenceBasedConcert = isAgreed
+                }
+            }
             return mapper.toDomain(from: response)
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
@@ -152,6 +168,9 @@ struct UserRepositoryImpl: UserRepository {
             let response: DTO.Response.UpdateNotificationConsent = try await userService.request(
                 .updateMarketingConsent
             )
+            await userCache.updateUser { user in
+                user.authority.marketingConsent = true
+            }
             return mapper.toDomain(from: response)
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)

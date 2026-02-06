@@ -22,6 +22,7 @@ public struct NoticeView: View {
 
     private let onBack: () -> Void
     private let onSettingTap: () -> Void
+    private let onInterestTap: () -> Void
     private let onConcertTap: (Int, SegmentedTabBarType.DetailTab) -> Void
 
     // MARK: - Initializer
@@ -29,10 +30,12 @@ public struct NoticeView: View {
     public init(
         onBack: @escaping () -> Void,
         onSettingTap: @escaping () -> Void,
+        onInterestTap: @escaping () -> Void,
         onConcertTap: @escaping (Int, SegmentedTabBarType.DetailTab) -> Void
     ) {
         self.onBack = onBack
         self.onSettingTap = onSettingTap
+        self.onInterestTap = onInterestTap
         self.onConcertTap = onConcertTap
     }
 
@@ -127,7 +130,9 @@ private extension NoticeView {
                         action: {
                             store.send(.markAsRead(id: notification.id))
                             didNavigateToDetail = true
-                            if let targetID = notification.targetID {
+                            if notification.type == .interestConcert {
+                                onInterestTap()
+                            } else if let targetID = notification.targetID {
                                 let initialTab: SegmentedTabBarType.DetailTab = notification.type.isTicketType
                                     ? .concertInfo
                                     : .artistDetail
@@ -170,6 +175,7 @@ private extension NoticeView {
     NoticeView(
         onBack: {},
         onSettingTap: {},
+        onInterestTap: {},
         onConcertTap: { _, _ in }
     )
 }

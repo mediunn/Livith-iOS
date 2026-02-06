@@ -55,6 +55,7 @@ final class HomeCoordinator: Coordinator {
                 rootView: NoticeView(
                     onBack: { [weak self] in self?.pop() },
                     onSettingTap: { [weak self] in self?.push(to: .noticeSetting) },
+                    onInterestTap: { [weak self] in self?.push(to: .interest) },
                     onConcertTap: { [weak self] concertID, initialTab in
                         self?.showConcertDetail(concertID: concertID, initialTab: initialTab)
                     }
