@@ -42,10 +42,6 @@ struct HomeConcertSectionView: View {
         }
         .background(.livithColor(.black90))
     }
-    
-    private var emptyMessage: String {
-        store.state.errorMessage.isEmpty ? "콘텐츠가 없습니다." : store.state.errorMessage
-    }
 }
 
 // MARK: - Subviews
@@ -72,20 +68,42 @@ private extension HomeConcertSectionView {
     
     var contentView: some View {
         VStack(spacing: .zero) {
-            if !sectionState.isLoading && sectionState.sectionList.isEmpty {
-                LivithEmptyView(text: emptyMessage)
-                    .frame(minHeight: Constants.emptyStateMinHeight)
-            }
+            recommendedConcertSection
             
-            ForEach(sectionState.sectionList, id: \.id) { section in
-                concertSectionRow(for: section)
-                    .padding(.top, 28)
-                    .padding(.leading, 16)
-            }
+            concertSection
             
             Spacer(minLength: Constants.emptySpaceHeight)
         }
         .background(Color.livithColor(.black100))
+    }
+    
+    var recommendedConcertSection: some View {
+        RecommendedConcertSectionView(
+            title: "\(store.state.userName)님의\n취향이 담긴 콘서트",
+            concertList: sectionState.recommendedConcertList
+        ) { concert in
+            coordinator?.showConcertDetail(concertID: concert.id)
+        } onSeeAllTap: {
+            
+            // TODO: 취향 콘서트 모두 페이지로 이동
+            
+        }
+        .padding(.top, Constants.sectionTopPadding)
+        .padding(.leading, Constants.sectionLeadingPadding)
+    }
+    
+    @ViewBuilder
+    var concertSection: some View {
+        if !sectionState.isLoading && sectionState.sectionList.isEmpty {
+            LivithEmptyView(text: emptyMessage)
+                .padding(.top, Constants.sectionTopPadding)
+        } else {
+            ForEach(sectionState.sectionList, id: \.id) { section in
+                concertSectionRow(for: section)
+                    .padding(.top, Constants.sectionTopPadding)
+                    .padding(.leading, Constants.sectionLeadingPadding)
+            }
+        }
     }
 }
 
@@ -93,12 +111,13 @@ private extension HomeConcertSectionView {
 
 private extension HomeConcertSectionView {
     func concertSectionRow(for section: ConcertSection) -> some View {
-        ConcertSectionView(
-            concertSection: section,
-            onConcertTap: { concert in
-                coordinator?.showConcertDetail(concertID: concert.id)
-            }
-        )
+        ConcertSectionView(concertSection: section) { concert in
+            coordinator?.showConcertDetail(concertID: concert.id)
+        }
+    }
+    
+    var emptyMessage: String {
+        store.state.errorMessage.isEmpty ? "콘텐츠가 없습니다." : store.state.errorMessage
     }
 }
 
@@ -107,6 +126,7 @@ private extension HomeConcertSectionView {
 private extension HomeConcertSectionView {
     enum Constants {
         static let emptySpaceHeight: CGFloat = 210
-        static let emptyStateMinHeight: CGFloat = 428
+        static let sectionTopPadding: CGFloat = 28
+        static let sectionLeadingPadding: CGFloat = 16
     }
 }

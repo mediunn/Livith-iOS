@@ -58,7 +58,7 @@ struct HomeState {
         var sectionList: [ConcertSection] = []
         var isLoading: Bool = false
         var shouldShowPreferenceBanner: Bool = false
-        var recommendedConcerts: [Concert] = []
+        var recommendedConcertList: [Concert] = []
     }
 }
 
@@ -262,20 +262,20 @@ private extension HomeStore {
             if !genreList.isEmpty {
                 performFetchRecommendedConcertList()
             } else {
-                state.sections.recommendedConcerts = []
+                state.sections.recommendedConcertList = []
             }
         case .failure:
             state.sections.shouldShowPreferenceBanner = false
-            state.sections.recommendedConcerts = []
+            state.sections.recommendedConcertList = []
         }
     }
     
     func handleFetchRecommendedConcertListResult(_ result: Result<[Concert], Error>) {
         switch result {
         case .success(let concerts):
-            state.sections.recommendedConcerts = concerts
+            state.sections.recommendedConcertList = concerts
         case .failure(let error):
-            state.sections.recommendedConcerts = []
+            state.sections.recommendedConcertList = []
             state.errorMessage = getErrorMessage(from: error)
         }
     }

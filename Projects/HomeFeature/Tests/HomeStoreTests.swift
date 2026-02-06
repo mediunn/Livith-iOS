@@ -52,7 +52,7 @@ struct HomeStoreTests {
     @Test("초기 상태에서 recommendedConcerts는 비어있어야 한다")
     func testInitialRecommendedConcertsState() {
         let sut = HomeStore()
-        #expect(sut.state.sections.recommendedConcerts.isEmpty)
+        #expect(sut.state.sections.recommendedConcertList.isEmpty)
     }
     
     // MARK: - onAppear 테스트
@@ -382,8 +382,8 @@ struct HomeStoreTests {
         
         // Then
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount > 0)
-        #expect(!sut.state.sections.recommendedConcerts.isEmpty)
-        #expect(sut.state.sections.recommendedConcerts.count == 2)
+        #expect(!sut.state.sections.recommendedConcertList.isEmpty)
+        #expect(sut.state.sections.recommendedConcertList.count == 2)
     }
     
     @Test("선호 장르가 없을 때 추천 콘서트가 로드되지 않아야 한다")
@@ -404,7 +404,7 @@ struct HomeStoreTests {
         
         // Then
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
-        #expect(sut.state.sections.recommendedConcerts.isEmpty)
+        #expect(sut.state.sections.recommendedConcertList.isEmpty)
     }
     
     @Test("추천 콘서트 로드 실패 시 에러가 설정되어야 한다")
@@ -423,7 +423,7 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
-        #expect(sut.state.sections.recommendedConcerts.isEmpty)
+        #expect(sut.state.sections.recommendedConcertList.isEmpty)
         #expect(!sut.state.errorMessage.isEmpty)
     }
     

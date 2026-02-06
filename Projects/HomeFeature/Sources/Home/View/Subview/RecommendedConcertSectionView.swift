@@ -13,7 +13,7 @@ import LivithDesignSystem
 
 struct RecommendedConcertSectionView: View {
     let title: String
-    let concerts: [Concert]
+    let concertList: [Concert]
     let onConcertTap: ((Concert) -> Void)
     let onSeeAllTap: () -> Void
     
@@ -21,7 +21,7 @@ struct RecommendedConcertSectionView: View {
         VStack(alignment: .leading, spacing: 20) {
             headerView
             
-            if concerts.isEmpty {
+            if concertList.isEmpty {
                 emptyStateView
             } else {
                 concertListView
@@ -41,12 +41,13 @@ private extension RecommendedConcertSectionView {
             
             Spacer()
             
-            if !concerts.isEmpty {
+            if !concertList.isEmpty {
                 Button(action: onSeeAllTap) {
                     Image.livithIcon(.rightLineDefault)
                         .resizable()
                         .frame(width: Constants.iconSize, height: Constants.iconSize)
                 }
+                .padding(.trailing, 16)
             }
         }
     }
@@ -54,7 +55,7 @@ private extension RecommendedConcertSectionView {
     var concertListView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 12) {
-                ForEach(concerts) { concert in
+                ForEach(concertList) { concert in
                     LivithCard(
                         imageURL: concert.posterURL,
                         title: concert.title,
@@ -93,7 +94,7 @@ private extension RecommendedConcertSectionView {
 #Preview("Empty State") {
     RecommendedConcertSectionView(
         title: "유지미님의\n취향이 담긴 콘서트",
-        concerts: []
+        concertList: []
     ) { concert in
         print("\(concert)눌림")
     } onSeeAllTap: {
@@ -105,7 +106,7 @@ private extension RecommendedConcertSectionView {
 #Preview("With Concerts") {
     RecommendedConcertSectionView(
         title: "유지미님의\n취향이 담긴 콘서트",
-        concerts: Concert.mockConcerts
+        concertList: Concert.mockConcerts
     ) { concert in
         print("\(concert.title) 탭")
     } onSeeAllTap: {
