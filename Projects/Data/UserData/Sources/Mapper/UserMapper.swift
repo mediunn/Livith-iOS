@@ -113,7 +113,7 @@ struct UserMapper {
     func toDomain(from dto: DTO.Response.FetchNotificationList) -> NotificationItem {
         NotificationItem(
             id: dto.id,
-            type: NotificationType(rawValue: dto.type),
+            type: NotificationType(rawValue: dto.type)!,
             title: dto.title,
             content: dto.content,
             targetID: dto.targetID.flatMap { Int($0) },

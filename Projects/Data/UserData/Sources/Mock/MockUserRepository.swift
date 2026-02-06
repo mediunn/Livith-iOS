@@ -81,27 +81,33 @@ private extension MockUserRepository {
 
     static func generateMockNotifications() -> [NotificationItem] {
         let titles = [
-            "추천 콘서트",
-            "예매 일정",
+            "관심 콘서트 알림",
+            "예매 D-1 알림",
+            "예매 D-7 알림",
+            "오늘 예매 시작",
             "콘서트 정보 업데이트",
-            "선호 아티스트 공연",
-            "혜택 알림"
+            "선호 아티스트 공연 오픈",
+            "추천 콘서트"
         ]
 
         let contents = [
-            "좋아하는 아티스트의 내한 공연 소식이 도착했어요!",
+            "관심 콘서트의 새로운 소식이 도착했어요!",
             "관심 콘서트로 선택한 공연, 내일 예매가 시작되어요!",
+            "관심 콘서트로 선택한 공연, 일주일 뒤 예매가 시작되어요!",
+            "관심 콘서트로 선택한 공연, 오늘 예매가 시작되어요!",
             "관심 콘서트의 공연 정보가 업데이트되었어요.",
             "선호 아티스트의 새로운 공연이 등록되었어요!",
-            "라이빗에서 준비한 특별한 혜택을 확인해보세요."
+            "좋아하는 아티스트의 내한 공연 소식이 도착했어요!"
         ]
 
         let types: [NotificationType] = [
             .interestConcert,
             .ticket1D,
-            .concertInfo,
-            .recommendation,
-            .benefit
+            .ticket7D,
+            .ticketToday,
+            .concertInfoUpdate,
+            .artistConcertOpen,
+            .recommend
         ]
 
         return (1...30).map { index in
