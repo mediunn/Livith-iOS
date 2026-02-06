@@ -101,9 +101,7 @@ private extension HomeConcertSectionView {
         ) { concert in
             coordinator?.showConcertDetail(concertID: concert.id)
         } onSeeAllTap: {
-            
-            // TODO: 취향 콘서트 모두 페이지로 이동
-            
+            coordinator?.push(to: .recommendedConcertList(concertList: sectionState.recommendedConcertList))
         }
         .padding(.top, Constants.sectionTopPadding)
         .padding(.leading, Constants.sectionLeadingPadding)
