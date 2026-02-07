@@ -8,7 +8,9 @@
 
 import Foundation
 
+import Domain
 import KakaoSDKAuth
+import LivithDesignSystem
 
 final class DeepLinkService {
     static let shared = DeepLinkService()
@@ -28,7 +30,21 @@ final class DeepLinkService {
     }
 
     func handle(userInfo: [AnyHashable: Any]) {
-        // TODO: 푸시 알림 payload에서 딥링크 추출 후 처리
+        guard let typeString = userInfo["type"] as? String,
+              let concertIDString = userInfo["concertId"] as? String,
+              let concertID = Int(concertIDString),
+              let notificationType = NotificationType(rawValue: typeString)
+        else {
+            return
+        }
+
+        let initialTab = mapNotificationTypeToTab(notificationType)
+
+        NotificationCenter.default.post(
+            name: .openConcertDetail,
+            object: nil,
+            userInfo: ["concertID": concertID, "initialTab": initialTab]
+        )
     }
 }
 
@@ -58,8 +74,19 @@ private extension DeepLinkService {
         NotificationCenter.default.post(
             name: .openConcertDetail,
             object: nil,
-            userInfo: ["concertID": concertID]
+            userInfo: ["concertID": concertID, "initialTab": SegmentedTabBarType.DetailTab.artistDetail]
         )
+    }
+
+    func mapNotificationTypeToTab(_ type: NotificationType) -> SegmentedTabBarType.DetailTab {
+        switch type {
+        case .concertInfoUpdateSetlist:
+            return .setlist
+        case .concertInfoUpdateMD, .concertInfoUpdateDetail, .concertInfoUpdateSchedule, .concertInfoUpdateTicket:
+            return .concertInfo
+        default:
+            return .artistDetail
+        }
     }
 }
 
