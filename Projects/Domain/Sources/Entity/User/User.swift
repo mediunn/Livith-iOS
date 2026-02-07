@@ -10,11 +10,12 @@ import Foundation
 
 public struct User: Identifiable, Hashable, Codable {
     public let id: Int
-    public var interestConcertID: Int?
     public let provider: String
     public let providerID: String
     public let email: String?
-    public let nickname: String
+    public let hasPreferences: Bool
+    public var interestConcertID: Int?
+    public var nickname: String
     public var authority: UserAuthority
 
     public init(
@@ -24,6 +25,7 @@ public struct User: Identifiable, Hashable, Codable {
         providerID: String,
         email: String?,
         nickname: String,
+        hasPreferences: Bool,
         authority: UserAuthority
     ) {
         self.id = id
@@ -32,6 +34,7 @@ public struct User: Identifiable, Hashable, Codable {
         self.providerID = providerID
         self.email = email
         self.nickname = nickname
+        self.hasPreferences = hasPreferences
         self.authority = authority
     }
 
@@ -42,6 +45,7 @@ public struct User: Identifiable, Hashable, Codable {
         case providerID = "providerId"
         case email
         case nickname
+        case hasPreferences
         case authority
     }
 }

@@ -23,8 +23,14 @@ public struct MockUserRepository: UserRepository {
             providerID: "12345",
             email: "test@test.com",
             nickname: "테스트유저",
+            hasPreferences: false,
             authority: UserAuthority(deviceNotification: true, marketingConsent: true)
         )
+    }
+
+    @discardableResult
+    public func refreshUser() async throws(UserError) -> User {
+        try await fetchUser()
     }
 
     public func fetchInterestedConcert() async throws(UserError) -> Concert? {

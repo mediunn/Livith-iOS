@@ -24,6 +24,7 @@ struct AuthMapper {
             providerID: response.providerID,
             email: response.email,
             nickname: response.nickname,
+            hasPreferences: !response.preferredGenreList.isEmpty,
             authority: UserAuthority(deviceNotification: true, marketingConsent: response.marketingConsent)
         )
     }
@@ -39,6 +40,7 @@ struct AuthMapper {
             providerID: response.providerID,
             email: response.email,
             nickname: response.nickname,
+            hasPreferences: !response.preferredGenreList.isEmpty,
             authority: UserAuthority(
                 deviceNotification: true,
                 marketingConsent: response.marketingConsent,
