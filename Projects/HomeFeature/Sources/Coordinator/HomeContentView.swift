@@ -15,14 +15,17 @@ public struct HomeContentView: View {
     @State private var coordinator: HomeCoordinator
     @Binding private var isTabBarHidden: Bool
     @Binding private var deepLinkConcertID: Int?
+    @Binding private var deepLinkInitialTab: SegmentedTabBarType.DetailTab
 
     public init(
         isTabBarHidden: Binding<Bool>,
-        deepLinkConcertID: Binding<Int?> = .constant(nil)
+        deepLinkConcertID: Binding<Int?> = .constant(nil),
+        deepLinkInitialTab: Binding<SegmentedTabBarType.DetailTab> = .constant(.artistDetail)
     ) {
         self._coordinator = State(initialValue: HomeCoordinator(isTabBarHidden: isTabBarHidden))
         self._isTabBarHidden = isTabBarHidden
         self._deepLinkConcertID = deepLinkConcertID
+        self._deepLinkInitialTab = deepLinkInitialTab
     }
 
     public var body: some View {
@@ -31,8 +34,9 @@ public struct HomeContentView: View {
             .onChange(of: deepLinkConcertID) { _, newValue in
                 if let concertID = newValue {
                     coordinator.popToRoot()
-                    coordinator.showConcertDetail(concertID: concertID)
+                    coordinator.showConcertDetail(concertID: concertID, initialTab: deepLinkInitialTab)
                     deepLinkConcertID = nil
+                    deepLinkInitialTab = .artistDetail
                 }
             }
     }

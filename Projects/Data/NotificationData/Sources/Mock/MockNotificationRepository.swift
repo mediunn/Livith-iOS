@@ -91,7 +91,7 @@ private extension MockNotificationRepository {
             .ticket1D,
             .ticket7D,
             .ticketToday,
-            .concertInfoUpdate,
+            .concertInfoUpdateDetail,
             .artistConcertOpen,
             .recommend
         ]

@@ -14,18 +14,19 @@ import UserFeature
 import SearchFeature
 
 struct LivithMainTabView: View {
-    
+
     // MARK: - Tab
-    
+
     enum Tab: Int, CaseIterable {
         case home, search, my
     }
-    
+
     // MARK: - Property
-    
+
     @State private var selectedTab: Tab = .home
     @State private var isTabBarHidden: Bool = false
     @State private var deepLinkConcertID: Int?
+    @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
     
     // MARK: - LifeCycle
     
@@ -39,7 +40,8 @@ struct LivithMainTabView: View {
         TabView(selection: $selectedTab) {
             HomeContentView(
                 isTabBarHidden: $isTabBarHidden,
-                deepLinkConcertID: $deepLinkConcertID
+                deepLinkConcertID: $deepLinkConcertID,
+                deepLinkInitialTab: $deepLinkInitialTab
             )
             .tag(Tab.home)
             .tabItem {
@@ -70,6 +72,9 @@ struct LivithMainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openConcertDetail)) { notification in
             if let concertID = notification.userInfo?["concertID"] as? Int {
                 selectedTab = .home
+                if let initialTab = notification.userInfo?["initialTab"] as? SegmentedTabBarType.DetailTab {
+                    deepLinkInitialTab = initialTab
+                }
                 deepLinkConcertID = concertID
             }
         }
