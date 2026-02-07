@@ -52,6 +52,9 @@ struct HomeInterestConcertView: View {
                     onDeleteConcert: handleDeleteConcert
                 )
             }
+            .onAppear {
+                store.send(.interestConcert(.onAppear))
+            }
     }
 }
 
@@ -103,6 +106,7 @@ private extension HomeInterestConcertView {
                     .padding(.horizontal, 16)
                 }
             }
+            .scrollIndicators(.never)
             .refreshable {
                 await MainActor.run {
                     store.send(.interestConcert(.onRefresh))

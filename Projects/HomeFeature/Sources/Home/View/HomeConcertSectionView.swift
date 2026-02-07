@@ -39,6 +39,7 @@ struct HomeConcertSectionView: View {
                     }
                 }
             }
+            .scrollIndicators(.never)
             .refreshable { store.send(.concertSection(.onRefresh)) }
             .ignoresSafeArea(edges: .bottom)
         }

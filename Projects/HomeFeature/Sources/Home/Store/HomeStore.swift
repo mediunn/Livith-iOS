@@ -370,6 +370,7 @@ private extension HomeStore {
             do {
                 try await userRepository.deleteInterestedConcert()
                 WidgetCenter.shared.reloadAllTimelines()
+                performFetchUser()
                 send(.interestConcert(._deleteInterestConcertResult(.success(()))))
             } catch {
                 send(.interestConcert(._deleteInterestConcertResult(.failure(error))))
