@@ -14,11 +14,14 @@ import LivithNetwork
 import SocialAuth
 import Persistence
 
+import FirebaseMessaging
+
 struct AuthRepositoryImpl: AuthRepository {
     private let socialAuthService: SocialAuthService
     private let onboardingService: OnboardingService
     private let userService: UserService
     private let notificationService: NotificationService
+    private let notificationRepository: NotificationRepository
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenService: TokenService
     private let widgetImageStorage: WidgetImageStorage
@@ -30,6 +33,7 @@ struct AuthRepositoryImpl: AuthRepository {
         onboardingService: OnboardingService,
         userService: UserService,
         notificationService: NotificationService,
+        notificationRepository: NotificationRepository,
         userdefaultsStorage: UserDefaultsStorage,
         tokenService: TokenService,
         widgetImageStorage: WidgetImageStorage
@@ -38,6 +42,7 @@ struct AuthRepositoryImpl: AuthRepository {
         self.onboardingService = onboardingService
         self.userService = userService
         self.notificationService = notificationService
+        self.notificationRepository = notificationRepository
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenService = tokenService
         self.widgetImageStorage = widgetImageStorage
@@ -152,11 +157,22 @@ private extension AuthRepositoryImpl {
     }
     
     func handleLogout() async {
+        await deleteFCMToken()
         try? await tokenService.removeToken()
         userdefaultsStorage.remove(for: .currentUser)
         userdefaultsStorage.remove(for: .interestConcert)
         widgetImageStorage.remove(forKey: "interestConcertPoster")
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    func registerFCMToken() async {
+        guard let fcmToken = try? await Messaging.messaging().token() else { return }
+        try? await notificationRepository.registerFCMToken(fcmToken)
+    }
+
+    func deleteFCMToken() async {
+        guard let fcmToken = try? await Messaging.messaging().token() else { return }
+        try? await notificationRepository.deleteFCMToken(fcmToken)
     }
     
     func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws {
@@ -164,10 +180,12 @@ private extension AuthRepositoryImpl {
             accessToken: response.accessToken,
             refreshToken: response.refreshToken
         )
-        
+
         let user = mapper.toDomain(from: response.user)
         try? userdefaultsStorage.save(user, for: .currentUser)
         try? userdefaultsStorage.save(tempUser.provider.description, for: .lastLoginPlatform)
+
+        await registerFCMToken()
     }
     
     func getCredential(for provider: SocialLoginProvider) async throws -> SocialAuthCredential {
@@ -206,7 +224,9 @@ private extension AuthRepositoryImpl {
                 user = mapper.toDomain(from: userInfoResponse)
             }
             try? userdefaultsStorage.save(user, for: .currentUser)
-            
+
+            await registerFCMToken()
+
             return .existingUser(nickname: user.nickname)
         }
     }

@@ -20,7 +20,8 @@ let project = Project.make(
                 .core(.livithNetwork),
                 .core(.livithFoundation),
                 .core(.persistence),
-                .core(.diContainer)
+                .core(.diContainer),
+                .external(.firebaseMessaging)
             ]
         ),
         .make(
