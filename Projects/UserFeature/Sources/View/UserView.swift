@@ -32,6 +32,8 @@ struct UserView: View {
 
     @State private var overlayType: OverlayType = .none
     @State private var showNicknameSuccessToast: Bool = false
+    @State private var showGenreUpdateSuccessSnackBar: Bool = false
+    @State private var showArtistUpdateSuccessSnackBar: Bool = false
 
     @Binding private var isTabBarHidden: Bool
 
@@ -85,8 +87,22 @@ struct UserView: View {
             type: .success,
             message: Literals.toastSuccess
         )
+        .overlay { genreUpdateSuccessSnackBar }
+        .overlay { artistUpdateSuccessSnackBar }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showGenreUpdateSuccessSnackBar)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showArtistUpdateSuccessSnackBar)
         .onAppear {
             store.send(.fetchUserInfo)
+            coordinator?.onGenreUpdateSuccess = {
+                showGenreUpdateSuccessSnackBar = true
+            }
+            coordinator?.onArtistUpdateSuccess = {
+                showArtistUpdateSuccessSnackBar = true
+            }
+        }
+        .onDisappear {
+            coordinator?.onGenreUpdateSuccess = nil
+            coordinator?.onArtistUpdateSuccess = nil
         }
     }
 }
@@ -211,6 +227,40 @@ private extension UserView {
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
+    }
+    
+    @ViewBuilder
+    var genreUpdateSuccessSnackBar: some View {
+        if showGenreUpdateSuccessSnackBar {
+            LivithSnackBar(
+                message: "선호 장르를 변경했어요!\n홈에서 확인해 볼까요?",
+                actionTitle: "홈으로 이동",
+                onActionTapped: {
+                    showGenreUpdateSuccessSnackBar = false
+                },
+                onDismiss: {
+                    showGenreUpdateSuccessSnackBar = false
+                }
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+    
+    @ViewBuilder
+    var artistUpdateSuccessSnackBar: some View {
+        if showArtistUpdateSuccessSnackBar {
+            LivithSnackBar(
+                message: "선호 아티스트를 변경했어요!\n홈에서 확인해 볼까요?",
+                actionTitle: "홈으로 이동",
+                onActionTapped: {
+                    showArtistUpdateSuccessSnackBar = false
+                },
+                onDismiss: {
+                    showArtistUpdateSuccessSnackBar = false
+                }
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
     }
     
     var genreCardList: some View {

@@ -16,6 +16,9 @@ final class UserCoordinator: Coordinator {
     let navigationController: UINavigationController
 
     private let isTabBarHidden: Binding<Bool>
+    
+    var onGenreUpdateSuccess: (() -> Void)?
+    var onArtistUpdateSuccess: (() -> Void)?
 
     init(isTabBarHidden: Binding<Bool>) {
         self.navigationController = UINavigationController()

@@ -63,6 +63,7 @@ struct UserArtistUpdateView: View {
         .onChange(of: store.state.result) { _, result in
             switch result {
             case .success:
+                coordinator?.onArtistUpdateSuccess?()
                 coordinator?.pop()
             case .failure:
                 isFailureToastPresented = true
