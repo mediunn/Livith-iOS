@@ -40,7 +40,7 @@ public struct ArtistSelectionState: Equatable {
         self.initialSelectedArtistList = selectedArtistList
     }
     
-    var isModified: Bool { selectedArtistList != initialSelectedArtistList }
+    var isModified: Bool { selectedArtistList != initialSelectedArtistList && !selectedArtistList.isEmpty }
 }
 
 public final class ArtistSelectionStore: ObservableObject {
