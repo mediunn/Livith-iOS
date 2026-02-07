@@ -34,6 +34,7 @@ private extension AuthDataAssembler {
             onboardingService: container.resolve(OnboardingService.self),
             userService: container.resolve(UserService.self),
             notificationService: container.resolve(NotificationService.self),
+            notificationRepository: container.resolve(NotificationRepository.self),
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
             tokenService: container.resolve(TokenService.self),
             widgetImageStorage: container.resolve(WidgetImageStorage.self)

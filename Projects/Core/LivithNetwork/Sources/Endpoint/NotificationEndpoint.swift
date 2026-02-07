@@ -19,6 +19,8 @@ public enum NotificationEndpoint {
     case updateConsent(request: DTO.Request.UpdateNotificationConsent)
     case updateMarketingConsent
     case fetchSettings
+    case registerFCMToken(request: DTO.Request.RegisterFCMToken)
+    case deleteFCMToken(request: DTO.Request.DeleteFCMToken)
 }
 
 extension NotificationEndpoint: NetworkEndpoint {
@@ -36,6 +38,8 @@ extension NotificationEndpoint: NetworkEndpoint {
             return "/notifications/marketing-consent"
         case .fetchSettings:
             return "/notifications/settings"
+        case .registerFCMToken, .deleteFCMToken:
+            return "/notifications/fcm-token"
         }
     }
 
@@ -54,7 +58,11 @@ extension NotificationEndpoint: NetworkEndpoint {
 
     public var body: (any Encodable)? {
         switch self {
-        case .updateConsent(request: let request):
+        case .updateConsent(let request):
+            return request
+        case .registerFCMToken(let request):
+            return request
+        case .deleteFCMToken(let request):
             return request
         default:
             return .none
@@ -65,10 +73,12 @@ extension NotificationEndpoint: NetworkEndpoint {
         switch self {
         case .fetchList, .fetchUnreadCount, .fetchSettings:
             return .get
-        case .updateConsent, .updateMarketingConsent:
+        case .updateConsent, .updateMarketingConsent, .registerFCMToken:
             return .post
         case .markAsRead:
             return .patch
+        case .deleteFCMToken:
+            return .delete
         }
     }
 

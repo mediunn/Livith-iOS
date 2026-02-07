@@ -18,4 +18,6 @@ public protocol NotificationRepository {
     ) async throws(NotificationError) -> NotificationConsentResult
     func updateMarketingConsent() async throws(NotificationError) -> NotificationConsentResult
     func fetchNotificationSettings() async throws(NotificationError) -> NotificationSettings
+    func registerFCMToken(_ token: String) async throws(NotificationError)
+    func deleteFCMToken(_ token: String) async throws(NotificationError)
 }

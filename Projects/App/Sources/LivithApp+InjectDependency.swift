@@ -23,10 +23,10 @@ extension LivithApp {
     func registerDependency() {
         DIContainer.shared.register(
             assemblers: [
+                NotificationDataAssembler(),
                 AuthDataAssembler(),
                 CommentDataAssembler(),
                 ConcertDataAssembler(),
-                NotificationDataAssembler(),
                 SearchDataAssembler(),
                 SetlistDataAssembler(),
                 SongDataAssembler(),

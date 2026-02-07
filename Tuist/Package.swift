@@ -1,22 +1,21 @@
 // swift-tools-version: 6.0
-import PackageDescription
+@preconcurrency import PackageDescription
 
 #if TUIST
-    import struct ProjectDescription.PackageSettings
+@preconcurrency import ProjectDescription
 
-    let packageSettings = PackageSettings(
-        // Customize the product types for specific package product
-        // Default is .staticFramework
-        // productTypes: ["Alamofire": .framework,]
-        productTypes: [
-            "Kingfisher": .framework,
-            "KakaoSDKCommon": .framework,
-            "KakaoSDKAuth": .framework,
-            "KakaoSDKUser": .framework,
-            "Alamofire": .framework,
-            "YouTubePlayerKit": .framework
-        ]
-    )
+let packageSettings = PackageSettings(
+    productTypes: [
+        "Kingfisher": .framework,
+        "KakaoSDKCommon": .framework,
+        "KakaoSDKAuth": .framework,
+        "KakaoSDKUser": .framework,
+        "Alamofire": .framework,
+        "YouTubePlayerKit": .framework,
+        "FirebaseCore": .staticLibrary,
+        "FirebaseMessaging": .staticLibrary
+    ]
+)
 #endif
 
 let package = Package(
@@ -25,6 +24,7 @@ let package = Package(
         .package(url: "https://github.com/Alamofire/Alamofire", .upToNextMajor(from: "5.10.2")),
         .package(url: "https://github.com/onevcat/Kingfisher", .upToNextMajor(from: "8.2.0")),
         .package(url: "https://github.com/kakao/kakao-ios-sdk", .upToNextMajor(from: "2.26.0")),
-        .package(url: "https://github.com/SvenTiigi/YouTubePlayerKit", .upToNextMajor(from: "1.9.0"))
+        .package(url: "https://github.com/SvenTiigi/YouTubePlayerKit", .upToNextMajor(from: "1.9.0")),
+        .package(url: "https://github.com/firebase/firebase-ios-sdk", exact: "12.9.0")
     ]
 )

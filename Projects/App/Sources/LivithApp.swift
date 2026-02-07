@@ -1,6 +1,8 @@
 import SwiftUI
 
+import FirebaseCore
 import KakaoSDKCommon
+
 import LivithFoundation
 
 @main
@@ -11,6 +13,7 @@ struct LivithApp: App {
 
     init() {
         registerDependency()
+        initializeFirebase()
         initializeKakaoSDK()
     }
 
@@ -19,11 +22,20 @@ struct LivithApp: App {
             AppRootView()
                 .task {
                     await NotificationService.shared.requestAuthorization()
+                    NotificationService.shared.registerForRemoteNotifications()
                 }
                 .onOpenURL { url in
                     DeepLinkService.shared.handle(url: url)
                 }
         }
+    }
+}
+
+// MARK: - Firebase
+
+private extension LivithApp {
+    func initializeFirebase() {
+        FirebaseApp.configure()
     }
 }
 

@@ -128,4 +128,28 @@ struct NotificationRepositoryImpl: NotificationRepository {
             throw notificationError
         }
     }
+
+    func registerFCMToken(_ token: String) async throws(NotificationError) {
+        do {
+            let request = DTO.Request.RegisterFCMToken(token: token)
+            let _: DTO.Response.EmptyResponse = try await notificationService.request(
+                .registerFCMToken(request: request)
+            )
+        } catch {
+            let notificationError: NotificationError = errorMapper.mapToNotificationError(error)
+            throw notificationError
+        }
+    }
+
+    func deleteFCMToken(_ token: String) async throws(NotificationError) {
+        do {
+            let request = DTO.Request.DeleteFCMToken(token: token)
+            let _: DTO.Response.EmptyResponse = try await notificationService.request(
+                .deleteFCMToken(request: request)
+            )
+        } catch {
+            let notificationError: NotificationError = errorMapper.mapToNotificationError(error)
+            throw notificationError
+        }
+    }
 }
