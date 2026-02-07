@@ -15,31 +15,31 @@ import UserFeature
 
 final class HomeCoordinator: Coordinator {
     typealias R = HomeRoute
-
+    
     let navigationController: UINavigationController
     
     private var concertCoordinator: ConcertCoordinator?
     private let isTabBarHidden: Binding<Bool>
-
+    
     init(isTabBarHidden: Binding<Bool>) {
         self.navigationController = UINavigationController()
         self.isTabBarHidden = isTabBarHidden
-
+        
         self.navigationController.setNavigationBarHidden(true, animated: false)
     }
-
+    
     func start() {
         push(to: .home, animated: false)
     }
-
+    
     func buildViewController(for route: R) -> UIViewController {
         switch route {
         case .home:
             return UIHostingController(rootView: HomeView(isTabBarHidden: isTabBarHidden).environment(\.homeCoordinator, self))
-
+            
         case .interest:
             return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))
-
+            
         case .interestComplete(posterURL: let url, title: let title, prefetchedImage: let image):
             return UIHostingController(
                 rootView: InteresetConcertCompleteView(
@@ -49,7 +49,7 @@ final class HomeCoordinator: Coordinator {
                 )
                 .environment(\.homeCoordinator, self)
             )
-
+            
         case .notice:
             return UIHostingController(
                 rootView: NoticeView(
@@ -62,7 +62,7 @@ final class HomeCoordinator: Coordinator {
                 )
                 .environment(\.homeCoordinator, self)
             )
-
+            
         case .noticeSetting:
             return UIHostingController(
                 rootView: NoticeSettingView(
@@ -94,7 +94,7 @@ final class HomeCoordinator: Coordinator {
             return vc
         }
     }
-
+    
     func showConcertDetail(concertID: Int, initialTab: SegmentedTabBarType.DetailTab = .artistDetail) {
         let coordinator = ConcertCoordinator(
             navigationController: navigationController,
@@ -105,7 +105,7 @@ final class HomeCoordinator: Coordinator {
         self.concertCoordinator = coordinator
         coordinator.start(concertID: concertID, initialTab: initialTab)
     }
-
+    
     func showSongDetail(songID: Int, setlistID: Int, songTitle: String) {
         let coordinator = ConcertCoordinator(
             navigationController: navigationController,
@@ -116,7 +116,7 @@ final class HomeCoordinator: Coordinator {
         self.concertCoordinator = coordinator
         coordinator.push(to: .songLyrics(songID: songID, setlistID: setlistID, songTitle: songTitle))
     }
-
+    
     func showSetlistDetail(concertID: Int, setlistID: Int) {
         let coordinator = ConcertCoordinator(
             navigationController: navigationController,

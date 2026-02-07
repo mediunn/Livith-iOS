@@ -34,7 +34,7 @@ public struct GenreSelectionState: Equatable {
         self.initialSelectedGenreList = selectedGenreList
     }
     
-    var isModified: Bool { selectedGenreList != initialSelectedGenreList }
+    var isModified: Bool { selectedGenreList != initialSelectedGenreList && !selectedGenreList.isEmpty }
 }
 
 public final class GenreSelectionStore: ObservableObject {    

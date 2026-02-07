@@ -57,7 +57,7 @@ struct HomeState {
     }
     
     struct ConcertSectionState {
-        typealias Data = (sections: [ConcertSection], hasGenres: Bool, recommended: [Concert]?)
+        typealias Data = (sections: [ConcertSection], recommended: [Concert]?)
         
         var sectionList: [ConcertSection] = []
         var isLoading: Bool = false
@@ -90,7 +90,6 @@ final class HomeStore: ObservableObject {
     @Injected private var notificationRepository: NotificationRepository
     @Injected private var concertRepository: ConcertRepository
     @Injected private var setlistRepository: SetlistRepository
-    @Injected private var preferenceRepository: PreferenceRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
     
@@ -257,7 +256,7 @@ private extension HomeStore {
             state.sections.isLoading = true
             performFetchConcertSectionData()
         } else {
-            performFetchConcertSectionUtilities()
+            performFetchConcertSectionRecommendations()
         }
     }
     
@@ -274,7 +273,7 @@ private extension HomeStore {
         switch result {
         case .success(let data):
             state.sections.sectionList = data.sections
-            state.sections.shouldShowPreferenceBanner = !data.hasGenres
+            state.sections.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
             state.sections.recommendedConcertList = data.recommended ?? []
             state.sections.errorMessage = ""
             
@@ -383,14 +382,13 @@ private extension HomeStore {
         cancellables[.refreshSections] = Task {
             do {
                 async let sections = concertRepository.fetchHomeConcertSectionList()
-                async let genresWithRecommendations = fetchGenresWithRecommendations()
+                async let recommendations = fetchRecommendationsIfNeeded()
                 
                 let resolvedSections = try await sections
-                let resolvedGenresWithRecommendations = try await genresWithRecommendations
+                let resolvedRecommendations = await recommendations
                 let data = (
                     sections: resolvedSections,
-                    hasGenres: resolvedGenresWithRecommendations.hasGenres,
-                    recommended: resolvedGenresWithRecommendations.recommended
+                    recommended: resolvedRecommendations
                 )
                 send(.concertSection(._concertSectionDataResult(.success(data))))
             } catch {
@@ -399,20 +397,15 @@ private extension HomeStore {
         }
     }
     
-    func performFetchConcertSectionUtilities() {
+    func performFetchConcertSectionRecommendations() {
         cancellables[.refreshSections]?.cancel()
         cancellables[.refreshSections] = Task {
-            do {
-                let genresWithRecommendations = try await fetchGenresWithRecommendations()
-                let data = (
-                    sections: state.sections.sectionList,
-                    hasGenres: genresWithRecommendations.hasGenres,
-                    recommended: genresWithRecommendations.recommended
-                )
-                send(.concertSection(._concertSectionDataResult(.success(data))))
-            } catch {
-                send(.concertSection(._concertSectionDataResult(.failure(error))))
-            }
+            let recommendations = await fetchRecommendationsIfNeeded()
+            let data = (
+                sections: state.sections.sectionList,
+                recommended: recommendations
+            )
+            send(.concertSection(._concertSectionDataResult(.success(data))))
         }
     }
 }
@@ -420,16 +413,17 @@ private extension HomeStore {
 // MARK: - Utilities
 
 private extension HomeStore {
-    func fetchGenresWithRecommendations() async throws -> (hasGenres: Bool, recommended: [Concert]?) {
-        let genres = try await preferenceRepository.fetchUserPreferredGenreList()
-        let hasGenres = !genres.isEmpty
-        let recommended: [Concert]?
-        if hasGenres {
-            recommended = try await concertRepository.fetchRecommendedConcertList()
-        } else {
-            recommended = nil
+    func fetchRecommendationsIfNeeded() async -> [Concert]? {
+        guard let hasPreferences = state.user?.hasPreferences else { return nil }
+        if hasPreferences {
+            do {
+                return try await concertRepository.fetchRecommendedConcertList()
+            } catch {
+                return []
+            }
         }
-        return (hasGenres, recommended)
+        
+        return nil
     }
     
     func getErrorMessage(from error: Error) -> String {

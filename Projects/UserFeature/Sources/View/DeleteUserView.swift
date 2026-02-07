@@ -23,18 +23,17 @@ struct DeleteUserView: View {
 
     @ObservedObject private var store: DeleteUserStore
 
-    var onDismiss: (() -> Void)?
+    @Environment(\.userCoordinator) private var coordinator
 
     // MARK: - LifeCycle
 
-    init(store: DeleteUserStore, onDismiss: (() -> Void)? = nil) {
+    init(store: DeleteUserStore) {
         self._store = ObservedObject(wrappedValue: store)
-        self.onDismiss = onDismiss
     }
 
     // MARK: - Body
 
-    public var body: some View {
+    var body: some View {
         VStack(alignment: .leading, spacing: 0) {
                 navigationBar
 
@@ -117,7 +116,7 @@ struct DeleteUserView: View {
                     isConfirmed: $isConfirmed,
                     onCancel: {
                         showConfirmSheet = false
-                        onDismiss?()
+                        coordinator?.pop()
                     },
                     onConfirm: {
                         showConfirmSheet = false
@@ -133,7 +132,7 @@ struct DeleteUserView: View {
 private extension DeleteUserView {
     var navigationBar: some View {
         LivithNavigationView(
-            type: .backOnly(onBack: { onDismiss?() })
+            type: .backOnly(onBack: { coordinator?.pop() })
         )
     }
 

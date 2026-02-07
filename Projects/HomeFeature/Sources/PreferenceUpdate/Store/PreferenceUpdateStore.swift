@@ -32,6 +32,7 @@ final class PreferenceUpdateStore: ObservableObject {
     @Published private(set) var state: PreferenceUpdateState
     
     @Injected private var repository: PreferenceRepository
+    @Injected private var userRepository: UserRepository
     
     init(_ selectedGenreList: [PreferredGenre]) {
         self.state = .init(selectedGenreList: selectedGenreList)
@@ -63,6 +64,7 @@ private extension PreferenceUpdateStore {
             do {
                 let genreIDList = state.selectedGenreList.map(\.id)
                 _ = try await repository.updateUserPreferredGenreList(genreIDs: genreIDList)
+                _ = try? await userRepository.refreshUser()
                 state.result = .success
             } catch {
                 state.result = .failure
@@ -80,6 +82,8 @@ private extension PreferenceUpdateStore {
                 async let updateGenreList = repository.updateUserPreferredGenreList(genreIDs: genreIDList)
                 async let updateArtistList = repository.updateUserPreferredArtistList(artistIDs: artistIDList)
                 _ = try await (updateGenreList, updateArtistList)
+                _ = try? await userRepository.refreshUser()
+                
                 state.result = .success
             } catch {
                 state.result = .failure

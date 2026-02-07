@@ -41,8 +41,9 @@ struct UserRepositoryImpl: UserRepository {
             let response: DTO.Response.UpdateUserNickname = try await userService.request(
                 .updateUserNickname(request: request)
             )
-            let user: User = mapper.toDomain(from: response)
-            await userCache.saveUser(user)
+            await userCache.updateUser { user in
+                user.nickname = response.nickname
+            }
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -53,16 +54,12 @@ struct UserRepositoryImpl: UserRepository {
         if let cachedUser = await userCache.fetchUserIfValid() {
             return cachedUser
         }
+        return try await fetchUserFromNetwork()
+    }
 
-        do {
-            let response: DTO.Response.FetchUserInfo = try await onboardingService.request(.fetchUserInfo)
-            let user: User = mapper.toDomain(from: response)
-            await userCache.saveUser(user)
-            return user
-        } catch {
-            let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError
-        }
+    @discardableResult
+    func refreshUser() async throws(UserError) -> User {
+        try await fetchUserFromNetwork()
     }
 
     func fetchInterestedConcert() async throws(UserError) -> Concert? {
@@ -110,6 +107,22 @@ struct UserRepositoryImpl: UserRepository {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
             await userCache.updateUser { $0.interestConcertID = nil }
             await interestConcertCache.deleteInterestConcert()
+        } catch {
+            let userError: UserError = errorMapper.mapToUserError(error)
+            throw userError
+        }
+    }
+}
+
+// MARK: - Helpers
+
+private extension UserRepositoryImpl {
+    func fetchUserFromNetwork() async throws(UserError) -> User {
+        do {
+            let response: DTO.Response.FetchUserInfo = try await onboardingService.request(.fetchUserInfo)
+            let user: User = mapper.toDomain(from: response)
+            await userCache.saveUser(user)
+            return user
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError

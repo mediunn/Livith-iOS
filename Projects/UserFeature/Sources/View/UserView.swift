@@ -10,14 +10,14 @@ import SwiftUI
 
 import LivithDesignSystem
 
-public struct UserView: View {
-
+struct UserView: View {
+    
     // MARK: - Enum
-
+    
     enum OverlayType: Equatable {
         case none
         case feedbackForm
-
+        
         var sheetURL: URL? {
             switch self {
             case .feedbackForm:
@@ -27,62 +27,51 @@ public struct UserView: View {
             }
         }
     }
-
+    
     // MARK: - Property
-
+    
     @State private var overlayType: OverlayType = .none
     @State private var showNicknameSuccessToast: Bool = false
-
+    @State private var showGenreUpdateSuccessSnackBar: Bool = false
+    @State private var showArtistUpdateSuccessSnackBar: Bool = false
+    
     @Binding private var isTabBarHidden: Bool
-
+    
     @StateObject private var store = UserStore()
-
-    private let onSetting: () -> Void
-    private let onNicknameEdit: () -> Void
-    private let onGenreSetting: () -> Void
-    private let onArtistSetting: () -> Void
-
+    
+    @Environment(\.userCoordinator) private var coordinator
+    
     // MARK: - LifeCycle
-
-    public init(
-        isTabBarHidden: Binding<Bool>,
-        onSetting: @escaping () -> Void,
-        onNicknameEdit: @escaping () -> Void,
-        onGenreSetting: @escaping () -> Void,
-        onArtistSetting: @escaping () -> Void
-    ) {
+    
+    init(isTabBarHidden: Binding<Bool>) {
         self._isTabBarHidden = isTabBarHidden
-        self.onSetting = onSetting
-        self.onNicknameEdit = onNicknameEdit
-        self.onGenreSetting = onGenreSetting
-        self.onArtistSetting = onArtistSetting
     }
-
+    
     // MARK: - Body
-
-    public var body: some View {
+    
+    var body: some View {
         VStack(spacing: 0) {
             settingButton
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 12)
                 .padding(.trailing, 16)
-
+            
             headerSection
                 .padding(.top, 78)
                 .padding(.horizontal, 16)
-
+            
             divideLine
                 .padding(.top, 20)
                 .padding(.bottom, 20)
-
+            
             feedbackButton
                 .frame(height: 84)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
-
+            
             preferenceSection
                 .padding(.horizontal, 16)
-
+            
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -98,6 +87,10 @@ public struct UserView: View {
             type: .success,
             message: Literals.toastSuccess
         )
+        .overlay { genreUpdateSuccessSnackBar }
+        .overlay { artistUpdateSuccessSnackBar }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showGenreUpdateSuccessSnackBar)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showArtistUpdateSuccessSnackBar)
         .onAppear {
             store.send(.fetchUserInfo)
         }
@@ -108,7 +101,7 @@ public struct UserView: View {
 
 private extension UserView {
     var settingButton: some View {
-        Button(action: onSetting) {
+        Button(action: { coordinator?.push(to: .setting) }) {
             Image.livithIcon(.settingFill)
                 .resizable()
                 .frame(width: 36, height: 36)
@@ -137,7 +130,7 @@ private extension UserView {
     }
     
     var editButton: some View {
-        Button(action: onNicknameEdit) {
+        Button(action: { coordinator?.push(to: .nicknameUpdate) }) {
             Text(Literals.editNickname)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
@@ -182,7 +175,12 @@ private extension UserView {
                 
                 LivithTextButton(
                     store.state.hasGenreData ? Literals.change : Literals.setup,
-                    action: onGenreSetting
+                    action: {
+                        coordinator?.push(to: .genreUpdate(selectedGenreList: store.state.genres))
+                        coordinator?.onGenreUpdateSuccess = {
+                            showGenreUpdateSuccessSnackBar = true
+                        }
+                    }
                 )
             }
             
@@ -205,7 +203,12 @@ private extension UserView {
                 
                 LivithTextButton(
                     store.state.hasArtistData ? Literals.change : Literals.setup,
-                    action: onArtistSetting
+                    action: {
+                        coordinator?.push(to: .artistUpdate(selectedArtistList: store.state.artists))
+                        coordinator?.onArtistUpdateSuccess = {
+                            showArtistUpdateSuccessSnackBar = true
+                        }
+                    }
                 )
             }
             
@@ -224,6 +227,44 @@ private extension UserView {
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
+    }
+    
+    @ViewBuilder
+    var genreUpdateSuccessSnackBar: some View {
+        if showGenreUpdateSuccessSnackBar {
+            LivithSnackBar(
+                message: "선호 장르를 변경했어요!\n홈에서 확인해 볼까요?",
+                actionTitle: "홈으로 이동",
+                position: .top,
+                onActionTapped: {
+                    showGenreUpdateSuccessSnackBar = false
+                    coordinator?.onNavigateToHome?()
+                },
+                onDismiss: {
+                    showGenreUpdateSuccessSnackBar = false
+                }
+            )
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+    
+    @ViewBuilder
+    var artistUpdateSuccessSnackBar: some View {
+        if showArtistUpdateSuccessSnackBar {
+            LivithSnackBar(
+                message: "선호 아티스트를 변경했어요!\n홈에서 확인해 볼까요?",
+                actionTitle: "홈으로 이동",
+                position: .top,
+                onActionTapped: {
+                    showArtistUpdateSuccessSnackBar = false
+                    coordinator?.onNavigateToHome?()
+                },
+                onDismiss: {
+                    showArtistUpdateSuccessSnackBar = false
+                }
+            )
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
     }
     
     var genreCardList: some View {
@@ -266,11 +307,11 @@ private extension UserView {
             set: { if !$0 { overlayType = .none } }
         )
     }
-
+    
     func showFeedbackForm() {
         overlayType = .feedbackForm
     }
-
+    
     func showNicknameSuccess() {
         showNicknameSuccessToast = true
     }
@@ -282,7 +323,7 @@ private extension UserView {
     enum Constant {
         static let feedbackFormURL = URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSe-d5MhQrwsRRrk9isYiYVw1afI7a60Xm0IHbxmmAHe8AUiMA/viewform")!
     }
-
+    
     enum Literals {
         static let titleFormat = "%@님, 반가워요!\n공연 준비 시작해볼까요?"
         static let editNickname = "닉네임 수정"
@@ -300,10 +341,6 @@ private extension UserView {
 
 #Preview {
     UserView(
-        isTabBarHidden: .constant(false),
-        onSetting: {},
-        onNicknameEdit: {},
-        onGenreSetting: {},
-        onArtistSetting: {}
+        isTabBarHidden: .constant(false)
     )
 }

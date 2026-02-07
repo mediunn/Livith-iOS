@@ -9,6 +9,7 @@
 import Foundation
 
 import Coordinator
+import Domain
 
 enum UserRoute: Route {
     case user
@@ -16,6 +17,6 @@ enum UserRoute: Route {
     case noticeSetting
     case nicknameUpdate
     case deleteUser
-    case genreSetting
-    case artistSetting
+    case genreUpdate(selectedGenreList: [PreferredGenre])
+    case artistUpdate(selectedArtistList: [PreferredArtist])
 }

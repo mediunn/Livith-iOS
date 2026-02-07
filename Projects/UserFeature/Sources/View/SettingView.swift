@@ -12,7 +12,7 @@ import LivithDesignSystem
 
 // MARK: - SettingView
 
-public struct SettingView: View {
+struct SettingView: View {
 
     // MARK: - Property
 
@@ -20,30 +20,20 @@ public struct SettingView: View {
 
     @StateObject private var logoutStore = LogoutStore()
 
-    private let onBack: () -> Void
-    private let onNoticeSetting: () -> Void
-    private let onDeleteUser: () -> Void
+    @Environment(\.userCoordinator) private var coordinator
 
     // MARK: - Initializer
 
-    public init(
-        onBack: @escaping () -> Void,
-        onNoticeSetting: @escaping () -> Void,
-        onDeleteUser: @escaping () -> Void
-    ) {
-        self.onBack = onBack
-        self.onNoticeSetting = onNoticeSetting
-        self.onDeleteUser = onDeleteUser
-    }
+    init() {}
 
     // MARK: - Body
 
-    public var body: some View {
+    var body: some View {
         VStack(spacing: 0) {
             navigationBar
 
             VStack(spacing: 12) {
-                LivithListItem(Literals.noticeSetting, type: .navigation, action: onNoticeSetting)
+                LivithListItem(Literals.noticeSetting, type: .navigation, action: { coordinator?.push(to: .noticeSetting) })
 
                 LivithListItem(Literals.updateNote, type: .navigation, action: showUpdateNote)
 
@@ -53,7 +43,7 @@ public struct SettingView: View {
 
                 LivithListItem(Literals.logout, type: .action, action: showLogoutModal)
 
-                LivithListItem(Literals.deleteAccount, type: .action, action: onDeleteUser)
+                LivithListItem(Literals.deleteAccount, type: .action, action: { coordinator?.push(to: .deleteUser) })
             }
             .padding(.top, 20)
 
@@ -94,7 +84,7 @@ public struct SettingView: View {
 
 private extension SettingView {
     var navigationBar: some View {
-        LivithNavigationView(type: .back(title: Literals.title, onBack: onBack))
+        LivithNavigationView(type: .back(title: Literals.title, onBack: { coordinator?.pop() }))
     }
 }
 
@@ -184,9 +174,5 @@ private extension SettingView {
 // MARK: - Preview
 
 #Preview {
-    SettingView(
-        onBack: {},
-        onNoticeSetting: {},
-        onDeleteUser: {}
-    )
+    SettingView()
 }
