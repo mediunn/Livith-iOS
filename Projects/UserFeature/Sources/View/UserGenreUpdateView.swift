@@ -19,17 +19,13 @@ struct UserGenreUpdateView: View {
     @State private var isFailureToastPresented: Bool = false
     
     private let selectedGenreList: [PreferredGenre]
-    private let onBack: () -> Void
-    private let onComplete: () -> Void
+    
+    @Environment(\.userCoordinator) private var coordinator
     
     init(
-        selectedGenreList: [PreferredGenre],
-        onBack: @escaping () -> Void = {},
-        onComplete: @escaping () -> Void = {}
+        selectedGenreList: [PreferredGenre]
     ) {
         self.selectedGenreList = selectedGenreList
-        self.onBack = onBack
-        self.onComplete = onComplete
     }
     
     var body: some View {
@@ -41,7 +37,7 @@ struct UserGenreUpdateView: View {
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
-                onBack()
+                coordinator?.pop()
             }
         } onSubmit: { genreList in
             store.send(.onSubmit(genreList))
@@ -53,7 +49,7 @@ struct UserGenreUpdateView: View {
                 cancelTitle: "잘못 눌렀어요",
                 type: .confirm(onConfirm: {
                     isDiscardChangesModalPresented = false
-                    onBack()
+                    coordinator?.pop()
                 })
             ) {
                 isDiscardChangesModalPresented = false
@@ -62,7 +58,7 @@ struct UserGenreUpdateView: View {
         .onChange(of: store.state.result) { _, result in
             switch result {
             case .success:
-                onComplete()
+                coordinator?.pop()
             case .failure:
                 isFailureToastPresented = true
             case .idle:

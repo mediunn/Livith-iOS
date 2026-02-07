@@ -11,32 +11,21 @@ import SwiftUI
 import LivithDesignSystem
 import NicknameEditFeature
 
-public struct NicknameUpdateView: View {
+struct NicknameUpdateView: View {
 
     // MARK: - Property
 
     @State private var showFailureToast: Bool = false
     @State private var toastMessage: String = ""
 
-    private let onDismiss: (() -> Void)?
-    private let onSuccess: ((String) -> Void)?
+    @Environment(\.userCoordinator) private var coordinator
 
-    // MARK: - LifeCycle
-
-    public init(
-        onDismiss: (() -> Void)? = nil,
-        onSuccess: ((String) -> Void)? = nil
-    ) {
-        self.onDismiss = onDismiss
-        self.onSuccess = onSuccess
-    }
-
-    public var body: some View {
+    var body: some View {
         NicknameEditView(
             config: .update,
-            onDismiss: { onDismiss?() },
-            onSubmitSuccess: { nickname in
-                onSuccess?(nickname)
+            onDismiss: { coordinator?.pop() },
+            onSubmitSuccess: { _ in
+                coordinator?.pop()
             },
             onSubmitFailure: { _ in
                 toastMessage = "닉네임 변경에 실패했어요"

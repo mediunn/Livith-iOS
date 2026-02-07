@@ -19,17 +19,13 @@ struct UserArtistUpdateView: View {
     @State private var isFailureToastPresented: Bool = false
 
     private let selectedArtistList: [PreferredArtist]
-    private let onBack: () -> Void
-    private let onComplete: () -> Void
+    
+    @Environment(\.userCoordinator) private var coordinator
     
     init(
-        selectedArtistList: [PreferredArtist],
-        onBack: @escaping () -> Void,
-        onComplete: @escaping () -> Void
+        selectedArtistList: [PreferredArtist]
     ) {
         self.selectedArtistList = selectedArtistList
-        self.onBack = onBack
-        self.onComplete = onComplete
     }
     
     var body: some View {
@@ -41,7 +37,7 @@ struct UserArtistUpdateView: View {
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
-                onBack()
+                coordinator?.pop()
             }
         } onSubmit: { artistList in
             store.send(.onSubmit(artistList))
@@ -53,7 +49,7 @@ struct UserArtistUpdateView: View {
                 cancelTitle: "잘못 눌렀어요",
                 type: .confirm(onConfirm: {
                     isDiscardChangesModalPresented = false
-                    onBack()
+                    coordinator?.pop()
                 })
             ) {
                 isDiscardChangesModalPresented = false
@@ -67,7 +63,7 @@ struct UserArtistUpdateView: View {
         .onChange(of: store.state.result) { _, result in
             switch result {
             case .success:
-                onComplete()
+                coordinator?.pop()
             case .failure:
                 isFailureToastPresented = true
             case .idle:

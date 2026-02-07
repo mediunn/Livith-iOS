@@ -10,7 +10,7 @@ import SwiftUI
 
 import LivithDesignSystem
 
-public struct UserView: View {
+struct UserView: View {
 
     // MARK: - Enum
 
@@ -37,30 +37,17 @@ public struct UserView: View {
 
     @StateObject private var store = UserStore()
 
-    private let onSetting: () -> Void
-    private let onNicknameEdit: () -> Void
-    private let onGenreSetting: () -> Void
-    private let onArtistSetting: () -> Void
+    @Environment(\.userCoordinator) private var coordinator
 
     // MARK: - LifeCycle
 
-    public init(
-        isTabBarHidden: Binding<Bool>,
-        onSetting: @escaping () -> Void,
-        onNicknameEdit: @escaping () -> Void,
-        onGenreSetting: @escaping () -> Void,
-        onArtistSetting: @escaping () -> Void
-    ) {
+    init(isTabBarHidden: Binding<Bool>) {
         self._isTabBarHidden = isTabBarHidden
-        self.onSetting = onSetting
-        self.onNicknameEdit = onNicknameEdit
-        self.onGenreSetting = onGenreSetting
-        self.onArtistSetting = onArtistSetting
     }
 
     // MARK: - Body
 
-    public var body: some View {
+    var body: some View {
         VStack(spacing: 0) {
             settingButton
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -108,7 +95,7 @@ public struct UserView: View {
 
 private extension UserView {
     var settingButton: some View {
-        Button(action: onSetting) {
+        Button(action: { coordinator?.push(to: .setting) }) {
             Image.livithIcon(.settingFill)
                 .resizable()
                 .frame(width: 36, height: 36)
@@ -137,7 +124,7 @@ private extension UserView {
     }
     
     var editButton: some View {
-        Button(action: onNicknameEdit) {
+        Button(action: { coordinator?.push(to: .nicknameUpdate) }) {
             Text(Literals.editNickname)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
@@ -182,7 +169,7 @@ private extension UserView {
                 
                 LivithTextButton(
                     store.state.hasGenreData ? Literals.change : Literals.setup,
-                    action: onGenreSetting
+                    action: { coordinator?.push(to: .genreUpdate(selectedGenreList: store.state.genres)) }
                 )
             }
             
@@ -205,7 +192,7 @@ private extension UserView {
                 
                 LivithTextButton(
                     store.state.hasArtistData ? Literals.change : Literals.setup,
-                    action: onArtistSetting
+                    action: { coordinator?.push(to: .artistUpdate(selectedArtistList: store.state.artists)) }
                 )
             }
             
@@ -300,10 +287,6 @@ private extension UserView {
 
 #Preview {
     UserView(
-        isTabBarHidden: .constant(false),
-        onSetting: {},
-        onNicknameEdit: {},
-        onGenreSetting: {},
-        onArtistSetting: {}
+        isTabBarHidden: .constant(false)
     )
 }

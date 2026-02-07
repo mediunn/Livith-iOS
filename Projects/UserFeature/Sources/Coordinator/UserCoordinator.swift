@@ -33,21 +33,15 @@ final class UserCoordinator: Coordinator {
         case .user:
             return UIHostingController(
                 rootView: UserView(
-                    isTabBarHidden: isTabBarHidden,
-                    onSetting: { [weak self] in self?.push(to: .setting) },
-                    onNicknameEdit: { [weak self] in self?.push(to: .nicknameUpdate) },
-                    onGenreSetting: { [weak self] in self?.push(to: .genreSetting) },
-                    onArtistSetting: { [weak self] in self?.push(to: .artistSetting) }
+                    isTabBarHidden: isTabBarHidden
                 )
+                .environment(\.userCoordinator, self)
             )
 
         case .setting:
             return UIHostingController(
-                rootView: SettingView(
-                    onBack: { [weak self] in self?.pop() },
-                    onNoticeSetting: { [weak self] in self?.push(to: .noticeSetting) },
-                    onDeleteUser: { [weak self] in self?.push(to: .deleteUser) }
-                )
+                rootView: SettingView()
+                .environment(\.userCoordinator, self)
             )
 
         case .noticeSetting:
@@ -59,27 +53,37 @@ final class UserCoordinator: Coordinator {
 
         case .nicknameUpdate:
             return UIHostingController(
-                rootView: NicknameUpdateView(
-                    onDismiss: { [weak self] in self?.pop() },
-                    onSuccess: { [weak self] _ in self?.pop() }
-                )
+                rootView: NicknameUpdateView()
+                .environment(\.userCoordinator, self)
             )
 
         case .deleteUser:
             return UIHostingController(
                 rootView: DeleteUserView(
-                    store: DeleteUserStore(),
-                    onDismiss: { [weak self] in self?.pop() }
+                    store: DeleteUserStore()
                 )
+                .environment(\.userCoordinator, self)
             )
 
-        case .genreSetting:
-            // TODO: 선호 장르 설정 화면 구현 필요
-            return UIViewController()
+        case .genreUpdate(let genreList):
+            let vc = UIHostingController(
+                rootView: UserGenreUpdateView(
+                    selectedGenreList: genreList
+                )
+                .environment(\.userCoordinator, self)
+            )
+            vc.hidesBottomBarWhenPushed = true
+            return vc
 
-        case .artistSetting:
-            // TODO: 선호 아티스트 설정 화면 구현 필요
-            return UIViewController()
+        case .artistUpdate(let artistList):
+            let vc = UIHostingController(
+                rootView: UserArtistUpdateView(
+                    selectedArtistList: artistList
+                )
+                .environment(\.userCoordinator, self)
+            )
+            vc.hidesBottomBarWhenPushed = true
+            return vc
         }
     }
 }
