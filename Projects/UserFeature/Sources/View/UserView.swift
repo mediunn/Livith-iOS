@@ -158,14 +158,14 @@ private extension UserView {
     }
     
     var preferenceSection: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
             genreSection
             artistSection
         }
     }
     
     var genreSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Text(Literals.preferredGenre)
                     .notosans(.body2Medium)
@@ -193,7 +193,7 @@ private extension UserView {
     }
     
     var artistSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Text(Literals.preferredArtist)
                     .notosans(.body2Medium)
@@ -268,31 +268,29 @@ private extension UserView {
     }
     
     var genreCardList: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(store.state.genres) { genre in
-                    PreferenceCard(
-                        title: genre.displayName,
-                        imageURL: genre.imageURL,
-                        isSelected: false
-                    )
-                    .frame(width: 108, height: 108)
-                }
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+
+        return LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+            ForEach(store.state.genres) { genre in
+                PreferenceCard(
+                    title: genre.displayName,
+                    imageURL: genre.imageURL,
+                    isSelected: false
+                )
             }
         }
     }
-    
+
     var artistCardList: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(store.state.artists) { artist in
-                    PreferenceCard(
-                        title: artist.name,
-                        imageURL: artist.imageURL,
-                        isSelected: false
-                    )
-                    .frame(width: 108, height: 108)
-                }
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+
+        return LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+            ForEach(store.state.artists) { artist in
+                PreferenceCard(
+                    title: artist.name,
+                    imageURL: artist.imageURL,
+                    isSelected: false
+                )
             }
         }
     }
