@@ -53,7 +53,7 @@ public final class AuthenticationInterceptor: RequestInterceptor {
                 try await tokenService.refresh()
                 completion(.retry)
             } catch {
-                completion(.doNotRetryWithError(error))
+                completion(.doNotRetry)
             }
         }
     }
