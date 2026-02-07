@@ -14,10 +14,15 @@ import LivithDesignSystem
 public struct UserContentView: View {
     @State private var coordinator: UserCoordinator
     @Binding private var isTabBarHidden: Bool
+    private let onNavigateToHome: (() -> Void)?
 
-    public init(isTabBarHidden: Binding<Bool>) {
-        self._coordinator = State(initialValue: UserCoordinator(isTabBarHidden: isTabBarHidden))
+    public init(
+        isTabBarHidden: Binding<Bool>,
+        onNavigateToHome: (() -> Void)? = nil
+    ) {
+        self._coordinator = State(initialValue: UserCoordinator(isTabBarHidden: isTabBarHidden, onNavigateToHome: onNavigateToHome))
         self._isTabBarHidden = isTabBarHidden
+        self.onNavigateToHome = onNavigateToHome
     }
 
     public var body: some View {

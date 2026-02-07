@@ -238,6 +238,7 @@ private extension UserView {
                 position: .top,
                 onActionTapped: {
                     showGenreUpdateSuccessSnackBar = false
+                    coordinator?.onNavigateToHome?()
                 },
                 onDismiss: {
                     showGenreUpdateSuccessSnackBar = false
@@ -256,6 +257,7 @@ private extension UserView {
                 position: .top,
                 onActionTapped: {
                     showArtistUpdateSuccessSnackBar = false
+                    coordinator?.onNavigateToHome?()
                 },
                 onDismiss: {
                     showArtistUpdateSuccessSnackBar = false
