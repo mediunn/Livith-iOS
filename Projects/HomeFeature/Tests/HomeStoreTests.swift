@@ -294,7 +294,6 @@ struct HomeStoreTests {
         // Given
         container.userRepository.userStub = makeMockUser()
         container.concertRepository.homeSectionListStub = [makeMockSection()]
-        container.preferenceRepository.preferredGenreListStub = []
         
         let sut = HomeStore()
         
@@ -316,7 +315,6 @@ struct HomeStoreTests {
         // Given
         container.userRepository.userStub = makeMockUser()
         container.concertRepository.homeSectionListStub = [makeMockSection()]
-        container.preferenceRepository.preferredGenreListStub = []
         
         let sut = HomeStore()
         
@@ -337,92 +335,85 @@ struct HomeStoreTests {
     
     // MARK: - Preference 배너 테스트
     
-    @Test("선호 장르가 비어있으면 배너를 표시해야 한다")
-    func testShowPreferenceBannerWhenGenreListEmpty() async throws {
+    @Test("hasPreferences가 false이면 배너를 표시해야 한다")
+    func testShowPreferenceBannerWhenHasPreferencesFalse() async throws {
         // Given
-        container.userRepository.userStub = makeMockUser()
-        container.preferenceRepository.preferredGenreListStub = []
+        container.userRepository.userStub = makeMockUser(hasPreferences: false)
         
         let sut = HomeStore()
+        sut.send(._fetchUserResult(.success(makeMockUser(hasPreferences: false))))
         
         // When
-        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
         #expect(sut.state.sections.shouldShowPreferenceBanner == true)
     }
     
-    @Test("선호 장르가 있으면 배너를 표시하지 않아야 한다")
-    func testHidePreferenceBannerWhenGenreListNotEmpty() async throws {
+    @Test("hasPreferences가 true이면 배너를 표시하지 않아야 한다")
+    func testHidePreferenceBannerWhenHasPreferencesTrue() async throws {
         // Given
-        let mockGenre = PreferredGenre(id: 1, name: "팝", imageURL: nil)
-        container.userRepository.userStub = makeMockUser()
-        container.preferenceRepository.preferredGenreListStub = [mockGenre]
+        container.userRepository.userStub = makeMockUser(hasPreferences: true)
         
         let sut = HomeStore()
+        sut.send(._fetchUserResult(.success(makeMockUser(hasPreferences: true))))
         
         // When
-        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
         #expect(sut.state.sections.shouldShowPreferenceBanner == false)
     }
     
-    @Test("선호 장르 로드 실패 시 배너를 표시하지 않아야 한다")
-    func testHidePreferenceBannerWhenFetchFails() async throws {
+    @Test("추천 로드 실패 시에도 배너는 hasPreferences 기준으로 유지되어야 한다")
+    func testPreferenceBannerWhenRecommendationFetchFails() async throws {
         // Given
-        container.userRepository.userStub = makeMockUser()
-        container.preferenceRepository.errorStub = PreferenceError.invalidResponse
+        container.userRepository.userStub = makeMockUser(hasPreferences: true)
+        container.concertRepository.errorStub = ConcertError.serverError
         
         let sut = HomeStore()
+        sut.send(._fetchUserResult(.success(makeMockUser(hasPreferences: true))))
         
         // When
-        sut.send(.concertSection(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
         #expect(sut.state.sections.shouldShowPreferenceBanner == false)
+        #expect(sut.state.sections.errorMessage.isEmpty)
     }
     
-    @Test("onAppear 시 선호 배너 체크가 자동으로 수행되어야 한다")
+    @Test("onAppear 시 hasPreferences에 따라 배너가 설정되어야 한다")
     func testCheckShowBannerOnAppear() async throws {
         // Given
-        container.userRepository.userStub = makeMockUser()
+        container.userRepository.userStub = makeMockUser(hasPreferences: false)
         container.userRepository.interestedConcertStub = nil
-        container.preferenceRepository.preferredGenreListStub = []
         container.concertRepository.homeSectionListStub = []
         
         let sut = HomeStore()
-        
-        // Reset call count
-        container.preferenceRepository.fetchUserPreferredGenreListCallCount = 0
         
         // When
         sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
-        #expect(container.preferenceRepository.fetchUserPreferredGenreListCallCount > 0)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
         #expect(sut.state.sections.shouldShowPreferenceBanner == true)
     }
     
     // MARK: - 추천 콘서트 테스트
     
-    @Test("선호 장르가 있을 때 추천 콘서트가 로드되어야 한다")
-    func testFetchRecommendedConcertWhenGenreExists() async throws {
+    @Test("hasPreferences가 true이면 추천 콘서트가 로드되어야 한다")
+    func testFetchRecommendedConcertWhenHasPreferencesTrue() async throws {
         // Given
-        let mockGenre = PreferredGenre(id: 1, name: "팝", imageURL: nil)
         let mockRecommendedConcerts = [makeMockConcert(id: 1), makeMockConcert(id: 2)]
         
-        container.userRepository.userStub = makeMockUser()
-        container.preferenceRepository.preferredGenreListStub = [mockGenre]
+        container.userRepository.userStub = makeMockUser(hasPreferences: true)
         container.concertRepository.recommendedConcertListStub = mockRecommendedConcerts
         
         let sut = HomeStore()
         
         // When
+        sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -431,11 +422,10 @@ struct HomeStoreTests {
         #expect(sut.state.sections.recommendedConcertList.count == 2)
     }
     
-    @Test("선호 장르가 없을 때 추천 콘서트가 로드되지 않아야 한다")
-    func testFetchRecommendedConcertWhenGenreNotExists() async throws {
+    @Test("hasPreferences가 false이면 추천 콘서트가 로드되지 않아야 한다")
+    func testFetchRecommendedConcertWhenHasPreferencesFalse() async throws {
         // Given
-        container.userRepository.userStub = makeMockUser()
-        container.preferenceRepository.preferredGenreListStub = []
+        container.userRepository.userStub = makeMockUser(hasPreferences: false)
         container.concertRepository.recommendedConcertListStub = []
         
         let sut = HomeStore()
@@ -444,7 +434,7 @@ struct HomeStoreTests {
         container.concertRepository.fetchRecommendedConcertListCallCount = 0
         
         // When
-        sut.send(.concertSection(.onRefresh))
+        sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
@@ -452,24 +442,21 @@ struct HomeStoreTests {
         #expect(sut.state.sections.recommendedConcertList.isEmpty)
     }
     
-    @Test("추천 콘서트 로드 실패 시 에러가 설정되어야 한다")
+    @Test("추천 콘서트 로드 실패 시 리스트는 비어야 한다")
     func testFetchRecommendedConcertFailure() async throws {
         // Given
-        let mockGenre = PreferredGenre(id: 1, name: "팝", imageURL: nil)
-        
-        container.userRepository.userStub = makeMockUser()
-        container.preferenceRepository.preferredGenreListStub = [mockGenre]
+        container.userRepository.userStub = makeMockUser(hasPreferences: true)
         container.concertRepository.errorStub = ConcertError.serverError
         
         let sut = HomeStore()
         
         // When
-        sut.send(.concertSection(.onRefresh))
+        sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
         #expect(sut.state.sections.recommendedConcertList.isEmpty)
-        #expect(!sut.state.sections.errorMessage.isEmpty)
+        #expect(sut.state.sections.errorMessage.isEmpty)
     }
     
     // MARK: - 연쇄 호출 테스트
@@ -523,7 +510,7 @@ private extension HomeStoreTests {
         )
     }
     
-    func makeMockUser(nickname: String = "테스트유저") -> User {
+    func makeMockUser(nickname: String = "테스트유저", hasPreferences: Bool = false) -> User {
         User(
             id: 1,
             interestConcertID: nil,
@@ -531,6 +518,7 @@ private extension HomeStoreTests {
             providerID: "12345",
             email: "test@test.com",
             nickname: nickname,
+            hasPreferences: hasPreferences,
             authority: UserAuthority(
                 deviceNotification: true,
                 marketingConsent: false
