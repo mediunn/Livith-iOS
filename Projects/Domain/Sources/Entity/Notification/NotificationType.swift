@@ -13,7 +13,11 @@ public enum NotificationType: String {
     case ticket7D = "TICKET_7D"
     case ticketToday = "TICKET_TODAY"
     case interestConcert = "INTEREST_CONCERT"
-    case concertInfoUpdate = "CONCERT_INFO_UPDATE"
+    case concertInfoUpdateSetlist = "CONCERT_INFO_UPDATE_SETLIST"
+    case concertInfoUpdateMD = "CONCERT_INFO_UPDATE_MD"
+    case concertInfoUpdateDetail = "CONCERT_INFO_UPDATE_DETAIL"
+    case concertInfoUpdateSchedule = "CONCERT_INFO_UPDATE_SCHEDULE"
+    case concertInfoUpdateTicket = "CONCERT_INFO_UPDATE_TICKET"
     case artistConcertOpen = "ARTIST_CONCERT_OPEN"
     case recommend = "RECOMMEND"
 
