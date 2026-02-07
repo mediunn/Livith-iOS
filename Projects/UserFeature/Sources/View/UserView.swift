@@ -11,13 +11,13 @@ import SwiftUI
 import LivithDesignSystem
 
 struct UserView: View {
-
+    
     // MARK: - Enum
-
+    
     enum OverlayType: Equatable {
         case none
         case feedbackForm
-
+        
         var sheetURL: URL? {
             switch self {
             case .feedbackForm:
@@ -27,51 +27,51 @@ struct UserView: View {
             }
         }
     }
-
+    
     // MARK: - Property
-
+    
     @State private var overlayType: OverlayType = .none
     @State private var showNicknameSuccessToast: Bool = false
     @State private var showGenreUpdateSuccessSnackBar: Bool = false
     @State private var showArtistUpdateSuccessSnackBar: Bool = false
-
+    
     @Binding private var isTabBarHidden: Bool
-
+    
     @StateObject private var store = UserStore()
-
+    
     @Environment(\.userCoordinator) private var coordinator
-
+    
     // MARK: - LifeCycle
-
+    
     init(isTabBarHidden: Binding<Bool>) {
         self._isTabBarHidden = isTabBarHidden
     }
-
+    
     // MARK: - Body
-
+    
     var body: some View {
         VStack(spacing: 0) {
             settingButton
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 12)
                 .padding(.trailing, 16)
-
+            
             headerSection
                 .padding(.top, 78)
                 .padding(.horizontal, 16)
-
+            
             divideLine
                 .padding(.top, 20)
                 .padding(.bottom, 20)
-
+            
             feedbackButton
                 .frame(height: 84)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
-
+            
             preferenceSection
                 .padding(.horizontal, 16)
-
+            
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -93,16 +93,6 @@ struct UserView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showArtistUpdateSuccessSnackBar)
         .onAppear {
             store.send(.fetchUserInfo)
-            coordinator?.onGenreUpdateSuccess = {
-                showGenreUpdateSuccessSnackBar = true
-            }
-            coordinator?.onArtistUpdateSuccess = {
-                showArtistUpdateSuccessSnackBar = true
-            }
-        }
-        .onDisappear {
-            coordinator?.onGenreUpdateSuccess = nil
-            coordinator?.onArtistUpdateSuccess = nil
         }
     }
 }
@@ -185,7 +175,12 @@ private extension UserView {
                 
                 LivithTextButton(
                     store.state.hasGenreData ? Literals.change : Literals.setup,
-                    action: { coordinator?.push(to: .genreUpdate(selectedGenreList: store.state.genres)) }
+                    action: {
+                        coordinator?.push(to: .genreUpdate(selectedGenreList: store.state.genres))
+                        coordinator?.onGenreUpdateSuccess = {
+                            showGenreUpdateSuccessSnackBar = true
+                        }
+                    }
                 )
             }
             
@@ -208,7 +203,12 @@ private extension UserView {
                 
                 LivithTextButton(
                     store.state.hasArtistData ? Literals.change : Literals.setup,
-                    action: { coordinator?.push(to: .artistUpdate(selectedArtistList: store.state.artists)) }
+                    action: {
+                        coordinator?.push(to: .artistUpdate(selectedArtistList: store.state.artists))
+                        coordinator?.onArtistUpdateSuccess = {
+                            showArtistUpdateSuccessSnackBar = true
+                        }
+                    }
                 )
             }
             
@@ -235,6 +235,7 @@ private extension UserView {
             LivithSnackBar(
                 message: "선호 장르를 변경했어요!\n홈에서 확인해 볼까요?",
                 actionTitle: "홈으로 이동",
+                position: .top,
                 onActionTapped: {
                     showGenreUpdateSuccessSnackBar = false
                 },
@@ -242,7 +243,7 @@ private extension UserView {
                     showGenreUpdateSuccessSnackBar = false
                 }
             )
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .transition(.move(edge: .top).combined(with: .opacity))
         }
     }
     
@@ -252,6 +253,7 @@ private extension UserView {
             LivithSnackBar(
                 message: "선호 아티스트를 변경했어요!\n홈에서 확인해 볼까요?",
                 actionTitle: "홈으로 이동",
+                position: .top,
                 onActionTapped: {
                     showArtistUpdateSuccessSnackBar = false
                 },
@@ -259,7 +261,7 @@ private extension UserView {
                     showArtistUpdateSuccessSnackBar = false
                 }
             )
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .transition(.move(edge: .top).combined(with: .opacity))
         }
     }
     
@@ -303,11 +305,11 @@ private extension UserView {
             set: { if !$0 { overlayType = .none } }
         )
     }
-
+    
     func showFeedbackForm() {
         overlayType = .feedbackForm
     }
-
+    
     func showNicknameSuccess() {
         showNicknameSuccessToast = true
     }
@@ -319,7 +321,7 @@ private extension UserView {
     enum Constant {
         static let feedbackFormURL = URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSe-d5MhQrwsRRrk9isYiYVw1afI7a60Xm0IHbxmmAHe8AUiMA/viewform")!
     }
-
+    
     enum Literals {
         static let titleFormat = "%@님, 반가워요!\n공연 준비 시작해볼까요?"
         static let editNickname = "닉네임 수정"
