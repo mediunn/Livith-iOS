@@ -41,17 +41,19 @@ private extension MarketingConsentBottomSheet {
             Text(Literals.title)
                 .notosans(.headSemibold)
                 .foregroundStyle(Color.livithColor(.white100))
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Text(Literals.subtitle)
                 .notosans(.body4Regular)
                 .foregroundStyle(Color.livithColor(.black50))
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
     var checkboxSection: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .center, spacing: 8) {
             Image.livithIcon(.checkboxLineEnabled)
                 .resizable()
                 .frame(width: 24, height: 24)
@@ -59,6 +61,9 @@ private extension MarketingConsentBottomSheet {
             Text(Literals.marketingConsent)
                 .notosans(.body2Medium)
                 .foregroundStyle(Color.livithColor(.black30))
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer(minLength: 0)
 
             Button {
                 // TODO: 마케팅 약관 더보기
@@ -67,9 +72,6 @@ private extension MarketingConsentBottomSheet {
                     .notosans(.caption2Semibold)
                     .foregroundStyle(Color.livithColor(.black50))
             }
-            .padding(.leading, 20)
-
-            Spacer()
         }
         .contentShape(Rectangle())
         .onTapGesture {
