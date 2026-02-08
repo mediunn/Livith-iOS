@@ -10,9 +10,12 @@ import SwiftUI
 
 import Domain
 import PreferenceFeature
+import LivithDesignSystem
 
 struct PreferredGenreSettingView: View {
     @Environment(\.loginCoordinator) private var coordinator
+
+    @State private var isDiscardChangesModalPresented: Bool = false
     
     private let builder: SignupBuilder
     
@@ -21,11 +24,29 @@ struct PreferredGenreSettingView: View {
     }
     
     var body: some View {
-        GenreEditView(config: .genreOnboarding()) { _ in
-            coordinator?.pop()
+        GenreEditView(config: .genreOnboarding()) { isModified in
+            if isModified {
+                isDiscardChangesModalPresented = true
+            } else {
+                coordinator?.pop()
+            }
         } onSubmit: { selectedGenreList in
             let updated = builder.withPreferredGenreList(selectedGenreList)
             coordinator?.push(to: .preferredArtist(updated))
+        }
+        .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: "선택된 아티스트나 장르가 해제돼요.\n이전 페이지로 돌아가시나요?",
+                confirmTitle: "뒤로 갈게요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: {
+                    isDiscardChangesModalPresented = false
+                    coordinator?.pop()
+                }),
+                onCancel: {
+                    isDiscardChangesModalPresented = false
+                }
+            )
         }
     }
 }
