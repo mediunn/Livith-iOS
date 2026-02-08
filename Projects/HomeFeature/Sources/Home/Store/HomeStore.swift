@@ -139,7 +139,7 @@ private extension HomeStore {
     func handleInterestConcertIntent(_ intent: HomeIntent.InterestConcertIntent) {
         switch intent {
         case .onDelete:
-            executeDeleteInterestConcert()
+            performDeleteInterestConcert()
         case .onRefresh:
             executeRefreshInterestConcert()
         case .onAppear:
@@ -155,10 +155,6 @@ private extension HomeStore {
         case ._deleteInterestConcertResult(let result):
             handleDeleteInterestConcertResult(result)
         }
-    }
-    
-    func executeDeleteInterestConcert() {
-        performDeleteInterestConcert()
     }
     
     func executeRefreshInterestConcert() {
@@ -240,29 +236,18 @@ private extension HomeStore {
     func handleConcertSectionIntent(_ intent: HomeIntent.ConcertSectionIntent) {
         switch intent {
         case .onAppear:
-            executeConcertSectionOnAppear()
+            if state.sections.isInitialLoad {
+                state.sections.isLoading = true
+                state.sections.isInitialLoad = false
+            }
+            performFetchConcertSectionData()
         case .onRefresh:
-            executeRefreshSections()
+            performFetchConcertSectionData()
         case .collapsePreferenceBanner:
             state.sections.isPreferenceBannerExpanded = false
         case ._concertSectionDataResult(let result):
             handleConcertSectionDataResult(result)
         }
-    }
-    
-    func executeConcertSectionOnAppear() {
-        if state.sections.isInitialLoad {
-            state.sections.isInitialLoad = false
-            state.sections.isLoading = true
-            performFetchConcertSectionData()
-        } else {
-            performFetchConcertSectionRecommendations()
-        }
-    }
-    
-    func executeRefreshSections() {
-        performFetchConcertSectionData()
-        performFetchUserInterestedConcert()
     }
     
     func handleConcertSectionDataResult(
@@ -395,18 +380,6 @@ private extension HomeStore {
             } catch {
                 send(.concertSection(._concertSectionDataResult(.failure(error))))
             }
-        }
-    }
-    
-    func performFetchConcertSectionRecommendations() {
-        cancellables[.refreshSections]?.cancel()
-        cancellables[.refreshSections] = Task {
-            let recommendations = await fetchRecommendationsIfNeeded()
-            let data = (
-                sections: state.sections.sectionList,
-                recommended: recommendations
-            )
-            send(.concertSection(._concertSectionDataResult(.success(data))))
         }
     }
 }
