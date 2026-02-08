@@ -25,10 +25,10 @@ struct HomeStoreTests {
     
     // MARK: - 초기 상태 테스트
     
-    @Test("초기 상태에서 userName은 빈 문자열이어야 한다")
-    func testInitialUserNameState() {
+    @Test("초기 상태에서 user는 nil이어야 한다")
+    func testInitialUserState() {
         let sut = HomeStore()
-        #expect(sut.state.userName == "")
+        #expect(sut.state.user == nil)
     }
     
     @Test("초기 상태에서 interestConcert는 nil이어야 한다")
@@ -70,7 +70,7 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
-        #expect(sut.state.userName == "홍길동")
+        #expect(sut.state.user?.nickname == "홍길동")
     }
     
     @Test("onAppear 시 관심 공연이 있으면 스케줄과 셋리스트가 로드되어야 한다")

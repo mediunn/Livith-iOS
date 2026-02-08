@@ -93,7 +93,7 @@ struct GenreSelectionStoreTests {
         container.preferenceRepository.genreListStub = [genre]
         
         // 초기 선택 상태 주입
-        let sut = GenreSelectionStore(selectedGenres: [genre])
+        let sut = GenreSelectionStore(selectedGenreList: [genre])
         sut.send(.onAppear) // 장르 로드
         try await Task.sleep(nanoseconds: 100_000_000)
         
@@ -120,7 +120,7 @@ struct GenreSelectionStoreTests {
             PreferredGenre(id: 3, name: "Jazz", imageURL: nil)
         ]
         
-        let sut = GenreSelectionStore(selectedGenres: initialSelection)
+        let sut = GenreSelectionStore(selectedGenreList: initialSelection)
         sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
         
@@ -156,7 +156,7 @@ struct GenreSelectionStoreTests {
         let selectedGenre = PreferredGenre(id: 1, name: "Pop", imageURL: nil)
         
         // When
-        let sut = GenreSelectionStore(selectedGenres: [selectedGenre])
+        let sut = GenreSelectionStore(selectedGenreList: [selectedGenre])
         
         // Then
         #expect(sut.state.selectedGenreList.count == 1)

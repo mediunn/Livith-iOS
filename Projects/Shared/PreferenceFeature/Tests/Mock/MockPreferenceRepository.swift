@@ -15,9 +15,11 @@ final class MockPreferenceRepository: PreferenceRepository {
     var artistSearchResultStub: ArtistSearchResult = ArtistSearchResult(artists: [], cursor: nil, totalCount: 0)
     var errorStub: PreferenceError?
     
+    var fetchGenreListCallCount: Int = 0
     var searchArtistListCallCount: Int = 0
     
     func fetchGenreList() async throws(PreferenceError) -> [PreferredGenre] {
+        fetchGenreListCallCount += 1
         if let error = errorStub {
             throw error
         }
