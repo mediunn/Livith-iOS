@@ -50,10 +50,10 @@ public extension PreferenceEditConfig {
     
     static func artistEdit() -> PreferenceEditConfig {
         PreferenceEditConfig(
-            navigationTitle: "아티스트 변경",
+            navigationTitle: "아티스트 설정",
             stepIndicator: nil,
             showSubtitle: false,
-            submitTitle: "변경하기"
+            submitTitle: "설정하기"
         )
     }
 }
@@ -81,10 +81,10 @@ public extension PreferenceEditConfig {
     
     static func genreEdit() -> PreferenceEditConfig {
         PreferenceEditConfig(
-            navigationTitle: "장르 변경",
+            navigationTitle: "장르 설정",
             stepIndicator: nil,
             showSubtitle: false,
-            submitTitle: "변경하기"
+            submitTitle: "설정하기"
         )
     }
 }

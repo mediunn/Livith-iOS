@@ -233,7 +233,7 @@ private extension UserView {
     var genreUpdateSuccessSnackBar: some View {
         if showGenreUpdateSuccessSnackBar {
             LivithSnackBar(
-                message: "선호 장르를 변경했어요!\n홈에서 확인해 볼까요?",
+                message: "선호 장르를 설정했어요!\n홈에서 확인해 볼까요?",
                 actionTitle: "홈으로 이동",
                 position: .top,
                 onActionTapped: {
@@ -252,7 +252,7 @@ private extension UserView {
     var artistUpdateSuccessSnackBar: some View {
         if showArtistUpdateSuccessSnackBar {
             LivithSnackBar(
-                message: "선호 아티스트를 변경했어요!\n홈에서 확인해 볼까요?",
+                message: "선호 아티스트를 설정했어요!\n홈에서 확인해 볼까요?",
                 actionTitle: "홈으로 이동",
                 position: .top,
                 onActionTapped: {
