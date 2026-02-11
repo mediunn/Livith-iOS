@@ -12,6 +12,8 @@ import LivithDesignSystem
 
 struct MarketingConsentBottomSheet: View {
     @State private var isMarketingChecked: Bool = true
+    @State private var showSafari: Bool = false
+    @State private var safariURL: URL?
 
     let onConfirm: () -> Void
     let onCancel: () -> Void
@@ -29,6 +31,11 @@ struct MarketingConsentBottomSheet: View {
             buttonSection
                 .padding(.top, 30)
                 .padding(.horizontal, 20)
+        }
+        .sheet(isPresented: $showSafari) {
+            if let url = safariURL {
+                SafariView(url: url)
+            }
         }
     }
 }
@@ -66,7 +73,8 @@ private extension MarketingConsentBottomSheet {
             Spacer(minLength: 0)
 
             Button {
-                // TODO: 마케팅 약관 더보기
+                safariURL = Constant.marketingURL
+                showSafari = true
             } label: {
                 Text(Literals.more)
                     .notosans(.caption2Semibold)
@@ -103,6 +111,11 @@ private extension MarketingConsentBottomSheet {
 // MARK: - Constants
 
 private extension MarketingConsentBottomSheet {
+    enum Constant {
+        static let marketingURLString = "https://youz2me.notion.site/v-26-02-03-2fb02dd0e5fc80af9708cf5e39f44f77"
+        static let marketingURL = URL(string: marketingURLString)!
+    }
+
     enum Literals {
         static let title = "선택한 선호 장르·아티스트를\n바탕으로 공연 정보를 알려드려요"
         static let subtitle = "추천 공연 알림은 정보 수신 동의가 필요해요"
