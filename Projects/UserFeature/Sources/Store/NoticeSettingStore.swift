@@ -47,7 +47,7 @@ enum NoticeSettingIntent {
     case cancelMarketingConsent
     case dismissModal
     case _setDeviceNotificationEnabled(Bool)
-    case _setAuthority(UserAuthority)
+    case _setNotificationSettings(NotificationSettings, marketingConsent: Bool)
     case _setConsentResult(NotificationConsentResult, field: NotificationConsentField, isAgreed: Bool)
     case _revertToggle(NotificationConsentField)
 }
@@ -65,7 +65,7 @@ final class NoticeSettingStore: ObservableObject {
         switch intent {
         case .viewDidAppear:
             checkDeviceNotificationPermission()
-            performFetchUserAuthority()
+            performFetchNotificationSettings()
 
         case .checkDeviceNotification:
             checkDeviceNotificationPermission()
@@ -116,14 +116,14 @@ final class NoticeSettingStore: ObservableObject {
         case ._setDeviceNotificationEnabled(let isEnabled):
             state.isDeviceNotificationEnabled = isEnabled
 
-        case ._setAuthority(let authority):
-            state.marketingConsent = authority.marketingConsent
-            state.benefitNotification = authority.benefitNotification
-            state.nightNotification = authority.nightNotification
-            state.ticketSchedule = authority.ticketSchedule
-            state.concertInfoUpdate = authority.concertInfoUpdate
-            state.favoriteArtistConcert = authority.favoriteArtistConcert
-            state.preferenceBasedConcert = authority.preferenceBasedConcert
+        case ._setNotificationSettings(let settings, let marketingConsent):
+            state.marketingConsent = marketingConsent
+            state.benefitNotification = settings.benefitAlert
+            state.nightNotification = settings.nightAlert
+            state.ticketSchedule = settings.ticketAlert
+            state.concertInfoUpdate = settings.infoAlert
+            state.favoriteArtistConcert = settings.interestAlert
+            state.preferenceBasedConcert = settings.recommendAlert
 
         case ._setConsentResult(let result, let field, let isAgreed):
             let action = isAgreed ? "동의" : "거부"
@@ -168,12 +168,13 @@ private extension NoticeSettingStore {
         }
     }
 
-    func performFetchUserAuthority() {
+    func performFetchNotificationSettings() {
         Task {
-            guard let user = try? await userRepository.fetchUser() else { return }
-            
+            guard let settings = try? await notificationRepository.fetchNotificationSettings() else { return }
+            let marketingConsent = (try? await userRepository.fetchUser())?.authority.marketingConsent ?? false
+
             await MainActor.run {
-                send(._setAuthority(user.authority))
+                send(._setNotificationSettings(settings, marketingConsent: marketingConsent))
             }
         }
     }

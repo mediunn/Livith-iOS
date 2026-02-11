@@ -20,7 +20,6 @@ struct AuthRepositoryImpl: AuthRepository {
     private let socialAuthService: SocialAuthService
     private let onboardingService: OnboardingService
     private let userService: UserService
-    private let notificationService: NotificationService
     private let notificationRepository: NotificationRepository
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenService: TokenService
@@ -32,7 +31,6 @@ struct AuthRepositoryImpl: AuthRepository {
         socialAuthService: SocialAuthService,
         onboardingService: OnboardingService,
         userService: UserService,
-        notificationService: NotificationService,
         notificationRepository: NotificationRepository,
         userdefaultsStorage: UserDefaultsStorage,
         tokenService: TokenService,
@@ -41,7 +39,6 @@ struct AuthRepositoryImpl: AuthRepository {
         self.socialAuthService = socialAuthService
         self.onboardingService = onboardingService
         self.userService = userService
-        self.notificationService = notificationService
         self.notificationRepository = notificationRepository
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenService = tokenService
@@ -201,28 +198,20 @@ private extension AuthRepositoryImpl {
             guard let providerID = response.tempUserProviderID else {
                 throw AuthError.invalidResponse
             }
-            
+
             let tempUser = TempUser(provider: provider, providerID: providerID, email: response.tempUserEmail)
             return .newUser(tempUser: tempUser)
         } else {
             guard let accessToken = response.accessToken, let refreshToken = response.refreshToken else {
                 throw AuthError.invalidResponse
             }
-            
+
             try await tokenService.saveToken(accessToken: accessToken, refreshToken: refreshToken)
-            
+
             try? userdefaultsStorage.save(provider.description, for: .lastLoginPlatform)
-            
+
             let userInfoResponse: DTO.Response.FetchUserInfo = try await onboardingService.request(.fetchUserInfo)
-            let notificationSettings: DTO.Response.FetchNotificationSettings? = try? await notificationService.request(
-                .fetchSettings
-            )
-            let user: User
-            if let notificationSettings {
-                user = mapper.toDomain(from: userInfoResponse, notificationSettings: notificationSettings)
-            } else {
-                user = mapper.toDomain(from: userInfoResponse)
-            }
+            let user = mapper.toDomain(from: userInfoResponse)
             try? userdefaultsStorage.save(user, for: .currentUser)
 
             await registerFCMToken()
