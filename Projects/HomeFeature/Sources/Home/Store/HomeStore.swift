@@ -42,6 +42,12 @@ enum HomeIntent {
 }
 
 struct HomeState {
+    enum Route {
+        case concertSection
+        case interestedConcert
+    }
+
+    var route: Route = .concertSection
     var user: User? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
@@ -112,6 +118,7 @@ final class HomeStore: ObservableObject {
             switch result {
             case .success(let user):
                 state.user = user
+                state.route = user.interestConcertID == nil ? .concertSection : .interestedConcert
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }

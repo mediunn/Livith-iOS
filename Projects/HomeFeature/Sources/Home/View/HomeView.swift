@@ -23,7 +23,7 @@ struct HomeView: View {
     }
     
     var body: some View {
-        content()
+        content
             .background(.livithColor(.black90))
             .onAppear {
                 store.send(.onAppear)
@@ -57,14 +57,15 @@ struct HomeView: View {
     }
     
     @ViewBuilder
-    private func content() -> some View {
-        if store.state.user?.interestConcertID != nil {
+    private var content: some View {
+        switch store.state.route {
+        case .concertSection:
+            HomeConcertSectionView(store: store)
+        case .interestedConcert:
             HomeInterestConcertView(
                 store: store,
                 isTabBarHidden: $isTabBarHidden
             )
-        } else {
-            HomeConcertSectionView(store: store)
         }
     }
 }
