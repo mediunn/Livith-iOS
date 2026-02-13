@@ -82,6 +82,25 @@ final class NoticeStore: ObservableObject {
     }
 }
 
+// MARK: - Public Methods
+
+extension NoticeStore {
+    @MainActor
+    func refreshAsync() async {
+        state.cursor = nil
+        state.hasMorePages = true
+
+        do {
+            let notifications = try await notificationRepository.fetchNotificationList(cursor: nil, size: pageSize)
+            state.notifications = notifications
+            state.cursor = notifications.last?.id
+            state.hasMorePages = notifications.count >= pageSize
+        } catch {
+            // 실패 시 기존 목록 유지
+        }
+    }
+}
+
 // MARK: - Helper
 
 private extension NoticeStore {

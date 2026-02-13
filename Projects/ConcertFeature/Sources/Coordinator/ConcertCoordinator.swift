@@ -37,16 +37,21 @@ public final class ConcertCoordinator: Coordinator {
 
     public func start() {}
 
-    public func start(concertID: Int, initialTab: SegmentedTabBarType.DetailTab = .artistDetail) {
-        push(to: .detail(concertID: concertID, initialTab: initialTab))
+    public func start(
+        concertID: Int,
+        initialTab: SegmentedTabBarType.DetailTab = .artistDetail,
+        initialSection: ConcertInfoSection? = nil
+    ) {
+        push(to: .detail(concertID: concertID, initialTab: initialTab, initialSection: initialSection))
     }
 
     public func buildViewController(for route: ConcertRoute) -> UIViewController {
         switch route {
-        case .detail(let concertID, let initialTab):
+        case .detail(let concertID, let initialTab, let initialSection):
             let view = ConcertView(
                 concertID: concertID,
                 initialTab: initialTab,
+                initialSection: initialSection,
                 onDismiss: { [weak self] in
                     self?.pop()
                     self?.onDismiss()

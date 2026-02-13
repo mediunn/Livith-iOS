@@ -56,8 +56,8 @@ final class HomeCoordinator: Coordinator {
                     onBack: { [weak self] in self?.pop() },
                     onSettingTap: { [weak self] in self?.push(to: .noticeSetting) },
                     onInterestTap: { [weak self] in self?.push(to: .interest) },
-                    onConcertTap: { [weak self] concertID, initialTab in
-                        self?.showConcertDetail(concertID: concertID, initialTab: initialTab)
+                    onConcertTap: { [weak self] concertID, initialTab, initialSection in
+                        self?.showConcertDetail(concertID: concertID, initialTab: initialTab, initialSection: initialSection)
                     }
                 )
                 .environment(\.homeCoordinator, self)
@@ -95,7 +95,11 @@ final class HomeCoordinator: Coordinator {
         }
     }
     
-    func showConcertDetail(concertID: Int, initialTab: SegmentedTabBarType.DetailTab = .artistDetail) {
+    func showConcertDetail(
+        concertID: Int,
+        initialTab: SegmentedTabBarType.DetailTab = .artistDetail,
+        initialSection: ConcertInfoSection? = nil
+    ) {
         let coordinator = ConcertCoordinator(
             navigationController: navigationController,
             onDismiss: { [weak self] in
@@ -103,7 +107,7 @@ final class HomeCoordinator: Coordinator {
             }
         )
         self.concertCoordinator = coordinator
-        coordinator.start(concertID: concertID, initialTab: initialTab)
+        coordinator.start(concertID: concertID, initialTab: initialTab, initialSection: initialSection)
     }
     
     func showSongDetail(songID: Int, setlistID: Int, songTitle: String) {

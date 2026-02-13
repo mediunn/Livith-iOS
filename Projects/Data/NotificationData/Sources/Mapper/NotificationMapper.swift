@@ -33,7 +33,7 @@ struct NotificationMapper {
     }
 
     func toDomain(from dto: DTO.Response.FetchNotificationList) -> NotificationItem {
-        let createdAt = DateFormatterService.date(from: dto.createdAt, type: .iso8601) ?? Date()
+        let createdAt = DateFormatterService.date(from: dto.createdAt, type: .dotDateTime) ?? Date()
         return NotificationItem(
             id: dto.id,
             type: NotificationType(rawValue: dto.type)!,

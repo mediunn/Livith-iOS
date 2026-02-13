@@ -22,24 +22,41 @@ struct ConcertInfoTabView: View {
     let scheduleList: [ConcertSchedule]
     let concertInfoList: [ConcertInfo]
     let merchandiseList: [ConcertMerchandise]
+    let initialSection: ConcertInfoSection?
+    let onSectionScrolled: () -> Void
 
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 30) {
-            scheduleSection
-                .padding(.horizontal, 16)
+        ScrollViewReader { proxy in
+            VStack(spacing: 30) {
+                scheduleSection
+                    .id(ConcertInfoSection.schedule)
+                    .padding(.horizontal, 16)
 
-            ticketWebsiteCard
-                .padding(.horizontal, 16)
+                ticketWebsiteCard
+                    .padding(.horizontal, 16)
 
-            concertInfoSection
-                .padding(.horizontal, 16)
+                concertInfoSection
+                    .id(ConcertInfoSection.concertInfo)
+                    .padding(.horizontal, 16)
 
-            merchandiseSection
+                merchandiseSection
+                    .id(ConcertInfoSection.merchandise)
+            }
+            .padding(.top, 30)
+            .padding(.bottom, 40)
+            .onAppear {
+                if let section = initialSection {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation {
+                            proxy.scrollTo(section, anchor: .top)
+                        }
+                        onSectionScrolled()
+                    }
+                }
+            }
         }
-        .padding(.top, 30)
-        .padding(.bottom, 40)
     }
 }
 
@@ -214,7 +231,9 @@ private extension ConcertInfoTabView {
                 ConcertMerchandise(id: 2, name: "제품이름", price: "가격", imageURL: nil),
                 ConcertMerchandise(id: 3, name: "제품이름", price: "가격", imageURL: nil),
                 ConcertMerchandise(id: 3, name: "제품이름", price: "가격", imageURL: nil)
-            ]
+            ],
+            initialSection: nil,
+            onSectionScrolled: {}
         )
     }
     .background(Color.livithColor(.black100))

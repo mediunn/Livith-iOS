@@ -17,6 +17,12 @@ import Persistence
 
 public typealias ConcertTab = SegmentedTabBarType.DetailTab
 
+public enum ConcertInfoSection: String {
+    case schedule
+    case concertInfo
+    case merchandise
+}
+
 public enum InterestSettingStatus: Equatable {
     case idle
     case inProgress
@@ -44,6 +50,7 @@ public struct ConcertState {
     public var fanCultures: [ConcertCulture] = []
     public var concertInfoList: [ConcertInfo] = []
     public var selectedTab: ConcertTab = .artistDetail
+    public var initialSection: ConcertInfoSection?
     public var merchandiseList: [ConcertMerchandise] = []
     public var setlistList: [Setlist] = []
     public var interestStatus: InterestSettingStatus = .idle
@@ -56,6 +63,7 @@ public struct ConcertState {
 public enum ConcertIntent {
     case interestButtonTapped
     case tabSelected(ConcertTab)
+    case sectionSelected(ConcertInfoSection?)
     case onAppear(concertID: Int)
     case onToastDisappear
     case onFetchErrorDismiss
@@ -101,6 +109,8 @@ public final class ConcertStore: ObservableObject {
             setInterestConcert()
         case .tabSelected(let tab):
             state.selectedTab = tab
+        case .sectionSelected(let section):
+            state.initialSection = section
         case .onToastDisappear:
             state.interestStatus = .idle
         case .onFetchErrorDismiss:
