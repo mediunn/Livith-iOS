@@ -35,9 +35,7 @@ let project = Project.make(
                 .data(.userData),
                 .user(.userFeature),
                 .widget(.widget),
-                .data(.preferenceData),
-                .external(.firebaseCore),
-                .external(.firebaseMessaging)
+                .data(.preferenceData)
             ]
         )
     ],
