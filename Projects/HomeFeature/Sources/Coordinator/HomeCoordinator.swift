@@ -95,7 +95,11 @@ final class HomeCoordinator: Coordinator {
         }
     }
     
-    func showConcertDetail(concertID: Int, initialTab: SegmentedTabBarType.DetailTab = .artistDetail) {
+    func showConcertDetail(
+        concertID: Int,
+        initialTab: SegmentedTabBarType.DetailTab = .artistDetail,
+        initialSection: ConcertInfoSection? = nil
+    ) {
         let coordinator = ConcertCoordinator(
             navigationController: navigationController,
             onDismiss: { [weak self] in
@@ -103,7 +107,7 @@ final class HomeCoordinator: Coordinator {
             }
         )
         self.concertCoordinator = coordinator
-        coordinator.start(concertID: concertID, initialTab: initialTab)
+        coordinator.start(concertID: concertID, initialTab: initialTab, initialSection: initialSection)
     }
     
     func showSongDetail(songID: Int, setlistID: Int, songTitle: String) {

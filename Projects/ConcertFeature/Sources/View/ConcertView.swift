@@ -17,6 +17,7 @@ public struct ConcertView: View {
 
     private let concertID: Int
     private let initialTab: ConcertTab
+    private let initialSection: ConcertInfoSection?
     private let onDismiss: () -> Void
 
     @Environment(\.concertCoordinator) private var coordinator
@@ -33,11 +34,13 @@ public struct ConcertView: View {
         store: ConcertStore = ConcertStore(),
         concertID: Int,
         initialTab: ConcertTab = .artistDetail,
+        initialSection: ConcertInfoSection? = nil,
         onDismiss: @escaping () -> Void
     ) {
         self.store = store
         self.concertID = concertID
         self.initialTab = initialTab
+        self.initialSection = initialSection
         self.onDismiss = onDismiss
     }
 
@@ -124,6 +127,7 @@ public struct ConcertView: View {
         .onAppear {
             store.send(.onAppear(concertID: concertID))
             store.send(.tabSelected(initialTab))
+            store.send(.sectionSelected(initialSection))
             communityStore.send(.onAppear(concertID: concertID))
             coordinator?.onTicketSiteReturn = { [weak store] in
                 store?.send(.onTicketSiteReturn)
@@ -298,7 +302,9 @@ private extension ConcertView {
                 ticketingOfficeURL: store.state.concert?.ticketingOfficeURL,
                 scheduleList: store.state.schedules,
                 concertInfoList: store.state.concertInfoList,
-                merchandiseList: store.state.merchandiseList
+                merchandiseList: store.state.merchandiseList,
+                initialSection: store.state.initialSection,
+                onSectionScrolled: { store.send(.sectionSelected(nil)) }
             )
             .frame(maxWidth: UIScreen.main.bounds.width)
             .background(.livithColor(.black100))

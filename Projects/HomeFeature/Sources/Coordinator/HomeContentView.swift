@@ -9,6 +9,7 @@
 import SwiftUI
 import UIKit
 
+import ConcertFeature
 import LivithDesignSystem
 
 public struct HomeContentView: View {
@@ -16,16 +17,19 @@ public struct HomeContentView: View {
     @Binding private var isTabBarHidden: Bool
     @Binding private var deepLinkConcertID: Int?
     @Binding private var deepLinkInitialTab: SegmentedTabBarType.DetailTab
+    @Binding private var deepLinkInitialSection: ConcertInfoSection?
 
     public init(
         isTabBarHidden: Binding<Bool>,
         deepLinkConcertID: Binding<Int?> = .constant(nil),
-        deepLinkInitialTab: Binding<SegmentedTabBarType.DetailTab> = .constant(.artistDetail)
+        deepLinkInitialTab: Binding<SegmentedTabBarType.DetailTab> = .constant(.artistDetail),
+        deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil)
     ) {
         self._coordinator = State(initialValue: HomeCoordinator(isTabBarHidden: isTabBarHidden))
         self._isTabBarHidden = isTabBarHidden
         self._deepLinkConcertID = deepLinkConcertID
         self._deepLinkInitialTab = deepLinkInitialTab
+        self._deepLinkInitialSection = deepLinkInitialSection
     }
 
     public var body: some View {
@@ -34,9 +38,14 @@ public struct HomeContentView: View {
             .onChange(of: deepLinkConcertID) { _, newValue in
                 if let concertID = newValue {
                     coordinator.popToRoot()
-                    coordinator.showConcertDetail(concertID: concertID, initialTab: deepLinkInitialTab)
+                    coordinator.showConcertDetail(
+                        concertID: concertID,
+                        initialTab: deepLinkInitialTab,
+                        initialSection: deepLinkInitialSection
+                    )
                     deepLinkConcertID = nil
                     deepLinkInitialTab = .artistDetail
+                    deepLinkInitialSection = nil
                 }
             }
     }

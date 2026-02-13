@@ -8,6 +8,7 @@
 
 import Foundation
 
+import ConcertFeature
 import Domain
 import KakaoSDKAuth
 import LivithDesignSystem
@@ -38,12 +39,17 @@ final class DeepLinkService {
             return
         }
 
-        let initialTab = mapNotificationTypeToTab(notificationType)
+        let (initialTab, initialSection) = mapNotificationTypeToTabAndSection(notificationType)
+
+        var userInfoDict: [String: Any] = ["concertID": concertID, "initialTab": initialTab]
+        if let section = initialSection {
+            userInfoDict["initialSection"] = section
+        }
 
         NotificationCenter.default.post(
             name: .openConcertDetail,
             object: nil,
-            userInfo: ["concertID": concertID, "initialTab": initialTab]
+            userInfo: userInfoDict
         )
     }
 }
@@ -78,14 +84,18 @@ private extension DeepLinkService {
         )
     }
 
-    func mapNotificationTypeToTab(_ type: NotificationType) -> SegmentedTabBarType.DetailTab {
+    func mapNotificationTypeToTabAndSection(_ type: NotificationType) -> (SegmentedTabBarType.DetailTab, ConcertInfoSection?) {
         switch type {
         case .concertInfoUpdateSetlist:
-            return .setlist
-        case .concertInfoUpdateMD, .concertInfoUpdateDetail, .concertInfoUpdateSchedule, .concertInfoUpdateTicket:
-            return .concertInfo
+            return (.setlist, nil)
+        case .concertInfoUpdateMD:
+            return (.concertInfo, .merchandise)
+        case .concertInfoUpdateSchedule, .concertInfoUpdateTicket:
+            return (.concertInfo, .schedule)
+        case .concertInfoUpdateDetail:
+            return (.concertInfo, .concertInfo)
         default:
-            return .artistDetail
+            return (.artistDetail, nil)
         }
     }
 }
