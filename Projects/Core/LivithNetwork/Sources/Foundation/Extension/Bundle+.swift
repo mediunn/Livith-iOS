@@ -13,7 +13,7 @@ public extension Bundle {
         #if DEBUG
         return "v5"
         #else
-        return "v4"
+        return "v5"
         #endif
     }()
 
