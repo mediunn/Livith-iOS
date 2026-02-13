@@ -38,18 +38,20 @@ public extension AmplitudeService {
         case confirm(ConfirmEvent)
         case cancel(CancelEvent)
 
+        private static let prefix = "ios_"
+
         var value: String {
             switch self {
             case .click(let event):
-                return event.rawValue
+                return Self.prefix + event.rawValue
             case .setFilter(let event):
-                return event.rawValue
+                return Self.prefix + event.rawValue
             case .toggle(let event, let isOn):
-                return event.rawValue + (isOn ? "_on" : "_off")
+                return Self.prefix + event.rawValue + (isOn ? "_on" : "_off")
             case .confirm(let event):
-                return event.rawValue
+                return Self.prefix + event.rawValue
             case .cancel(let event):
-                return event.rawValue
+                return Self.prefix + event.rawValue
             }
         }
     }
