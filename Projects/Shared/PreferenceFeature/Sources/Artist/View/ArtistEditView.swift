@@ -140,7 +140,7 @@ private extension ArtistEditView {
         LivithButton(config.submitTitle, isLoading: isSubmitting) {
             onSubmit(store.state.selectedArtistList)
         }
-        .disabled(store.state.selectedArtistList.isEmpty || isSubmitting)
+        .disabled(isSubmitButtonDisabled)
     }
 }
 
@@ -149,6 +149,11 @@ private extension ArtistEditView {
 private extension ArtistEditView {
     var selectedCountText: String {
         "\(store.state.selectedArtistList.count)/\(PreferenceSelectionRule.maxCount)"
+    }
+
+    var isSubmitButtonDisabled: Bool {
+        if isSubmitting { return true }
+        return config.shouldDisableSubmitWhenEmpty && store.state.selectedArtistList.isEmpty
     }
     
     var searchTextBinding: Binding<String> {
