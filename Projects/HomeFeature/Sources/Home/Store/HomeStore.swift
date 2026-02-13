@@ -36,18 +36,23 @@ enum HomeIntent {
     enum ConcertSectionIntent {
         case onAppear
         case onRefresh
-        case collapsePreferenceBanner
         case _concertSectionDataResult(Result<HomeState.ConcertSectionState.Data, Error>)
     }
 }
 
 struct HomeState {
+    enum Route {
+        case concertSection
+        case interestedConcert
+    }
+
+    var route: Route = .concertSection
     var user: User? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
+    var hasNewNotice: Bool = false
     var interestConcert: InterestConcertState = .init()
     var sections: ConcertSectionState = .init()
-    var hasNewNotice: Bool = false
     
     struct InterestConcertState {
         var concert: Concert? = nil
@@ -63,7 +68,6 @@ struct HomeState {
         var isLoading: Bool = false
         var isInitialLoad: Bool = true
         var shouldShowPreferenceBanner: Bool = false
-        var isPreferenceBannerExpanded: Bool = true
         var recommendedConcertList: [Concert] = []
         var errorMessage: String = ""
     }
@@ -112,6 +116,7 @@ final class HomeStore: ObservableObject {
             switch result {
             case .success(let user):
                 state.user = user
+                state.route = user.interestConcertID == nil ? .concertSection : .interestedConcert
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
@@ -139,7 +144,7 @@ private extension HomeStore {
     func handleInterestConcertIntent(_ intent: HomeIntent.InterestConcertIntent) {
         switch intent {
         case .onDelete:
-            executeDeleteInterestConcert()
+            performDeleteInterestConcert()
         case .onRefresh:
             executeRefreshInterestConcert()
         case .onAppear:
@@ -155,10 +160,6 @@ private extension HomeStore {
         case ._deleteInterestConcertResult(let result):
             handleDeleteInterestConcertResult(result)
         }
-    }
-    
-    func executeDeleteInterestConcert() {
-        performDeleteInterestConcert()
     }
     
     func executeRefreshInterestConcert() {
@@ -240,29 +241,16 @@ private extension HomeStore {
     func handleConcertSectionIntent(_ intent: HomeIntent.ConcertSectionIntent) {
         switch intent {
         case .onAppear:
-            executeConcertSectionOnAppear()
+            if state.sections.isInitialLoad {
+                state.sections.isLoading = true
+                state.sections.isInitialLoad = false
+            }
+            performFetchConcertSectionData()
         case .onRefresh:
-            executeRefreshSections()
-        case .collapsePreferenceBanner:
-            state.sections.isPreferenceBannerExpanded = false
+            performFetchConcertSectionData()
         case ._concertSectionDataResult(let result):
             handleConcertSectionDataResult(result)
         }
-    }
-    
-    func executeConcertSectionOnAppear() {
-        if state.sections.isInitialLoad {
-            state.sections.isInitialLoad = false
-            state.sections.isLoading = true
-            performFetchConcertSectionData()
-        } else {
-            performFetchConcertSectionRecommendations()
-        }
-    }
-    
-    func executeRefreshSections() {
-        performFetchConcertSectionData()
-        performFetchUserInterestedConcert()
     }
     
     func handleConcertSectionDataResult(
@@ -395,18 +383,6 @@ private extension HomeStore {
             } catch {
                 send(.concertSection(._concertSectionDataResult(.failure(error))))
             }
-        }
-    }
-    
-    func performFetchConcertSectionRecommendations() {
-        cancellables[.refreshSections]?.cancel()
-        cancellables[.refreshSections] = Task {
-            let recommendations = await fetchRecommendationsIfNeeded()
-            let data = (
-                sections: state.sections.sectionList,
-                recommended: recommendations
-            )
-            send(.concertSection(._concertSectionDataResult(.success(data))))
         }
     }
 }

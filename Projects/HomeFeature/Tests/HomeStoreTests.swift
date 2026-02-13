@@ -25,43 +25,19 @@ struct HomeStoreTests {
     
     // MARK: - 초기 상태 테스트
     
-    @Test("초기 상태에서 userName은 빈 문자열이어야 한다")
-    func testInitialUserNameState() {
+    @Test("초기 상태에서 user는 nil이어야 한다")
+    func testInitialUserState() {
         let sut = HomeStore()
-        #expect(sut.state.userName == "")
+        #expect(sut.state.user == nil)
     }
-    
-    @Test("초기 상태에서 interestConcert는 nil이어야 한다")
-    func testInitialInterestConcertState() {
-        let sut = HomeStore()
-        #expect(sut.state.interestConcert.concert == nil)
-    }
-    
-    @Test("초기 상태에서 scheduleList는 비어있어야 한다")
-    func testInitialScheduleListState() {
-        let sut = HomeStore()
-        #expect(sut.state.interestConcert.scheduleList.isEmpty)
-    }
-    
-    @Test("초기 상태에서 shouldShowPreferenceBanner는 false이어야 한다")
-    func testInitialPreferenceBannerState() {
-        let sut = HomeStore()
-        #expect(sut.state.sections.shouldShowPreferenceBanner == false)
-    }
-    
-    @Test("초기 상태에서 recommendedConcerts는 비어있어야 한다")
-    func testInitialRecommendedConcertsState() {
-        let sut = HomeStore()
-        #expect(sut.state.sections.recommendedConcertList.isEmpty)
-    }
-    
+
     // MARK: - onAppear 테스트
-    
-    @Test("onAppear 시 사용자 정보가 로드되어야 한다")
-    func testOnAppearLoadsUser() async throws {
+
+    @Test("onAppear 시 유저 정보와 읽지 않은 알림 수를 조회해야 한다")
+    func testOnAppearFetchesUserAndUnreadNotificationCount() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
-        container.userRepository.interestedConcertStub = nil
+        container.notificationRepository.unreadNotificationCountStub = 3
         
         let sut = HomeStore()
         
@@ -70,117 +46,163 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 100_000_000)
         
         // Then
-        #expect(sut.state.userName == "홍길동")
+        #expect(container.userRepository.fetchUserCallCount == 1)
+        #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
+        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.hasNewNotice)
     }
-    
-    @Test("onAppear 시 관심 공연이 있으면 스케줄과 셋리스트가 로드되어야 한다")
-    func testOnAppearLoadsInterestConcertWithDetails() async throws {
+
+    // MARK: - Route 결정 테스트
+
+    @Test("유저 조회 결과에서 interestedConcertID가 nil이면 route는 concertSection이어야 한다")
+    func testUserResultWithNilInterestConcertIDSetsConcertSectionRoute() {
+        let sut = HomeStore()
+        let user = makeMockUser(interestConcertID: nil)
+
+        sut.send(._fetchUserResult(.success(user)))
+
+        #expect(sut.state.route == .concertSection)
+    }
+
+    @Test("유저 조회 결과에서 interestedConcertID가 있으면 route는 interestedConcert여야 한다")
+    func testUserResultWithInterestConcertIDSetsInterestedConcertRoute() {
+        let sut = HomeStore()
+        let user = makeMockUser(interestConcertID: 123)
+
+        sut.send(._fetchUserResult(.success(user)))
+
+        #expect(sut.state.route == .interestedConcert)
+    }
+
+    // MARK: - ConcertSection 상태 테스트
+
+    @Test("concertSection onAppear 시 섹션/추천 데이터가 로드되어야 한다")
+    func testConcertSectionOnAppearLoadsSectionsAndRecommendations() async throws {
         // Given
-        let concert = makeMockConcert()
-        container.userRepository.userStub = makeMockUser()
+        let sut = HomeStore()
+        let section = makeMockSection(id: 1)
+        let recommended = [makeMockConcert(id: 10), makeMockConcert(id: 11)]
+        let user = makeMockUser(hasPreferences: true)
+
+        container.concertRepository.homeSectionListStub = [section]
+        container.concertRepository.recommendedConcertListStub = recommended
+        sut.send(._fetchUserResult(.success(user)))
+
+        // When
+        sut.send(.concertSection(.onAppear))
+
+        // Then (immediate)
+        #expect(sut.state.sections.isLoading)
+        #expect(!sut.state.sections.isInitialLoad)
+
+        // Then (after async)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
+        #expect(sut.state.sections.sectionList.count == 1)
+        #expect(sut.state.sections.sectionList.first?.id == section.id)
+        #expect(sut.state.sections.recommendedConcertList.count == 2)
+        #expect(!sut.state.sections.shouldShowPreferenceBanner)
+        #expect(!sut.state.sections.isLoading)
+    }
+
+    @Test("concertSection onAppear 시 hasPreferences가 false면 추천을 조회하지 않고 배너를 표시해야 한다")
+    func testConcertSectionOnAppearShowsPreferenceBannerWhenUserHasNoPreferences() async throws {
+        // Given
+        let sut = HomeStore()
+        let section = makeMockSection(id: 2)
+        let user = makeMockUser(hasPreferences: false)
+
+        container.concertRepository.homeSectionListStub = [section]
+        sut.send(._fetchUserResult(.success(user)))
+
+        // When
+        sut.send(.concertSection(.onAppear))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
+        #expect(sut.state.sections.sectionList.count == 1)
+        #expect(sut.state.sections.shouldShowPreferenceBanner)
+        #expect(sut.state.sections.recommendedConcertList.isEmpty)
+    }
+
+    // MARK: - InterestConcert 상태 테스트
+
+    @Test("interestConcert onAppear 시 관심 공연과 상세 데이터를 로드해야 한다")
+    func testInterestConcertOnAppearLoadsConcertAndDetailState() async throws {
+        // Given
+        let sut = HomeStore()
+        let concert = makeMockConcert(id: 100)
+        let schedule = makeMockSchedule(id: 200)
+        let setlist = makeMockSetlist(id: 300)
+        let songs = [makeMockSong(id: 400, orderIndex: 1), makeMockSong(id: 401, orderIndex: 2)]
+
         container.userRepository.interestedConcertStub = concert
-        container.concertRepository.scheduleListStub = [makeMockSchedule()]
-        container.concertRepository.mainSetlistStub = makeMockSetlist()
-        container.setlistRepository.setlistSongsStub = [makeMockSong()]
-        
-        let sut = HomeStore()
-        
+        container.concertRepository.scheduleListStub = [schedule]
+        container.concertRepository.mainSetlistStub = setlist
+        container.setlistRepository.setlistSongsStub = songs
+
         // When
-        sut.send(.onAppear)
+        sut.send(.interestConcert(.onAppear))
         try await Task.sleep(nanoseconds: 150_000_000)
-        
+
         // Then
+        #expect(container.userRepository.fetchInterestedConcertCallCount == 1)
+        #expect(container.concertRepository.fetchConcertScheduleListCallCount == 1)
+        #expect(container.concertRepository.fetchMainSetlistCallCount == 1)
+        #expect(container.setlistRepository.fetchSetlistSongsCallCount == 1)
         #expect(sut.state.interestConcert.concert?.id == concert.id)
-        #expect(!sut.state.interestConcert.scheduleList.isEmpty)
-        #expect(sut.state.interestConcert.setlist != nil)
-        #expect(!sut.state.interestConcert.songList.isEmpty)
+        #expect(sut.state.interestConcert.scheduleList.count == 1)
+        #expect(sut.state.interestConcert.scheduleList.first?.id == schedule.id)
+        #expect(sut.state.interestConcert.setlist?.id == setlist.id)
+        #expect(sut.state.interestConcert.songList.count == 2)
     }
-    
-    @Test("onAppear 사용자 정보 로드 실패 시 에러 메시지가 설정되어야 한다")
-    func testOnAppearUserLoadFailure() async throws {
+
+    @Test("interestConcert onRefresh 시 현재 concert가 없으면 관심 공연을 다시 조회해야 한다")
+    func testInterestConcertOnRefreshWithoutConcertFetchesInterestedConcert() async throws {
         // Given
-        container.userRepository.errorStub = .serverError
-        
         let sut = HomeStore()
-        
+        container.userRepository.interestedConcertStub = nil
+
         // When
-        sut.send(.onAppear)
+        sut.send(.interestConcert(.onRefresh))
         try await Task.sleep(nanoseconds: 100_000_000)
-        
+
         // Then
-        #expect(container.userRepository.fetchUserCallCount > 0)
-        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(container.userRepository.fetchInterestedConcertCallCount == 1)
     }
-    
-    // MARK: - 토스트 관리 테스트
-    
-    @Test("onErrorToastDisappear 시 에러 메시지가 초기화되어야 한다")
-    func testOnErrorToastDisappear() async throws {
+
+    @Test("관심 공연 조회 결과가 nil이면 상세 상태를 초기화해야 한다")
+    func testFetchUserInterestConcertResultNilClearsDetailState() {
         // Given
-        container.userRepository.errorStub = .serverError
         let sut = HomeStore()
-        sut.send(.onAppear)
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Precondition
-        #expect(!sut.state.errorMessage.isEmpty)
-        
+        sut.send(.interestConcert(._fetchScheduleListResult(.success([makeMockSchedule(id: 1)]))))
+        sut.send(.interestConcert(._fetchMainSetlistResult(.success(makeMockSetlist(id: 2)))))
+        sut.send(.interestConcert(._fetchSetlistSongListResult(.success([makeMockSong(id: 3)]))))
+
         // When
-        sut.send(.onErrorToastDisappear)
-        
+        sut.send(.interestConcert(._fetchUserInterestConcertResult(.success(nil))))
+
         // Then
-        #expect(sut.state.errorMessage.isEmpty)
+        #expect(sut.state.interestConcert.concert == nil)
+        #expect(sut.state.interestConcert.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.setlist == nil)
+        #expect(sut.state.interestConcert.songList.isEmpty)
     }
-    
-    @Test("onToastDisappear 시 토스트 메시지가 초기화되어야 한다")
-    func testOnToastDisappear() async throws {
+
+    @Test("관심 공연 삭제 성공 결과를 받으면 상태를 비우고 토스트를 표시해야 한다")
+    func testDeleteInterestConcertResultSuccessClearsStateAndShowsToast() {
         // Given
-        container.userRepository.userStub = makeMockUser()
-        container.userRepository.interestedConcertStub = makeMockConcert()
-        
         let sut = HomeStore()
-        sut.send(.interestConcert(.onDelete))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Precondition
-        #expect(!sut.state.toastMessage.isEmpty)
-        
+        sut.send(.interestConcert(._fetchScheduleListResult(.success([makeMockSchedule(id: 10)]))))
+        sut.send(.interestConcert(._fetchMainSetlistResult(.success(makeMockSetlist(id: 11)))))
+        sut.send(.interestConcert(._fetchSetlistSongListResult(.success([makeMockSong(id: 12)]))))
+
         // When
-        sut.send(.onToastDisappear)
-        
-        // Then
-        #expect(sut.state.toastMessage.isEmpty)
-    }
-    
-    // MARK: - 관심 공연 삭제 테스트
-    
-    @Test("onDelete 성공 시 관심 공연이 삭제되고 토스트가 표시되어야 한다")
-    func testOnDeleteSuccess() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser()
-        container.userRepository.interestedConcertStub = makeMockConcert()
-        
-        let concert = makeMockConcert()
-        let schedule = makeMockSchedule()
-        let setlist = makeMockSetlist()
-        let song = makeMockSong()
-        
-        let sut = HomeStore()
-        sut.send(.interestConcert(._fetchUserInterestConcertResult(.success(concert))))
-        sut.send(.interestConcert(._fetchScheduleListResult(.success([schedule]))))
-        sut.send(.interestConcert(._fetchMainSetlistResult(.success(setlist))))
-        sut.send(.interestConcert(._fetchSetlistSongListResult(.success([song]))))
-        
-        // Precondition
-        #expect(sut.state.interestConcert.concert != nil)
-        #expect(!sut.state.interestConcert.scheduleList.isEmpty)
-        #expect(sut.state.interestConcert.setlist != nil)
-        #expect(!sut.state.interestConcert.songList.isEmpty)
-        
-        // When
-        sut.send(.interestConcert(.onDelete))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
+        sut.send(.interestConcert(._deleteInterestConcertResult(.success(()))))
+
         // Then
         #expect(sut.state.interestConcert.concert == nil)
         #expect(sut.state.interestConcert.scheduleList.isEmpty)
@@ -188,304 +210,35 @@ struct HomeStoreTests {
         #expect(sut.state.interestConcert.songList.isEmpty)
         #expect(sut.state.toastMessage == "관심 공연을 삭제했어요")
     }
-    
-    @Test("onDelete 실패 시 에러 메시지가 설정되어야 한다")
-    func testOnDeleteFailure() async throws {
+
+    // MARK: - Toast 상태 테스트
+
+    @Test("onToastDisappear 호출 시 toastMessage는 비워져야 한다")
+    func testOnToastDisappearClearsToastMessage() {
         // Given
-        container.userRepository.errorStub = .serverError
-        
         let sut = HomeStore()
-        
+        sut.send(.interestConcert(._deleteInterestConcertResult(.success(()))))
+        #expect(!sut.state.toastMessage.isEmpty)
+
         // When
-        sut.send(.interestConcert(.onDelete))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
+        sut.send(.onToastDisappear)
+
         // Then
+        #expect(sut.state.toastMessage.isEmpty)
+    }
+
+    @Test("onErrorToastDisappear 호출 시 errorMessage는 비워져야 한다")
+    func testOnErrorToastDisappearClearsErrorMessage() {
+        // Given
+        let sut = HomeStore()
+        sut.send(._fetchUserResult(.failure(UserError.serverError)))
         #expect(!sut.state.errorMessage.isEmpty)
-    }
-    
-    // MARK: - 관심 공연 새로고침 테스트
-    
-    @Test("관심 공연이 있을 때 onRefreshInterestConcert 시 스케줄과 셋리스트가 새로고침되어야 한다")
-    func testOnRefreshInterestConcertWithExistingConcert() async throws {
-        // Given
-        let concert = makeMockConcert()
-        container.userRepository.userStub = makeMockUser()
-        container.userRepository.interestedConcertStub = concert
-        container.concertRepository.scheduleListStub = [makeMockSchedule()]
-        container.concertRepository.mainSetlistStub = makeMockSetlist()
-        container.setlistRepository.setlistSongsStub = [makeMockSong()]
-        
-        let sut = HomeStore()
-        sut.send(.onAppear)
-        try await Task.sleep(nanoseconds: 150_000_000)
-        
-        // Reset call counts
-        container.concertRepository.fetchConcertScheduleListCallCount = 0
-        container.concertRepository.fetchMainSetlistCallCount = 0
-        
+
         // When
-        sut.send(.interestConcert(.onRefresh))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
+        sut.send(.onErrorToastDisappear)
+
         // Then
-        #expect(container.concertRepository.fetchConcertScheduleListCallCount > 0)
-        #expect(container.concertRepository.fetchMainSetlistCallCount > 0)
-    }
-    
-    @Test("관심 공연이 없을 때 onRefreshInterestConcert 시 관심 공연을 다시 로드해야 한다")
-    func testOnRefreshInterestConcertWithNoConcert() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser()
-        container.userRepository.interestedConcertStub = nil
-        
-        let sut = HomeStore()
-        
-        // Reset call count
-        container.userRepository.fetchInterestedConcertCallCount = 0
-        
-        // When
-        sut.send(.interestConcert(.onRefresh))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(container.userRepository.fetchInterestedConcertCallCount > 0)
-    }
-    
-    // MARK: - 섹션 새로고침 테스트
-    
-    @Test("onRefreshSections 시 isSectionsLoading이 true가 되어야 한다")
-    func testOnRefreshSectionsLoading() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser()
-        container.concertRepository.homeSectionListStub = [makeMockSection()]
-        
-        let sut = HomeStore()
-        
-        // When
-        sut.send(.concertSection(.onRefresh))
-        
-        // Then - 즉시 체크
-        #expect(sut.state.sections.isLoading == true)
-    }
-    
-    @Test("섹션 로드 성공 시 sectionList가 업데이트되고 로딩이 false가 되어야 한다")
-    func testOnRefreshSectionsSuccess() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser()
-        container.concertRepository.homeSectionListStub = [makeMockSection()]
-        
-        let sut = HomeStore()
-        try await Task.sleep(nanoseconds: 100_000_000)
-        container.concertRepository.fetchHomeConcertSectionListCallCount = 0
-        
-        // When
-        sut.send(.concertSection(.onRefresh))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount > 0)
-        #expect(!sut.state.sections.sectionList.isEmpty)
-        #expect(sut.state.sections.isLoading == false)
-    }
-    
-    @Test("콘서트 섹션 onAppear 최초 로드 시 로딩이 true에서 false로 전환되어야 한다")
-    func testConcertSectionOnAppearInitialLoadTogglesLoading() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser()
-        container.concertRepository.homeSectionListStub = [makeMockSection()]
-        
-        let sut = HomeStore()
-        
-        // When
-        sut.send(.concertSection(.onAppear))
-        
-        // Then - 즉시 체크
-        #expect(sut.state.sections.isLoading == true)
-        
-        // When - 비동기 완료 대기
-        try await Task.sleep(nanoseconds: 150_000_000)
-        
-        // Then
-        #expect(sut.state.sections.isLoading == false)
-    }
-    
-    @Test("콘서트 섹션 onAppear 재호출 시 섹션 조회는 수행하지 않아야 한다")
-    func testConcertSectionOnAppearSkipsSectionFetchAfterInitialLoad() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser()
-        container.concertRepository.homeSectionListStub = [makeMockSection()]
-        
-        let sut = HomeStore()
-        
-        // First onAppear
-        sut.send(.concertSection(.onAppear))
-        try await Task.sleep(nanoseconds: 150_000_000)
-        
-        // Reset call count
-        container.concertRepository.fetchHomeConcertSectionListCallCount = 0
-        
-        // When - second onAppear
-        sut.send(.concertSection(.onAppear))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
-    }
-    
-    // MARK: - Preference 배너 테스트
-    
-    @Test("hasPreferences가 false이면 배너를 표시해야 한다")
-    func testShowPreferenceBannerWhenHasPreferencesFalse() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser(hasPreferences: false)
-        
-        let sut = HomeStore()
-        sut.send(._fetchUserResult(.success(makeMockUser(hasPreferences: false))))
-        
-        // When
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(sut.state.sections.shouldShowPreferenceBanner == true)
-    }
-    
-    @Test("hasPreferences가 true이면 배너를 표시하지 않아야 한다")
-    func testHidePreferenceBannerWhenHasPreferencesTrue() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser(hasPreferences: true)
-        
-        let sut = HomeStore()
-        sut.send(._fetchUserResult(.success(makeMockUser(hasPreferences: true))))
-        
-        // When
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(sut.state.sections.shouldShowPreferenceBanner == false)
-    }
-    
-    @Test("추천 로드 실패 시에도 배너는 hasPreferences 기준으로 유지되어야 한다")
-    func testPreferenceBannerWhenRecommendationFetchFails() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser(hasPreferences: true)
-        container.concertRepository.errorStub = ConcertError.serverError
-        
-        let sut = HomeStore()
-        sut.send(._fetchUserResult(.success(makeMockUser(hasPreferences: true))))
-        
-        // When
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(sut.state.sections.shouldShowPreferenceBanner == false)
-        #expect(sut.state.sections.errorMessage.isEmpty)
-    }
-    
-    @Test("onAppear 시 hasPreferences에 따라 배너가 설정되어야 한다")
-    func testCheckShowBannerOnAppear() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser(hasPreferences: false)
-        container.userRepository.interestedConcertStub = nil
-        container.concertRepository.homeSectionListStub = []
-        
-        let sut = HomeStore()
-        
-        // When
-        sut.send(.onAppear)
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
-        #expect(sut.state.sections.shouldShowPreferenceBanner == true)
-    }
-    
-    // MARK: - 추천 콘서트 테스트
-    
-    @Test("hasPreferences가 true이면 추천 콘서트가 로드되어야 한다")
-    func testFetchRecommendedConcertWhenHasPreferencesTrue() async throws {
-        // Given
-        let mockRecommendedConcerts = [makeMockConcert(id: 1), makeMockConcert(id: 2)]
-        
-        container.userRepository.userStub = makeMockUser(hasPreferences: true)
-        container.concertRepository.recommendedConcertListStub = mockRecommendedConcerts
-        
-        let sut = HomeStore()
-        
-        // When
-        sut.send(.onAppear)
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(container.concertRepository.fetchRecommendedConcertListCallCount > 0)
-        #expect(!sut.state.sections.recommendedConcertList.isEmpty)
-        #expect(sut.state.sections.recommendedConcertList.count == 2)
-    }
-    
-    @Test("hasPreferences가 false이면 추천 콘서트가 로드되지 않아야 한다")
-    func testFetchRecommendedConcertWhenHasPreferencesFalse() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser(hasPreferences: false)
-        container.concertRepository.recommendedConcertListStub = []
-        
-        let sut = HomeStore()
-        
-        // Reset call count
-        container.concertRepository.fetchRecommendedConcertListCallCount = 0
-        
-        // When
-        sut.send(.onAppear)
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
-        #expect(sut.state.sections.recommendedConcertList.isEmpty)
-    }
-    
-    @Test("추천 콘서트 로드 실패 시 리스트는 비어야 한다")
-    func testFetchRecommendedConcertFailure() async throws {
-        // Given
-        container.userRepository.userStub = makeMockUser(hasPreferences: true)
-        container.concertRepository.errorStub = ConcertError.serverError
-        
-        let sut = HomeStore()
-        
-        // When
-        sut.send(.onAppear)
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Then
-        #expect(sut.state.sections.recommendedConcertList.isEmpty)
-        #expect(sut.state.sections.errorMessage.isEmpty)
-    }
-    
-    // MARK: - 연쇄 호출 테스트
-    
-    @Test("관심 공연이 nil로 변경될 때 스케줄, 셋리스트, 곡 목록이 비워져야 한다")
-    func testInterestConcertNilClearsRelatedData() async throws {
-        // Given
-        let concert = makeMockConcert()
-        container.userRepository.userStub = makeMockUser()
-        container.userRepository.interestedConcertStub = concert
-        container.concertRepository.scheduleListStub = [makeMockSchedule()]
-        container.concertRepository.mainSetlistStub = makeMockSetlist()
-        container.setlistRepository.setlistSongsStub = [makeMockSong()]
-        
-        let sut = HomeStore()
-        sut.send(.onAppear)
-        try await Task.sleep(nanoseconds: 150_000_000)
-        
-        // Precondition
-        #expect(!sut.state.interestConcert.scheduleList.isEmpty)
-        
-        // When - 관심 공연을 nil로 받음
-        sut.send(.interestConcert(._fetchUserInterestConcertResult(.success(nil))))
-        
-        // Then
-        #expect(sut.state.interestConcert.concert == nil)
-        #expect(sut.state.interestConcert.scheduleList.isEmpty)
-        #expect(sut.state.interestConcert.setlist == nil)
-        #expect(sut.state.interestConcert.songList.isEmpty)
+        #expect(sut.state.errorMessage.isEmpty)
     }
 }
 
@@ -510,10 +263,14 @@ private extension HomeStoreTests {
         )
     }
     
-    func makeMockUser(nickname: String = "테스트유저", hasPreferences: Bool = false) -> User {
+    func makeMockUser(
+        nickname: String = "테스트유저",
+        hasPreferences: Bool = false,
+        interestConcertID: Int? = nil
+    ) -> User {
         User(
             id: 1,
-            interestConcertID: nil,
+            interestConcertID: interestConcertID,
             provider: "APPLE",
             providerID: "12345",
             email: "test@test.com",

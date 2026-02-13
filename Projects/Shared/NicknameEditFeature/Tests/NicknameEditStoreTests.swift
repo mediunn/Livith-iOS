@@ -78,6 +78,20 @@ final class MockUserRepository: UserRepository {
             providerID: "123",
             email: nil,
             nickname: "test",
+            hasPreferences: false,
+            authority: UserAuthority(deviceNotification: true, marketingConsent: false)
+        )
+    }
+    
+    func refreshUser() async throws(UserError) -> User {
+        User(
+            id: 1,
+            interestConcertID: nil,
+            provider: "kakao",
+            providerID: "123",
+            email: nil,
+            nickname: "test",
+            hasPreferences: false,
             authority: UserAuthority(deviceNotification: true, marketingConsent: false)
         )
     }

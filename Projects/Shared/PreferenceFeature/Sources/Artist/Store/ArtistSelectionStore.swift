@@ -138,7 +138,7 @@ private extension ArtistSelectionStore {
     func searchArtistList(keyword: String?) {
         Task {
             do {
-                let result = try await preferenceRepository.searchArtistList(keyword: keyword, size: 12, cursor: nil)
+                let result = try await preferenceRepository.searchArtistList(keyword: keyword, size: 18, cursor: nil)
                 await send(._searchResult(.success(result.artists)))
             } catch {
                 await send(._searchResult(.failure(error)))
@@ -150,7 +150,7 @@ private extension ArtistSelectionStore {
         Task {
             do {
                 let searchKeyword = keyword.isEmpty ? nil : keyword
-                let result = try await preferenceRepository.searchArtistList(keyword: searchKeyword, size: 12, cursor: cursor)
+                let result = try await preferenceRepository.searchArtistList(keyword: searchKeyword, size: 18, cursor: cursor)
                 await send(._searchMoreResult(.success(result.artists)))
             } catch {
                 await send(._searchMoreResult(.failure(error)))

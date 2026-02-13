@@ -52,9 +52,7 @@ final class UserArtistUpdateStore: ObservableObject {
 // MARK: - Helpers
 
 private extension UserArtistUpdateStore {
-    func performUpdateUserArtists(_ artistList: [PreferredArtist]) {
-        guard !artistList.isEmpty else { return }
-        
+    func performUpdateUserArtists(_ artistList: [PreferredArtist]) {        
         Task {
             do {
                 try await preferenceRepository.updateUserPreferredArtistList(artistIDs: artistList.map { $0.id })

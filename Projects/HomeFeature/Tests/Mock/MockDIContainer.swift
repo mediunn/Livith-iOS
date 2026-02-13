@@ -13,12 +13,14 @@ import Domain
 
 final class MockDIContainer {
     let userRepository = MockUserRepository()
+    let notificationRepository = MockNotificationRepository()
     let concertRepository = MockConcertRepository()
     let setlistRepository = MockSetlistRepository()
     let preferenceRepository = MockPreferenceRepository()
     
     func registerDependencies() {
         DIContainer.shared.register(userRepository, for: UserRepository.self)
+        DIContainer.shared.register(notificationRepository, for: NotificationRepository.self)
         DIContainer.shared.register(concertRepository, for: ConcertRepository.self)
         DIContainer.shared.register(setlistRepository, for: SetlistRepository.self)
         DIContainer.shared.register(preferenceRepository, for: PreferenceRepository.self)

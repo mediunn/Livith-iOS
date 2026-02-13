@@ -13,17 +13,20 @@ public struct PreferenceEditConfig {
     public let stepIndicator: (current: Int, total: Int)?
     public let showSubtitle: Bool
     public let submitTitle: String
+    public let shouldDisableSubmitWhenEmpty: Bool
     
     public init(
         navigationTitle: String,
         stepIndicator: (current: Int, total: Int)? = nil,
         showSubtitle: Bool = false,
-        submitTitle: String
+        submitTitle: String,
+        shouldDisableSubmitWhenEmpty: Bool = true
     ) {
         self.navigationTitle = navigationTitle
         self.stepIndicator = stepIndicator
         self.showSubtitle = showSubtitle
         self.submitTitle = submitTitle
+        self.shouldDisableSubmitWhenEmpty = shouldDisableSubmitWhenEmpty
     }
 }
 
@@ -53,7 +56,8 @@ public extension PreferenceEditConfig {
             navigationTitle: "아티스트 설정",
             stepIndicator: nil,
             showSubtitle: false,
-            submitTitle: "설정하기"
+            submitTitle: "설정하기",
+            shouldDisableSubmitWhenEmpty: false
         )
     }
 }

@@ -40,6 +40,17 @@ final class MockUserRepository: UserRepository {
         return user
     }
     
+    func refreshUser() async throws(UserError) -> User {
+        fetchUserCallCount += 1
+        if let error = errorStub {
+            throw error
+        }
+        guard let user = userStub else {
+            throw UserError.serverError
+        }
+        return user
+    }
+    
     func fetchInterestedConcert() async throws(UserError) -> Concert? {
         fetchInterestedConcertCallCount += 1
         if let error = errorStub {

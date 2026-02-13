@@ -63,7 +63,7 @@ public struct GenreEditView: View {
                 LivithButton(config.submitTitle, isLoading: isSubmitting) {
                     onSubmit(selectionStore.state.selectedGenreList)
                 }
-                .disabled(selectionStore.state.selectedGenreList.isEmpty)
+                .disabled(isSubmitButtonDisabled)
                 .padding(.bottom, Constants.bottomPadding)
             }
             .padding(.horizontal, Constants.horizontalPadding)
@@ -105,6 +105,11 @@ private extension GenreEditView {
 private extension GenreEditView {
     var selectedCountText: String {
         "\(selectionStore.state.selectedGenreList.count)/\(PreferenceSelectionRule.maxCount)"
+    }
+
+    var isSubmitButtonDisabled: Bool {
+        if isSubmitting { return true }
+        return config.shouldDisableSubmitWhenEmpty && selectionStore.state.selectedGenreList.isEmpty
     }
 }
 

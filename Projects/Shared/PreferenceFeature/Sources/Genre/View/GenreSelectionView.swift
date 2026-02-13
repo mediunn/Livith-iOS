@@ -87,15 +87,14 @@ private extension GenreSelectionView {
     }
     
     var selectedGenreChips: some View {
-        HStack(spacing: Constants.chipSpacing) {
+        FlowLayout(spacing: Constants.chipSpacing) {
             ForEach(store.state.selectedGenreList) { genre in
                 RemovableChip(genre.displayName) {
                     store.send(.toggle(id: genre.id))
                 }
             }
-            
-            Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

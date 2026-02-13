@@ -112,7 +112,7 @@ struct ArtistSelectionStoreTests {
         let selectedArtist = PreferredArtist(id: 1, name: "IU", genreID: 1, imageURL: nil)
         
         // When
-        let sut = ArtistSelectionStore(selectedArtists: [selectedArtist])
+        let sut = ArtistSelectionStore(selectedArtistList: [selectedArtist])
         
         // Then
         #expect(sut.state.selectedArtistList.count == 1)
@@ -131,7 +131,7 @@ struct ArtistSelectionStoreTests {
         container.preferenceRepository.artistSearchResultStub = ArtistSearchResult(artists: artists, cursor: nil, totalCount: 4)
         
         let initialSelection = [artists[0], artists[1], artists[2]]
-        let sut = ArtistSelectionStore(selectedArtists: initialSelection)
+        let sut = ArtistSelectionStore(selectedArtistList: initialSelection)
         sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
         

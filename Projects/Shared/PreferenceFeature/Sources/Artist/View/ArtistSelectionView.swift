@@ -117,15 +117,14 @@ private extension ArtistSelectionView {
     }
     
     var selectedArtistChips: some View {
-        HStack(spacing: Constants.chipSpacing) {
+        FlowLayout(spacing: Constants.chipSpacing) {
             ForEach(store.state.selectedArtistList) { artist in
                 RemovableChip(artist.name) {
                     store.send(.toggle(id: artist.id))
                 }
             }
-            
-            Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
