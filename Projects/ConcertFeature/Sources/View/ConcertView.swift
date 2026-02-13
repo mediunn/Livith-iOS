@@ -158,6 +158,7 @@ private extension ConcertView {
                         tabContentView
                     } header: {
                         segmentTabBar
+                            .id("tabBar")
                     }
                 }
                 .opacity(store.state.concert != nil ? 1 : 0)
@@ -176,6 +177,16 @@ private extension ConcertView {
                 if case .success(let message) = newValue, message.contains("작성") {
                     withAnimation {
                         proxy.scrollTo("top", anchor: .top)
+                    }
+                }
+            }
+            .onChange(of: store.state.concert) { _, newValue in
+                if newValue != nil && initialTab != .artistDetail {
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(300))
+                        withAnimation {
+                            proxy.scrollTo("tabBar", anchor: .top)
+                        }
                     }
                 }
             }
