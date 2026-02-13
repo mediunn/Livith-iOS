@@ -82,6 +82,24 @@ final class NoticeStore: ObservableObject {
     }
 }
 
+// MARK: - Public Methods
+
+extension NoticeStore {
+    @MainActor
+    func refreshAsync() async {
+        state.cursor = nil
+        state.hasMorePages = true
+        state.isLoading = true
+
+        do {
+            let notifications = try await notificationRepository.fetchNotificationList(cursor: nil, size: pageSize)
+            send(._fetchNotificationListResult(.success(notifications), isRefresh: true))
+        } catch {
+            send(._fetchNotificationListResult(.failure(error), isRefresh: true))
+        }
+    }
+}
+
 // MARK: - Helper
 
 private extension NoticeStore {

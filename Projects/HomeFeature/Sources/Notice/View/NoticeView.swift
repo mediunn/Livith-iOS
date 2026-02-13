@@ -154,6 +154,9 @@ private extension NoticeView {
             }
             .padding(.horizontal, 4)
         }
+        .refreshable {
+            await store.refreshAsync()
+        }
     }
 }
 
