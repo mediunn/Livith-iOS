@@ -41,7 +41,7 @@ private extension RecommendedConcertSectionView {
             
             Spacer()
             
-            if !concertList.isEmpty {
+            if concertList.count > Constants.maxVisibleConcertCount {
                 Button(action: onSeeAllTap) {
                     Image.livithIcon(.rightLineDefault)
                         .resizable()
@@ -55,7 +55,7 @@ private extension RecommendedConcertSectionView {
     var concertListView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 12) {
-                ForEach(concertList) { concert in
+                ForEach(concertList.prefix(Constants.maxVisibleConcertCount)) { concert in
                     LivithCard(
                         imageURL: concert.posterURL,
                         title: concert.title,
@@ -80,6 +80,7 @@ private extension RecommendedConcertSectionView {
 
 private extension RecommendedConcertSectionView {
     enum Constants {
+        static let maxVisibleConcertCount = 10
         static let iconSize: CGFloat = 24
         static let emptyViewRatio: CGFloat = 343 / 160
     }

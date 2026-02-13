@@ -113,17 +113,11 @@ private extension HomeConcertSectionView {
         }
     }
     
-    @ViewBuilder
     var concertSection: some View {
-        if !sectionState.isLoading && sectionState.sectionList.isEmpty {
-            LivithEmptyView(text: emptyMessage)
+        ForEach(sectionState.sectionList, id: \.id) { section in
+            concertSectionRow(for: section)
                 .padding(.top, Constants.sectionTopPadding)
-        } else {
-            ForEach(sectionState.sectionList, id: \.id) { section in
-                concertSectionRow(for: section)
-                    .padding(.top, Constants.sectionTopPadding)
-                    .padding(.leading, Constants.sectionLeadingPadding)
-            }
+                .padding(.leading, Constants.sectionLeadingPadding)
         }
     }
 }
