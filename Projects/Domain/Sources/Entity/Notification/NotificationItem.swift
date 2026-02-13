@@ -38,11 +38,14 @@ public struct NotificationItem: Identifiable, Equatable {
     public var displayCreatedAt: String {
         let now = Date()
         let interval = now.timeIntervalSince(createdAt)
+        let minutes = Int(interval / 60)
         let hours = Int(interval / 3600)
         let days = Int(interval / 86400)
 
-        if hours < 24 {
-            return "\(max(1, hours))시간 전"
+        if hours < 1 {
+            return "\(max(1, minutes))분 전"
+        } else if hours < 24 {
+            return "\(hours)시간 전"
         } else if days < 7 {
             return "\(days)일 전"
         } else {
