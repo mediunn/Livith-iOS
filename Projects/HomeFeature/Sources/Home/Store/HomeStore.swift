@@ -50,9 +50,9 @@ struct HomeState {
     var user: User? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
+    var hasNewNotice: Bool = false
     var interestConcert: InterestConcertState = .init()
     var sections: ConcertSectionState = .init()
-    var hasNewNotice: Bool = false
     
     struct InterestConcertState {
         var concert: Concert? = nil
