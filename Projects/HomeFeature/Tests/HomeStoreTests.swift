@@ -127,6 +127,119 @@ struct HomeStoreTests {
         #expect(sut.state.sections.shouldShowPreferenceBanner)
         #expect(sut.state.sections.recommendedConcertList.isEmpty)
     }
+
+    // MARK: - InterestConcert 상태 테스트
+
+    @Test("interestConcert onAppear 시 관심 공연과 상세 데이터를 로드해야 한다")
+    func testInterestConcertOnAppearLoadsConcertAndDetailState() async throws {
+        // Given
+        let sut = HomeStore()
+        let concert = makeMockConcert(id: 100)
+        let schedule = makeMockSchedule(id: 200)
+        let setlist = makeMockSetlist(id: 300)
+        let songs = [makeMockSong(id: 400, orderIndex: 1), makeMockSong(id: 401, orderIndex: 2)]
+
+        container.userRepository.interestedConcertStub = concert
+        container.concertRepository.scheduleListStub = [schedule]
+        container.concertRepository.mainSetlistStub = setlist
+        container.setlistRepository.setlistSongsStub = songs
+
+        // When
+        sut.send(.interestConcert(.onAppear))
+        try await Task.sleep(nanoseconds: 150_000_000)
+
+        // Then
+        #expect(container.userRepository.fetchInterestedConcertCallCount == 1)
+        #expect(container.concertRepository.fetchConcertScheduleListCallCount == 1)
+        #expect(container.concertRepository.fetchMainSetlistCallCount == 1)
+        #expect(container.setlistRepository.fetchSetlistSongsCallCount == 1)
+        #expect(sut.state.interestConcert.concert?.id == concert.id)
+        #expect(sut.state.interestConcert.scheduleList.count == 1)
+        #expect(sut.state.interestConcert.scheduleList.first?.id == schedule.id)
+        #expect(sut.state.interestConcert.setlist?.id == setlist.id)
+        #expect(sut.state.interestConcert.songList.count == 2)
+    }
+
+    @Test("interestConcert onRefresh 시 현재 concert가 없으면 관심 공연을 다시 조회해야 한다")
+    func testInterestConcertOnRefreshWithoutConcertFetchesInterestedConcert() async throws {
+        // Given
+        let sut = HomeStore()
+        container.userRepository.interestedConcertStub = nil
+
+        // When
+        sut.send(.interestConcert(.onRefresh))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(container.userRepository.fetchInterestedConcertCallCount == 1)
+    }
+
+    @Test("관심 공연 조회 결과가 nil이면 상세 상태를 초기화해야 한다")
+    func testFetchUserInterestConcertResultNilClearsDetailState() {
+        // Given
+        let sut = HomeStore()
+        sut.send(.interestConcert(._fetchScheduleListResult(.success([makeMockSchedule(id: 1)]))))
+        sut.send(.interestConcert(._fetchMainSetlistResult(.success(makeMockSetlist(id: 2)))))
+        sut.send(.interestConcert(._fetchSetlistSongListResult(.success([makeMockSong(id: 3)]))))
+
+        // When
+        sut.send(.interestConcert(._fetchUserInterestConcertResult(.success(nil))))
+
+        // Then
+        #expect(sut.state.interestConcert.concert == nil)
+        #expect(sut.state.interestConcert.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.setlist == nil)
+        #expect(sut.state.interestConcert.songList.isEmpty)
+    }
+
+    @Test("관심 공연 삭제 성공 결과를 받으면 상태를 비우고 토스트를 표시해야 한다")
+    func testDeleteInterestConcertResultSuccessClearsStateAndShowsToast() {
+        // Given
+        let sut = HomeStore()
+        sut.send(.interestConcert(._fetchScheduleListResult(.success([makeMockSchedule(id: 10)]))))
+        sut.send(.interestConcert(._fetchMainSetlistResult(.success(makeMockSetlist(id: 11)))))
+        sut.send(.interestConcert(._fetchSetlistSongListResult(.success([makeMockSong(id: 12)]))))
+
+        // When
+        sut.send(.interestConcert(._deleteInterestConcertResult(.success(()))))
+
+        // Then
+        #expect(sut.state.interestConcert.concert == nil)
+        #expect(sut.state.interestConcert.scheduleList.isEmpty)
+        #expect(sut.state.interestConcert.setlist == nil)
+        #expect(sut.state.interestConcert.songList.isEmpty)
+        #expect(sut.state.toastMessage == "관심 공연을 삭제했어요")
+    }
+
+    // MARK: - Toast 상태 테스트
+
+    @Test("onToastDisappear 호출 시 toastMessage는 비워져야 한다")
+    func testOnToastDisappearClearsToastMessage() {
+        // Given
+        let sut = HomeStore()
+        sut.send(.interestConcert(._deleteInterestConcertResult(.success(()))))
+        #expect(!sut.state.toastMessage.isEmpty)
+
+        // When
+        sut.send(.onToastDisappear)
+
+        // Then
+        #expect(sut.state.toastMessage.isEmpty)
+    }
+
+    @Test("onErrorToastDisappear 호출 시 errorMessage는 비워져야 한다")
+    func testOnErrorToastDisappearClearsErrorMessage() {
+        // Given
+        let sut = HomeStore()
+        sut.send(._fetchUserResult(.failure(UserError.serverError)))
+        #expect(!sut.state.errorMessage.isEmpty)
+
+        // When
+        sut.send(.onErrorToastDisappear)
+
+        // Then
+        #expect(sut.state.errorMessage.isEmpty)
+    }
 }
 
 // MARK: - Helpers
