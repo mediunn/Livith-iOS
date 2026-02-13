@@ -171,8 +171,6 @@ private extension NoticeView {
             return (.concertInfo, .merchandise)
         case .concertInfoUpdateSchedule, .concertInfoUpdateTicket:
             return (.concertInfo, .schedule)
-        case .concertInfoUpdateDetail:
-            return (.concertInfo, .concertInfo)
         default:
             return (.artistDetail, nil)
         }

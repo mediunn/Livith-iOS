@@ -89,13 +89,14 @@ extension NoticeStore {
     func refreshAsync() async {
         state.cursor = nil
         state.hasMorePages = true
-        state.isLoading = true
 
         do {
             let notifications = try await notificationRepository.fetchNotificationList(cursor: nil, size: pageSize)
-            send(._fetchNotificationListResult(.success(notifications), isRefresh: true))
+            state.notifications = notifications
+            state.cursor = notifications.last?.id
+            state.hasMorePages = notifications.count >= pageSize
         } catch {
-            send(._fetchNotificationListResult(.failure(error), isRefresh: true))
+            // 실패 시 기존 목록 유지
         }
     }
 }
