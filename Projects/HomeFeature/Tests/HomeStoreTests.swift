@@ -30,7 +30,9 @@ struct HomeStoreTests {
         let sut = HomeStore()
         #expect(sut.state.user == nil)
     }
-    
+
+    // MARK: - onAppear 테스트
+
     @Test("onAppear 시 유저 정보와 읽지 않은 알림 수를 조회해야 한다")
     func testOnAppearFetchesUserAndUnreadNotificationCount() async throws {
         // Given
@@ -50,6 +52,8 @@ struct HomeStoreTests {
         #expect(sut.state.hasNewNotice)
     }
 
+    // MARK: - Route 결정 테스트
+
     @Test("유저 조회 결과에서 interestedConcertID가 nil이면 route는 concertSection이어야 한다")
     func testUserResultWithNilInterestConcertIDSetsConcertSectionRoute() {
         let sut = HomeStore()
@@ -68,6 +72,60 @@ struct HomeStoreTests {
         sut.send(._fetchUserResult(.success(user)))
 
         #expect(sut.state.route == .interestedConcert)
+    }
+
+    // MARK: - ConcertSection 상태 테스트
+
+    @Test("concertSection onAppear 시 섹션/추천 데이터가 로드되어야 한다")
+    func testConcertSectionOnAppearLoadsSectionsAndRecommendations() async throws {
+        // Given
+        let sut = HomeStore()
+        let section = makeMockSection(id: 1)
+        let recommended = [makeMockConcert(id: 10), makeMockConcert(id: 11)]
+        let user = makeMockUser(hasPreferences: true)
+
+        container.concertRepository.homeSectionListStub = [section]
+        container.concertRepository.recommendedConcertListStub = recommended
+        sut.send(._fetchUserResult(.success(user)))
+
+        // When
+        sut.send(.concertSection(.onAppear))
+
+        // Then (immediate)
+        #expect(sut.state.sections.isLoading)
+        #expect(!sut.state.sections.isInitialLoad)
+
+        // Then (after async)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
+        #expect(sut.state.sections.sectionList.count == 1)
+        #expect(sut.state.sections.sectionList.first?.id == section.id)
+        #expect(sut.state.sections.recommendedConcertList.count == 2)
+        #expect(!sut.state.sections.shouldShowPreferenceBanner)
+        #expect(!sut.state.sections.isLoading)
+    }
+
+    @Test("concertSection onAppear 시 hasPreferences가 false면 추천을 조회하지 않고 배너를 표시해야 한다")
+    func testConcertSectionOnAppearShowsPreferenceBannerWhenUserHasNoPreferences() async throws {
+        // Given
+        let sut = HomeStore()
+        let section = makeMockSection(id: 2)
+        let user = makeMockUser(hasPreferences: false)
+
+        container.concertRepository.homeSectionListStub = [section]
+        sut.send(._fetchUserResult(.success(user)))
+
+        // When
+        sut.send(.concertSection(.onAppear))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
+        #expect(sut.state.sections.sectionList.count == 1)
+        #expect(sut.state.sections.shouldShowPreferenceBanner)
+        #expect(sut.state.sections.recommendedConcertList.isEmpty)
     }
 }
 

@@ -15,6 +15,7 @@ import LivithDesignSystem
 struct HomeConcertSectionView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
+    @State private var isPreferenceBannerExpanded: Bool = true
     
     init(store: HomeStore) {
         self.store = store
@@ -44,7 +45,10 @@ struct HomeConcertSectionView: View {
             .ignoresSafeArea(edges: .bottom)
         }
         .background(.livithColor(.black90))
-        .onAppear { store.send(.concertSection(.onAppear)) }
+        .onAppear {
+            isPreferenceBannerExpanded = true
+            store.send(.concertSection(.onAppear))
+        }
     }
 }
 
@@ -67,10 +71,7 @@ private extension HomeConcertSectionView {
         VStack(spacing: .zero) {
             if sectionState.shouldShowPreferenceBanner {
                 PreferenceBannerView(
-                    isExpanded: Binding(
-                        get: { sectionState.isPreferenceBannerExpanded },
-                        set: { _ in store.send(.concertSection(.collapsePreferenceBanner)) }
-                    ),
+                    isExpanded: $isPreferenceBannerExpanded,
                     onTapBanner: { coordinator?.push(to: .preferredGenreUpdate) }
                 )
                 .padding(.horizontal, 16)
