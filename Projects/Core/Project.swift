@@ -54,6 +54,14 @@ let project = Project.make(
         .make(
             target: .core(.coordinator),
             product: .framework
+        ),
+        .make(
+            target: .core(.amplitude),
+            product: .framework,
+            infoPlist: .file(path: "Amplitude/Resources/Amplitude-Info.plist"),
+            dependencies: [
+                .external(.amplitudeSwift)
+            ]
         )
     ]
 )

@@ -17,6 +17,7 @@ public enum CoreModule: String {
     case livithFoundation = "LivithFoundation"
     case socialAuth = "SocialAuth"
     case coordinator = "Coordinator"
+    case amplitude = "Amplitude"
 }
 
 // MARK: - Login Module
@@ -130,4 +131,5 @@ public enum ExternalDependency: String {
     case youTubePlayerKit = "YouTubePlayerKit"
     case firebaseCore = "FirebaseCore"
     case firebaseMessaging = "FirebaseMessaging"
+    case amplitudeSwift = "AmplitudeSwift"
 }
