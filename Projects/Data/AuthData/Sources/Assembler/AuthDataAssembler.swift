@@ -33,7 +33,6 @@ private extension AuthDataAssembler {
             socialAuthService: container.resolve(SocialAuthService.self),
             onboardingService: container.resolve(OnboardingService.self),
             userService: container.resolve(UserService.self),
-            notificationService: container.resolve(NotificationService.self),
             notificationRepository: container.resolve(NotificationRepository.self),
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
             tokenService: container.resolve(TokenService.self),
@@ -67,6 +66,5 @@ private extension AuthDataAssembler {
         container.register(TokenServiceImpl(), for: TokenService.self)
         container.register(UserService(), for: UserService.self)
         container.register(OnboardingService(), for: OnboardingService.self)
-        container.register(NotificationService(), for: NotificationService.self)
     }
 }

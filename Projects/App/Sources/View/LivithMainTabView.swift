@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import ConcertFeature
 import LivithDesignSystem
 import HomeFeature
 import UserFeature
@@ -27,6 +28,7 @@ struct LivithMainTabView: View {
     @State private var isTabBarHidden: Bool = false
     @State private var deepLinkConcertID: Int?
     @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
+    @State private var deepLinkInitialSection: ConcertInfoSection?
     
     // MARK: - LifeCycle
     
@@ -41,7 +43,8 @@ struct LivithMainTabView: View {
             HomeContentView(
                 isTabBarHidden: $isTabBarHidden,
                 deepLinkConcertID: $deepLinkConcertID,
-                deepLinkInitialTab: $deepLinkInitialTab
+                deepLinkInitialTab: $deepLinkInitialTab,
+                deepLinkInitialSection: $deepLinkInitialSection
             )
             .tag(Tab.home)
             .tabItem {
@@ -75,6 +78,7 @@ struct LivithMainTabView: View {
                 if let initialTab = notification.userInfo?["initialTab"] as? SegmentedTabBarType.DetailTab {
                     deepLinkInitialTab = initialTab
                 }
+                deepLinkInitialSection = notification.userInfo?["initialSection"] as? ConcertInfoSection
                 deepLinkConcertID = concertID
             }
         }

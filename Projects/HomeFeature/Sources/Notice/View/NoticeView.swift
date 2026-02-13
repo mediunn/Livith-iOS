@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import ConcertFeature
 import Domain
 import LivithDesignSystem
 
@@ -23,7 +24,7 @@ public struct NoticeView: View {
     private let onBack: () -> Void
     private let onSettingTap: () -> Void
     private let onInterestTap: () -> Void
-    private let onConcertTap: (Int, SegmentedTabBarType.DetailTab) -> Void
+    private let onConcertTap: (Int, SegmentedTabBarType.DetailTab, ConcertInfoSection?) -> Void
 
     // MARK: - Initializer
 
@@ -31,7 +32,7 @@ public struct NoticeView: View {
         onBack: @escaping () -> Void,
         onSettingTap: @escaping () -> Void,
         onInterestTap: @escaping () -> Void,
-        onConcertTap: @escaping (Int, SegmentedTabBarType.DetailTab) -> Void
+        onConcertTap: @escaping (Int, SegmentedTabBarType.DetailTab, ConcertInfoSection?) -> Void
     ) {
         self.onBack = onBack
         self.onSettingTap = onSettingTap
@@ -133,10 +134,8 @@ private extension NoticeView {
                             if notification.type == .interestConcert {
                                 onInterestTap()
                             } else if let targetID = notification.targetID {
-                                let initialTab: SegmentedTabBarType.DetailTab = notification.type.isTicketType
-                                    ? .concertInfo
-                                    : .artistDetail
-                                onConcertTap(targetID, initialTab)
+                                let (initialTab, initialSection) = mapNotificationTypeToTabAndSection(notification.type)
+                                onConcertTap(targetID, initialTab, initialSection)
                             }
                         }
                     )
@@ -154,6 +153,26 @@ private extension NoticeView {
                 }
             }
             .padding(.horizontal, 4)
+        }
+        .refreshable {
+            await store.refreshAsync()
+        }
+    }
+}
+
+// MARK: - Helper
+
+private extension NoticeView {
+    func mapNotificationTypeToTabAndSection(_ type: NotificationType) -> (SegmentedTabBarType.DetailTab, ConcertInfoSection?) {
+        switch type {
+        case .concertInfoUpdateSetlist:
+            return (.setlist, nil)
+        case .concertInfoUpdateMD:
+            return (.concertInfo, .merchandise)
+        case .concertInfoUpdateSchedule, .concertInfoUpdateTicket:
+            return (.concertInfo, .schedule)
+        default:
+            return (.artistDetail, nil)
         }
     }
 }
@@ -176,6 +195,6 @@ private extension NoticeView {
         onBack: {},
         onSettingTap: {},
         onInterestTap: {},
-        onConcertTap: { _, _ in }
+        onConcertTap: { _, _, _ in }
     )
 }

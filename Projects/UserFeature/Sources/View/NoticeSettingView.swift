@@ -276,7 +276,7 @@ private struct NoticeToggleStyle: ToggleStyle {
                         .fill(configuration.isOn ? Color.white : Color.livithColor(.black50))
                         .frame(width: 24, height: 24)
                         .shadow(color: .black.opacity(0.15), radius: 8)
-                        .offset(x: configuration.isOn ? 10 : -10)
+                        .offset(x: configuration.isOn ? 12 : -12)
                 )
                 .onTapGesture {
                     withAnimation(.easeInOut(duration: 0.2)) {
