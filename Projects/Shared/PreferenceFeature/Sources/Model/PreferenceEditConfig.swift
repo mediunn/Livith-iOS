@@ -14,7 +14,7 @@ public struct PreferenceEditConfig {
     public let showSubtitle: Bool
     public let submitTitle: String
     public let shouldDisableSubmitWhenEmpty: Bool
-    
+
     public init(
         navigationTitle: String,
         stepIndicator: (current: Int, total: Int)? = nil,

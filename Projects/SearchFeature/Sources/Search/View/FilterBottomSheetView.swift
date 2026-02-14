@@ -139,21 +139,52 @@ private extension FilterBottomSheetView {
     var setupButtons: some View {
         HStack(spacing: 12) {
             LivithButton("초기화", variant: .primary) {
+                AmplitudeService.shared.trackEvent(tag: .click(.resetFilter))
                 tempGenreList = []
                 tempStatusList = []
             }
             .disabled(!hasSelection)
 
             LivithButton("설정하기", variant: .primary) {
-                if !tempGenreList.isEmpty {
-                    AmplitudeService.shared.trackEvent(tag: .setFilter(.genre))
-                }
-                if !tempStatusList.isEmpty {
-                    AmplitudeService.shared.trackEvent(tag: .setFilter(.period))
-                }
+                AmplitudeService.shared.trackEvent(tag: .click(.applyFilter))
+                trackFilterEvents()
                 selectedGenreList = tempGenreList
                 selectedStatusList = tempStatusList
                 showFilter = false
+            }
+        }
+    }
+
+    func trackFilterEvents() {
+        for genre in tempGenreList {
+            switch genre {
+            case .jpop:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.jpop))
+            case .rockMetal:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.rockMetal))
+            case .rapHiphop:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.rapHiphop))
+            case .classicJazz:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.classicJazz))
+            case .acoustic:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.acoustic))
+            case .electronic:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.electronic))
+            case .all:
+                break
+            }
+        }
+
+        for status in tempStatusList {
+            switch status {
+            case .ongoing:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.ongoing))
+            case .upcoming:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.upcoming))
+            case .completed:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.completed))
+            case .past, .canceled:
+                break
             }
         }
     }

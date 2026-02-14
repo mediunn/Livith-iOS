@@ -57,6 +57,7 @@ private extension SetlistTabView {
                 firstLine: "셋리스트를",
                 secondLine: "확인해 보세요"
             ) {
+                AmplitudeService.shared.trackEvent(tag: .click(.reportSetlistSection))
                 coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
             }
 
@@ -73,7 +74,7 @@ private extension SetlistTabView {
 
     func setlistCard(for setlist: Setlist) -> some View {
         Button {
-            AmplitudeService.shared.trackEvent(tag: .click(.setlistCardDetail))
+            AmplitudeService.shared.trackEvent(tag: .click(.setlistCell))
             coordinator?.push(to: .setlistDetail(concertID: concertID, setlistID: setlist.id))
         } label: {
             LivithCard(

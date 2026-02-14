@@ -88,17 +88,9 @@ private extension ExploreView {
     }
     
     func concertSectionRow(for section: ConcertSection) -> some View {
-        let isFirstSection = store.state.concertSections.first?.id == section.id
-        let isSecondSection = store.state.concertSections.dropFirst().first?.id == section.id
-
-        return ConcertSectionView(
+        ConcertSectionView(
             concertSection: section,
             onConcertTap: { concert in
-                if isFirstSection {
-                    AmplitudeService.shared.trackEvent(tag: .click(.firstConcertCell))
-                } else if isSecondSection {
-                    AmplitudeService.shared.trackEvent(tag: .click(.secondConcertCell))
-                }
                 coordinator?.showConcertDetail(concertID: concert.id)
             }
         )

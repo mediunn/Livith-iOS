@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import ConcertFeature
 import Domain
 import LivithDesignSystem
@@ -129,6 +130,7 @@ private extension NoticeView {
                         timeAgo: notification.displayCreatedAt,
                         state: notification.isRead ? .read : .normal,
                         action: {
+                            trackNotificationCellTap(type: notification.type)
                             store.send(.markAsRead(id: notification.id))
                             didNavigateToDetail = true
                             if notification.type == .interestConcert {
@@ -173,6 +175,29 @@ private extension NoticeView {
             return (.concertInfo, .schedule)
         default:
             return (.artistDetail, nil)
+        }
+    }
+
+    func trackNotificationCellTap(type: NotificationType) {
+        switch type {
+        case .interestConcert:
+            AmplitudeService.shared.trackEvent(tag: .click(.interestConcertNotification))
+        case .ticket1D, .ticket7D, .ticketToday:
+            AmplitudeService.shared.trackEvent(tag: .click(.bookingScheduleNotification))
+        case .concertInfoUpdateSetlist:
+            AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateSetlistNotification))
+        case .concertInfoUpdateMD:
+            AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateMdNotification))
+        case .concertInfoUpdateDetail:
+            AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateDetailNotification))
+        case .concertInfoUpdateSchedule:
+            AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateScheduleNotification))
+        case .concertInfoUpdateTicket:
+            AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateTicketNotification))
+        case .artistConcertOpen:
+            AmplitudeService.shared.trackEvent(tag: .click(.favoriteArtistConcertOpenNotification))
+        case .recommend:
+            AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertNotification))
         }
     }
 }

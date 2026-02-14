@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -99,7 +100,10 @@ private extension SetlistDetailView {
                 VStack(spacing: 16) {
                     SectionHeaderView(
                         firstLine: setlist.type.displayText,
-                        onReportTapped: { onReportTapped?() }
+                        onReportTapped: {
+                            AmplitudeService.shared.trackEvent(tag: .click(.reportSetlist))
+                            onReportTapped?()
+                        }
                     )
                     .padding(.horizontal, 16)
                     .padding(.top, 24)

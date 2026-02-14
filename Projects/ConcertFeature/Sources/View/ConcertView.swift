@@ -89,10 +89,12 @@ public struct ConcertView: View {
                 confirmTitle: "설정할래요",
                 cancelTitle: "취소할래요",
                 type: .confirm(onConfirm: {
+                    AmplitudeService.shared.trackEvent(tag: .confirm(.changeInterest))
                     showInterestConfirmDialog = false
                     store.send(.interestButtonTapped)
                 }),
                 onCancel: {
+                    AmplitudeService.shared.trackEvent(tag: .cancel(.changeInterest))
                     showInterestConfirmDialog = false
                 }
             )
@@ -287,13 +289,13 @@ private extension ConcertView {
             onTabSelected: { tab in
                 switch tab {
                 case .artistDetail:
-                    AmplitudeService.shared.trackEvent(tag: .click(.artistDetailSegmentDetail))
+                    AmplitudeService.shared.trackEvent(tag: .click(.artistDetailSegment))
                 case .concertInfo:
-                    AmplitudeService.shared.trackEvent(tag: .click(.concertInfoSegmentDetail))
+                    AmplitudeService.shared.trackEvent(tag: .click(.concertDetailSegment))
                 case .setlist:
                     AmplitudeService.shared.trackEvent(tag: .click(.setlistSegmentDetail))
                 case .community:
-                    AmplitudeService.shared.trackEvent(tag: .click(.communitySegmentDetail))
+                    break
                 }
                 withAnimation(.easeInOut(duration: 0.2)) {
                     store.send(.tabSelected(tab))

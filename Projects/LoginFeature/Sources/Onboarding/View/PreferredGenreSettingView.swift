@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import PreferenceFeature
 import LivithDesignSystem
@@ -31,6 +32,7 @@ struct PreferredGenreSettingView: View {
                 coordinator?.pop()
             }
         } onSubmit: { selectedGenreList in
+            AmplitudeService.shared.trackEvent(tag: .confirm(.genrePreference))
             let updated = builder.withPreferredGenreList(selectedGenreList)
             coordinator?.push(to: .preferredArtist(updated))
         }

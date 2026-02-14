@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -41,6 +42,11 @@ public struct ArtistSelectionView: View {
         .onAppear {
             store.send(.onAppear)
         }
+        .onChange(of: isSearchFocused) { _, isFocused in
+            if isFocused {
+                AmplitudeService.shared.trackEvent(tag: .click(.searchBarArtistPreference))
+            }
+        }
     }
 }
 
@@ -53,6 +59,9 @@ private extension ArtistSelectionView {
             isFocused: $isSearchFocused,
             type: .search,
             placeholder: Literals.searchPlaceholder,
+            onSubmit: {
+                AmplitudeService.shared.trackEvent(tag: .click(.searchCompleteArtistPreference))
+            },
             onChange: {
                 store.send(.search(keyword: store.state.searchKeyword))
             }
@@ -139,7 +148,10 @@ private extension ArtistSelectionView {
             title: artist.name,
             imageURL: artist.imageURL,
             isSelected: isArtistSelected(artist),
-            action: { store.send(.toggle(id: artist.id)) }
+            action: {
+                AmplitudeService.shared.trackEvent(tag: .click(.searchCellArtistPreference))
+                store.send(.toggle(id: artist.id))
+            }
         )
         .onAppear {
             guard shouldLoadMore(for: artist) else { return }

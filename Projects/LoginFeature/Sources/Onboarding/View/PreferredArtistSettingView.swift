@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 import PreferenceFeature
@@ -37,8 +38,10 @@ struct PreferredArtistSettingView: View {
                 coordinator?.pop()
             }
         } onSkip: {
+            AmplitudeService.shared.trackEvent(tag: .click(.skipArtistPreference))
             store.send(.submit([]))
         } onSubmit: { selectedArtistList in
+            AmplitudeService.shared.trackEvent(tag: .confirm(.artistPreference))
             store.send(.submit(selectedArtistList))
         }
         .onChange(of: store.state.result) { _, newValue in

@@ -109,7 +109,7 @@ private extension HomeConcertSectionView {
                 title: "\(store.state.user?.nickname ?? "라이빗")님의\n취향이 담긴 콘서트",
                 concertList: sectionState.recommendedConcertList
             ) { concert in
-                AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
+                AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
                 coordinator?.showConcertDetail(concertID: concert.id)
             } onSeeAllTap: {
                 coordinator?.push(to: .recommendedConcertList(concertList: sectionState.recommendedConcertList))

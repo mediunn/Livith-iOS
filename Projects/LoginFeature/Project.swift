@@ -20,6 +20,7 @@ let project = Project.make(
                 .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer),
+                .core(.amplitude),
                 .shared(.preferenceFeature)
             ]
         )

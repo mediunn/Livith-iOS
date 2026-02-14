@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import LivithDesignSystem
 import Domain
 
@@ -132,6 +133,7 @@ private extension InterestConcertSearchView {
     
     var submitButton: some View {
         LivithButton("설정하기", variant: .primary, isLoading: store.state.isSubmitting) {
+            AmplitudeService.shared.trackEvent(tag: .confirm(.interestConcert))
             store.send(.onSubmit)
         }
         .disabled(store.state.selectedConcertID == nil || store.state.isSubmitting)

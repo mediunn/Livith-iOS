@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -71,6 +72,7 @@ private extension ConcertInfoTabView {
                     firstLine: "날짜와 시간",
                     secondLine: "잊지 말고 확인해요"
                 ) {
+                    AmplitudeService.shared.trackEvent(tag: .click(.reportSchedule))
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
 
@@ -133,6 +135,7 @@ private extension ConcertInfoTabView {
                     firstLine: "콘서트 필수 정보",
                     secondLine: "빠르게 확인해요"
                 ) {
+                    AmplitudeService.shared.trackEvent(tag: .click(.reportConcertInfo))
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
 

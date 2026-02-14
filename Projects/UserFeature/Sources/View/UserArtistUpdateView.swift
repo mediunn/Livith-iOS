@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import Coordinator
 import PreferenceFeature
@@ -34,12 +35,14 @@ struct UserArtistUpdateView: View {
             selectedArtistList: selectedArtistList,
             isSubmitting: store.state.isLoading
         ) { isModified in
+            AmplitudeService.shared.trackEvent(tag: .click(.backPreference))
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
                 coordinator?.pop()
             }
         } onSubmit: { artistList in
+            AmplitudeService.shared.trackEvent(tag: .confirm(.changeArtistPreference))
             store.send(.onSubmit(artistList))
         }
         .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
@@ -48,10 +51,12 @@ struct UserArtistUpdateView: View {
                 confirmTitle: "뒤로 갈게요",
                 cancelTitle: "잘못 눌렀어요",
                 type: .confirm(onConfirm: {
+                    AmplitudeService.shared.trackEvent(tag: .confirm(.backPreference))
                     isDiscardChangesModalPresented = false
                     coordinator?.pop()
                 })
             ) {
+                AmplitudeService.shared.trackEvent(tag: .click(.cancelPreference))
                 isDiscardChangesModalPresented = false
             }
         }
