@@ -54,9 +54,6 @@ struct HomeInterestConcertView: View {
                     onDeleteConcert: handleDeleteConcert
                 )
             }
-            .onAppear {
-                store.send(.interestConcert(.onAppear))
-            }
     }
 }
 

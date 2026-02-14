@@ -12,24 +12,32 @@ import LivithDesignSystem
 import Domain
 
 struct LoginView: View {
+    
+    // MARK: - Constants
+    
+    private enum Constants {
+        static let contentBottomPadding: CGFloat = 16
+        static let calloutWidth: CGFloat = 272
+    }
+    
     @StateObject private var store = LoginStore()
     @Environment(\.loginCoordinator) private var coordinator
     
     @State private var isForbiddenModalPresented = false
     
     var body: some View {
-        ZStack {
+        VStack(spacing: 0) {
+            onboardingSection
+            
+            Spacer(minLength: 16)
+            
+            loginButtons
+        }
+        .background(
             Color.livithColor(.black100)
                 .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                header
-                
-                Spacer()
-                
-                loginButtons
-            }
-        }
+        )
+        .ignoresSafeArea(.all, edges: .top)
         .livithToast(
             isPresented: Binding(
                 get: { !store.state.errorMessage.isEmpty },
@@ -71,27 +79,14 @@ struct LoginView: View {
 // MARK: - UIComponents
 
 private extension LoginView {
-    var header: some View {
-        ZStack(alignment: .top) {
-            LinearGradient(
-                gradient: Gradient(colors: [Color(hex: "#2f3745", opacity: 0.97), Color(hex: "#14171b")]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 297)
-            .edgesIgnoringSafeArea([.top, .horizontal])
-            
-            Image.livithImage(.livithLogo)
-                .resizable()
-                .frame(width: 204, height: 52)
-                .padding(.top, 200)
-        }
+    var onboardingSection: some View {
+        LoginBannerSectionView()
     }
     
     var loginButtons: some View {
         VStack(spacing: 20) {
             LivithCalloutView(store.state.calloutMessage.text, highlight: store.state.calloutMessage.targetText)
-                .frame(width: 272, height: 40)
+                .frame(width: Constants.calloutWidth, height: 40)
 
             VStack(spacing: 12) {
                 LivithLoginButton(provider: .kakao) {
@@ -103,9 +98,8 @@ private extension LoginView {
                 }
             }
         }
-        .padding(.top, 40)
         .padding(.horizontal, 16)
-        .padding(.bottom, 100)
+        .padding(.bottom, Constants.contentBottomPadding)
     }
 }
 

@@ -18,7 +18,7 @@ struct BannerSectionView: View {
     private enum Constants {
         static let dragThreshold: CGFloat = 50
         static let minimumDragDistance: CGFloat = 20
-        static let animationDuration: Double = 0.3
+        static let animationDuration: Double = 0.5
         static let indicatorBottomPadding: CGFloat = 16
     }
     

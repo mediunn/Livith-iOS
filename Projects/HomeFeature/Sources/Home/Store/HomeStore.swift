@@ -25,7 +25,6 @@ enum HomeIntent {
     enum InterestConcertIntent {
         case onDelete
         case onRefresh
-        case onAppear
         case _fetchUserInterestConcertResult(Result<Concert?, Error>)
         case _fetchScheduleListResult(Result<[ConcertSchedule], Error>)
         case _fetchMainSetlistResult(Result<Setlist, Error>)
@@ -34,7 +33,6 @@ enum HomeIntent {
     }
     
     enum ConcertSectionIntent {
-        case onAppear
         case onRefresh
         case _concertSectionDataResult(Result<HomeState.ConcertSectionState.Data, Error>)
     }
@@ -55,6 +53,7 @@ struct HomeState {
     var sections: ConcertSectionState = .init()
     
     struct InterestConcertState {
+        var isInitialLoad: Bool = true
         var concert: Concert? = nil
         var scheduleList: [ConcertSchedule] = []
         var setlist: Setlist? = nil
@@ -82,7 +81,6 @@ final class HomeStore: ObservableObject {
         case fetchInterestedConcert
         case fetchScheduleList
         case fetchMainSetlist
-        case fetchSetlistSongList
         case fetchUser
         case refreshSections
         case fetchUnreadNotificationCount
@@ -117,6 +115,7 @@ final class HomeStore: ObservableObject {
             case .success(let user):
                 state.user = user
                 state.route = user.interestConcertID == nil ? .concertSection : .interestedConcert
+                executeInitialLoad(for: state.route)
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
@@ -138,140 +137,128 @@ final class HomeStore: ObservableObject {
     }
 }
 
-// MARK: - Interest Concert Intent Handlers
+// MARK: - Intent Reducers
 
 private extension HomeStore {
     func handleInterestConcertIntent(_ intent: HomeIntent.InterestConcertIntent) {
         switch intent {
         case .onDelete:
             performDeleteInterestConcert()
+
         case .onRefresh:
-            executeRefreshInterestConcert()
-        case .onAppear:
-            performFetchUserInterestedConcert()
-        case ._fetchUserInterestConcertResult(let result):
-            handleFetchUserInterestConcertResult(result)
-        case ._fetchScheduleListResult(let result):
-            handleFetchScheduleListResult(result)
-        case ._fetchMainSetlistResult(let result):
-            handleFetchMainSetlistResult(result)
-        case ._fetchSetlistSongListResult(let result):
-            handleFetchSetlistSongListResult(result)
-        case ._deleteInterestConcertResult(let result):
-            handleDeleteInterestConcertResult(result)
-        }
-    }
-    
-    func executeRefreshInterestConcert() {
-        if let concert = state.interestConcert.concert {
-            performFetchScheduleList(concertID: concert.id)
-            performFetchMainSetlist(concertID: concert.id)
-        } else {
-            performFetchUserInterestedConcert()
-        }
-    }
-    
-    func handleFetchUserInterestConcertResult(_ result: Result<Concert?, Error>) {
-        switch result {
-        case .success(let concert):
-            state.interestConcert.concert = concert
-            
-            if let concert {
+            if let concert = state.interestConcert.concert {
                 performFetchScheduleList(concertID: concert.id)
                 performFetchMainSetlist(concertID: concert.id)
             } else {
+                performFetchUserInterestedConcert()
+            }
+
+        case ._fetchUserInterestConcertResult(let result):
+            switch result {
+            case .success(let concert):
+                state.interestConcert.concert = concert
+                if let concert {
+                    performFetchScheduleList(concertID: concert.id)
+                    performFetchMainSetlist(concertID: concert.id)
+                } else {
+                    state.interestConcert.scheduleList = []
+                    state.interestConcert.setlist = nil
+                    state.interestConcert.songList = []
+                }
+            case .failure(let error):
+                state.interestConcert.concert = nil
+                state.errorMessage = getErrorMessage(from: error)
+            }
+
+        case ._fetchScheduleListResult(let result):
+            switch result {
+            case .success(let schedules):
+                state.interestConcert.scheduleList = schedules
+            case .failure(let error):
+                state.interestConcert.scheduleList = []
+                state.errorMessage = getErrorMessage(from: error)
+            }
+
+        case ._fetchMainSetlistResult(let result):
+            switch result {
+            case .success(let setlist):
+                state.interestConcert.setlist = setlist
+            case .failure(let error):
+                state.interestConcert.setlist = nil
+                state.interestConcert.songList = []
+                state.errorMessage = getErrorMessage(from: error)
+            }
+
+        case ._fetchSetlistSongListResult(let result):
+            switch result {
+            case .success(let songs):
+                state.interestConcert.songList = songs
+            case .failure(let error):
+                state.interestConcert.songList = []
+                state.errorMessage = getErrorMessage(from: error)
+            }
+
+        case ._deleteInterestConcertResult(let result):
+            switch result {
+            case .success:
+                state.interestConcert.concert = nil
                 state.interestConcert.scheduleList = []
                 state.interestConcert.setlist = nil
                 state.interestConcert.songList = []
+                state.toastMessage = "관심 공연을 삭제했어요"
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
             }
-        case .failure(let error):
-            state.interestConcert.concert = nil
-            state.errorMessage = getErrorMessage(from: error)
-        }
-    }
-    
-    func handleFetchScheduleListResult(_ result: Result<[ConcertSchedule], Error>) {
-        switch result {
-        case .success(let schedules):
-            state.interestConcert.scheduleList = schedules
-        case .failure(let error):
-            state.interestConcert.scheduleList = []
-            state.errorMessage = getErrorMessage(from: error)
-        }
-    }
-    
-    func handleFetchMainSetlistResult(_ result: Result<Setlist, Error>) {
-        switch result {
-        case .success(let setlist):
-            state.interestConcert.setlist = setlist
-        case .failure(let error):
-            state.interestConcert.setlist = nil
-            state.interestConcert.songList = []
-            state.errorMessage = getErrorMessage(from: error)
-        }
-    }
-    
-    func handleFetchSetlistSongListResult(_ result: Result<[SetlistSong], Error>) {
-        switch result {
-        case .success(let songs):
-            state.interestConcert.songList = songs
-        case .failure(let error):
-            state.interestConcert.songList = []
-            state.errorMessage = getErrorMessage(from: error)
-        }
-    }
-    
-    func handleDeleteInterestConcertResult(_ result: Result<Void, Error>) {
-        switch result {
-        case .success:
-            state.interestConcert.concert = nil
-            state.interestConcert.scheduleList = []
-            state.interestConcert.setlist = nil
-            state.interestConcert.songList = []
-            state.toastMessage = "관심 공연을 삭제했어요"
-        case .failure(let error):
-            state.errorMessage = error.localizedDescription
         }
     }
 }
-
-// MARK: - Concert Section Intent Handlers
 
 private extension HomeStore {
     func handleConcertSectionIntent(_ intent: HomeIntent.ConcertSectionIntent) {
         switch intent {
-        case .onAppear:
-            if state.sections.isInitialLoad {
-                state.sections.isLoading = true
-                state.sections.isInitialLoad = false
-            }
-            performFetchConcertSectionData()
         case .onRefresh:
             performFetchConcertSectionData()
+
         case ._concertSectionDataResult(let result):
-            handleConcertSectionDataResult(result)
-        }
-    }
-    
-    func handleConcertSectionDataResult(
-        _ result: Result<HomeState.ConcertSectionState.Data, Error>
-    ) {
-        state.sections.isLoading = false
-        
-        switch result {
-        case .success(let data):
-            state.sections.sectionList = data.sections
-            state.sections.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
-            state.sections.recommendedConcertList = data.recommended ?? []
-            state.sections.errorMessage = ""
-            
-        case .failure(let error):
-            state.sections.errorMessage = getErrorMessage(from: error)
+            state.sections.isLoading = false
+
+            switch result {
+            case .success(let data):
+                state.sections.sectionList = data.sections
+                state.sections.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
+                state.sections.recommendedConcertList = data.recommended ?? []
+                state.sections.errorMessage = ""
+            case .failure(let error):
+                state.sections.errorMessage = getErrorMessage(from: error)
+            }
         }
     }
 }
 
-// MARK: - Network Operations
+// MARK: - Initial Load Control
+
+private extension HomeStore {
+    func executeInitialConcertSectionLoadIfNeeded() {
+        guard state.user != nil else { return }
+        
+        if state.sections.isInitialLoad {
+            state.sections.isLoading = true
+            state.sections.isInitialLoad = false
+        }
+        
+        performFetchConcertSectionData()
+    }
+
+    func executeInitialInterestConcertLoadIfNeeded() {
+        guard state.user != nil else { return }
+        if state.interestConcert.isInitialLoad {
+            state.interestConcert.isInitialLoad = false
+        }
+        performFetchUserInterestedConcert()
+    }
+}
+
+// MARK: - Effects
 
 private extension HomeStore {
     func performFetchUserInterestedConcert() {
@@ -340,18 +327,6 @@ private extension HomeStore {
             }
         }
     }
-
-    func performFetchSetlistSongList(setlistID: Int) {
-        cancellables[.fetchSetlistSongList]?.cancel()
-        cancellables[.fetchSetlistSongList] = Task {
-            do {
-                let songList = try await setlistRepository.fetchSetlistSongs(setlistID: setlistID)
-                send(.interestConcert(._fetchSetlistSongListResult(.success(songList))))
-            } catch {
-                send(.interestConcert(._fetchSetlistSongListResult(.failure(error))))
-            }
-        }
-    }
     
     func performDeleteInterestConcert() {
         Task {
@@ -383,6 +358,19 @@ private extension HomeStore {
             } catch {
                 send(.concertSection(._concertSectionDataResult(.failure(error))))
             }
+        }
+    }
+}
+
+// MARK: - Route Load Strategy
+
+private extension HomeStore {
+    func executeInitialLoad(for route: HomeState.Route) {
+        switch route {
+        case .concertSection:
+            executeInitialConcertSectionLoadIfNeeded()
+        case .interestedConcert:
+            executeInitialInterestConcertLoadIfNeeded()
         }
     }
 }
