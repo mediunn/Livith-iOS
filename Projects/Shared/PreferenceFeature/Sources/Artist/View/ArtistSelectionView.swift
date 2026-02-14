@@ -64,20 +64,41 @@ private extension ArtistSelectionView {
         if store.state.isLoading {
             loadingIndicator
         } else {
-            ZStack(alignment: .bottom) {
-                ScrollView {
-                    artistGrid
-                        .padding(2)
-                }
-                .scrollIndicators(.hidden)
-                .scrollDismissesKeyboard(.immediately)
-                
-                if !store.state.selectedArtistList.isEmpty {
-                    selectedArtistChips
-                        .padding(.vertical, Constants.chipVerticalPadding)
-                        .background(BackgroundGradientView())
-                }
-            }
+            loadedContent
+        }
+    }
+
+    var loadedContent: some View {
+        ZStack(alignment: .bottom) {
+            artistContent
+            selectedArtistChipOverlay
+        }
+    }
+
+    @ViewBuilder
+    var artistContent: some View {
+        if store.state.artistList.isEmpty {
+            artistGridEmptyView
+        } else {
+            artistGridScrollView
+        }
+    }
+
+    var artistGridScrollView: some View {
+        ScrollView {
+            artistGrid
+                .padding(2)
+        }
+        .scrollIndicators(.hidden)
+        .scrollDismissesKeyboard(.immediately)
+    }
+
+    @ViewBuilder
+    var selectedArtistChipOverlay: some View {
+        if !store.state.selectedArtistList.isEmpty {
+            selectedArtistChips
+                .padding(.vertical, Constants.chipVerticalPadding)
+                .background(BackgroundGradientView())
         }
     }
     
@@ -92,27 +113,37 @@ private extension ArtistSelectionView {
         }
     }
     
+    var artistGridEmptyView: some View {
+        VStack {
+            Spacer()
+            
+            LivithEmptyView(text: "검색 결과가 없어요")
+            
+            Spacer()
+        }
+    }
+    
     var artistGrid: some View {
         LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: Constants.gridSpacing), count: Constants.gridColumns),
+            columns: gridItems,
             spacing: Constants.gridSpacing
         ) {
-
             ForEach(store.state.artistList) { artist in
-                PreferenceCard(
-                    title: artist.name,
-                    imageURL: artist.imageURL,
-                    isSelected: store.state.selectedArtistList.contains(where: { $0.id == artist.id }),
-                    action: {
-                        store.send(.toggle(id: artist.id))
-                    }
-                )
-                .onAppear {
-                    if artist == store.state.artistList.last {
-                        store.send(.loadMore)
-                    }
-                }
+                artistCard(for: artist)
             }
+        }
+    }
+
+    func artistCard(for artist: PreferredArtist) -> some View {
+        PreferenceCard(
+            title: artist.name,
+            imageURL: artist.imageURL,
+            isSelected: isArtistSelected(artist),
+            action: { store.send(.toggle(id: artist.id)) }
+        )
+        .onAppear {
+            guard shouldLoadMore(for: artist) else { return }
+            store.send(.loadMore)
         }
     }
     
@@ -131,6 +162,21 @@ private extension ArtistSelectionView {
 // MARK: - Helpers
 
 private extension ArtistSelectionView {
+    var gridItems: [GridItem] {
+        Array(
+            repeating: GridItem(.flexible(), spacing: Constants.gridSpacing),
+            count: Constants.gridColumns
+        )
+    }
+
+    func isArtistSelected(_ artist: PreferredArtist) -> Bool {
+        store.state.selectedArtistList.contains(where: { $0.id == artist.id })
+    }
+
+    func shouldLoadMore(for artist: PreferredArtist) -> Bool {
+        artist == store.state.artistList.last
+    }
+
     var searchTextBinding: Binding<String> {
         Binding(
             get: { store.state.searchKeyword },
