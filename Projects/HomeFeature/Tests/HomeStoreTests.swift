@@ -79,6 +79,23 @@ struct HomeStoreTests {
         #expect(sut.state.sections.recommendedConcertList.first?.id == recommended.first?.id)
     }
 
+    @Test("같은 route의 유저 조회 결과가 다시 들어와도 초기 로딩은 한 번만 수행되어야 한다")
+    func testUserResultDoesNotResetInitialLoadForSameRoute() async throws {
+        let sut = HomeStore()
+        let user = makeMockUser(hasPreferences: true, interestConcertID: nil)
+
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 10)]
+        container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 100)]
+
+        sut.send(._fetchUserResult(.success(user)))
+        try await Task.sleep(nanoseconds: 100_000_000)
+        sut.send(._fetchUserResult(.success(user)))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
+    }
+
     @Test("유저 조회 결과에서 interestedConcertID가 있으면 interestedConcert route를 설정하고 데이터를 로드해야 한다")
     func testUserResultWithInterestConcertIDSetsInterestedConcertRoute() async throws {
         let sut = HomeStore()
