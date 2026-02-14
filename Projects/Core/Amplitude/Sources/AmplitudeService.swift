@@ -68,6 +68,8 @@ public extension AmplitudeService {
         case setlistSongMain = "click_setlist_song_main"
         case moreSongsMain = "click_more_songs_main"
         case changeConcertMain = "click_change_concert_main"
+        case signupBannerMain = "click_signup_banner_main"
+        case setPreferenceBannerMain = "click_set_preference_banner_main"
 
         // 탐색 메인
         case searchBar = "click_search_bar"
