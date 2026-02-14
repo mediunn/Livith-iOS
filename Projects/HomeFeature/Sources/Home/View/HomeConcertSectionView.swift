@@ -45,6 +45,9 @@ struct HomeConcertSectionView: View {
             .ignoresSafeArea(edges: .bottom)
         }
         .background(.livithColor(.black90))
+        .onAppear {
+            isPreferenceBannerExpanded = true
+        }
     }
 }
 
