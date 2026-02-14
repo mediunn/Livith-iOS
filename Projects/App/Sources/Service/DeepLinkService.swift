@@ -8,6 +8,7 @@
 
 import Foundation
 
+import Amplitude
 import ConcertFeature
 import Domain
 import KakaoSDKAuth
@@ -39,6 +40,7 @@ final class DeepLinkService {
             return
         }
 
+        trackPushNotificationTap(type: notificationType)
         let (initialTab, initialSection) = mapNotificationTypeToTabAndSection(notificationType)
 
         var userInfoDict: [String: Any] = ["concertID": concertID, "initialTab": initialTab]
@@ -94,6 +96,29 @@ private extension DeepLinkService {
             return (.concertInfo, .schedule)
         default:
             return (.artistDetail, nil)
+        }
+    }
+
+    func trackPushNotificationTap(type: NotificationType) {
+        switch type {
+        case .interestConcert:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushInterestConcert))
+        case .ticket1D, .ticket7D, .ticketToday:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushBookingSchedule))
+        case .concertInfoUpdateSetlist:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushConcertUpdateSetlist))
+        case .concertInfoUpdateMD:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushConcertUpdateMd))
+        case .concertInfoUpdateDetail:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushConcertUpdateDetail))
+        case .concertInfoUpdateSchedule:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushConcertUpdateSchedule))
+        case .concertInfoUpdateTicket:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushConcertUpdateTicket))
+        case .artistConcertOpen:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushFavoriteArtistConcertOpen))
+        case .recommend:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushRecommendedConcert))
         }
     }
 }

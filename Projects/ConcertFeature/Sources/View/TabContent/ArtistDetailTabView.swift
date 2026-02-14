@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -70,6 +71,7 @@ private extension ArtistDetailTabView {
                     firstLine: "아티스트 정보",
                     secondLine: "함께 알아볼까요?"
                 ) {
+                    AmplitudeService.shared.trackEvent(tag: .click(.reportArtistInfo))
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
                 .padding(.bottom, 20)
@@ -187,6 +189,7 @@ private extension ArtistDetailTabView {
                     firstLine: "의 팬문화와",
                     secondLine: "꿀팁을 알아봐요"
                 ) {
+                    AmplitudeService.shared.trackEvent(tag: .click(.reportFanTips))
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
                 .padding(.horizontal, 16)

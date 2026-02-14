@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -88,10 +89,12 @@ public struct ConcertView: View {
                 confirmTitle: "설정할래요",
                 cancelTitle: "취소할래요",
                 type: .confirm(onConfirm: {
+                    AmplitudeService.shared.trackEvent(tag: .confirm(.changeInterest))
                     showInterestConfirmDialog = false
                     store.send(.interestButtonTapped)
                 }),
                 onCancel: {
+                    AmplitudeService.shared.trackEvent(tag: .cancel(.changeInterest))
                     showInterestConfirmDialog = false
                 }
             )
@@ -284,6 +287,16 @@ private extension ConcertView {
             selectedTab: store.state.selectedTab,
             communityCount: communityStore.state.totalCount,
             onTabSelected: { tab in
+                switch tab {
+                case .artistDetail:
+                    AmplitudeService.shared.trackEvent(tag: .click(.artistDetailSegment))
+                case .concertInfo:
+                    AmplitudeService.shared.trackEvent(tag: .click(.concertDetailSegment))
+                case .setlist:
+                    AmplitudeService.shared.trackEvent(tag: .click(.setlistSegmentDetail))
+                case .community:
+                    break
+                }
                 withAnimation(.easeInOut(duration: 0.2)) {
                     store.send(.tabSelected(tab))
                 }
@@ -339,6 +352,7 @@ private extension ConcertView {
 
             if !store.state.isCurrentConcertInterested {
                 LivithActionButton("관심 콘서트 설정하기", type: .plus) {
+                    AmplitudeService.shared.trackEvent(tag: .click(.interestConcertDetail))
                     showInterestConfirmDialog = true
                 }
                 .padding(.top, 16)

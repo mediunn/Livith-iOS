@@ -68,7 +68,6 @@ public extension AmplitudeService {
         case setlistSongMain = "click_setlist_song_main"
         case moreSongsMain = "click_more_songs_main"
         case changeConcertMain = "click_change_concert_main"
-        case signupBannerMain = "click_signup_banner_main"
         case setPreferenceBannerMain = "click_set_preference_banner_main"
 
         // 탐색 메인
@@ -109,6 +108,49 @@ public extension AmplitudeService {
 
         // 노래 재생
         case reportSong = "click_report_song"
+
+        // 추천 콘서트
+        case interestRecommendedConcert = "click_interest_recommended_concert"
+        case recommendedConcertCell = "click_recommended_concert_cell"
+
+        // 취향 설정
+        case skipArtistPreference = "click_skip_artist_preference"
+        case setGenrePreference = "click_set_genre_preference"
+        case setArtistPreference = "click_set_artist_preference"
+        case searchBarArtistPreference = "click_search_bar_artist_preference"
+        case searchCompleteArtistPreference = "click_search_complete_artist_preference"
+        case searchCellArtistPreference = "click_search_cell_artist_preference"
+        case backPreference = "click_back_preference"
+        case cancelPreference = "click_cancel_preference"
+
+        // 알림 목록
+        case interestConcertNotification = "click_interest_concert_notification"
+        case bookingScheduleNotification = "click_booking_schedule_notification"
+        case concertUpdateSetlistNotification = "click_concert_update_setlist_notification"
+        case concertUpdateMdNotification = "click_concert_update_md_notification"
+        case concertUpdateDetailNotification = "click_concert_update_detail_notification"
+        case concertUpdateScheduleNotification = "click_concert_update_schedule_notification"
+        case concertUpdateTicketNotification = "click_concert_update_ticket_notification"
+        case favoriteArtistConcertOpenNotification = "click_favorite_artist_concert_open_notification"
+        case recommendedConcertNotification = "click_recommended_concert_notification"
+
+        // iOS 푸시 알림
+        case pushInterestConcert = "click_push_interest_concert"
+        case pushBookingSchedule = "click_push_booking_schedule"
+        case pushConcertUpdateSetlist = "click_push_concert_update_setlist"
+        case pushConcertUpdateMd = "click_push_concert_update_md"
+        case pushConcertUpdateDetail = "click_push_concert_update_detail"
+        case pushConcertUpdateSchedule = "click_push_concert_update_schedule"
+        case pushConcertUpdateTicket = "click_push_concert_update_ticket"
+        case pushFavoriteArtistConcertOpen = "click_push_favorite_artist_concert_open"
+        case pushRecommendedConcert = "click_push_recommended_concert"
+
+        // 취향 수정
+        case changeGenrePreference = "click_change_genre_preference"
+        case changeArtistPreference = "click_change_artist_preference"
+
+        // 알림 설정
+        case iosNotificationSettings = "click_ios_notification_settings"
     }
 
     // MARK: - Filter Events
@@ -132,6 +174,14 @@ public extension AmplitudeService {
         case pronunciation = "toggle_pronunciation"
         case translation = "toggle_translation"
         case cheer = "toggle_cheer"
+
+        // 알림 설정
+        case nightNotification = "toggle_night_notification"
+        case benefitNotification = "toggle_benefit_notification"
+        case bookingScheduleNotification = "toggle_booking_schedule_notification"
+        case concertUpdateNotification = "toggle_concert_update_notification"
+        case favoriteArtistConcertOpenNotification = "toggle_favorite_artist_concert_open_notification"
+        case recommendedConcertNotification = "toggle_recommended_concert_notification"
     }
 
     // MARK: - Confirm Events
@@ -140,6 +190,15 @@ public extension AmplitudeService {
         case interestConcert = "confirm_interest_concert"
         case changeInterest = "confirm_change_interest"
         case delete = "click_confirm_delete"
+
+        // 취향 설정
+        case genrePreference = "confirm_genre_preference"
+        case artistPreference = "confirm_artist_preference"
+        case backPreference = "confirm_back_preference"
+
+        // 취향 수정
+        case changeGenrePreference = "confirm_change_genre_preference"
+        case changeArtistPreference = "confirm_change_artist_preference"
     }
 
     // MARK: - Cancel Events

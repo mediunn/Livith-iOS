@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -55,7 +56,10 @@ private extension RecommendedConcertGridView {
             subtitle: DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate),
             secondaryText: concert.artist,
             badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
-            onTap: { coordinator?.showConcertDetail(concertID: concert.id) }
+            onTap: {
+                AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
+                coordinator?.showConcertDetail(concertID: concert.id)
+            }
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }

@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -21,7 +22,10 @@ struct ExploreView: View {
             LivithNavigationView(type: .logo())
             
             ZStack(alignment: .top) {
-                ExploreSearchButton(onTap: { coordinator?.push(to: .search) })
+                ExploreSearchButton(onTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
+                    coordinator?.push(to: .search)
+                })
                     .zIndex(2)
                     .background(
                         scrollOffset > Constants.bannerHeight - 60

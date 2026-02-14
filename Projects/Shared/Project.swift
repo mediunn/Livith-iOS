@@ -34,6 +34,7 @@ let project = Project.make(
             dependencies: [
                 .designSystem(.designSystem),
                 .core(.diContainer),
+                .core(.amplitude),
                 .domain(.domain)
             ]
         ),

@@ -18,6 +18,7 @@ let project = Project.make(
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),
+                .core(.amplitude),
                 .external(.youTubePlayerKit)
             ]
         )

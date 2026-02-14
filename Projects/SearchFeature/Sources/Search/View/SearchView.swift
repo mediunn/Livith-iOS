@@ -9,6 +9,7 @@
 import Combine
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -194,12 +195,14 @@ private extension SearchView {
     var sortView: some View {
         VStack(alignment: .center, spacing: 0) {
             LivithOptionButton("최신순", isSelected: store.state.sortState == .latest) {
+                AmplitudeService.shared.trackEvent(tag: .click(.sortLatest))
                 store.send(.sortStateChanged(.latest))
                 showSort = false
             }
             .padding(.bottom, 8)
 
             LivithOptionButton("가나다순", isSelected: store.state.sortState == .alphabetical) {
+                AmplitudeService.shared.trackEvent(tag: .click(.sortAlphabetical))
                 store.send(.sortStateChanged(.alphabetical))
                 showSort = false
             }
@@ -236,6 +239,7 @@ private extension SearchView {
                 secondaryText: concert.artist,
                 badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
                 onTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
                     hideKeyboard()
                     coordinator?.showConcertDetail(concertID: concert.id)
                 }
@@ -286,6 +290,7 @@ private extension SearchView {
 
     func performSearch() {
         guard !store.state.searchMessage.isEmpty else { return }
+        AmplitudeService.shared.trackEvent(tag: .click(.searchComplete))
         store.send(.searchButtonTapped)
     }
 

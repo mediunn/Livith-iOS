@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -153,6 +154,7 @@ private extension SongLyricsView {
                 .frame(width: 8)
 
             Button {
+                AmplitudeService.shared.trackEvent(tag: .click(.reportSong))
                 onReportTapped()
             } label: {
                 Text("정보 제보")
@@ -211,19 +213,23 @@ private extension SongLyricsView {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 LivithToggleButton("원어", isOn: store.state.showOriginal, style: .original) {
+                    AmplitudeService.shared.trackEvent(tag: .toggle(.original, isOn: !store.state.showOriginal))
                     store.send(.toggleOriginal)
                 }
 
                 LivithToggleButton("발음", isOn: store.state.showPronunciation, style: .pronunciation) {
+                    AmplitudeService.shared.trackEvent(tag: .toggle(.pronunciation, isOn: !store.state.showPronunciation))
                     store.send(.togglePronunciation)
                 }
 
                 LivithToggleButton("해석", isOn: store.state.showTranslation, style: .translation) {
+                    AmplitudeService.shared.trackEvent(tag: .toggle(.translation, isOn: !store.state.showTranslation))
                     store.send(.toggleTranslation)
                 }
 
                 if store.state.hasFanchant {
                     LivithToggleButton("응원법", isOn: store.state.showFanchant, style: .fanchant) {
+                        AmplitudeService.shared.trackEvent(tag: .toggle(.cheer, isOn: !store.state.showFanchant))
                         store.send(.toggleFanchant)
                     }
                 }

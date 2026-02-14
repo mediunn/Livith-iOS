@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import LivithDesignSystem
 
 // MARK: - NoticeSettingView
@@ -113,6 +114,7 @@ private extension NoticeSettingView {
             }
 
             LivithButton(Literals.openDeviceSetting, variant: .primary) {
+                AmplitudeService.shared.trackEvent(tag: .click(.iosNotificationSettings))
                 openAppSettings()
             }
         }
@@ -197,42 +199,60 @@ private extension NoticeSettingView {
     var benefitNotificationBinding: Binding<Bool> {
         Binding(
             get: { store.state.benefitNotification },
-            set: { store.send(.toggleBenefitNotification($0)) }
+            set: {
+                AmplitudeService.shared.trackEvent(tag: .toggle(.benefitNotification, isOn: $0))
+                store.send(.toggleBenefitNotification($0))
+            }
         )
     }
 
     var nightNotificationBinding: Binding<Bool> {
         Binding(
             get: { store.state.nightNotification },
-            set: { store.send(.toggleNightNotification($0)) }
+            set: {
+                AmplitudeService.shared.trackEvent(tag: .toggle(.nightNotification, isOn: $0))
+                store.send(.toggleNightNotification($0))
+            }
         )
     }
 
     var ticketScheduleBinding: Binding<Bool> {
         Binding(
             get: { store.state.ticketSchedule },
-            set: { store.send(.toggleTicketSchedule($0)) }
+            set: {
+                AmplitudeService.shared.trackEvent(tag: .toggle(.bookingScheduleNotification, isOn: $0))
+                store.send(.toggleTicketSchedule($0))
+            }
         )
     }
 
     var concertInfoUpdateBinding: Binding<Bool> {
         Binding(
             get: { store.state.concertInfoUpdate },
-            set: { store.send(.toggleConcertInfoUpdate($0)) }
+            set: {
+                AmplitudeService.shared.trackEvent(tag: .toggle(.concertUpdateNotification, isOn: $0))
+                store.send(.toggleConcertInfoUpdate($0))
+            }
         )
     }
 
     var favoriteArtistConcertBinding: Binding<Bool> {
         Binding(
             get: { store.state.favoriteArtistConcert },
-            set: { store.send(.toggleFavoriteArtistConcert($0)) }
+            set: {
+                AmplitudeService.shared.trackEvent(tag: .toggle(.favoriteArtistConcertOpenNotification, isOn: $0))
+                store.send(.toggleFavoriteArtistConcert($0))
+            }
         )
     }
 
     var preferenceBasedConcertBinding: Binding<Bool> {
         Binding(
             get: { store.state.preferenceBasedConcert },
-            set: { store.send(.togglePreferenceBasedConcert($0)) }
+            set: {
+                AmplitudeService.shared.trackEvent(tag: .toggle(.recommendedConcertNotification, isOn: $0))
+                store.send(.togglePreferenceBasedConcert($0))
+            }
         )
     }
 

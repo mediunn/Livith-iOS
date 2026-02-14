@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import LivithDesignSystem
 
 struct UserView: View {
@@ -176,6 +177,11 @@ private extension UserView {
                 LivithTextButton(
                     store.state.hasGenreData ? Literals.change : Literals.setup,
                     action: {
+                        if store.state.hasGenreData {
+                            AmplitudeService.shared.trackEvent(tag: .click(.changeGenrePreference))
+                        } else {
+                            AmplitudeService.shared.trackEvent(tag: .click(.setGenrePreference))
+                        }
                         coordinator?.push(to: .genreUpdate(selectedGenreList: store.state.genres))
                         coordinator?.onGenreUpdateSuccess = {
                             showGenreUpdateSuccessSnackBar = true
@@ -204,6 +210,11 @@ private extension UserView {
                 LivithTextButton(
                     store.state.hasArtistData ? Literals.change : Literals.setup,
                     action: {
+                        if store.state.hasArtistData {
+                            AmplitudeService.shared.trackEvent(tag: .click(.changeArtistPreference))
+                        } else {
+                            AmplitudeService.shared.trackEvent(tag: .click(.setArtistPreference))
+                        }
                         coordinator?.push(to: .artistUpdate(selectedArtistList: store.state.artists))
                         coordinator?.onArtistUpdateSuccess = {
                             showArtistUpdateSuccessSnackBar = true
