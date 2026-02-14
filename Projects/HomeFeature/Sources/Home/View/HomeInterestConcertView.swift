@@ -8,8 +8,9 @@
 
 import SwiftUI
 
-import LivithDesignSystem
+import Amplitude
 import Domain
+import LivithDesignSystem
 import LivithFoundation
 
 struct HomeInterestConcertView: View {
@@ -38,6 +39,7 @@ struct HomeInterestConcertView: View {
                     cancelTitle: "잘못 눌렀어요",
                     type: .confirm(onConfirm: handleDeleteConfirm),
                     onCancel: {
+                        AmplitudeService.shared.trackEvent(tag: .cancel(.delete))
                         showDeleteDialog = false
                         isTabBarHidden = false
                     }
@@ -80,7 +82,14 @@ private extension HomeInterestConcertView {
                     
                     SegmentedTabBar(type: .home(
                         selectedTab: selectedTab,
-                        onTabSelected: { selectedTab = $0 }
+                        onTabSelected: { tab in
+                            if tab == .schedule {
+                                AmplitudeService.shared.trackEvent(tag: .click(.concertScheduleSegmentMain))
+                            } else {
+                                AmplitudeService.shared.trackEvent(tag: .click(.setlistSegmentMain))
+                            }
+                            selectedTab = tab
+                        }
                     ))
                     
                     Group {
@@ -124,6 +133,7 @@ private extension HomeInterestConcertView {
             Spacer()
             
             LivithTextButton("수정하기") {
+                AmplitudeService.shared.trackEvent(tag: .click(.changeConcertMain))
                 showBottomSheet = true
             }
             .padding(.top, 20)
@@ -136,11 +146,13 @@ private extension HomeInterestConcertView {
 
 private extension HomeInterestConcertView {
     func handleMoreInfoTap() {
+        AmplitudeService.shared.trackEvent(tag: .click(.moreInfoMain))
         guard let concertID = interestState.concert?.id else { return }
         coordinator?.showConcertDetail(concertID: concertID)
     }
     
     func handleSongTap(songID: Int) {
+        AmplitudeService.shared.trackEvent(tag: .click(.setlistSongMain))
         guard let setlistID = interestState.setlist?.id,
               let song = interestState.songList.first(where: { $0.id == songID })
         else {
@@ -148,29 +160,33 @@ private extension HomeInterestConcertView {
         }
         coordinator?.showSongDetail(songID: songID, setlistID: setlistID, songTitle: song.title)
     }
-    
+
     func handleSetlistMoreTap(setlistID: Int) {
+        AmplitudeService.shared.trackEvent(tag: .click(.moreSongsMain))
         guard let concertID = interestState.concert?.id else { return }
         coordinator?.showSetlistDetail(concertID: concertID, setlistID: setlistID)
     }
     
     func handleChangeMainConcert() {
+        AmplitudeService.shared.trackEvent(tag: .click(.changeMainConcert))
         showBottomSheet = false
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(0.5))
             coordinator?.push(to: .interest)
         }
     }
-    
+
     func handleDeleteConcert() {
+        AmplitudeService.shared.trackEvent(tag: .click(.deleteConcert))
         showBottomSheet = false
         showDeleteDialog = true
     }
-    
+
     func handleDeleteConfirm() {
+        AmplitudeService.shared.trackEvent(tag: .confirm(.delete))
         showDeleteDialog = false
         isTabBarHidden = false
-        
+
         store.send(.interestConcert(.onDelete))
     }
     

@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -21,7 +22,10 @@ struct ExploreView: View {
             LivithNavigationView(type: .logo())
             
             ZStack(alignment: .top) {
-                ExploreSearchButton(onTap: { coordinator?.push(to: .search) })
+                ExploreSearchButton(onTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
+                    coordinator?.push(to: .search)
+                })
                     .zIndex(2)
                     .background(
                         scrollOffset > Constants.bannerHeight - 60
@@ -84,9 +88,17 @@ private extension ExploreView {
     }
     
     func concertSectionRow(for section: ConcertSection) -> some View {
-        ConcertSectionView(
+        let isFirstSection = store.state.concertSections.first?.id == section.id
+        let isSecondSection = store.state.concertSections.dropFirst().first?.id == section.id
+
+        return ConcertSectionView(
             concertSection: section,
             onConcertTap: { concert in
+                if isFirstSection {
+                    AmplitudeService.shared.trackEvent(tag: .click(.firstConcertCell))
+                } else if isSecondSection {
+                    AmplitudeService.shared.trackEvent(tag: .click(.secondConcertCell))
+                }
                 coordinator?.showConcertDetail(concertID: concert.id)
             }
         )

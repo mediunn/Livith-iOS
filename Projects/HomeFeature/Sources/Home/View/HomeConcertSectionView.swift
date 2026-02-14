@@ -8,8 +8,8 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
-
 import LivithDesignSystem
 
 struct HomeConcertSectionView: View {
@@ -71,15 +71,21 @@ private extension HomeConcertSectionView {
             if sectionState.shouldShowPreferenceBanner {
                 PreferenceBannerView(
                     isExpanded: $isPreferenceBannerExpanded,
-                    onTapBanner: { coordinator?.push(to: .preferredGenreUpdate) }
+                    onTapBanner: {
+                        AmplitudeService.shared.trackEvent(tag: .click(.setPreferenceBannerMain))
+                        coordinator?.push(to: .preferredGenreUpdate)
+                    }
                 )
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
             }
-            
+
             HomeHeaderView(
                 nickname: store.state.user?.nickname ?? "라이빗",
-                action: { coordinator?.push(to: .interest) }
+                action: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
+                    coordinator?.push(to: .interest)
+                }
             )
         }
         .background(Color.livithColor(.black90))
@@ -103,6 +109,7 @@ private extension HomeConcertSectionView {
                 title: "\(store.state.user?.nickname ?? "라이빗")님의\n취향이 담긴 콘서트",
                 concertList: sectionState.recommendedConcertList
             ) { concert in
+                AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
                 coordinator?.showConcertDetail(concertID: concert.id)
             } onSeeAllTap: {
                 coordinator?.push(to: .recommendedConcertList(concertList: sectionState.recommendedConcertList))
@@ -126,6 +133,7 @@ private extension HomeConcertSectionView {
 private extension HomeConcertSectionView {
     func concertSectionRow(for section: ConcertSection) -> some View {
         ConcertSectionView(concertSection: section) { concert in
+            AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
             coordinator?.showConcertDetail(concertID: concert.id)
         }
     }
