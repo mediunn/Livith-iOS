@@ -47,7 +47,6 @@ struct HomeConcertSectionView: View {
         .background(.livithColor(.black90))
         .onAppear {
             isPreferenceBannerExpanded = true
-            store.send(.concertSection(.onAppear))
         }
     }
 }
