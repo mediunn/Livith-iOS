@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 import LivithFoundation
@@ -72,6 +73,7 @@ private extension SetlistTabView {
 
     func setlistCard(for setlist: Setlist) -> some View {
         Button {
+            AmplitudeService.shared.trackEvent(tag: .click(.setlistCardDetail))
             coordinator?.push(to: .setlistDetail(concertID: concertID, setlistID: setlist.id))
         } label: {
             LivithCard(

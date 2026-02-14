@@ -12,7 +12,6 @@ let packageSettings = PackageSettings(
         "KakaoSDKUser": .framework,
         "Alamofire": .framework,
         "YouTubePlayerKit": .framework,
-        "FirebaseCore": .staticLibrary,
         "FirebaseMessaging": .staticLibrary
     ]
 )
@@ -25,6 +24,7 @@ let package = Package(
         .package(url: "https://github.com/onevcat/Kingfisher", .upToNextMajor(from: "8.2.0")),
         .package(url: "https://github.com/kakao/kakao-ios-sdk", .upToNextMajor(from: "2.26.0")),
         .package(url: "https://github.com/SvenTiigi/YouTubePlayerKit", .upToNextMajor(from: "1.9.0")),
-        .package(url: "https://github.com/firebase/firebase-ios-sdk", exact: "12.9.0")
+        .package(url: "https://github.com/firebase/firebase-ios-sdk", exact: "12.9.0"),
+        .package(url: "https://github.com/amplitude/Amplitude-Swift", .upToNextMajor(from: "1.0.0"))
     ]
 )
