@@ -75,9 +75,11 @@ private extension ArtistDetailTabView {
                     coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
                 }
                 .padding(.bottom, 20)
+                .zIndex(1)
 
                 artistInfoCard(for: artist)
                     .padding(.bottom, 10)
+                    .zIndex(0)
 
                 tagsView(keywords: artist.keywords)
             }

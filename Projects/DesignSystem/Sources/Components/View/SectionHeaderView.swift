@@ -102,6 +102,7 @@ public struct ReportButton: View {
                         .stroke(Color.livithColor(.black80), lineWidth: 1)
                 )
         }
+        .contentShape(Rectangle())
     }
 }
 

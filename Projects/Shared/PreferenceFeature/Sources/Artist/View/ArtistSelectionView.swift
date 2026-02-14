@@ -148,7 +148,10 @@ private extension ArtistSelectionView {
             title: artist.name,
             imageURL: artist.imageURL,
             isSelected: isArtistSelected(artist),
-            action: { store.send(.toggle(id: artist.id)) }
+            action: {
+                AmplitudeService.shared.trackEvent(tag: .click(.searchCellArtistPreference))
+                store.send(.toggle(id: artist.id))
+            }
         )
         .onAppear {
             guard shouldLoadMore(for: artist) else { return }
