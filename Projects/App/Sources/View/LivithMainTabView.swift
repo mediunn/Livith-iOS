@@ -8,11 +8,12 @@
 
 import SwiftUI
 
+import Amplitude
 import ConcertFeature
-import LivithDesignSystem
 import HomeFeature
-import UserFeature
+import LivithDesignSystem
 import SearchFeature
+import UserFeature
 
 struct LivithMainTabView: View {
 
@@ -72,6 +73,16 @@ struct LivithMainTabView: View {
             .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         }
         .preferredColorScheme(.dark)
+        .onChange(of: selectedTab) { _, newTab in
+            switch newTab {
+            case .home:
+                AmplitudeService.shared.trackEvent(tag: .click(.navHome))
+            case .search:
+                AmplitudeService.shared.trackEvent(tag: .click(.navExplore))
+            case .my:
+                AmplitudeService.shared.trackEvent(tag: .click(.navMy))
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .openConcertDetail)) { notification in
             if let concertID = notification.userInfo?["concertID"] as? Int {
                 selectedTab = .home
