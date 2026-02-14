@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -144,6 +145,12 @@ private extension FilterBottomSheetView {
             .disabled(!hasSelection)
 
             LivithButton("설정하기", variant: .primary) {
+                if !tempGenreList.isEmpty {
+                    AmplitudeService.shared.trackEvent(tag: .setFilter(.genre))
+                }
+                if !tempStatusList.isEmpty {
+                    AmplitudeService.shared.trackEvent(tag: .setFilter(.period))
+                }
                 selectedGenreList = tempGenreList
                 selectedStatusList = tempStatusList
                 showFilter = false
