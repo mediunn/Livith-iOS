@@ -9,7 +9,6 @@
 import Combine
 import SwiftUI
 
-import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -145,11 +144,7 @@ private extension SearchView {
             LivithFilterButton(
                 style: .genre,
                 selectedText: genreSelectedText,
-                action: {
-                    AmplitudeService.shared.trackEvent(tag: .click(.searchResultFilter))
-                    hideKeyboard()
-                    showFilter = true
-                },
+                action: { hideKeyboard(); showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: [], status: store.state.selectedStatusList))
                 }
@@ -159,11 +154,7 @@ private extension SearchView {
             LivithFilterButton(
                 style: .status,
                 selectedText: statusSelectedText,
-                action: {
-                    AmplitudeService.shared.trackEvent(tag: .click(.searchResultFilter))
-                    hideKeyboard()
-                    showFilter = true
-                },
+                action: { hideKeyboard(); showFilter = true },
                 onClear: {
                     store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: []))
                 }
@@ -245,7 +236,6 @@ private extension SearchView {
                 secondaryText: concert.artist,
                 badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
                 onTap: {
-                    AmplitudeService.shared.trackEvent(tag: .click(.searchResultCell))
                     hideKeyboard()
                     coordinator?.showConcertDetail(concertID: concert.id)
                 }

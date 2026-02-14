@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -29,7 +28,6 @@ struct SetlistSongListCard: View {
                     title: song.title,
                     artist: song.artist
                 ) {
-                    AmplitudeService.shared.trackEvent(tag: .click(.setlistSongDetail))
                     onPlaySong?(song)
                 }
             }

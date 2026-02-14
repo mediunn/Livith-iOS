@@ -73,8 +73,6 @@ public extension AmplitudeService {
 
         // 탐색 메인
         case searchBar = "click_search_bar"
-        case firstConcertCell = "click_first_concert_cell"
-        case secondConcertCell = "click_second_concert_cell"
 
         // 네비게이션
         case navHome = "click_nav_home"
@@ -92,16 +90,12 @@ public extension AmplitudeService {
         case resetFilter = "click_reset_filter"
         case searchComplete = "click_search_complete"
         case searchCell = "click_search_cell"
-        case searchResultCell = "click_search_result_cell"
-        case searchResultFilter = "click_search_result_filter"
 
         // 콘서트 상세
         case interestConcertDetail = "click_interest_concert_detail"
-        case artistDetailSegmentDetail = "click_artist_detail_segment_detail"
-        case concertInfoSegmentDetail = "click_concert_info_segment_detail"
+        case artistDetailSegment = "click_artist_detail_segment"
+        case concertDetailSegment = "click_concert_detail_segment"
         case setlistSegmentDetail = "click_setlist_segment_detail"
-        case communitySegmentDetail = "click_community_segment_detail"
-        case setlistCardDetail = "click_setlist_card_detail"
         case reportArtistInfo = "click_report_artist_info"
         case reportFanTips = "click_report_fan_tips"
         case reportConcertInfo = "click_report_concert_info"
@@ -110,28 +104,16 @@ public extension AmplitudeService {
         case setlistCell = "click_setlist_cell"
 
         // 셋리스트 상세
-        case setlistSongDetail = "click_setlist_song_detail"
         case reportSetlist = "click_report_setlist"
         case songCell = "click_song_cell"
 
         // 노래 재생
         case reportSong = "click_report_song"
-
-        // 마이페이지
-        case settingMy = "click_setting_my"
-        case nicknameEditMy = "click_nickname_edit_my"
-        case feedbackMy = "click_feedback_my"
-        case genreSetupMy = "click_genre_setup_my"
-        case genreChangeMy = "click_genre_change_my"
-        case artistSetupMy = "click_artist_setup_my"
-        case artistChangeMy = "click_artist_change_my"
     }
 
     // MARK: - Filter Events
 
     enum FilterEvent: String {
-        case genre = "set_filter_genre"
-        case period = "set_filter_period"
         case jpop = "set_filter_jpop"
         case rockMetal = "set_filter_rock_metal"
         case rapHiphop = "set_filter_rap_hiphop"

@@ -17,8 +17,7 @@ let project = Project.make(
                 .designSystem(.designSystem),
                 .core(.coordinator),
                 .core(.diContainer),
-                .core(.livithFoundation),
-                .core(.amplitude)
+                .core(.livithFoundation)
             ]
         )
     ]

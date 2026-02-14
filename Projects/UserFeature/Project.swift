@@ -21,8 +21,7 @@ let project = Project.make(
                 .core(.livithFoundation),
                 .core(.livithNetwork),
                 .core(.persistence),
-                .shared(.preferenceFeature),
-                .core(.amplitude)
+                .shared(.preferenceFeature)
             ]
         )
     ]

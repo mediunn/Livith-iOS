@@ -20,8 +20,7 @@ let project = Project.make(
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),
-                .core(.persistence),
-                .core(.amplitude)
+                .core(.persistence)
             ]
         )
     ]

@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-import Amplitude
 import LivithDesignSystem
 
 struct UserView: View {
@@ -102,10 +101,7 @@ struct UserView: View {
 
 private extension UserView {
     var settingButton: some View {
-        Button(action: {
-            AmplitudeService.shared.trackEvent(tag: .click(.settingMy))
-            coordinator?.push(to: .setting)
-        }) {
+        Button(action: { coordinator?.push(to: .setting) }) {
             Image.livithIcon(.settingFill)
                 .resizable()
                 .frame(width: 36, height: 36)
@@ -134,10 +130,7 @@ private extension UserView {
     }
     
     var editButton: some View {
-        Button(action: {
-            AmplitudeService.shared.trackEvent(tag: .click(.nicknameEditMy))
-            coordinator?.push(to: .nicknameUpdate)
-        }) {
+        Button(action: { coordinator?.push(to: .nicknameUpdate) }) {
             Text(Literals.editNickname)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
@@ -156,7 +149,6 @@ private extension UserView {
     
     var feedbackButton: some View {
         Button {
-            AmplitudeService.shared.trackEvent(tag: .click(.feedbackMy))
             showFeedbackForm()
         } label: {
             Image.livithImage(.feedback)
@@ -184,11 +176,6 @@ private extension UserView {
                 LivithTextButton(
                     store.state.hasGenreData ? Literals.change : Literals.setup,
                     action: {
-                        if store.state.hasGenreData {
-                            AmplitudeService.shared.trackEvent(tag: .click(.genreChangeMy))
-                        } else {
-                            AmplitudeService.shared.trackEvent(tag: .click(.genreSetupMy))
-                        }
                         coordinator?.push(to: .genreUpdate(selectedGenreList: store.state.genres))
                         coordinator?.onGenreUpdateSuccess = {
                             showGenreUpdateSuccessSnackBar = true
@@ -217,11 +204,6 @@ private extension UserView {
                 LivithTextButton(
                     store.state.hasArtistData ? Literals.change : Literals.setup,
                     action: {
-                        if store.state.hasArtistData {
-                            AmplitudeService.shared.trackEvent(tag: .click(.artistChangeMy))
-                        } else {
-                            AmplitudeService.shared.trackEvent(tag: .click(.artistSetupMy))
-                        }
                         coordinator?.push(to: .artistUpdate(selectedArtistList: store.state.artists))
                         coordinator?.onArtistUpdateSuccess = {
                             showArtistUpdateSuccessSnackBar = true
