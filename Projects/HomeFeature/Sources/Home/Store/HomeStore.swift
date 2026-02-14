@@ -25,7 +25,6 @@ enum HomeIntent {
     enum InterestConcertIntent {
         case onDelete
         case onRefresh
-        case onAppear
         case _fetchUserInterestConcertResult(Result<Concert?, Error>)
         case _fetchScheduleListResult(Result<[ConcertSchedule], Error>)
         case _fetchMainSetlistResult(Result<Setlist, Error>)
@@ -34,7 +33,6 @@ enum HomeIntent {
     }
     
     enum ConcertSectionIntent {
-        case onAppear
         case onRefresh
         case _concertSectionDataResult(Result<HomeState.ConcertSectionState.Data, Error>)
     }
@@ -55,6 +53,7 @@ struct HomeState {
     var sections: ConcertSectionState = .init()
     
     struct InterestConcertState {
+        var isInitialLoad: Bool = true
         var concert: Concert? = nil
         var scheduleList: [ConcertSchedule] = []
         var setlist: Setlist? = nil
@@ -117,6 +116,8 @@ final class HomeStore: ObservableObject {
             case .success(let user):
                 state.user = user
                 state.route = user.interestConcertID == nil ? .concertSection : .interestedConcert
+                prepareInitialLoad(for: state.route)
+                executeInitialLoad(for: state.route)
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
@@ -147,8 +148,6 @@ private extension HomeStore {
             performDeleteInterestConcert()
         case .onRefresh:
             executeRefreshInterestConcert()
-        case .onAppear:
-            performFetchUserInterestedConcert()
         case ._fetchUserInterestConcertResult(let result):
             handleFetchUserInterestConcertResult(result)
         case ._fetchScheduleListResult(let result):
@@ -169,6 +168,13 @@ private extension HomeStore {
         } else {
             performFetchUserInterestedConcert()
         }
+    }
+
+    func executeInitialInterestConcertLoadIfNeeded() {
+        guard state.user != nil else { return }
+        guard state.interestConcert.isInitialLoad else { return }
+        state.interestConcert.isInitialLoad = false
+        performFetchUserInterestedConcert()
     }
     
     func handleFetchUserInterestConcertResult(_ result: Result<Concert?, Error>) {
@@ -240,17 +246,20 @@ private extension HomeStore {
 private extension HomeStore {
     func handleConcertSectionIntent(_ intent: HomeIntent.ConcertSectionIntent) {
         switch intent {
-        case .onAppear:
-            if state.sections.isInitialLoad {
-                state.sections.isLoading = true
-                state.sections.isInitialLoad = false
-            }
-            performFetchConcertSectionData()
         case .onRefresh:
             performFetchConcertSectionData()
         case ._concertSectionDataResult(let result):
             handleConcertSectionDataResult(result)
         }
+    }
+
+    func executeInitialConcertSectionLoadIfNeeded() {
+        guard state.user != nil else { return }
+        guard state.sections.isInitialLoad else { return }
+
+        state.sections.isLoading = true
+        state.sections.isInitialLoad = false
+        performFetchConcertSectionData()
     }
     
     func handleConcertSectionDataResult(
@@ -390,6 +399,26 @@ private extension HomeStore {
 // MARK: - Utilities
 
 private extension HomeStore {
+    func executeInitialLoad(for route: HomeState.Route) {
+        switch route {
+        case .concertSection:
+            executeInitialConcertSectionLoadIfNeeded()
+        case .interestedConcert:
+            executeInitialInterestConcertLoadIfNeeded()
+        }
+    }
+
+    func prepareInitialLoad(for route: HomeState.Route) {
+        switch route {
+        case .concertSection:
+            state.sections.isInitialLoad = true
+            state.interestConcert.isInitialLoad = false
+        case .interestedConcert:
+            state.interestConcert.isInitialLoad = true
+            state.sections.isInitialLoad = false
+        }
+    }
+
     func fetchRecommendationsIfNeeded() async -> [Concert]? {
         guard let hasPreferences = state.user?.hasPreferences else { return nil }
         if hasPreferences {
