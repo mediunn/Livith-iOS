@@ -62,62 +62,74 @@ struct HomeInterestConcertView: View {
 private extension HomeInterestConcertView {
     var mainContent: some View {
         VStack(spacing: .zero) {
-            LivithNavigationView(type: .logo(
-                hasNewNotice: store.state.hasNewNotice,
-                onNoticeTap: { coordinator?.push(to: .notice) }
-            ))
-            
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: .zero) {
-                    textHeaderView
-                    
-                    InterestConcertCardView(
-                        posterURL: interestState.concert?.posterURL,
-                        remainDays: interestState.concert?.daysLeft ?? 0,
-                        date: formatDate(interestState.concert?.startDate),
-                        location: interestState.concert?.venue ?? "",
-                        title: interestState.concert?.title ?? "",
-                        onMoreInfoTap: handleMoreInfoTap
-                    )
-                    
-                    SegmentedTabBar(type: .home(
-                        selectedTab: selectedTab,
-                        onTabSelected: { tab in
-                            if tab == .schedule {
-                                AmplitudeService.shared.trackEvent(tag: .click(.concertScheduleSegmentMain))
-                            } else {
-                                AmplitudeService.shared.trackEvent(tag: .click(.setlistSegmentMain))
-                            }
-                            selectedTab = tab
-                        }
-                    ))
-                    
-                    Group {
-                        if selectedTab == .schedule {
-                            ConcertScheduleTabView(schedules: interestState.scheduleList)
-                        } else {
-                            ConcertSetlistTabView(
-                                setlist: interestState.setlist,
-                                songs: interestState.songList,
-                                onSongTap: { songID in
-                                    handleSongTap(songID: songID)
-                                },
-                                onMoreTap: { setlistID in
-                                    handleSetlistMoreTap(setlistID: setlistID)
-                                }
-                            )
-                        }
-                    }
-                    .padding(.top, 24)
-                    .padding(.horizontal, 16)
-                }
+            navigationView
+            interestConcertScrollView
+        }
+    }
+    
+    var navigationView: some View {
+        LivithNavigationView(type: .logo(
+            hasNewNotice: store.state.hasNewNotice,
+            onNoticeTap: { coordinator?.push(to: .notice) }
+        ))
+    }
+    
+    var interestConcertScrollView: some View {
+        ScrollView(showsIndicators: false) {
+            interestConcertContent
+        }
+        .scrollIndicators(.never)
+        .refreshable {
+            await MainActor.run {
+                store.send(.interestConcert(.onRefresh))
             }
-            .scrollIndicators(.never)
-            .refreshable {
-                await MainActor.run {
-                    store.send(.interestConcert(.onRefresh))
-                }
-            }
+        }
+    }
+    
+    var interestConcertContent: some View {
+        VStack(spacing: .zero) {
+            textHeaderView
+            interestConcertCardView
+            segmentTabView
+            selectedTabContentView
+        }
+    }
+    
+    var interestConcertCardView: some View {
+        InterestConcertCardView(
+            posterURL: interestState.concert?.posterURL,
+            remainDays: interestState.concert?.daysLeft ?? 0,
+            date: formatDate(interestState.concert?.startDate),
+            location: interestState.concert?.venue ?? "",
+            title: interestState.concert?.title ?? "",
+            onMoreInfoTap: handleMoreInfoTap
+        )
+    }
+    
+    var segmentTabView: some View {
+        SegmentedTabBar(type: .home(
+            selectedTab: selectedTab,
+            onTabSelected: handleTabSelected
+        ))
+    }
+    
+    var selectedTabContentView: some View {
+        tabContentView
+            .padding(.top, 24)
+            .padding(.horizontal, 16)
+    }
+    
+    @ViewBuilder
+    var tabContentView: some View {
+        if selectedTab == .schedule {
+            ConcertScheduleTabView(schedules: interestState.scheduleList)
+        } else {
+            ConcertSetlistTabView(
+                setlist: interestState.setlist,
+                songs: interestState.songList,
+                onSongTap: handleSongTap,
+                onMoreTap: handleSetlistMoreTap
+            )
         }
     }
     
@@ -145,6 +157,14 @@ private extension HomeInterestConcertView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertView {
+    func handleTabSelected(_ tab: SegmentedTabBarType.HomeTab) {
+        let clickEvent: AmplitudeService.EventTag = tab == .schedule
+        ? .click(.concertScheduleSegmentMain)
+        : .click(.setlistSegmentMain)
+        AmplitudeService.shared.trackEvent(tag: clickEvent)
+        selectedTab = tab
+    }
+    
     func handleMoreInfoTap() {
         AmplitudeService.shared.trackEvent(tag: .click(.moreInfoMain))
         guard let concertID = interestState.concert?.id else { return }
@@ -160,7 +180,7 @@ private extension HomeInterestConcertView {
         }
         coordinator?.showSongDetail(songID: songID, setlistID: setlistID, songTitle: song.title)
     }
-
+    
     func handleSetlistMoreTap(setlistID: Int) {
         AmplitudeService.shared.trackEvent(tag: .click(.moreSongsMain))
         guard let concertID = interestState.concert?.id else { return }
@@ -175,18 +195,18 @@ private extension HomeInterestConcertView {
             coordinator?.push(to: .interest)
         }
     }
-
+    
     func handleDeleteConcert() {
         AmplitudeService.shared.trackEvent(tag: .click(.deleteConcert))
         showBottomSheet = false
         showDeleteDialog = true
     }
-
+    
     func handleDeleteConfirm() {
         AmplitudeService.shared.trackEvent(tag: .confirm(.delete))
         showDeleteDialog = false
         isTabBarHidden = false
-
+        
         store.send(.interestConcert(.onDelete))
     }
     
