@@ -15,6 +15,7 @@ enum LoginIntent {
     case kakaoLogin
     case appleLogin
     case setErrorMessage(String)
+    case setForbiddenModalPresented(Bool)
     case _loginResult(Result<LoginStatus, Error>)
     case _setLastLoginPlatform(SocialLoginProvider?)
 }
@@ -23,6 +24,7 @@ struct LoginState {
     var status: LoginStatus?
     var lastLoginPlatform: SocialLoginProvider?
     var errorMessage: String = ""
+    var isForbiddenModalPresented: Bool = false
 }
 
 final class LoginStore: ObservableObject {
@@ -40,22 +42,33 @@ final class LoginStore: ObservableObject {
         case .kakaoLogin:
             state.status = nil
             state.errorMessage = ""
+            state.isForbiddenModalPresented = false
             performKakaoLogin()
 
         case .appleLogin:
             state.status = nil
             state.errorMessage = ""
+            state.isForbiddenModalPresented = false
             performAppleLogin()
 
         case .setErrorMessage(let message):
             state.errorMessage = message
+
+        case .setForbiddenModalPresented(let value):
+            state.isForbiddenModalPresented = value
 
         case ._loginResult(let result):
             switch result {
             case .success(let loginResult):
                 state.status = loginResult
             case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
+                switch error as? AuthError {
+                case .some(.recentlyWithdrawn), .some(.withdrawn):
+                    state.isForbiddenModalPresented = true
+                    state.errorMessage = ""
+                default:
+                    state.errorMessage = getErrorMessage(from: error)
+                }
             }
 
         case ._setLastLoginPlatform(let value):
@@ -72,8 +85,6 @@ private extension LoginStore {
             do {
                 let loginResult = try await authRepository.kakaoLogin()
                 await send(._loginResult(.success(loginResult)))
-            } catch AuthError.recentWithdrawal {
-                await send(._loginResult(.success(.forbidden)))
             } catch {
                 await send(._loginResult(.failure(error)))
             }
@@ -85,8 +96,6 @@ private extension LoginStore {
             do {
                 let loginResult = try await authRepository.appleLogin()
                 await send(._loginResult(.success(loginResult)))
-            } catch AuthError.recentWithdrawal {
-                await send(._loginResult(.success(.forbidden)))
             } catch {
                 await send(._loginResult(.failure(error)))
             }
@@ -105,7 +114,7 @@ private extension LoginStore {
         guard let authError = error as? AuthError else { return unknownMessage }
 
         switch authError {
-        case .cancelled, .recentWithdrawal:
+        case .cancelled, .recentlyWithdrawn, .withdrawn:
             return ""
         case .noConnection, .serverError, .userNotFound:
             return authError.errorDescription ?? unknownMessage

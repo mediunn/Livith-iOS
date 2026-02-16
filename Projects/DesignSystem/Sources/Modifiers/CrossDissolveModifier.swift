@@ -55,7 +55,11 @@ public struct CrossDissolveModifier<OverlayContent: View>: ViewModifier {
                 )
                 .presentationBackground(.clear)
             }
-            .transaction { $0.disablesAnimations = true }
+            .transaction { transaction in
+                if shouldDisableHostAnimations {
+                    transaction.disablesAnimations = true
+                }
+            }
             .onChange(of: isPresented) { _, newValue in
                 if newValue {
                     internalPresented = true
@@ -66,6 +70,11 @@ public struct CrossDissolveModifier<OverlayContent: View>: ViewModifier {
                     isPresented = false
                 }
             }
+    }
+
+    /// 이 modifier가 fullScreenCover를 표시/해제하는 동안에만 호스트 뷰 애니메이션을 비활성화합니다.
+    private var shouldDisableHostAnimations: Bool {
+        isPresented || internalPresented
     }
 }
 

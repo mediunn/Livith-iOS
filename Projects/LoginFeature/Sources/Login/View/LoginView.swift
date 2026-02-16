@@ -20,79 +20,71 @@ struct LoginView: View {
         static let calloutWidth: CGFloat = 272
     }
     
+    private enum Literals {
+        static let forbiddenTitle = "탈퇴 후 7일이 지나지 않았어요"
+        static let forbiddenMessage = "7일이 지난 후 다시 시도해주세요"
+        static let forbiddenConfirmTitle = "로그인으로 돌아가기"
+    }
+    
     @StateObject private var store = LoginStore()
     @Environment(\.loginCoordinator) private var coordinator
     
-    @State private var isForbiddenModalPresented = false
-    
     var body: some View {
+        contentView
+            .background(
+                Color.livithColor(.black100)
+                    .ignoresSafeArea()
+            )
+            .ignoresSafeArea(.all, edges: .top)
+            .livithToast(
+                isPresented: errorToastBinding,
+                type: .failure,
+                message: store.state.errorMessage
+            )
+            .crossDissolve(isPresented: forbiddenModalBinding) {
+                forbiddenModal
+            }
+            .onChange(of: store.state.status) { _, newValue in
+                guard let loginStatus = newValue else { return }
+                handleLoginSuccess(loginStatus)
+            }
+    }
+}
+
+// MARK: - Subviews
+
+private extension LoginView {
+    var contentView: some View {
         VStack(spacing: 0) {
-            onboardingSection
+            LoginBannerSectionView()
             
             Spacer(minLength: 16)
             
             loginButtons
         }
-        .background(
-            Color.livithColor(.black100)
-                .ignoresSafeArea()
-        )
-        .ignoresSafeArea(.all, edges: .top)
-        .livithToast(
-            isPresented: Binding(
-                get: { !store.state.errorMessage.isEmpty },
-                set: { _ in store.send(.setErrorMessage("")) }
-            ),
-            type: .failure,
-            message: store.state.errorMessage
-        )
-        .crossDissolve(isPresented: $isForbiddenModalPresented, dismissOnTapOutside: false) {
-            LivithModal(
-                type: .error(
-                    title: "탈퇴 후 7일이 지나지 않았어요",
-                    message: "7일이 지난 후 다시 시도해주세요"
-                ),
-                confirmTitle: "로그인으로 돌아가기",
-                onConfirm: {
-                    isForbiddenModalPresented = false
-                }
-            )
-        }
-        .onChange(of: store.state.status) { oldValue, newValue in
-            guard let loginStatus = newValue else { return }
-            handleLoginSuccess(loginStatus)
-        }
     }
     
-    private func handleLoginSuccess(_ status: LoginStatus) {
-        switch status {
-        case .existingUser:
-            coordinator?.completeLogin()
-        case .newUser(let tempUser):
-            coordinator?.push(to: .terms(tempUser))
-        case .forbidden:
-            isForbiddenModalPresented = true
-        }
-    }
-}
-
-// MARK: - UIComponents
-
-private extension LoginView {
-    var onboardingSection: some View {
-        LoginBannerSectionView()
+    var forbiddenModal: some View {
+        LivithModal(
+            type: .error(
+                title: Literals.forbiddenTitle,
+                message: Literals.forbiddenMessage
+            ),
+            confirmTitle: Literals.forbiddenConfirmTitle,
+            onConfirm: dismissForbiddenModal
+        )
     }
     
     var loginButtons: some View {
         VStack(spacing: 20) {
             LivithCalloutView(store.state.calloutMessage.text, highlight: store.state.calloutMessage.targetText)
                 .frame(width: Constants.calloutWidth, height: 40)
-
+            
             VStack(spacing: 12) {
                 LivithLoginButton(provider: .kakao) {
                     store.send(.kakaoLogin)
                 }
-
+                
                 LivithLoginButton(provider: .apple) {
                     store.send(.appleLogin)
                 }
@@ -103,7 +95,43 @@ private extension LoginView {
     }
 }
 
+// MARK: - Helpers
 
-#Preview {
-    LoginView()
+private extension LoginView {
+    var errorToastBinding: Binding<Bool> {
+        Binding(
+            get: { !store.state.errorMessage.isEmpty },
+            set: handleErrorToastBinding
+        )
+    }
+    
+    var forbiddenModalBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isForbiddenModalPresented },
+            set: setForbiddenModalPresented
+        )
+    }
+    
+    func handleErrorToastBinding(_ isPresented: Bool) {
+        if !isPresented {
+            store.send(.setErrorMessage(""))
+        }
+    }
+    
+    func dismissForbiddenModal() {
+        store.send(.setForbiddenModalPresented(false))
+    }
+    
+    func setForbiddenModalPresented(_ isPresented: Bool) {
+        store.send(.setForbiddenModalPresented(isPresented))
+    }
+    
+    func handleLoginSuccess(_ status: LoginStatus) {
+        switch status {
+        case .existingUser:
+            coordinator?.completeLogin()
+        case .newUser(let tempUser):
+            coordinator?.push(to: .terms(tempUser))
+        }
+    }
 }

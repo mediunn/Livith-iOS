@@ -112,7 +112,7 @@ struct AuthRepositoryImpl: AuthRepository {
             )
             return try await handleLoginResponse(response, provider: .kakao)
         } catch {
-            throw errorMapper.mapToAuthError(error)
+            throw mapLoginError(error)
         }
     }
     
@@ -124,7 +124,7 @@ struct AuthRepositoryImpl: AuthRepository {
             )
             return try await handleLoginResponse(response, provider: .apple)
         } catch {
-            throw errorMapper.mapToAuthError(error)
+            throw mapLoginError(error)
         }
     }
     
@@ -148,6 +148,14 @@ struct AuthRepositoryImpl: AuthRepository {
 // MARK: - Helpers
 
 private extension AuthRepositoryImpl {
+    func mapLoginError(_ error: Error) -> AuthError {
+        // Login 403 should always be treated as recent withdrawal regardless of message text.
+        if let networkError = error as? NetworkError, case .forbidden = networkError {
+            return .recentlyWithdrawn
+        }
+        return errorMapper.mapToAuthError(error)
+    }
+
     func handleWithdraw() async {
         await handleLogout()
         userdefaultsStorage.remove(for: .lastLoginPlatform)

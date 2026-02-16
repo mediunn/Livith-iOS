@@ -36,7 +36,7 @@ struct AuthErrorMapper {
         case .noData, .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
             return .invalidResponse
         case .unauthorized, .forbidden, .notFound:
-             // AuthError handles some specifics like .withdrawn, .recentWithdrawal via message mapping.
+             // AuthError handles some specifics like .withdrawn, .recentlyWithdrawn via message mapping.
              // If message mapping failed, generic fallback.
             return .unknown
         case .unknown:

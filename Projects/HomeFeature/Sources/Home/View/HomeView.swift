@@ -12,15 +12,9 @@ import LivithDesignSystem
 
 struct HomeView: View {
     @StateObject private var store: HomeStore = .init()
-    
-    @Binding private var isTabBarHidden: Bool
-    
+
     @State private var showErrorToast = false
     @State private var showSuccessToast = false
-    
-    init(isTabBarHidden: Binding<Bool>) {
-        self._isTabBarHidden = isTabBarHidden
-    }
     
     var body: some View {
         content
@@ -62,10 +56,7 @@ struct HomeView: View {
         case .concertSection:
             HomeConcertSectionView(store: store)
         case .interestedConcert:
-            HomeInterestConcertView(
-                store: store,
-                isTabBarHidden: $isTabBarHidden
-            )
+            HomeInterestConcertView(store: store)
         }
     }
 }
