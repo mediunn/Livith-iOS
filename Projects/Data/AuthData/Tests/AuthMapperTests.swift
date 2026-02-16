@@ -147,6 +147,7 @@ final class AuthErrorMapperTests: XCTestCase {
             (.badRequest(message: "nickname must be shorter than or equal to 10 characters"), .nicknameTooLong),
             (.badRequest(message: "이미 존재하는 닉네임이에요."), .duplicateNickname),
             (.forbidden(message: "탈퇴한 회원입니다."), .withdrawn),
+            (.forbidden(message: "이미 탈퇴한 회원입니다."), .withdrawn),
             (.badRequest(message: "reason should not be empty"), .emptyReason)
         ]
         

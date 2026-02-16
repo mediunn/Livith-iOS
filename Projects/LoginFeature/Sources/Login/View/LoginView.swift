@@ -23,8 +23,6 @@ struct LoginView: View {
     @StateObject private var store = LoginStore()
     @Environment(\.loginCoordinator) private var coordinator
     
-    @State private var isForbiddenModalPresented = false
-    
     var body: some View {
         VStack(spacing: 0) {
             onboardingSection
@@ -46,7 +44,7 @@ struct LoginView: View {
             type: .failure,
             message: store.state.errorMessage
         )
-        .crossDissolve(isPresented: $isForbiddenModalPresented, dismissOnTapOutside: false) {
+        .crossDissolve(isPresented: forbiddenModalBinding, dismissOnTapOutside: false) {
             LivithModal(
                 type: .error(
                     title: "탈퇴 후 7일이 지나지 않았어요",
@@ -54,7 +52,7 @@ struct LoginView: View {
                 ),
                 confirmTitle: "로그인으로 돌아가기",
                 onConfirm: {
-                    isForbiddenModalPresented = false
+                    store.send(.setForbiddenModalPresented(false))
                 }
             )
         }
@@ -70,8 +68,6 @@ struct LoginView: View {
             coordinator?.completeLogin()
         case .newUser(let tempUser):
             coordinator?.push(to: .terms(tempUser))
-        case .forbidden:
-            isForbiddenModalPresented = true
         }
     }
 }
@@ -79,6 +75,13 @@ struct LoginView: View {
 // MARK: - UIComponents
 
 private extension LoginView {
+    var forbiddenModalBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.isForbiddenModalPresented },
+            set: { store.send(.setForbiddenModalPresented($0)) }
+        )
+    }
+
     var onboardingSection: some View {
         LoginBannerSectionView()
     }

@@ -14,13 +14,12 @@ public enum AuthError: DomainError {
     case invalidResponse
     case unknown
     case withdrawn
-    case recentWithdrawal
+    case recentlyWithdrawn
     case duplicateNickname
     case nicknameTooLong
     case emptyNickname
     case invalidNickname
     case userNotFound
-    case alreadyWithdrawn
     case emptyReason
     case cancelled
     
@@ -43,7 +42,7 @@ public enum AuthError: DomainError {
             return "알 수 없는 오류가 발생했습니다."
         case .withdrawn:
             return "탈퇴한 회원입니다."
-        case .recentWithdrawal:
+        case .recentlyWithdrawn:
             return "탈퇴 후 7일이 지나지 않았어요."
         case .duplicateNickname:
             return "이미 존재하는 닉네임이에요."
@@ -55,8 +54,6 @@ public enum AuthError: DomainError {
             return "닉네임 형식이 올바르지 않아요."
         case .userNotFound:
             return "해당 유저를 찾을 수 없어요."
-        case .alreadyWithdrawn:
-            return "이미 탈퇴한 회원이에요."
         case .emptyReason:
             return "탈퇴 사유를 선택해주세요."
         case .cancelled:
@@ -79,7 +76,7 @@ public enum AuthError: DomainError {
         case "탈퇴한 회원입니다.":
             return .withdrawn
         case "탈퇴 후 7일이 지나지 않았어요":
-            return .recentWithdrawal
+            return .recentlyWithdrawn
         case "이미 존재하는 닉네임이에요.":
             return .duplicateNickname
         case "nickname must be shorter than or equal to 10 characters":
@@ -88,8 +85,8 @@ public enum AuthError: DomainError {
             return .emptyNickname
         case "해당 유저가 존재하지 않습니다.":
             return .userNotFound
-        case "이미 탈퇴한 회원입니다.":
-            return .alreadyWithdrawn
+        case "이미 탈퇴한 회원입니다.", "이미 탈퇴한 회원이에요.":
+            return .withdrawn
         case "reason should not be empty":
             return .emptyReason
         case "최소 1개의 장르는 선택해야 합니다.":
@@ -107,4 +104,3 @@ public enum AuthError: DomainError {
         }
     }
 }
-
