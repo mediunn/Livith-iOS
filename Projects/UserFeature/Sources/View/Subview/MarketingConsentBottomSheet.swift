@@ -98,7 +98,7 @@ private extension MarketingConsentBottomSheet {
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
                     .background(Color.livithColor(.black80))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
             }
 
             LivithButton(Literals.confirm, variant: .primary) {
