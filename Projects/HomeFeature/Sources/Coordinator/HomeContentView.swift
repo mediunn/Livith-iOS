@@ -25,7 +25,7 @@ public struct HomeContentView: View {
         deepLinkInitialTab: Binding<SegmentedTabBarType.DetailTab> = .constant(.artistDetail),
         deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil)
     ) {
-        self._coordinator = State(initialValue: HomeCoordinator(isTabBarHidden: isTabBarHidden))
+        self._coordinator = State(initialValue: HomeCoordinator())
         self._isTabBarHidden = isTabBarHidden
         self._deepLinkConcertID = deepLinkConcertID
         self._deepLinkInitialTab = deepLinkInitialTab

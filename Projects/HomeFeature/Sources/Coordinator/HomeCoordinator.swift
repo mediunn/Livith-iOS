@@ -19,11 +19,9 @@ final class HomeCoordinator: Coordinator {
     let navigationController: UINavigationController
     
     private var concertCoordinator: ConcertCoordinator?
-    private let isTabBarHidden: Binding<Bool>
     
-    init(isTabBarHidden: Binding<Bool>) {
+    init() {
         self.navigationController = UINavigationController()
-        self.isTabBarHidden = isTabBarHidden
         
         self.navigationController.setNavigationBarHidden(true, animated: false)
     }
@@ -35,7 +33,7 @@ final class HomeCoordinator: Coordinator {
     func buildViewController(for route: R) -> UIViewController {
         switch route {
         case .home:
-            return UIHostingController(rootView: HomeView(isTabBarHidden: isTabBarHidden).environment(\.homeCoordinator, self))
+            return UIHostingController(rootView: HomeView().environment(\.homeCoordinator, self))
             
         case .interest:
             return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))

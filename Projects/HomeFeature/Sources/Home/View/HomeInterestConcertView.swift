@@ -16,15 +16,13 @@ import LivithFoundation
 struct HomeInterestConcertView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
-    @Binding private var isTabBarHidden: Bool
     
     @State private var selectedTab: SegmentedTabBarType.HomeTab = .schedule
     @State private var showBottomSheet: Bool = false
     @State private var showDeleteDialog: Bool = false
     
-    init(store: HomeStore, isTabBarHidden: Binding<Bool>) {
+    init(store: HomeStore) {
         self.store = store
-        self._isTabBarHidden = isTabBarHidden
     }
     
     private var interestState: HomeState.InterestConcertState { store.state.interestConcert }
@@ -41,7 +39,6 @@ struct HomeInterestConcertView: View {
                     onCancel: {
                         AmplitudeService.shared.trackEvent(tag: .cancel(.delete))
                         showDeleteDialog = false
-                        isTabBarHidden = false
                     }
                 )
             }
@@ -205,8 +202,6 @@ private extension HomeInterestConcertView {
     func handleDeleteConfirm() {
         AmplitudeService.shared.trackEvent(tag: .confirm(.delete))
         showDeleteDialog = false
-        isTabBarHidden = false
-        
         store.send(.interestConcert(.onDelete))
     }
     
