@@ -22,18 +22,15 @@ struct ExploreView: View {
             LivithNavigationView(type: .logo())
             
             ZStack(alignment: .top) {
-                ExploreSearchButton(onTap: {
-                    AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
-                    coordinator?.push(to: .search)
-                })
-                .zIndex(2)
-                .background(
-                    scrollOffset > Constants.bannerHeight - 60
-                    ? Color.livithColor(.black100)
-                    : Color.clear
-                )
+                ExploreSearchButton(onTap: handleSearchTap)
+                    .zIndex(2)
+                    .background(
+                        scrollOffset > Constants.bannerHeight - 60
+                        ? Color.livithColor(.black100)
+                        : Color.clear
+                    )
                 
-                scrollContent
+                scrollView
             }
         }
         .background(Color.livithColor(.black100))
@@ -43,7 +40,7 @@ struct ExploreView: View {
 // MARK: - Subviews
 
 private extension ExploreView {
-    var scrollContent: some View {
+    var scrollView: some View {
         ScrollView(showsIndicators: false) {
             if shouldShowEmptyState {
                 LivithEmptyView(text: emptyStateMessage)
@@ -52,11 +49,7 @@ private extension ExploreView {
                 VStack(spacing: 0) {
                     bannerView
                     
-                    ForEach(store.state.concertSections, id: \.id) { section in
-                        concertSectionRow(for: section)
-                            .padding(.top, 36)
-                            .padding(.leading, 16)
-                    }
+                    concertSectionView
                     
                     Spacer(minLength: Constants.emptySpaceHeight)
                 }
@@ -86,13 +79,14 @@ private extension ExploreView {
         )
     }
     
-    func concertSectionRow(for section: ConcertSection) -> some View {
-        ConcertSectionView(
-            concertSection: section,
-            onConcertTap: { concert in
+    var concertSectionView: some View {
+        ForEach(store.state.concertSections, id: \.id) { section in
+            ConcertSectionView(concertSection: section) { concert in
                 coordinator?.showConcertDetail(concertID: concert.id)
             }
-        )
+            .padding(.top, 36)
+            .padding(.leading, 16)
+        }
     }
 }
 
@@ -105,6 +99,11 @@ private extension ExploreView {
     
     var emptyStateMessage: String {
         store.state.errorMessage.isEmpty ? "탐색할 콘텐츠가 없습니다." : store.state.errorMessage
+    }
+    
+    func handleSearchTap() {
+        AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
+        coordinator?.push(to: .search)
     }
 }
 
