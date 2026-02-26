@@ -12,6 +12,7 @@ import LivithDesignSystem
 
 struct InterestedConcertSettingButton: View {
     @State private var isRotating = false
+    @State private var rotationTask: Task<Void, Never>?
     
     let action: () -> ()
     
@@ -35,7 +36,7 @@ struct InterestedConcertSettingButton: View {
     }
 }
 
-// MARK: - UIComponents
+// MARK: - Subviews
 
 private extension InterestedConcertSettingButton {
     var iconContainer: some View {
@@ -46,7 +47,10 @@ private extension InterestedConcertSettingButton {
                 .padding(4)
                 .rotationEffect(.degrees(isRotating ? 180 : 0))
                 .onAppear {
-                    startRotationTimer()
+                    startRotationTask()
+                }
+                .onDisappear {
+                    stopRotationTask()
                 }
         }
         .background(
@@ -54,17 +58,38 @@ private extension InterestedConcertSettingButton {
                 .fill(Color.livithColor(.black90))
         )
     }
-    
-    func startRotationTimer() {
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-            withAnimation(.linear(duration: 0.5)) {
-                isRotating = true
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isRotating = false
+}
+
+// MARK: - Helpers
+
+private extension InterestedConcertSettingButton {
+    func startRotationTask() {
+        rotationTask?.cancel()
+        rotationTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2.0))
+                guard !Task.isCancelled else { break }
+                
+                await MainActor.run {
+                    withAnimation(.linear(duration: 0.5)) {
+                        isRotating = true
+                    }
+                }
+                
+                try? await Task.sleep(for: .seconds(0.5))
+                guard !Task.isCancelled else { break }
+                
+                await MainActor.run {
+                    isRotating = false
+                }
             }
         }
+    }
+    
+    func stopRotationTask() {
+        rotationTask?.cancel()
+        rotationTask = nil
+        isRotating = false
     }
 }
 
