@@ -30,6 +30,7 @@ struct LivithMainTabView: View {
     @State private var deepLinkConcertID: Int?
     @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
     @State private var deepLinkInitialSection: ConcertInfoSection?
+    @State private var deepLinkShowInterest: Bool = false
     
     // MARK: - LifeCycle
     
@@ -45,7 +46,8 @@ struct LivithMainTabView: View {
                 isTabBarHidden: $isTabBarHidden,
                 deepLinkConcertID: $deepLinkConcertID,
                 deepLinkInitialTab: $deepLinkInitialTab,
-                deepLinkInitialSection: $deepLinkInitialSection
+                deepLinkInitialSection: $deepLinkInitialSection,
+                deepLinkShowInterest: $deepLinkShowInterest
             )
             .tag(Tab.home)
             .tabItem {
@@ -92,6 +94,10 @@ struct LivithMainTabView: View {
                 deepLinkInitialSection = notification.userInfo?["initialSection"] as? ConcertInfoSection
                 deepLinkConcertID = concertID
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openInterestConcert)) { _ in
+            selectedTab = .home
+            deepLinkShowInterest = true
         }
     }
 }

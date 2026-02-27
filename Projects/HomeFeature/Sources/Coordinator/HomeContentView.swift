@@ -18,18 +18,21 @@ public struct HomeContentView: View {
     @Binding private var deepLinkConcertID: Int?
     @Binding private var deepLinkInitialTab: SegmentedTabBarType.DetailTab
     @Binding private var deepLinkInitialSection: ConcertInfoSection?
+    @Binding private var deepLinkShowInterest: Bool
 
     public init(
         isTabBarHidden: Binding<Bool>,
         deepLinkConcertID: Binding<Int?> = .constant(nil),
         deepLinkInitialTab: Binding<SegmentedTabBarType.DetailTab> = .constant(.artistDetail),
-        deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil)
+        deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil),
+        deepLinkShowInterest: Binding<Bool> = .constant(false)
     ) {
         self._coordinator = State(initialValue: HomeCoordinator())
         self._isTabBarHidden = isTabBarHidden
         self._deepLinkConcertID = deepLinkConcertID
         self._deepLinkInitialTab = deepLinkInitialTab
         self._deepLinkInitialSection = deepLinkInitialSection
+        self._deepLinkShowInterest = deepLinkShowInterest
     }
 
     public var body: some View {
@@ -46,6 +49,13 @@ public struct HomeContentView: View {
                     deepLinkConcertID = nil
                     deepLinkInitialTab = .artistDetail
                     deepLinkInitialSection = nil
+                }
+            }
+            .onChange(of: deepLinkShowInterest) { _, newValue in
+                if newValue {
+                    coordinator.popToRoot()
+                    coordinator.push(to: .interest)
+                    deepLinkShowInterest = false
                 }
             }
     }

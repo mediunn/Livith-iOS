@@ -12,7 +12,8 @@ let packageSettings = PackageSettings(
         "KakaoSDKUser": .framework,
         "Alamofire": .framework,
         "YouTubePlayerKit": .framework,
-        "FirebaseMessaging": .staticLibrary
+        "FirebaseMessaging": .staticLibrary,
+        "GoogleUtilities": .staticLibrary
     ]
 )
 #endif
