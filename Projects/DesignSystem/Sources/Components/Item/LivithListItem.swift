@@ -99,7 +99,7 @@ private extension LivithListItem {
 #Preview {
     VStack(spacing: 0) {
         LivithListItem("닉네임 수정", type: .navigation) {}
-        LivithListItem("버전 정보", type: .value("1.0.0"))
+        LivithListItem("버전 정보", type: .value("1.0.1"))
         LivithListItem("로그아웃", type: .action) {}
     }
     .background(Color.livithColor(.black90))
