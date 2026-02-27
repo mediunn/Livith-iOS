@@ -37,7 +37,10 @@ let project = Project.make(
                 .widget(.widget),
                 .data(.preferenceData),
                 .core(.amplitude)
-            ]
+            ],
+            settings: .settings(
+                base: ["OTHER_LDFLAGS": ["$(inherited)", "-ObjC"]]
+            )
         )
     ],
     schemes: Scheme.makeAppSchemes(name: BuildConfiguration.appName)
