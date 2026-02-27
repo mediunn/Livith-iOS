@@ -22,10 +22,7 @@ struct ExploreView: View {
             LivithNavigationView(type: .logo())
             
             ZStack(alignment: .top) {
-                ExploreSearchButton(onTap: {
-                    AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
-                    coordinator?.push(to: .search)
-                })
+                ExploreSearchButton(onTap: handleSearchTap)
                     .zIndex(2)
                     .background(
                         scrollOffset > Constants.bannerHeight - 60
@@ -33,39 +30,34 @@ struct ExploreView: View {
                         : Color.clear
                     )
                 
-                scrollContent
+                scrollView
             }
         }
         .background(Color.livithColor(.black100))
     }
 }
 
-// MARK: - UI Components
+// MARK: - Subviews
 
 private extension ExploreView {
-    var scrollContent: some View {
+    var scrollView: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {                
-                bannerView
-                
-                ForEach(store.state.concertSections, id: \.id) { section in
-                    concertSectionRow(for: section)
-                        .padding(.top, 36)
-                        .padding(.leading, 16)
+            if shouldShowEmptyState {
+                LivithEmptyView(text: emptyStateMessage)
+                    .containerRelativeFrame(.vertical)
+            } else {
+                VStack(spacing: 0) {
+                    bannerView
+                    
+                    concertSectionView
+                    
+                    Spacer(minLength: Constants.emptySpaceHeight)
                 }
-                
-                Spacer(minLength: Constants.emptySpaceHeight)
             }
         }
         .coordinateSpace(name: Literals.scrollCoordinateName)
         .refreshable {
             store.send(.onRefresh)
-        }
-        .overlay {
-            if store.state.banners.isEmpty && store.state.concertSections.isEmpty && !store.state.isLoading {
-                let message = store.state.errorMessage.isEmpty ? "탐색할 콘텐츠가 없습니다." : store.state.errorMessage
-                LivithEmptyView(text: message)
-            }
         }
     }
     
@@ -87,13 +79,31 @@ private extension ExploreView {
         )
     }
     
-    func concertSectionRow(for section: ConcertSection) -> some View {
-        ConcertSectionView(
-            concertSection: section,
-            onConcertTap: { concert in
+    var concertSectionView: some View {
+        ForEach(store.state.concertSections, id: \.id) { section in
+            ConcertSectionView(concertSection: section) { concert in
                 coordinator?.showConcertDetail(concertID: concert.id)
             }
-        )
+            .padding(.top, 36)
+            .padding(.leading, 16)
+        }
+    }
+}
+
+// MARK: - Helpers
+
+private extension ExploreView {
+    var shouldShowEmptyState: Bool {
+        store.state.banners.isEmpty && store.state.concertSections.isEmpty && !store.state.isLoading
+    }
+    
+    var emptyStateMessage: String {
+        store.state.errorMessage.isEmpty ? "탐색할 콘텐츠가 없습니다." : store.state.errorMessage
+    }
+    
+    func handleSearchTap() {
+        AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
+        coordinator?.push(to: .search)
     }
 }
 
