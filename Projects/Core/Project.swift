@@ -61,7 +61,8 @@ let project = Project.make(
             infoPlist: .file(path: "Amplitude/Resources/Amplitude-Info.plist"),
             dependencies: [
                 .external(.amplitudeSwift)
-            ]
+            ],
+            settings: .environment
         )
     ]
 )
