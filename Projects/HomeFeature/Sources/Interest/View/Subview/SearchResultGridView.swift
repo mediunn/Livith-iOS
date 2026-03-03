@@ -22,8 +22,15 @@ struct SearchResultGridView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             resultHeaderText
-            
-            searchResults.isEmpty ? AnyView(emptyView) : AnyView(gridView)
+
+            ScrollView(showsIndicators: false) {
+                if searchResults.isEmpty {
+                    emptyView
+                } else {
+                    gridView
+                }
+            }
+            .padding(.top, 20)
         }
     }
 }
@@ -42,28 +49,20 @@ private extension SearchResultGridView {
     }
     
     var emptyView: some View {
-        VStack {
-            Spacer()
-            
-            LivithEmptyView(text: "검색 결과가 없어요")
-                .frame(maxWidth: .infinity)
-            
-            Spacer()
-        }
+        LivithEmptyView(text: "검색 결과가 없어요")
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical)
     }
     
     var gridView: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-                spacing: 32
-            ) {
-                ForEach(searchResults, id: \.id) { concert in
-                    concertCard(for: concert)
-                }
+        LazyVGrid(
+            columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
+            spacing: 32
+        ) {
+            ForEach(searchResults, id: \.id) { concert in
+                concertCard(for: concert)
             }
         }
-        .padding(.top, 20)
     }
     
     func concertCard(for concert: Concert) -> some View {
