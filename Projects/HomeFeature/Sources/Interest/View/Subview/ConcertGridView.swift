@@ -20,7 +20,13 @@ struct ConcertGridView: View {
     let onLoadMore: () -> Void
     
     var body: some View {
-        concerts.isEmpty ? AnyView(emptyView) : AnyView(gridView)
+        ScrollView(showsIndicators: false) {
+            if concerts.isEmpty {
+                emptyView
+            } else {
+                gridView
+            }
+        }
     }
 }
 
@@ -28,25 +34,18 @@ struct ConcertGridView: View {
 
 private extension ConcertGridView {
     var emptyView: some View {
-        VStack {
-            Spacer()
-            
-            LivithEmptyView(text: "콘서트 일정이 없어요")
-                .frame(maxWidth: .infinity)
-            
-            Spacer()
-        }
+        LivithEmptyView(text: "콘서트 일정이 없어요")
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical)
     }
     
     var gridView: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-                spacing: 32
-            ) {
-                ForEach(concerts, id: \.id) { concert in
-                    concertCard(for: concert)
-                }
+        LazyVGrid(
+            columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
+            spacing: 32
+        ) {
+            ForEach(concerts, id: \.id) { concert in
+                concertCard(for: concert)
             }
         }
     }

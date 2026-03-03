@@ -13,7 +13,8 @@ import Foundation
 public extension DTO.Response {
     struct FetchConcertList: Decodable {
         public let data: [FilteredConcert]
-        public let cursor: Cursor
+        public let cursor: String
+        public let id: Int
 
         public struct FilteredConcert: Decodable {
             public let id: Int
@@ -47,11 +48,6 @@ public extension DTO.Response {
                 case introduction
                 case label
             }
-        }
-
-        public struct Cursor: Decodable {
-            public let startDate: String
-            public let id: Int
         }
     }
 }
