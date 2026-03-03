@@ -33,7 +33,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     }
     
     func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert] {
-        let cursor: String? = configureCursor(startDate: startDate, concertID: concertID)
+        let cursor: String? = configureCursor(startDate: startDate)
 
         do {
             let response: DTO.Response.FetchConcertList = try await searchService.request(
@@ -173,9 +173,8 @@ struct ConcertRepositoryImpl: ConcertRepository {
 // MARK: - Helpers
 
 private extension ConcertRepositoryImpl {
-    func configureCursor(startDate: Date?, concertID: Int?) -> String? {
-        guard let startDate, let concertID else { return nil }
-        let startDateString: String = DateFormatterService.string(from: startDate, type: .dotDate)
-        return "{\"value\":\"\(startDateString)\",\"id\":\(concertID)}"
+    func configureCursor(startDate: Date?) -> String? {
+        guard let startDate else { return nil }
+        return DateFormatterService.string(from: startDate, type: .dotDate)
     }
 }
