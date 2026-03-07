@@ -13,8 +13,7 @@ import Foundation
 public extension DTO.Response {
     struct FetchConcertList: Decodable {
         public let data: [FilteredConcert]
-        public let cursor: String
-        public let id: Int
+        public let cursor: Int
 
         public struct FilteredConcert: Decodable {
             public let id: Int
