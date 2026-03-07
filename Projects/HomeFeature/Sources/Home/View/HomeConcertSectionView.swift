@@ -21,7 +21,7 @@ struct HomeConcertSectionView: View {
         self.store = store
     }
     
-    private var sectionState: HomeState.ConcertSectionState { store.state.sections }
+    private var sectionState: HomeState.ConcertSectionState { store.state.concertSection }
     
     var body: some View {
         VStack(spacing: .zero) {
@@ -60,7 +60,7 @@ private extension HomeConcertSectionView {
             
             ProgressView()
                 .scaleEffect(1.6, anchor: .center)
-                
+            
             Spacer(minLength: Constants.loadingMinHeight)
         }
         .frame(maxWidth: .infinity)
@@ -79,12 +79,12 @@ private extension HomeConcertSectionView {
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
             }
-
+            
             HomeHeaderView(
                 nickname: store.state.user?.nickname ?? "라이빗",
                 action: {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
-                    coordinator?.push(to: .interest)
+                    coordinator?.push(to: .interestConcertSearch)
                 }
             )
         }

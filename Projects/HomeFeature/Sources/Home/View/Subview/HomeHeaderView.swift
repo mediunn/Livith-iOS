@@ -28,7 +28,7 @@ struct HomeHeaderView: View {
             
             Spacer()
             
-            InterestedConcertSettingButton(action: action)
+            InterestConcertSettingButton(action: action)
                 .padding(.trailing, 16)
                 .padding(.top, 24)
                 .padding(.bottom, 28)

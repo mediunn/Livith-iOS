@@ -39,18 +39,18 @@ enum HomeIntent {
 }
 
 struct HomeState {
-    enum Route {
+    enum Content {
         case concertSection
-        case interestedConcert
+        case interestConcert
     }
 
-    var route: Route = .concertSection
+    var currentContent: Content = .concertSection
     var user: User? = nil
     var toastMessage: String = ""
     var errorMessage: String = ""
     var hasNewNotice: Bool = false
     var interestConcert: InterestConcertState = .init()
-    var sections: ConcertSectionState = .init()
+    var concertSection: ConcertSectionState = .init()
     
     struct InterestConcertState {
         var isInitialLoad: Bool = true
@@ -113,9 +113,12 @@ final class HomeStore: ObservableObject {
         case ._fetchUserResult(let result):
             switch result {
             case .success(let user):
+                let nextContent: HomeState.Content = user.interestConcertID == nil ? .concertSection : .interestConcert
+                let didChangeContent = state.currentContent != nextContent
+
                 state.user = user
-                state.route = user.interestConcertID == nil ? .concertSection : .interestedConcert
-                executeInitialLoad(for: state.route)
+                state.currentContent = nextContent
+                executeInitialLoad(for: nextContent, forceReload: didChangeContent)
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
@@ -220,16 +223,16 @@ private extension HomeStore {
             performFetchConcertSectionData()
 
         case ._concertSectionDataResult(let result):
-            state.sections.isLoading = false
+            state.concertSection.isLoading = false
 
             switch result {
             case .success(let data):
-                state.sections.sectionList = data.sections
-                state.sections.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
-                state.sections.recommendedConcertList = data.recommended ?? []
-                state.sections.errorMessage = ""
+                state.concertSection.sectionList = data.sections
+                state.concertSection.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
+                state.concertSection.recommendedConcertList = data.recommended ?? []
+                state.concertSection.errorMessage = ""
             case .failure(let error):
-                state.sections.errorMessage = getErrorMessage(from: error)
+                state.concertSection.errorMessage = getErrorMessage(from: error)
             }
         }
     }
@@ -238,22 +241,32 @@ private extension HomeStore {
 // MARK: - Initial Load Control
 
 private extension HomeStore {
-    func executeInitialConcertSectionLoadIfNeeded() {
+    func executeInitialConcertSectionLoadIfNeeded(forceReload: Bool) {
         guard state.user != nil else { return }
         
-        if state.sections.isInitialLoad {
-            state.sections.isLoading = true
-            state.sections.isInitialLoad = false
+        if state.concertSection.isInitialLoad {
+            state.concertSection.isLoading = true
+            state.concertSection.isInitialLoad = false
+            performFetchConcertSectionData()
+            return
         }
-        
+
+        guard forceReload else { return }
+
         performFetchConcertSectionData()
     }
 
-    func executeInitialInterestConcertLoadIfNeeded() {
+    func executeInitialInterestConcertLoadIfNeeded(forceReload: Bool) {
         guard state.user != nil else { return }
+
         if state.interestConcert.isInitialLoad {
             state.interestConcert.isInitialLoad = false
+            performFetchUserInterestedConcert()
+            return
         }
+
+        guard forceReload else { return }
+
         performFetchUserInterestedConcert()
     }
 }
@@ -365,12 +378,12 @@ private extension HomeStore {
 // MARK: - Route Load Strategy
 
 private extension HomeStore {
-    func executeInitialLoad(for route: HomeState.Route) {
-        switch route {
+    func executeInitialLoad(for content: HomeState.Content, forceReload: Bool) {
+        switch content {
         case .concertSection:
-            executeInitialConcertSectionLoadIfNeeded()
-        case .interestedConcert:
-            executeInitialInterestConcertLoadIfNeeded()
+            executeInitialConcertSectionLoadIfNeeded(forceReload: forceReload)
+        case .interestConcert:
+            executeInitialInterestConcertLoadIfNeeded(forceReload: forceReload)
         }
     }
 }

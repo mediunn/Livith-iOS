@@ -1,5 +1,5 @@
 //
-//  InterestedConcertSettingButton.swift
+//  InterestConcertSettingButton.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 12/24/25.
@@ -10,7 +10,7 @@ import SwiftUI
 
 import LivithDesignSystem
 
-struct InterestedConcertSettingButton: View {
+struct InterestConcertSettingButton: View {
     @State private var isRotating = false
     @State private var rotationTask: Task<Void, Never>?
     
@@ -38,7 +38,7 @@ struct InterestedConcertSettingButton: View {
 
 // MARK: - Subviews
 
-private extension InterestedConcertSettingButton {
+private extension InterestConcertSettingButton {
     var iconContainer: some View {
         ZStack {
             Image.livithIcon(.plusLineSmall)
@@ -62,7 +62,7 @@ private extension InterestedConcertSettingButton {
 
 // MARK: - Helpers
 
-private extension InterestedConcertSettingButton {
+private extension InterestConcertSettingButton {
     func startRotationTask() {
         rotationTask?.cancel()
         rotationTask = Task {
@@ -98,7 +98,7 @@ private extension InterestedConcertSettingButton {
         Color.livithColor(.black90)
             .ignoresSafeArea()
         
-        InterestedConcertSettingButton {
+        InterestConcertSettingButton {
             print("버튼이 눌렸다.")
         }
     }
