@@ -53,14 +53,14 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.hasNewNotice)
-        #expect(sut.state.route == .concertSection)
-        #expect(sut.state.sections.sectionList.count == 1)
+        #expect(sut.state.currentContent == .concertSection)
+        #expect(sut.state.concertSection.sectionList.count == 1)
     }
 
     // MARK: - Route 결정 테스트
 
-    @Test("유저 조회 결과에서 interestedConcertID가 nil이면 concertSection route를 설정하고 데이터를 로드해야 한다")
-    func testUserResultWithNilInterestConcertIDSetsConcertSectionRoute() async throws {
+    @Test("유저 조회 결과에서 interestedConcertID가 nil이면 concertSection 콘텐츠를 설정하고 데이터를 로드해야 한다")
+    func testUserResultWithNilInterestConcertIDSetsConcertSectionContent() async throws {
         let sut = HomeStore()
         let user = makeMockUser(hasPreferences: true, interestConcertID: nil)
         let section = makeMockSection(id: 5)
@@ -72,15 +72,15 @@ struct HomeStoreTests {
         sut.send(._fetchUserResult(.success(user)))
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(sut.state.route == .concertSection)
+        #expect(sut.state.currentContent == .concertSection)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
-        #expect(sut.state.sections.sectionList.first?.id == section.id)
-        #expect(sut.state.sections.recommendedConcertList.first?.id == recommended.first?.id)
+        #expect(sut.state.concertSection.sectionList.first?.id == section.id)
+        #expect(sut.state.concertSection.recommendedConcertList.first?.id == recommended.first?.id)
     }
 
-    @Test("같은 route의 유저 조회 결과가 다시 들어와도 초기 로딩은 한 번만 수행되어야 한다")
-    func testUserResultDoesNotResetInitialLoadForSameRoute() async throws {
+    @Test("같은 홈 콘텐츠의 유저 조회 결과가 다시 들어와도 초기 로딩은 한 번만 수행되어야 한다")
+    func testUserResultDoesNotResetInitialLoadForSameContent() async throws {
         let sut = HomeStore()
         let user = makeMockUser(hasPreferences: true, interestConcertID: nil)
 
@@ -96,8 +96,40 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
     }
 
-    @Test("유저 조회 결과에서 interestedConcertID가 있으면 interestedConcert route를 설정하고 데이터를 로드해야 한다")
-    func testUserResultWithInterestConcertIDSetsInterestedConcertRoute() async throws {
+    @Test("유저 조회 결과로 홈 콘텐츠가 바뀌면 해당 콘텐츠 데이터를 다시 로드해야 한다")
+    func testUserResultReloadsWhenContentChanges() async throws {
+        let sut = HomeStore()
+        let concertSectionUser = makeMockUser(hasPreferences: true, interestConcertID: nil)
+        let interestConcertUser = makeMockUser(interestConcertID: 123)
+        let concert = makeMockConcert(id: 100)
+        let schedule = makeMockSchedule(id: 200)
+        let setlist = makeMockSetlist(id: 300)
+        let songs = [makeMockSong(id: 400, orderIndex: 1)]
+
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 10)]
+        container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 100)]
+        container.userRepository.interestedConcertStub = concert
+        container.concertRepository.scheduleListStub = [schedule]
+        container.concertRepository.mainSetlistStub = setlist
+        container.setlistRepository.setlistSongsStub = songs
+
+        sut.send(._fetchUserResult(.success(concertSectionUser)))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        sut.send(._fetchUserResult(.success(interestConcertUser)))
+        try await Task.sleep(nanoseconds: 150_000_000)
+
+        sut.send(._fetchUserResult(.success(concertSectionUser)))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 2)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 2)
+        #expect(container.userRepository.fetchInterestedConcertCallCount == 1)
+        #expect(sut.state.currentContent == .concertSection)
+    }
+
+    @Test("유저 조회 결과에서 interestedConcertID가 있으면 interestConcert 콘텐츠를 설정하고 데이터를 로드해야 한다")
+    func testUserResultWithInterestConcertIDSetsInterestConcertContent() async throws {
         let sut = HomeStore()
         let user = makeMockUser(interestConcertID: 123)
         let concert = makeMockConcert(id: 100)
@@ -113,7 +145,7 @@ struct HomeStoreTests {
         sut.send(._fetchUserResult(.success(user)))
         try await Task.sleep(nanoseconds: 150_000_000)
 
-        #expect(sut.state.route == .interestedConcert)
+        #expect(sut.state.currentContent == .interestConcert)
         #expect(container.userRepository.fetchInterestedConcertCallCount == 1)
         #expect(container.concertRepository.fetchConcertScheduleListCallCount == 1)
         #expect(container.concertRepository.fetchMainSetlistCallCount == 1)
@@ -123,8 +155,8 @@ struct HomeStoreTests {
 
     // MARK: - ConcertSection 상태 테스트
 
-    @Test("concertSection route가 결정되고 hasPreferences가 false면 추천 없이 배너를 표시해야 한다")
-    func testConcertSectionRouteShowsPreferenceBannerWhenUserHasNoPreferences() async throws {
+    @Test("concertSection 콘텐츠가 결정되고 hasPreferences가 false면 추천 없이 배너를 표시해야 한다")
+    func testConcertSectionContentShowsPreferenceBannerWhenUserHasNoPreferences() async throws {
         // Given
         let sut = HomeStore()
         let section = makeMockSection(id: 2)
@@ -139,9 +171,9 @@ struct HomeStoreTests {
         // Then
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
-        #expect(sut.state.sections.sectionList.count == 1)
-        #expect(sut.state.sections.shouldShowPreferenceBanner)
-        #expect(sut.state.sections.recommendedConcertList.isEmpty)
+        #expect(sut.state.concertSection.sectionList.count == 1)
+        #expect(sut.state.concertSection.shouldShowPreferenceBanner)
+        #expect(sut.state.concertSection.recommendedConcertList.isEmpty)
     }
 
     // MARK: - InterestConcert 상태 테스트

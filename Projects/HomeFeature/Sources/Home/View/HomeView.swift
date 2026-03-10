@@ -52,10 +52,10 @@ struct HomeView: View {
     
     @ViewBuilder
     private var content: some View {
-        switch store.state.route {
+        switch store.state.currentContent {
         case .concertSection:
             HomeConcertSectionView(store: store)
-        case .interestedConcert:
+        case .interestConcert:
             HomeInterestConcertView(store: store)
         }
     }

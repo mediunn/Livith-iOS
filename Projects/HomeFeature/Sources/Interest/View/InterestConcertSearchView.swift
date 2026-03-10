@@ -1,5 +1,5 @@
 //
-//  InterestTempView.swift
+//  InterestConcertSearchView.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 12/27/25.
@@ -60,7 +60,7 @@ struct InterestConcertSearchView: View {
             }
             .onChange(of: store.state.completedConcert) { _, concert in
                 guard let concert = concert else { return }
-                coordinator?.push(to: .interestComplete(
+                coordinator?.push(to: .interestConcertComplete(
                     posterURL: concert.posterURL,
                     title: concert.title,
                     prefetchedImage: store.state.prefetchedPosterImage
@@ -109,9 +109,9 @@ private extension InterestConcertSearchView {
                     )
                 }
             case .recommendingKeywords:
-                RecommendKeywordListView(
+                RecommendedKeywordListView(
                     searchText: store.state.searchText,
-                    keywordList: store.state.recommendKeywordList,
+                    keywordList: store.state.recommendedKeywordList,
                     onTap: { keyword in
                         store.send(.onTextChange(keyword))
                         isTextFieldFocused = false

@@ -54,7 +54,7 @@ public struct HomeContentView: View {
             .onChange(of: deepLinkShowInterest) { _, newValue in
                 if newValue {
                     coordinator.popToRoot()
-                    coordinator.push(to: .interest)
+                    coordinator.push(to: .interestConcertSearch)
                     deepLinkShowInterest = false
                 }
             }

@@ -24,7 +24,7 @@ enum InterestConcertSearchIntent {
     case onLoadMoreSearchResults
     case onModeChange(InterestConcertSearchState.Mode)
     case _fetchConcertListResult(Result<[Concert], Error>)
-    case _fetchRecommendKeywordListResult(Result<[String], Error>)
+    case _fetchRecommendedKeywordListResult(Result<[String], Error>)
     case _fetchSearchListResult(Result<[Concert], Error>)
     case _updateInterestConcertResult(Result<Concert, Error>)
     case _imagePrefetchCompleted(UIImage?)
@@ -41,7 +41,7 @@ struct InterestConcertSearchState {
     var mode: Mode = .initial
     var concertList: [Concert] = []
     var searchText: String = ""
-    var recommendKeywordList: [String] = []
+    var recommendedKeywordList: [String] = []
     var searchList: [Concert] = []
     var selectedConcertID: Int?
     var completedConcert: Concert?
@@ -60,7 +60,7 @@ final class InterestConcertSearchStore: ObservableObject {
     @Injected private var userRepository: UserRepository
     @Injected private var searchRepository: SearchRepository
 
-    private var recommendKeywordTask: Task<Void, Never>?
+    private var recommendedKeywordTask: Task<Void, Never>?
     
     init() {
         performFetchConcertList()
@@ -74,10 +74,10 @@ final class InterestConcertSearchStore: ObservableObject {
             state.searchText = text
 
             if text.isEmpty {
-                state.recommendKeywordList.removeAll()
-                recommendKeywordTask?.cancel()
+                state.recommendedKeywordList.removeAll()
+                recommendedKeywordTask?.cancel()
             } else {
-                performFetchRecommendKeywordList()
+                performFetchRecommendedKeywordList()
             }
 
         case .onSearch:
@@ -123,12 +123,12 @@ final class InterestConcertSearchStore: ObservableObject {
                 state.errorMessage = error.localizedDescription
             }
 
-        case ._fetchRecommendKeywordListResult(let result):
+        case ._fetchRecommendedKeywordListResult(let result):
             switch result {
             case .success(let keywordList):
-                state.recommendKeywordList = keywordList
+                state.recommendedKeywordList = keywordList
             case .failure(let error):
-                state.recommendKeywordList = []
+                state.recommendedKeywordList = []
                 state.errorMessage = error.localizedDescription
             }
 
@@ -186,18 +186,18 @@ private extension InterestConcertSearchStore {
         }
     }
 
-    func performFetchRecommendKeywordList() {
-        recommendKeywordTask?.cancel()
-        recommendKeywordTask = Task {
+    func performFetchRecommendedKeywordList() {
+        recommendedKeywordTask?.cancel()
+        recommendedKeywordTask = Task {
             guard await Task.wait(for: .milliseconds(400)) else { return }
 
             do {
                 let keywordList = try await searchRepository.fetchRecommendedSearchResult(keyword: state.searchText)
-                await send(._fetchRecommendKeywordListResult(.success(keywordList)))
+                await send(._fetchRecommendedKeywordListResult(.success(keywordList)))
             } catch SearchError.cancelled {
                 return
             } catch {
-                await send(._fetchRecommendKeywordListResult(.failure(error)))
+                await send(._fetchRecommendedKeywordListResult(.failure(error)))
             }
         }
     }

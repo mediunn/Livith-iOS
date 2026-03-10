@@ -1,5 +1,5 @@
 //
-//  InteresetConcertCompleteView.swift
+//  InterestConcertCompleteView.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 12/31/25.
@@ -11,7 +11,7 @@ import SwiftUI
 import LivithDesignSystem
 import Domain
 
-struct InteresetConcertCompleteView: View {
+struct InterestConcertCompleteView: View {
     @State private var isRotating = false
     @State private var isScaled = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -35,7 +35,7 @@ struct InteresetConcertCompleteView: View {
     }
 }
 
-private extension InteresetConcertCompleteView {
+private extension InterestConcertCompleteView {
     var contentView: some View {
         ZStack(alignment: .bottom) {
             centerContentView
@@ -96,7 +96,7 @@ private extension InteresetConcertCompleteView {
 }
 
 #Preview {
-    InteresetConcertCompleteView(
+    InterestConcertCompleteView(
         concertPosterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")!,
         concertTitle: "Veniam dolor et irure quis velit dolor et mollit quis anim do ",
         prefetchedImage: nil

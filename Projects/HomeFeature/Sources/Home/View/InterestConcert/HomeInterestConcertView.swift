@@ -189,7 +189,7 @@ private extension HomeInterestConcertView {
         showBottomSheet = false
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(0.5))
-            coordinator?.push(to: .interest)
+            coordinator?.push(to: .interestConcertSearch)
         }
     }
     

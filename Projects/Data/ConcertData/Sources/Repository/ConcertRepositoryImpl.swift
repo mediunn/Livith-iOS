@@ -37,7 +37,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
 
         do {
             let response: DTO.Response.FetchConcertList = try await searchService.request(
-                .fetchConcertList(cursor: cursor, size: 12, id: concertID)
+                .fetchConcertList(cursor: concertID, size: 12)
             )
             return mapper.toDomain(from: response)
         } catch {

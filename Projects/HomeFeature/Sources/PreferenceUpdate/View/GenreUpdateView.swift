@@ -25,7 +25,7 @@ struct GenreUpdateView: View {
                 coordinator?.pop()
             }
         } onSubmit: { genreList in
-            coordinator?.push(to: .preferredAritstUpdate(selectedGenreList: genreList))
+            coordinator?.push(to: .preferredArtistUpdate(selectedGenreList: genreList))
         }
         .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
             LivithDangerModal(

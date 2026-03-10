@@ -1,5 +1,5 @@
 //
-//  RecommendKeywordListView.swift
+//  RecommendedKeywordListView.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 12/30/25.
@@ -10,7 +10,7 @@ import SwiftUI
 
 import LivithDesignSystem
 
-struct RecommendKeywordListView: View {
+struct RecommendedKeywordListView: View {
     private let searchText: String
     private let keywordList: [String]
     private let onTap: (String) -> Void
@@ -42,7 +42,7 @@ struct RecommendKeywordListView: View {
 
 // MARK: - Subviews
 
-private extension RecommendKeywordListView {
+private extension RecommendedKeywordListView {
     func keywordButton(_ keyword: String) -> some View {
         Button {
             onTap(keyword)
@@ -55,7 +55,7 @@ private extension RecommendKeywordListView {
 
 // MARK: - Styling
 
-private extension RecommendKeywordListView {
+private extension RecommendedKeywordListView {
     func styledKeyword(_ keyword: String) -> AttributedString {
         var attributed = AttributedString(keyword)
         guard !keyword.isEmpty else { return attributed }
@@ -91,14 +91,14 @@ private extension RecommendKeywordListView {
 
 #Preview {
     VStack(spacing: 24) {
-        RecommendKeywordListView(
+        RecommendedKeywordListView(
             searchText: "호",
             keywordList: ["호드플레이", "호라", "호시노겐"],
             onTap: { print("Tapped: \($0)") }
         )
         .background(Color.livithColor(.black100))
 
-        RecommendKeywordListView(
+        RecommendedKeywordListView(
             searchText: "ho",
             keywordList: ["Homeplay", "Honora", "Hoshinogen"],
             onTap: { print("Tapped ENG: \($0)") }
