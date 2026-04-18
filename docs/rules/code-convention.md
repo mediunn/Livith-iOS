@@ -1,25 +1,26 @@
 # 코드 컨벤션
 
 ## Purpose
-- 이 문서는 이 저장소에서 AI가 기존 Swift 코드와 같은 형태로 파일을 작성하고 수정하기 위한 코드 컨벤션을 정의한다.
-- 이 문서는 파일 구조, `MARK 섹션`, 접근 제어, 오류 선언, 제어 흐름의 흔들림을 줄이기 위한 작업 기준을 고정한다.
+- 이 저장소에서 AI가 기존 Swift 코드와 같은 형태로 파일을 작성하고 수정하기 위한 코드 컨벤션을 정의한다.
+- 파일 구조, `MARK 섹션`, 접근 제어, 오류 선언, 제어 흐름의 흔들림을 줄이기 위한 작업 기준을 고정한다.
 
 ## Scope
-- 이 문서는 `Projects/**` 아래의 Swift 소스 파일에 적용한다.
-- 이 문서는 아키텍처 선택보다 Swift 코드의 파일 구성, 선언 방식, 주석 형태에 적용한다.
-- 이 문서에서 `Store 파일`은 `ObservableObject`를 중심으로 상태와 이벤트 처리 코드를 담는 Swift 파일을 뜻한다.
-- 이 문서에서 `View 파일`은 SwiftUI `View` 또는 `UIViewControllerRepresentable` 구현을 담는 Swift 파일을 뜻한다.
-- 이 문서에서 `Assembler 파일`은 의존성 등록 구현을 담는 Swift 파일을 뜻한다.
-- 이 문서에서 `Data 파일`은 `RepositoryImpl`, `Mapper`, `Assembler` 구현을 담는 Swift 파일을 뜻한다.
-- 이 문서에서 `MARK 템플릿 적용 파일`은 `View 파일`, `Store 파일`, `Assembler 파일`을 뜻한다.
-- 이 문서에서 `비핵심 Swift 파일`은 `MARK 템플릿 적용 파일`이 아닌 Swift 소스 파일을 뜻한다.
-- 이 문서에서 `같은 역할 파일`은 같은 디렉터리에 있고 파일명 접두사 또는 접미사가 같은 Swift 파일을 뜻한다.
-- 이 문서에서 `도우미 extension`은 파일 하단에 두는 `private extension 타입명 { ... }` 형태의 구현 블록을 뜻한다.
-- 이 문서에서 `필요한 MARK 섹션`은 `docs/templates/mark-template.md`에 정의된 섹션 중 해당 파일에 실제 코드가 있는 섹션을 뜻한다.
-- 이 문서에서 `로컬 모듈 import`는 저장소 내부 모듈 import를 뜻한다.
-- 이 문서에서 `외부 라이브러리 import`는 저장소 밖 패키지 또는 SDK import를 뜻한다.
-- 이 문서에서 `typed throws`는 `throws(ErrorType)` 또는 `async throws(ErrorType)`처럼 구체적인 에러 타입을 시그니처에 명시하는 Swift 6 오류 선언 방식을 뜻한다.
-- 이 문서에서 `조기 종료 조건`은 실패 조건을 먼저 검사하고 `return`, `continue`, `break`, `throw`로 흐름을 끝낼 수 있는 조건을 뜻한다.
+- `Projects/**` 아래의 Swift 소스 파일에 적용한다.
+- 아키텍처 선택보다 Swift 코드의 파일 구성, 선언 방식, 주석 형태에 적용한다.
+- 다음 용어는 이 문서에서 아래 의미로 사용한다.
+- `Store 파일`: `ObservableObject`를 중심으로 상태와 이벤트 처리 코드를 담는 Swift 파일
+- `View 파일`: SwiftUI `View` 또는 `UIViewControllerRepresentable` 구현을 담는 Swift 파일
+- `Assembler 파일`: 의존성 등록 구현을 담는 Swift 파일
+- `Data 파일`: `RepositoryImpl`, `Mapper`, `Assembler` 구현을 담는 Swift 파일
+- `MARK 템플릿 적용 파일`: `View 파일`, `Store 파일`, `Assembler 파일`
+- `비핵심 Swift 파일`: `MARK 템플릿 적용 파일`이 아닌 Swift 소스 파일
+- `같은 역할 파일`: 같은 디렉터리에 있고 파일명 접두사 또는 접미사가 같은 Swift 파일
+- `도우미 extension`: 파일 하단에 두는 `private extension 타입명 { ... }` 형태의 구현 블록
+- `필요한 MARK 섹션`: `docs/templates/mark-template.md`에 정의된 섹션 중 해당 파일에 실제 코드가 있는 섹션
+- `로컬 모듈 import`: 저장소 내부 모듈 import
+- `외부 라이브러리 import`: 저장소 밖 패키지 또는 SDK import
+- `typed throws`: `throws(ErrorType)` 또는 `async throws(ErrorType)`처럼 구체적인 에러 타입을 시그니처에 명시하는 Swift 6 오류 선언 방식
+- `조기 종료 조건`: 실패 조건을 먼저 검사하고 `return`, `continue`, `break`, `throw`로 흐름을 끝낼 수 있는 조건
 - `MARK 템플릿 적용 파일`의 `MARK 섹션`은 `docs/templates/mark-template.md`를 기준으로 작성한다.
 - 새 `비핵심 Swift 파일`의 `MARK 섹션`은 `같은 역할 파일`을 먼저 따른다.
 - `같은 역할 파일`이 없으면 새 `비핵심 Swift 파일`에 `MARK 섹션`을 추가하지 않는다.
