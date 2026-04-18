@@ -20,13 +20,14 @@ struct InterestConcertSettingButton: View {
         Button(action: action) {
             VStack(spacing: 8) {
                 iconContainer
-                    .padding(.top, 32)
+                    .padding(.top, 24)
                 
-                Text("관심 콘서트 설정")
+                Text("관심 콘서트\n알림 · 소식 설정")
                     .notosans(.body4Semibold)
+                    .multilineTextAlignment(.center)
                     .foregroundStyle(Color.livithColor(.white100))
                     .padding(.horizontal, 28)
-                    .padding(.bottom, 36)
+                    .padding(.bottom, 24)
             }
             .background(
                 RoundedRectangle(cornerRadius: 12)
