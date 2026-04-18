@@ -1,4 +1,5 @@
 # Agent Instructions
+- All user-facing responses must be written in Korean.
 
 ## Purpose
 - Use this file as the entry point for project-specific guidance.
