@@ -149,7 +149,7 @@ private extension HomeConcertSectionView {
 private extension HomeConcertSectionView {
     enum Constants {
         static let emptySpaceHeight: CGFloat = 210
-        static let sectionTopPadding: CGFloat = 28
+        static let sectionTopPadding: CGFloat = 32
         static let sectionLeadingPadding: CGFloat = 16
         static let loadingMinHeight: CGFloat = 240
     }
