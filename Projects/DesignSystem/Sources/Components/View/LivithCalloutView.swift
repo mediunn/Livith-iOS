@@ -23,6 +23,13 @@ public enum LivithCalloutPlacement {
     case bottom(LivithCalloutAlignment)
 }
 
+// MARK: - LivithCalloutWidthMode
+
+public enum LivithCalloutWidthMode {
+    case intrinsic
+    case fill
+}
+
 // MARK: - LivithCalloutStyle
 
 public struct LivithCalloutStyle {
@@ -89,6 +96,7 @@ public struct LivithCalloutView: View {
     private let style: LivithCalloutStyle
     private let placement: LivithCalloutPlacement
     private let tailInset: CGFloat
+    private let widthMode: LivithCalloutWidthMode
 
     // MARK: - Initializer
 
@@ -97,13 +105,15 @@ public struct LivithCalloutView: View {
         highlight highlightText: String? = nil,
         style: LivithCalloutStyle = .gray,
         placement: LivithCalloutPlacement = .bottom(.center),
-        tailInset: CGFloat = 24
+        tailInset: CGFloat = 24,
+        widthMode: LivithCalloutWidthMode = .intrinsic
     ) {
         self.text = text
         self.highlightText = highlightText
         self.style = style
         self.placement = placement
         self.tailInset = tailInset
+        self.widthMode = widthMode
     }
 
     // MARK: - Body
@@ -120,16 +130,29 @@ public struct LivithCalloutView: View {
 // MARK: - Subviews
 
 private extension LivithCalloutView {
+    @ViewBuilder
     var bubbleView: some View {
-        Text(attributedString)
+        let text = Text(attributedString)
             .notosans(.caption1Bold)
             .multilineTextAlignment(style.textAlignment)
             .padding(style.contentInsets)
             .frame(minHeight: style.minBubbleHeight)
-            .background(
-                RoundedRectangle(cornerRadius: style.cornerRadius)
-                    .fill(style.backgroundColor)
-            )
+
+        switch widthMode {
+        case .intrinsic:
+            text
+                .background(
+                    RoundedRectangle(cornerRadius: style.cornerRadius)
+                        .fill(style.backgroundColor)
+                )
+        case .fill:
+            text
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: style.cornerRadius)
+                        .fill(style.backgroundColor)
+                )
+        }
     }
 
     @ViewBuilder
@@ -261,8 +284,10 @@ private extension LivithCalloutPlacement {
         VStack(spacing: 20) {
             LivithCalloutView(
                 "회원가입하고 모든 서비스 이용해보세요!",
-                highlight: "모든 서비스 이용"
+                highlight: "모든 서비스 이용",
+                widthMode: .fill
             )
+            .frame(width: 272)
 
             LivithCalloutView(
                 "카카오로 최근에 로그인 했어요",
