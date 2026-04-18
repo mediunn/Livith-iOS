@@ -22,8 +22,9 @@ struct InterestConcertSettingButton: View {
                 iconContainer
                     .padding(.top, 32)
                 
-                Text("관심 콘서트 설정")
+                Text("관심 콘서트\n알림 · 소식 설정")
                     .notosans(.body4Semibold)
+                    .multilineTextAlignment(.center)
                     .foregroundStyle(Color.livithColor(.white100))
                     .padding(.horizontal, 28)
                     .padding(.bottom, 36)
