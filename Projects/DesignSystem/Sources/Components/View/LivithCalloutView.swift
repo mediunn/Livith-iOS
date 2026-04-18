@@ -73,7 +73,7 @@ public extension LivithCalloutStyle {
         highlightColor: .livithColor(.black100),
         cornerRadius: 24,
         contentInsets: EdgeInsets(top: 7.5, leading: 15, bottom: 7.5, trailing: 15),
-        tailSize: CGSize(width: 8, height: 4),
+        tailSize: CGSize(width: 12, height: 8),
         minBubbleHeight: 32
     )
 }

@@ -89,6 +89,7 @@ private extension HomeConcertSectionView {
             )
         }
         .background(Color.livithColor(.black90))
+        .zIndex(1)
     }
     
     var contentView: some View {
