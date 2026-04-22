@@ -80,8 +80,8 @@ Tuist/.build
 ### VSCode ###
 .vscode/
 
-### GEMINI ###
-.gemini/
+### OpenCode ###
+.opencode/
 
 ### Module Scripts ###
 .module_backup/
