@@ -107,8 +107,9 @@ private extension InterestConcertDraftCardView {
     
     var posterView: some View {
         AsyncImageView(url: posterURL) {
-            RoundedRectangle(cornerRadius: Poster.cornerRadius)
-                .fill(Color.livithColor(.black80))
+            Image.livithImage(.interestConcertEmpty)
+                .resizable()
+                .scaledToFill()
         }
         .aspectRatio(Poster.aspectRatio, contentMode: .fit)
         .frame(height: Poster.height)
