@@ -2,8 +2,8 @@
 //  InterestConcertDraftCardView.swift
 //  HomeFeature
 //
-//  Created by OpenCode on 4/22/26.
-//
+//  Created by 김진웅 on 4/22/26.
+//  Copyright © 2026 Livith. All rights reserved.
 
 import SwiftUI
 
