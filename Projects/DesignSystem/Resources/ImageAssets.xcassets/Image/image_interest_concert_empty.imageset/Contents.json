@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "image_interest_concert_empty.svg",
+      "filename" : "image_interest_concert_empty.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "image_interest_concert_empty 1.svg",
+      "filename" : "image_interest_concert_empty@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "image_interest_concert_empty 2.svg",
+      "filename" : "image_interest_concert_empty@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
