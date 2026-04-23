@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Observation
 
 import Domain
 
@@ -76,12 +75,11 @@ enum InterestConcertSettingIntent {
 
 // MARK: - Store
 
-@Observable
-final class InterestConcertSettingStore {
+final class InterestConcertSettingStore: ObservableObject {
 
     // MARK: - Property
 
-    private(set) var state: InterestConcertSettingState
+    @Published private(set) var state: InterestConcertSettingState
 
     // MARK: - Initializer
 

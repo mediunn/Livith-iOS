@@ -15,7 +15,7 @@ struct InterestConcertSettingDraftView: View {
 
     // MARK: - Property
 
-    @State private var store: InterestConcertSettingStore
+    @StateObject private var store: InterestConcertSettingStore
 
     // MARK: - Initializer
 
@@ -23,7 +23,7 @@ struct InterestConcertSettingDraftView: View {
         mode: InterestConcertSettingMode,
         userInterestConcertList: [Concert] = []
     ) {
-        _store = State(
+        _store = StateObject(
             wrappedValue: InterestConcertSettingStore(
                 mode: mode,
                 userInterestConcertList: userInterestConcertList
