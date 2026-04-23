@@ -2,7 +2,7 @@
 //  InterestConcertSelectionGridView.swift
 //  HomeFeature
 //
-//  Created by OpenCode on 4/20/26.
+//  Created by 김진웅 on 4/20/26.
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
