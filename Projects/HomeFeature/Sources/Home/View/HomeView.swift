@@ -14,7 +14,7 @@ import Amplitude
 
 struct HomeView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     @Environment(\.homeCoordinator) private var coordinator
     @StateObject private var store: HomeStore = .init()
@@ -136,7 +136,7 @@ private extension HomeView {
     }
 }
 
-// MARK: - Helpers
+// MARK: - Constants
 
 private extension HomeView {
     enum Constants {

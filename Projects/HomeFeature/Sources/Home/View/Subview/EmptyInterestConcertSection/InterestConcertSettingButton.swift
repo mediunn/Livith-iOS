@@ -12,7 +12,7 @@ import LivithDesignSystem
 
 struct InterestConcertSettingButton: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     @State private var isRotating = false
     @State private var rotationTask: Task<Void, Never>?

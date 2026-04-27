@@ -12,7 +12,7 @@ import LivithDesignSystem
 
 struct PreferenceBannerView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     @Binding var isExpanded: Bool
 

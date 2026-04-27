@@ -13,7 +13,7 @@ import LivithDesignSystem
 
 struct HomeConcertContentSectionView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     let nickname: String
     let sectionList: [ConcertSection]
@@ -66,7 +66,7 @@ private extension HomeConcertContentSectionView {
     }
 }
 
-// MARK: - Helpers
+// MARK: - Constants
 
 private extension HomeConcertContentSectionView {
     enum Constants {

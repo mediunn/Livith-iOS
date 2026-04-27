@@ -12,7 +12,7 @@ import LivithDesignSystem
 
 struct EmptyInterestConcertSectionView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     @State private var buttonHeight: CGFloat = .zero
 

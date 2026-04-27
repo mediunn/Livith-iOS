@@ -15,7 +15,7 @@ import Amplitude
 
 struct RecommendedConcertGridView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     @Environment(\.homeCoordinator) private var coordinator
     

@@ -13,7 +13,7 @@ import LivithDesignSystem
 
 struct RecommendedConcertSectionView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     let title: String
     let concertList: [Concert]
@@ -81,17 +81,13 @@ private extension RecommendedConcertSectionView {
     }
 }
 
-// MARK: - Helpers
+// MARK: - Constants
 
 private extension RecommendedConcertSectionView {
     enum Constants {
         static let maxVisibleConcertCount = 10
         static let iconSize: CGFloat = 24
         static let emptyViewRatio: CGFloat = 343 / 160
-    }
-
-    enum Literals {
-        static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
     }
 }
 
@@ -143,6 +139,14 @@ private extension Concert {
             label: "인기"
         )
     ]
+}
+
+// MARK: - Literals
+
+private extension RecommendedConcertSectionView {
+    enum Literals {
+        static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
+    }
 }
 
 // MARK: - Preview

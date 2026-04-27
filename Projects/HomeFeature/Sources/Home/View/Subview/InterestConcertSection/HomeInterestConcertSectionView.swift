@@ -12,7 +12,7 @@ import LivithDesignSystem
 
 struct HomeInterestConcertSectionView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     let onChangeTap: () -> Void
     let onTitleTap: () -> Void
@@ -46,6 +46,34 @@ struct HomeInterestConcertSectionView: View {
                 .padding(.top, Constants.verticalSpacing)
         }
         .padding(.horizontal, 16)
+    }
+}
+
+// MARK: - Computed Properties
+
+private extension HomeInterestConcertSectionView {
+    var visibleItemList: [HomeInterestConcertSectionItem] {
+        let sortedItemList = switch selectedSortOption {
+        case .ticketDate:
+            Self.mockItemList.sorted { $0.ticketDate < $1.ticketDate }
+        case .concertDate:
+            Self.mockItemList.sorted { $0.concertDate < $1.concertDate }
+        }
+
+        return Array(sortedItemList.prefix(5))
+    }
+
+    var nextIndex: Int {
+        (currentPage + 1) % visibleItemList.count
+    }
+
+    var previousIndex: Int {
+        (currentPage - 1 + visibleItemList.count) % visibleItemList.count
+    }
+
+    var dragGesture: some Gesture {
+        DragGesture(minimumDistance: Constants.minimumDragDistance)
+            .onEnded(handleDragEnded)
     }
 }
 
@@ -186,30 +214,6 @@ private extension HomeInterestConcertSectionView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertSectionView {
-    var visibleItemList: [HomeInterestConcertSectionItem] {
-        let sortedItemList = switch selectedSortOption {
-        case .ticketDate:
-            Self.mockItemList.sorted { $0.ticketDate < $1.ticketDate }
-        case .concertDate:
-            Self.mockItemList.sorted { $0.concertDate < $1.concertDate }
-        }
-
-        return Array(sortedItemList.prefix(5))
-    }
-
-    var nextIndex: Int {
-        (currentPage + 1) % visibleItemList.count
-    }
-
-    var previousIndex: Int {
-        (currentPage - 1 + visibleItemList.count) % visibleItemList.count
-    }
-
-    var dragGesture: some Gesture {
-        DragGesture(minimumDistance: Constants.minimumDragDistance)
-            .onEnded(handleDragEnded)
-    }
-
     func handleDragEnded(_ value: DragGesture.Value) {
         let horizontalAmount = value.translation.width
         let newIndex = calculateNewIndex(from: horizontalAmount)
@@ -230,6 +234,8 @@ private extension HomeInterestConcertSectionView {
         return currentPage
     }
 }
+
+// MARK: - Constants
 
 private extension HomeInterestConcertSectionView {
     enum Constants {

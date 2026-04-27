@@ -11,7 +11,7 @@ import LivithDesignSystem
 
 struct InterestConcertDraftCardView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     let posterURL: URL?
     let badgeText: String
@@ -176,7 +176,7 @@ private extension InterestConcertDraftCardView {
     }
 }
 
-// MARK: - Helpers
+// MARK: - Constants
 
 private extension InterestConcertDraftCardView {
     enum Card {
