@@ -1,5 +1,5 @@
 //
-//  InterestConcertDraftCardView.swift
+//  InterestConcertCardView.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 4/22/26.
@@ -9,7 +9,7 @@ import SwiftUI
 
 import LivithDesignSystem
 
-struct InterestConcertDraftCardView: View {
+struct InterestConcertCardView: View {
 
     // MARK: - Properties
 
@@ -33,7 +33,7 @@ struct InterestConcertDraftCardView: View {
 
 // MARK: - UIComponents
 
-private extension InterestConcertDraftCardView {
+private extension InterestConcertCardView {
     var topSection: some View {
         topSectionContent
             .padding(Card.sectionPadding)
@@ -178,7 +178,7 @@ private extension InterestConcertDraftCardView {
 
 // MARK: - Constants
 
-private extension InterestConcertDraftCardView {
+private extension InterestConcertCardView {
     enum Card {
         static let cornerRadius: CGFloat = 16
         static let borderLineWidth: CGFloat = 1
@@ -207,7 +207,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
         
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg"),
             badgeText: "공연 D-20",
             titleText: "원 오크 록 내한공연",
@@ -224,7 +224,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
         
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg"),
             badgeText: "공연 D-DAY",
             titleText: "원 오크 록 내한공연",
@@ -241,7 +241,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
         
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: nil,
             badgeText: "공연 예정",
             titleText: "원 오크 록 내한 예정",
@@ -258,7 +258,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
 
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg"),
             badgeText: "공연 D-120",
             titleText: "ONE OK ROCK DETOX ASIA TOUR 2026 IN SEOUL SPECIAL ENCORE",

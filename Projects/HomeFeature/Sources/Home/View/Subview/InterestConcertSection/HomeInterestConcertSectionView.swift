@@ -187,7 +187,7 @@ private extension HomeInterestConcertSectionView {
     var cardPagerView: some View {
         ZStack {
             ForEach(Array(visibleItemList.enumerated()), id: \.element.id) { index, item in
-                InterestConcertDraftCardView(
+                InterestConcertCardView(
                     posterURL: item.posterURL,
                     badgeText: item.badgeText,
                     titleText: item.titleText,
@@ -312,7 +312,7 @@ private enum HomeInterestConcertSortOption: CaseIterable {
 
 #Preview {
     ZStack {
-        Color.livithColor(.black80)
+        Color.livithColor(.black100)
             .ignoresSafeArea()
 
         HomeInterestConcertSectionView()
