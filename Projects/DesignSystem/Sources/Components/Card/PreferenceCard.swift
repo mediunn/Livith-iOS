@@ -63,35 +63,19 @@ public struct PreferenceCard: View {
     // MARK: - Body
     
     public var body: some View {
-        if let action = action {
-            Button(action: action) {
+        Group {
+            if let action = action {
+                Button(action: action) {
+                    content
+                }
+                .buttonStyle(.plain)
+            } else {
                 content
             }
-            .buttonStyle(.plain)
-        } else {
-            content
         }
-    }
-    
-    private var content: some View {
-        ZStack {
-            AsyncImageView(
-                url: imageURL,
-                contentMode: .fill
-            ) {
-                Color.livithColor(.black80)
-            }
-
-            Color(hex: Layout.overlayHex, opacity: Layout.overlayOpacity)
-
-            Text(title)
-                .notosans(.body2Semibold)
-                .foregroundStyle(Color.livithColor(.white100))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, Layout.horizontalPadding)
-        }
+        .frame(maxWidth: .infinity)
         .aspectRatio(1, contentMode: .fit)
-        .cornerRadius(Layout.cornerRadius)
+        .clipShape(RoundedRectangle(cornerRadius: Layout.cornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: Layout.cornerRadius)
                 .stroke(
@@ -100,6 +84,36 @@ public struct PreferenceCard: View {
                 )
         )
     }
+    
+    private var content: some View {
+        Text(title)
+            .notosans(.body2Semibold)
+            .foregroundStyle(Color.livithColor(.white100))
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, Layout.horizontalPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background {
+                backgroundImage
+                    .overlay(Color(hex: Layout.overlayHex, opacity: Layout.overlayOpacity))
+            }
+    }
+    
+    private var backgroundImage: some View {
+        AsyncImage(url: imageURL) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+            case .empty, .failure(_):
+                Color.livithColor(.black80)
+            @unknown default:
+                Color.livithColor(.black80)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+    }
 }
 
 // MARK: - Preview
@@ -107,34 +121,29 @@ public struct PreferenceCard: View {
 #Preview {
     struct PreviewWrapper: View {
         @State private var selectedItem: String? = "J-POP"
-        private let sampleImageURL = URL(string: "https://fastly.picsum.photos/id/505/108/108.jpg?hmac=uPOmgL2cSvfqXRghDJGQ5yjBf28eqS2eL2AlW7JKt2Q")
+        private let sampleImageURL = URL(string: "https://picsum.photos/id/1047/300/180")
+        private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
 
-        private func item(title: String, imageURL: URL?) -> some View {
-            VStack(spacing: 6) {
-                PreferenceCard(
-                    title: title,
-                    imageURL: imageURL,
-                    isSelected: selectedItem == title,
-                    action: { selectedItem = title }
-                )
-                Text(selectedItem == title ? "선택" : "비선택")
-                    .font(.notosans(.caption2Regular))
-                    .foregroundStyle(Color.livithColor(selectedItem == title ? .yellow30 : .black50))
-            }
+        private var sampleList: [(title: String, imageURL: URL?)] {
+            [
+                ("J-POP", URL(string: "https://picsum.photos/id/505/300/300")),
+                ("락/메탈", URL(string: "https://picsum.photos/id/1047/300/180")),
+                ("랩/힙합", URL(string: "https://picsum.photos/id/1027/180/300")),
+                ("INDIE", sampleImageURL),
+                ("POP", sampleImageURL),
+                ("클래식/재즈", nil)
+            ]
         }
 
         var body: some View {
-            VStack(spacing: 20) {
-                HStack(spacing: 12) {
-                    item(title: "클래식/재즈", imageURL: sampleImageURL)
-                    item(title: "J-POP", imageURL: sampleImageURL)
-                }
-
-                Divider().background(Color.livithColor(.black80))
-
-                HStack(spacing: 12) {
-                    item(title: "힙합/랩", imageURL: nil)
-                    item(title: "R&B/소울", imageURL: nil)
+            LazyVGrid(columns: gridColumns, spacing: 12) {
+                ForEach(sampleList, id: \.title) { item in
+                    PreferenceCard(
+                        title: item.title,
+                        imageURL: item.imageURL,
+                        isSelected: selectedItem == item.title,
+                        action: { selectedItem = item.title }
+                    )
                 }
             }
             .padding()
