@@ -10,12 +10,17 @@ import SwiftUI
 import LivithDesignSystem
 
 struct InterestConcertDraftCardView: View {
+
+    // MARK: - Property
+
     let posterURL: URL?
     let badgeText: String
     let titleText: String
     let dateText: String
     let locationText: String
     let bottomText: String
+
+    // MARK: - Body
     
     var body: some View {
         VStack(spacing: .zero) {
@@ -26,7 +31,7 @@ struct InterestConcertDraftCardView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - UIComponents
 
 private extension InterestConcertDraftCardView {
     var topSection: some View {
@@ -166,7 +171,7 @@ private extension InterestConcertDraftCardView {
     }
 }
 
-// MARK: - Layout Constants
+// MARK: - Helpers
 
 private extension InterestConcertDraftCardView {
     enum Card {

@@ -9,10 +9,12 @@
 import SwiftUI
 
 import Amplitude
-import Domain
 import LivithDesignSystem
 
 struct HomeConcertSectionView: View {
+
+    // MARK: - Property
+
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
     @State private var isPreferenceBannerExpanded: Bool = true
@@ -22,6 +24,8 @@ struct HomeConcertSectionView: View {
     }
     
     private var sectionState: HomeState.ConcertSectionState { store.state.concertSection }
+
+    // MARK: - Body
     
     var body: some View {
         VStack(spacing: .zero) {
@@ -51,7 +55,7 @@ struct HomeConcertSectionView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - UIComponents
 
 private extension HomeConcertSectionView {
     var loadingView: some View {
@@ -93,64 +97,30 @@ private extension HomeConcertSectionView {
     }
     
     var contentView: some View {
-        VStack(spacing: .zero) {
-            recommendedConcertSection
-            
-            concertSection
-            
-            Spacer(minLength: Constants.emptySpaceHeight)
-        }
-        .background(Color.livithColor(.black100))
-    }
-    
-    @ViewBuilder
-    var recommendedConcertSection: some View {
-        if !sectionState.shouldShowPreferenceBanner {
-            RecommendedConcertSectionView(
-                title: "\(store.state.user?.nickname ?? "라이빗")님의\n취향이 담긴 콘서트",
-                concertList: sectionState.recommendedConcertList
-            ) { concert in
+        HomeConcertContentSectionView(
+            nickname: store.state.user?.nickname ?? "라이빗",
+            sectionList: sectionState.sectionList,
+            recommendedConcertList: sectionState.recommendedConcertList,
+            shouldShowRecommendedConcertSection: !sectionState.shouldShowPreferenceBanner,
+            onRecommendedConcertTap: { concert in
                 AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
                 coordinator?.showConcertDetail(concertID: concert.id)
-            } onSeeAllTap: {
+            },
+            onRecommendedSeeAllTap: {
                 coordinator?.push(to: .recommendedConcertList(concertList: sectionState.recommendedConcertList))
+            },
+            onConcertTap: { concert in
+                AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
+                coordinator?.showConcertDetail(concertID: concert.id)
             }
-            .padding(.top, Constants.sectionTopPadding)
-            .padding(.leading, Constants.sectionLeadingPadding)
-        }
-    }
-    
-    var concertSection: some View {
-        ForEach(sectionState.sectionList, id: \.id) { section in
-            concertSectionRow(for: section)
-                .padding(.top, Constants.sectionTopPadding)
-                .padding(.leading, Constants.sectionLeadingPadding)
-        }
+        )
     }
 }
 
-// MARK: - Helper
-
-private extension HomeConcertSectionView {
-    func concertSectionRow(for section: ConcertSection) -> some View {
-        ConcertSectionView(concertSection: section) { concert in
-            AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
-            coordinator?.showConcertDetail(concertID: concert.id)
-        }
-    }
-    
-    var emptyMessage: String {
-        sectionState.errorMessage.isEmpty ? "콘텐츠가 없습니다." : sectionState.errorMessage
-    }
-}
-
-// MARK: - Constants
+// MARK: - Helpers
 
 private extension HomeConcertSectionView {
     enum Constants {
-        static let emptySpaceHeight: CGFloat = 210
-        static let sectionTopPadding: CGFloat = 32
-        static let sectionLeadingPadding: CGFloat = 16
         static let loadingMinHeight: CGFloat = 240
     }
 }
