@@ -10,53 +10,136 @@ import SwiftUI
 
 import LivithDesignSystem
 
+import Amplitude
+
 struct HomeView: View {
+
+    // MARK: - Property
+
+    @Environment(\.homeCoordinator) private var coordinator
     @StateObject private var store: HomeStore = .init()
 
     @State private var showErrorToast = false
-    @State private var showSuccessToast = false
+    @State private var isPreferenceBannerExpanded: Bool = true
+
+    // MARK: - Body
     
     var body: some View {
-        content
-            .background(.livithColor(.black90))
-            .onAppear {
-                store.send(.onAppear)
-            }
-            .onChange(of: store.state.errorMessage) { _, newValue in
-                if !newValue.isEmpty {
-                    showErrorToast = true
-                }
-            }
-            .onChange(of: store.state.toastMessage) { _, newValue in
-                if !newValue.isEmpty {
-                    showSuccessToast = true
-                }
-            }
-            .livithToast(
-                isPresented: Binding(
-                    get: { showErrorToast && !store.state.errorMessage.isEmpty },
-                    set: { if !$0 { showErrorToast = false; store.send(.onErrorToastDisappear) } }
-                ),
-                type: .failure,
-                message: store.state.errorMessage
-            )
-            .livithToast(
-                isPresented: Binding(
-                    get: { showSuccessToast && !store.state.toastMessage.isEmpty },
-                    set: { if !$0 { showSuccessToast = false; store.send(.onToastDisappear) } }
-                ),
-                type: .success,
-                message: store.state.toastMessage
-            )
-    }
-    
-    @ViewBuilder
-    private var content: some View {
-        switch store.state.currentContent {
-        case .concertSection:
-            HomeConcertSectionView(store: store)
-        case .interestConcert:
-            HomeInterestConcertView(store: store)
+        VStack(spacing: .zero) {
+            navigationView
+
+            scrollView
         }
+        .background(.livithColor(.black90))
+        .onAppear {
+            isPreferenceBannerExpanded = true
+            store.send(.onAppear)
+        }
+        .onChange(of: store.state.errorMessage) { _, newValue in
+            if !newValue.isEmpty {
+                showErrorToast = true
+            }
+        }
+        .livithToast(
+            isPresented: Binding(
+                get: { showErrorToast && !store.state.errorMessage.isEmpty },
+                set: { if !$0 { showErrorToast = false; store.send(.onErrorToastDisappear) } }
+            ),
+            type: .failure,
+            message: store.state.errorMessage
+        )
+    }
+}
+
+// MARK: - UIComponents
+
+private extension HomeView {
+    var navigationView: some View {
+        LivithNavigationView(type: .logo(
+            hasNewNotice: store.state.hasNewNotice,
+            onNoticeTap: { coordinator?.push(to: .notice) }
+        ))
+    }
+
+    var scrollView: some View {
+        ScrollView {
+            if store.state.isConcertSectionLoading {
+                loadingView
+            } else {
+                VStack(spacing: .zero) {
+                    headerSection
+                    concertContentSection
+                }
+            }
+        }
+        .scrollIndicators(.never)
+        .refreshable { store.send(.onRefresh) }
+        .ignoresSafeArea(edges: .bottom)
+    }
+
+    var loadingView: some View {
+        VStack(spacing: .zero) {
+            Spacer(minLength: Constants.loadingMinHeight)
+
+            ProgressView()
+                .scaleEffect(1.6, anchor: .center)
+
+            Spacer(minLength: Constants.loadingMinHeight)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    var headerSection: some View {
+        if store.state.user?.interestConcertID == nil {
+            EmptyInterestConcertSectionView(
+                nickname: store.state.user?.nickname ?? "라이빗",
+                shouldShowPreferenceBanner: store.state.shouldShowPreferenceBanner,
+                isPreferenceBannerExpanded: $isPreferenceBannerExpanded,
+                onPreferenceBannerTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.setPreferenceBannerMain))
+                    coordinator?.push(to: .preferredGenreUpdate)
+                },
+                onSettingTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
+                    coordinator?.push(to: .interestConcertSearch)
+                }
+            )
+            .zIndex(1)
+        } else {
+            HomeInterestConcertSectionView(
+                onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
+                onTitleTap: {}
+            )
+            .zIndex(1)
+        }
+    }
+
+    var concertContentSection: some View {
+        HomeConcertContentSectionView(
+            nickname: store.state.user?.nickname ?? "라이빗",
+            sectionList: store.state.concertSectionList,
+            recommendedConcertList: store.state.recommendedConcertList,
+            shouldShowRecommendedConcertSection: !store.state.shouldShowPreferenceBanner,
+            onRecommendedConcertTap: { concert in
+                AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
+                coordinator?.showConcertDetail(concertID: concert.id)
+            },
+            onRecommendedSeeAllTap: {
+                coordinator?.push(to: .recommendedConcertList(concertList: store.state.recommendedConcertList))
+            },
+            onConcertTap: { concert in
+                AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
+                coordinator?.showConcertDetail(concertID: concert.id)
+            }
+        )
+    }
+}
+
+// MARK: - Helpers
+
+private extension HomeView {
+    enum Constants {
+        static let loadingMinHeight: CGFloat = 240
     }
 }

@@ -149,7 +149,11 @@ private extension InterestConcertDraftCardView {
     }
     
     var dashedDivider: some View {
-        HorizontalLineShape()
+        GeometryReader { proxy in
+            Path { path in
+                path.move(to: CGPoint(x: .zero, y: Divider.lineWidth / 2))
+                path.addLine(to: CGPoint(x: proxy.size.width, y: Divider.lineWidth / 2))
+            }
             .stroke(
                 Color.livithColor(.black80),
                 style: StrokeStyle(
@@ -158,9 +162,10 @@ private extension InterestConcertDraftCardView {
                     dash: Divider.dash
                 )
             )
-            .frame(height: Divider.lineWidth)
-            .padding(.horizontal, Card.sectionPadding)
-            .offset(y: -0.5)
+        }
+        .frame(height: Divider.lineWidth)
+        .padding(.horizontal, Card.sectionPadding)
+        .offset(y: -0.5)
     }
     
     var seamMask: some View {
