@@ -19,40 +19,12 @@ struct OnboardingFeatureDTOTests {
         let json = """
         {
             "id": 1,
-            "interestConcertId": null,
             "provider": "kakao",
             "providerId": "test_provider_id",
             "email": null,
             "nickname": "dev",
             "marketingConsent": true,
-            "preferredGenres": [
-              {
-                "id": 1,
-                "name": "JPOP"
-              },
-              {
-                "id": 2,
-                "name": "ROCK_METAL"
-              },
-              {
-                "id": 3,
-                "name": "RAP_HIPHOP"
-              }
-            ],
-            "preferredArtists": [
-              {
-                "id": 1,
-                "name": "Lisa"
-              },
-              {
-                "id": 2,
-                "name": "YOASOBI"
-              },
-              {
-                "id": 3,
-                "name": "米津玄師"
-              }
-            ]
+            "hasPreferredGenre": true
           }
         """.data(using: .utf8)!
         
@@ -62,10 +34,8 @@ struct OnboardingFeatureDTOTests {
         // Then
         #expect(result.id == 1)
         #expect(result.nickname == "dev")
-        #expect(result.preferredGenreList.count == 3)
-        #expect(result.preferredArtistList.count == 3)
-        
-        #expect(result.preferredGenreList[0].name == "JPOP")
-        #expect(result.preferredArtistList[1].name == "YOASOBI")
+        #expect(result.providerID == "test_provider_id")
+        #expect(result.marketingConsent)
+        #expect(result.hasPreferredGenre)
     }
 }

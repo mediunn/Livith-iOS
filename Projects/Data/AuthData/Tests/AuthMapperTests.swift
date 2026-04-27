@@ -6,142 +6,131 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-import XCTest
+import Foundation
+import Testing
 
 import LivithNetwork
 import Domain
 @testable import AuthData
 
-final class AuthMapperTests: XCTestCase {
-    private var sut: AuthMapper!
-    
-    override func setUp() {
-        super.setUp()
-        sut = AuthMapper()
-    }
-    
-    override func tearDown() {
-        sut = nil
-        super.tearDown()
-    }
-    
-    func test_CheckNicknameDuplicate_중복일때_available_false_반환되어야_한다() throws {
+@Suite("인증 매퍼 테스트")
+struct AuthMapperTests {
+    @Test("닉네임이 중복이면 false로 변환해야 한다")
+    func checkNicknameDuplicate_중복이면_false로_변환해야_한다() throws {
         // Given
+        let sut = AuthMapper()
         let json = """
         {
           "available": false
         }
         """.data(using: .utf8)!
-        
         let dto = try JSONDecoder().decode(DTO.Response.CheckNicknameDuplicate.self, from: json)
-        
+
         // When
         let result = sut.toDomain(from: dto)
-        
+
         // Then
-        XCTAssertFalse(result)
+        #expect(!result)
     }
-    
-    func test_CheckNicknameDuplicate_중복아닐때_available_true_반환되어야_한다() throws {
+
+    @Test("닉네임이 중복이 아니면 true로 변환해야 한다")
+    func checkNicknameDuplicate_중복이_아니면_true로_변환해야_한다() throws {
         // Given
+        let sut = AuthMapper()
         let json = """
         {
           "available": true
         }
         """.data(using: .utf8)!
-        
         let dto = try JSONDecoder().decode(DTO.Response.CheckNicknameDuplicate.self, from: json)
-        
+
         // When
         let result = sut.toDomain(from: dto)
-        
+
         // Then
-        XCTAssertTrue(result)
+        #expect(result)
     }
-    
-    func test_FetchUserInfo를_User로_변환해야_한다() throws {
+
+    @Test("FetchUserInfo를 User로 변환해야 한다")
+    func fetchUserInfo를_User로_변환해야_한다() throws {
         // Given
+        let sut = AuthMapper()
         let json = """
         {
           "id": 123,
-          "interestConcertId": 456,
           "provider": "kakao",
           "providerId": "provider123",
           "email": "test@example.com",
           "nickname": "테스트유저",
           "marketingConsent": true,
-          "preferredGenres": [],
-          "preferredArtists": []
+          "hasPreferredGenre": true
         }
         """.data(using: .utf8)!
-        
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: json)
-        
+
         // When
         let result = sut.toDomain(from: dto)
-        
+
         // Then
-        XCTAssertEqual(result.id, 123)
-        XCTAssertEqual(result.interestConcertID, 456)
-        XCTAssertEqual(result.provider, "kakao")
-        XCTAssertEqual(result.providerID, "provider123")
-        XCTAssertEqual(result.email, "test@example.com")
-        XCTAssertEqual(result.nickname, "테스트유저")
-        XCTAssertTrue(result.authority.marketingConsent)
+        #expect(result.id == 123)
+        #expect(result.interestConcertID == nil)
+        #expect(result.provider == "kakao")
+        #expect(result.providerID == "provider123")
+        #expect(result.email == "test@example.com")
+        #expect(result.nickname == "테스트유저")
+        #expect(result.hasPreferences)
+        #expect(result.authority.marketingConsent)
     }
 
-    func test_FetchUserInfo_interestConcertId가_nil일때_변환해야_한다() throws {
+    @Test("FetchUserInfo의 Optional 필드가 null이어도 User로 변환해야 한다")
+    func fetchUserInfo_Optional필드가_null이어도_User로_변환해야_한다() throws {
         // Given
+        let sut = AuthMapper()
         let json = """
         {
           "id": 789,
-          "interestConcertId": null,
           "provider": "apple",
           "providerId": "apple456",
           "email": null,
           "nickname": "애플유저",
           "marketingConsent": false,
-          "preferredGenres": [],
-          "preferredArtists": []
+          "hasPreferredGenre": false
         }
         """.data(using: .utf8)!
-        
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: json)
-        
+
         // When
         let result = sut.toDomain(from: dto)
-        
+
         // Then
-        XCTAssertEqual(result.id, 789)
-        XCTAssertNil(result.interestConcertID)
-        XCTAssertEqual(result.provider, "apple")
-        XCTAssertEqual(result.providerID, "apple456")
-        XCTAssertNil(result.email)
-        XCTAssertEqual(result.nickname, "애플유저")
-        XCTAssertFalse(result.authority.marketingConsent)
+        #expect(result.id == 789)
+        #expect(result.interestConcertID == nil)
+        #expect(result.provider == "apple")
+        #expect(result.providerID == "apple456")
+        #expect(result.email == nil)
+        #expect(result.nickname == "애플유저")
+        #expect(!result.hasPreferences)
+        #expect(!result.authority.marketingConsent)
     }
 }
 
-final class AuthErrorMapperTests: XCTestCase {
-    private var sut: AuthErrorMapper!
-    
-    override func setUp() {
-        super.setUp()
-        sut = AuthErrorMapper()
+@Suite("인증 에러 매퍼 테스트")
+struct AuthErrorMapperTests {
+    @Test("기본 네트워크 에러를 AuthError로 변환해야 한다")
+    func 기본_네트워크_에러를_AuthError로_변환해야_한다() {
+        // Given
+        let sut = AuthErrorMapper()
+
+        // When & Then
+        #expect(sut.mapToAuthError(NetworkError.noConnection(NSError(domain: "", code: -1))) == .noConnection)
+        #expect(sut.mapToAuthError(NetworkError.serverError(message: nil)) == .serverError)
+        #expect(sut.mapToAuthError(NetworkError.invalidRequest) == .invalidResponse)
     }
-    
-    override func tearDown() {
-        sut = nil
-        super.tearDown()
-    }
-    
-    func test_기본_네트워크_에러가_AuthError로_변환되어야_한다() {
-        XCTAssertEqual(sut.mapToAuthError(NetworkError.noConnection(NSError(domain: "", code: -1))), .noConnection)
-        XCTAssertEqual(sut.mapToAuthError(NetworkError.serverError(message: nil)), .serverError)
-        XCTAssertEqual(sut.mapToAuthError(NetworkError.invalidRequest), .invalidResponse)
-    }
-    
-    func test_메시지가_있는_에러는_해당_메시지에_매핑되는_AuthError로_변환되어야_한다() {
+
+    @Test("메시지가 있는 에러를 해당 AuthError로 변환해야 한다")
+    func 메시지가_있는_에러를_해당_AuthError로_변환해야_한다() {
+        // Given
+        let sut = AuthErrorMapper()
         let testCases: [(NetworkError, AuthError)] = [
             (.badRequest(message: "nickname should not be empty"), .emptyNickname),
             (.badRequest(message: "nickname must be shorter than or equal to 10 characters"), .nicknameTooLong),
@@ -150,15 +139,24 @@ final class AuthErrorMapperTests: XCTestCase {
             (.forbidden(message: "이미 탈퇴한 회원입니다."), .withdrawn),
             (.badRequest(message: "reason should not be empty"), .emptyReason)
         ]
-        
-        testCases.forEach { networkError, expectedError in
-            XCTAssertEqual(sut.mapToAuthError(networkError), expectedError, "Failed for error: \(networkError)")
+
+        for (networkError, expectedError) in testCases {
+            // When
+            let result = sut.mapToAuthError(networkError)
+
+            // Then
+            #expect(result == expectedError)
         }
     }
-    
-    func test_취소_에러는_cancelled로_변환되어야_한다() {
-        XCTAssertEqual(sut.mapToAuthError(CancellationError()), .cancelled)
-        XCTAssertEqual(sut.mapToAuthError(URLError(.cancelled)), .cancelled)
-        XCTAssertEqual(sut.mapToAuthError(NetworkError.unknown(URLError(.cancelled))), .cancelled)
+
+    @Test("취소 에러를 cancelled로 변환해야 한다")
+    func 취소_에러를_cancelled로_변환해야_한다() {
+        // Given
+        let sut = AuthErrorMapper()
+
+        // When & Then
+        #expect(sut.mapToAuthError(CancellationError()) == .cancelled)
+        #expect(sut.mapToAuthError(URLError(.cancelled)) == .cancelled)
+        #expect(sut.mapToAuthError(NetworkError.unknown(URLError(.cancelled))) == .cancelled)
     }
 }
