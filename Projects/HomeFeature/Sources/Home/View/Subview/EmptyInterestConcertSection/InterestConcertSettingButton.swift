@@ -11,11 +11,16 @@ import SwiftUI
 import LivithDesignSystem
 
 struct InterestConcertSettingButton: View {
+
+    // MARK: - Properties
+
     @State private var isRotating = false
     @State private var rotationTask: Task<Void, Never>?
     
-    let action: () -> ()
-    
+    let action: () -> Void
+
+    // MARK: - Body
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
@@ -37,7 +42,7 @@ struct InterestConcertSettingButton: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - UIComponents
 
 private extension InterestConcertSettingButton {
     var iconContainer: some View {
@@ -94,13 +99,13 @@ private extension InterestConcertSettingButton {
     }
 }
 
+// MARK: - Preview
+
 #Preview {
     ZStack {
         Color.livithColor(.black90)
             .ignoresSafeArea()
         
-        InterestConcertSettingButton {
-            print("버튼이 눌렸다.")
-        }
+        InterestConcertSettingButton {}
     }
 }

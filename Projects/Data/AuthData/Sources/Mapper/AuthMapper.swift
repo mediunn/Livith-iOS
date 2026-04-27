@@ -19,12 +19,13 @@ struct AuthMapper {
     func toDomain(from response: DTO.Response.FetchUserInfo) -> User {
         return User(
             id: response.id,
-            interestConcertID: response.interestConcertID,
+            // TODO: LIVD-357 User 모델에서 interestConcertID를 제거하고 관심 콘서트 상태를 별도 API/모델로 분리한다.
+            interestConcertID: nil,
             provider: response.provider,
             providerID: response.providerID,
             email: response.email,
             nickname: response.nickname,
-            hasPreferences: !response.preferredGenreList.isEmpty,
+            hasPreferences: response.hasPreferredGenre,
             authority: UserAuthority(deviceNotification: true, marketingConsent: response.marketingConsent)
         )
     }

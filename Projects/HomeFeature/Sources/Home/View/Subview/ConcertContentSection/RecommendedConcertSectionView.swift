@@ -12,10 +12,15 @@ import Domain
 import LivithDesignSystem
 
 struct RecommendedConcertSectionView: View {
+
+    // MARK: - Properties
+
     let title: String
     let concertList: [Concert]
     let onConcertTap: ((Concert) -> Void)
     let onSeeAllTap: () -> Void
+
+    // MARK: - Body
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -30,7 +35,7 @@ struct RecommendedConcertSectionView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - UIComponents
 
 private extension RecommendedConcertSectionView {
     var headerView: some View {
@@ -76,7 +81,7 @@ private extension RecommendedConcertSectionView {
     }
 }
 
-// MARK: - Constants & Literals
+// MARK: - Constants
 
 private extension RecommendedConcertSectionView {
     enum Constants {
@@ -84,39 +89,7 @@ private extension RecommendedConcertSectionView {
         static let iconSize: CGFloat = 24
         static let emptyViewRatio: CGFloat = 343 / 160
     }
-
-    enum Literals {
-        static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
-    }
 }
-
-// MARK: - Preview
-
-#Preview("Empty State") {
-    RecommendedConcertSectionView(
-        title: "유지미님의\n취향이 담긴 콘서트",
-        concertList: []
-    ) { concert in
-        print("\(concert)눌림")
-    } onSeeAllTap: {
-        print("상세 눌림")
-    }
-    .background(.livithColor(.black100))
-}
-
-#Preview("With Concerts") {
-    RecommendedConcertSectionView(
-        title: "유지미님의\n취향이 담긴 콘서트",
-        concertList: Concert.mockConcerts
-    ) { concert in
-        print("\(concert.title) 탭")
-    } onSeeAllTap: {
-        print("전체보기 탭")
-    }
-    .background(.livithColor(.black100))
-}
-
-// MARK: - Mock Data
 
 private extension Concert {
     static let mockConcerts: [Concert] = [
@@ -166,4 +139,38 @@ private extension Concert {
             label: "인기"
         )
     ]
+}
+
+// MARK: - Literals
+
+private extension RecommendedConcertSectionView {
+    enum Literals {
+        static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
+    }
+}
+
+// MARK: - Preview
+
+#Preview("Empty State") {
+    RecommendedConcertSectionView(
+        title: "유지미님의\n취향이 담긴 콘서트",
+        concertList: []
+    ) { concert in
+        print("\(concert)눌림")
+    } onSeeAllTap: {
+        print("상세 눌림")
+    }
+    .background(.livithColor(.black100))
+}
+
+#Preview("With Concerts") {
+    RecommendedConcertSectionView(
+        title: "유지미님의\n취향이 담긴 콘서트",
+        concertList: Concert.mockConcerts
+    ) { concert in
+        print("\(concert.title) 탭")
+    } onSeeAllTap: {
+        print("전체보기 탭")
+    }
+    .background(.livithColor(.black100))
 }

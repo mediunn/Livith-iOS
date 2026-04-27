@@ -1,5 +1,5 @@
 //
-//  InterestConcertDraftCardView.swift
+//  InterestConcertCardView.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 4/22/26.
@@ -9,13 +9,18 @@ import SwiftUI
 
 import LivithDesignSystem
 
-struct InterestConcertDraftCardView: View {
+struct InterestConcertCardView: View {
+
+    // MARK: - Properties
+
     let posterURL: URL?
     let badgeText: String
     let titleText: String
     let dateText: String
     let locationText: String
     let bottomText: String
+
+    // MARK: - Body
     
     var body: some View {
         VStack(spacing: .zero) {
@@ -26,9 +31,9 @@ struct InterestConcertDraftCardView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - UIComponents
 
-private extension InterestConcertDraftCardView {
+private extension InterestConcertCardView {
     var topSection: some View {
         topSectionContent
             .padding(Card.sectionPadding)
@@ -144,7 +149,11 @@ private extension InterestConcertDraftCardView {
     }
     
     var dashedDivider: some View {
-        HorizontalLineShape()
+        GeometryReader { proxy in
+            Path { path in
+                path.move(to: CGPoint(x: .zero, y: Divider.lineWidth / 2))
+                path.addLine(to: CGPoint(x: proxy.size.width, y: Divider.lineWidth / 2))
+            }
             .stroke(
                 Color.livithColor(.black80),
                 style: StrokeStyle(
@@ -153,9 +162,10 @@ private extension InterestConcertDraftCardView {
                     dash: Divider.dash
                 )
             )
-            .frame(height: Divider.lineWidth)
-            .padding(.horizontal, Card.sectionPadding)
-            .offset(y: -0.5)
+        }
+        .frame(height: Divider.lineWidth)
+        .padding(.horizontal, Card.sectionPadding)
+        .offset(y: -0.5)
     }
     
     var seamMask: some View {
@@ -166,9 +176,9 @@ private extension InterestConcertDraftCardView {
     }
 }
 
-// MARK: - Layout Constants
+// MARK: - Constants
 
-private extension InterestConcertDraftCardView {
+private extension InterestConcertCardView {
     enum Card {
         static let cornerRadius: CGFloat = 16
         static let borderLineWidth: CGFloat = 1
@@ -197,7 +207,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
         
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg"),
             badgeText: "공연 D-20",
             titleText: "원 오크 록 내한공연",
@@ -214,7 +224,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
         
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg"),
             badgeText: "공연 D-DAY",
             titleText: "원 오크 록 내한공연",
@@ -231,7 +241,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
         
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: nil,
             badgeText: "공연 예정",
             titleText: "원 오크 록 내한 예정",
@@ -248,7 +258,7 @@ private extension InterestConcertDraftCardView {
         Color.livithColor(.black100)
             .ignoresSafeArea()
 
-        InterestConcertDraftCardView(
+        InterestConcertCardView(
             posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg"),
             badgeText: "공연 D-120",
             titleText: "ONE OK ROCK DETOX ASIA TOUR 2026 IN SEOUL SPECIAL ENCORE",
