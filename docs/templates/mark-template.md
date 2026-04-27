@@ -13,8 +13,10 @@
 - `private extension` 안의 메서드는 `private func` 대신 `func`로 선언한다.
 
 ## View File
-- 허용 `MARK`: `Property`, `Initializer`, `Body`, `Computed Properties`, `UIComponents`, `Helpers`, `Preview`
-- 권장 순서: `Property` -> `Initializer` -> `Body` -> `Computed Properties` -> `UIComponents` -> `Helpers` -> `Preview`
+- 허용 `MARK`: `Property`, `Initializer`, `Body`, `Computed Properties`, `UIComponents`, `Helpers`, `Constants`, `Literals`, `Preview`
+- 권장 순서: `Property` -> `Initializer` -> `Body` -> `Computed Properties` -> `UIComponents` -> `Helpers` -> `Constants` -> `Literals` -> `Preview`
+- SwiftUI `View`를 반환하는 계산 프로퍼티는 보조 UI 조합으로 보고 `UIComponents`에 둔다.
+- 순수 값 계산 프로퍼티는 `Computed Properties`에 둔다.
 
 ```swift
 struct ExampleView: View {
@@ -37,6 +39,22 @@ private extension ExampleView {}
 // MARK: - Helpers
 
 private extension ExampleView {}
+
+// MARK: - Constants
+
+private extension ExampleView {
+    enum Constants {
+        static let cornerRadius: CGFloat = 12
+    }
+}
+
+// MARK: - Literals
+
+private extension ExampleView {
+    enum Literals {
+        static let title = "타이틀"
+    }
+}
 
 // MARK: - Preview
 
