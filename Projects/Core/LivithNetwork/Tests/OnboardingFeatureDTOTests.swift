@@ -38,4 +38,28 @@ struct OnboardingFeatureDTOTests {
         #expect(result.marketingConsent)
         #expect(result.hasPreferredGenre)
     }
+
+    @Test("FetchUserInfo는 providerId가 null이어도 디코딩되어야 한다")
+    func fetchUserInfo는_providerId가_null이어도_디코딩되어야_한다() throws {
+        // Given
+        let json = """
+        {
+            "id": 1,
+            "provider": "kakao",
+            "providerId": null,
+            "email": null,
+            "nickname": "dev",
+            "marketingConsent": true,
+            "hasPreferredGenre": true
+          }
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: json)
+
+        // Then
+        #expect(result.id == 1)
+        #expect(result.nickname == "dev")
+        #expect(result.providerID == nil)
+    }
 }
