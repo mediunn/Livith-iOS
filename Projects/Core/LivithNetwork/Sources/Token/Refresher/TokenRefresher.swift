@@ -113,7 +113,7 @@ struct TokenRefresher {
 
 private extension TokenRefresher {
     enum Literals {
-        static let tokenRefreshPath = "/api/v4/auth/refresh"
+        static let tokenRefreshPath = "auth/refresh"
         static let clientQueryKey = "client"
         static let clientQueryValue = "mobile"
         static let postMethod = "POST"
