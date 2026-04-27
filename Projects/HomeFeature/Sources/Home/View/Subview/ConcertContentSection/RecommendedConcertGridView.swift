@@ -8,14 +8,20 @@
 
 import SwiftUI
 
-import Amplitude
 import Domain
 import LivithDesignSystem
 
+import Amplitude
+
 struct RecommendedConcertGridView: View {
+
+    // MARK: - Property
+
     @Environment(\.homeCoordinator) private var coordinator
     
     let concertList: [Concert]
+
+    // MARK: - Body
     
     var body: some View {
         VStack(spacing: .zero) {
@@ -33,7 +39,7 @@ struct RecommendedConcertGridView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - UIComponents
 
 private extension RecommendedConcertGridView {
     var gridView: some View {

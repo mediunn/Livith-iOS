@@ -8,8 +8,9 @@
 
 import SwiftUI
 
-import Amplitude
 import LivithDesignSystem
+
+import Amplitude
 
 struct HomeConcertSectionView: View {
 
@@ -18,12 +19,12 @@ struct HomeConcertSectionView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @ObservedObject private var store: HomeStore
     @State private var isPreferenceBannerExpanded: Bool = true
+
+    // MARK: - Initializer
     
     init(store: HomeStore) {
         self.store = store
     }
-    
-    private var sectionState: HomeState.ConcertSectionState { store.state.concertSection }
 
     // MARK: - Body
     
@@ -55,6 +56,12 @@ struct HomeConcertSectionView: View {
     }
 }
 
+// MARK: - Computed Properties
+
+private extension HomeConcertSectionView {
+    var sectionState: HomeState.ConcertSectionState { store.state.concertSection }
+}
+
 // MARK: - UIComponents
 
 private extension HomeConcertSectionView {
@@ -71,28 +78,19 @@ private extension HomeConcertSectionView {
     }
     
     var headerView: some View {
-        VStack(spacing: .zero) {
-            if sectionState.shouldShowPreferenceBanner {
-                PreferenceBannerView(
-                    isExpanded: $isPreferenceBannerExpanded,
-                    onTapBanner: {
-                        AmplitudeService.shared.trackEvent(tag: .click(.setPreferenceBannerMain))
-                        coordinator?.push(to: .preferredGenreUpdate)
-                    }
-                )
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
+        EmptyInterestConcertSectionView(
+            nickname: store.state.user?.nickname ?? "라이빗",
+            shouldShowPreferenceBanner: sectionState.shouldShowPreferenceBanner,
+            isPreferenceBannerExpanded: $isPreferenceBannerExpanded,
+            onPreferenceBannerTap: {
+                AmplitudeService.shared.trackEvent(tag: .click(.setPreferenceBannerMain))
+                coordinator?.push(to: .preferredGenreUpdate)
+            },
+            onSettingTap: {
+                AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
+                coordinator?.push(to: .interestConcertSearch)
             }
-            
-            HomeHeaderView(
-                nickname: store.state.user?.nickname ?? "라이빗",
-                action: {
-                    AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
-                    coordinator?.push(to: .interestConcertSearch)
-                }
-            )
-        }
-        .background(Color.livithColor(.black90))
+        )
         .zIndex(1)
     }
     

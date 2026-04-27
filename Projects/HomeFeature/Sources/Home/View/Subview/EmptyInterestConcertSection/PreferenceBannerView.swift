@@ -11,9 +11,14 @@ import SwiftUI
 import LivithDesignSystem
 
 struct PreferenceBannerView: View {
+
+    // MARK: - Property
+
     @Binding var isExpanded: Bool
 
     let onTapBanner: () -> Void
+
+    // MARK: - Body
 
     var body: some View {
         if isExpanded {
@@ -24,13 +29,13 @@ struct PreferenceBannerView: View {
     }
 }
 
-// MARK: - Expanded Banner
+// MARK: - UIComponents
 
 private extension PreferenceBannerView {
     var expandedBanner: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
-                Text(Literals.expandedTitle)
+                Text("나의 취향이 담긴 콘서트를\n추천 받을 수 있어요")
                     .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -53,7 +58,7 @@ private extension PreferenceBannerView {
             Button {
                 onTapBanner()
             } label: {
-                Text(Literals.buttonTitle)
+                Text("취향 선택하러 가기")
                     .notosans(.body3Semibold)
                     .foregroundStyle(Color.livithColor(.black100))
                     .frame(maxWidth: .infinity)
@@ -67,22 +72,18 @@ private extension PreferenceBannerView {
         .background(Color.livithColor(.black100))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
-}
 
-// MARK: - Collapsed Banner
-
-private extension PreferenceBannerView {
     var collapsedBanner: some View {
         Button {
             onTapBanner()
         } label: {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(Literals.collapsedTitle)
+                    Text("취향 선택하러 가기")
                         .notosans(.body2Semibold)
                         .foregroundStyle(Color.livithColor(.white100))
 
-                    Text(Literals.collapsedSubtitle)
+                    Text("나의 취향이 담긴 콘서트를 추천받을 수 있어요")
                         .notosans(.caption1Regular)
                         .foregroundStyle(Color.livithColor(.black50))
                 }
@@ -99,17 +100,6 @@ private extension PreferenceBannerView {
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Constants
-
-private extension PreferenceBannerView {
-    enum Literals {
-        static let expandedTitle = "나의 취향이 담긴 콘서트를\n추천 받을 수 있어요"
-        static let buttonTitle = "취향 선택하러 가기"
-        static let collapsedTitle = "취향 선택하러 가기"
-        static let collapsedSubtitle = "나의 취향이 담긴 콘서트를 추천받을 수 있어요"
     }
 }
 
