@@ -11,7 +11,7 @@ import Foundation
 public extension Bundle {
     static let apiVersion: String = {
         #if DEBUG
-        return "v5"
+        return "v6"
         #else
         return "v5"
         #endif

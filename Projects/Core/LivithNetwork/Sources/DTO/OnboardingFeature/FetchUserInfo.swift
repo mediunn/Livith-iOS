@@ -13,29 +13,17 @@ import Foundation
 public extension DTO.Response {    
     struct FetchUserInfo: Codable {
         public let id: Int
-        public let interestConcertID: Int?
         public let provider: String
-        public let providerID: String
+        public let providerID: String?
         public let email: String?
         public let nickname: String
         public let marketingConsent: Bool
-        public let preferredGenreList: [PreferenceInfo]
-        public let preferredArtistList: [PreferenceInfo]
+        public let hasPreferredGenre: Bool
         
         enum CodingKeys: String, CodingKey {
             case id
-            case interestConcertID = "interestConcertId"
             case providerID = "providerId"
-            case provider, email, nickname, marketingConsent
-            case preferredGenreList = "preferredGenres"
-            case preferredArtistList = "preferredArtists"
+            case provider, email, nickname, marketingConsent, hasPreferredGenre
         }
-    }
-}
-
-public extension DTO.Response.FetchUserInfo {
-    struct PreferenceInfo: Codable {
-        public let id: Int
-        public let name: String
     }
 }

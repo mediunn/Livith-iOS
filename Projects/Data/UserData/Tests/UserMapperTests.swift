@@ -6,27 +6,19 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-import XCTest
+import Foundation
+import Testing
 
 import LivithNetwork
 import Domain
 @testable import UserData
 
-final class UserMapperTests: XCTestCase {
-    private var sut: UserMapper!
-    
-    override func setUp() {
-        super.setUp()
-        sut = UserMapper()
-    }
-    
-    override func tearDown() {
-        sut = nil
-        super.tearDown()
-    }
-    
-    func test_UpdateUserNickname_모든_필드가_있을때_User로_변환해야_한다() throws {
+@Suite("유저 매퍼 테스트")
+struct UserMapperTests {
+    @Test("UpdateUserNickname의 모든 필드를 User로 변환해야 한다")
+    func updateUserNickname의_모든_필드를_User로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 1,
@@ -38,24 +30,25 @@ final class UserMapperTests: XCTestCase {
             "marketingConsent": true
         }
         """.data(using: .utf8)!
-        
         let dto = try JSONDecoder().decode(DTO.Response.UpdateUserNickname.self, from: json)
-        
+
         // When
         let result = sut.toDomain(from: dto)
-        
+
         // Then
-        XCTAssertEqual(result.id, 1)
-        XCTAssertEqual(result.interestConcertID, 100)
-        XCTAssertEqual(result.provider, "kakao")
-        XCTAssertEqual(result.providerID, "4484239560")
-        XCTAssertEqual(result.email, "test@example.com")
-        XCTAssertEqual(result.nickname, "라이빗")
-        XCTAssertTrue(result.authority.marketingConsent)
+        #expect(result.id == 1)
+        #expect(result.interestConcertID == 100)
+        #expect(result.provider == "kakao")
+        #expect(result.providerID == "4484239560")
+        #expect(result.email == "test@example.com")
+        #expect(result.nickname == "라이빗")
+        #expect(result.authority.marketingConsent)
     }
-    
-    func test_UpdateUserNickname_Optional필드가_null일때_User로_변환해야_한다() throws {
+
+    @Test("UpdateUserNickname의 Optional 필드가 null이어도 User로 변환해야 한다")
+    func updateUserNickname의_Optional필드가_null이어도_User로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 1,
@@ -67,86 +60,87 @@ final class UserMapperTests: XCTestCase {
             "marketingConsent": false
         }
         """.data(using: .utf8)!
-        
         let dto = try JSONDecoder().decode(DTO.Response.UpdateUserNickname.self, from: json)
-        
+
         // When
         let result = sut.toDomain(from: dto)
-        
+
         // Then
-        XCTAssertEqual(result.id, 1)
-        XCTAssertNil(result.interestConcertID)
-        XCTAssertEqual(result.provider, "kakao")
-        XCTAssertEqual(result.providerID, "4484239560")
-        XCTAssertNil(result.email)
-        XCTAssertEqual(result.nickname, "라이빗")
-        XCTAssertFalse(result.authority.marketingConsent)
+        #expect(result.id == 1)
+        #expect(result.interestConcertID == nil)
+        #expect(result.provider == "kakao")
+        #expect(result.providerID == "4484239560")
+        #expect(result.email == nil)
+        #expect(result.nickname == "라이빗")
+        #expect(!result.authority.marketingConsent)
     }
 
-    func test_FetchUserInfo_모든_필드가_있을때_User로_변환해야_한다() throws {
+    @Test("FetchUserInfo의 모든 필드를 User로 변환해야 한다")
+    func fetchUserInfo의_모든_필드를_User로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 42,
-            "interestConcertId": 200,
             "provider": "apple",
             "providerId": "001234.abcd1234",
             "email": "user@icloud.com",
             "nickname": "테스트유저",
             "marketingConsent": true,
-            "preferredGenres": [],
-            "preferredArtists": []
+            "hasPreferredGenre": true
         }
         """.data(using: .utf8)!
-
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: json)
 
         // When
         let result = sut.toDomain(from: dto)
 
         // Then
-        XCTAssertEqual(result.id, 42)
-        XCTAssertEqual(result.interestConcertID, 200)
-        XCTAssertEqual(result.provider, "apple")
-        XCTAssertEqual(result.providerID, "001234.abcd1234")
-        XCTAssertEqual(result.email, "user@icloud.com")
-        XCTAssertEqual(result.nickname, "테스트유저")
-        XCTAssertTrue(result.authority.marketingConsent)
+        #expect(result.id == 42)
+        #expect(result.interestConcertID == nil)
+        #expect(result.provider == "apple")
+        #expect(result.providerID == "001234.abcd1234")
+        #expect(result.email == "user@icloud.com")
+        #expect(result.nickname == "테스트유저")
+        #expect(result.hasPreferences)
+        #expect(result.authority.marketingConsent)
     }
 
-    func test_FetchUserInfo_Optional필드가_null일때_User로_변환해야_한다() throws {
+    @Test("FetchUserInfo의 Optional 필드가 null이어도 User로 변환해야 한다")
+    func fetchUserInfo의_Optional필드가_null이어도_User로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 99,
-            "interestConcertId": null,
             "provider": "kakao",
-            "providerId": "9876543210",
+            "providerId": null,
             "email": null,
             "nickname": "익명",
             "marketingConsent": false,
-            "preferredGenres": [],
-            "preferredArtists": []
+            "hasPreferredGenre": false
         }
         """.data(using: .utf8)!
-
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInfo.self, from: json)
 
         // When
         let result = sut.toDomain(from: dto)
 
         // Then
-        XCTAssertEqual(result.id, 99)
-        XCTAssertNil(result.interestConcertID)
-        XCTAssertEqual(result.provider, "kakao")
-        XCTAssertEqual(result.providerID, "9876543210")
-        XCTAssertNil(result.email)
-        XCTAssertEqual(result.nickname, "익명")
-        XCTAssertFalse(result.authority.marketingConsent)
+        #expect(result.id == 99)
+        #expect(result.interestConcertID == nil)
+        #expect(result.provider == "kakao")
+        #expect(result.providerID == "")
+        #expect(result.email == nil)
+        #expect(result.nickname == "익명")
+        #expect(!result.hasPreferences)
+        #expect(!result.authority.marketingConsent)
     }
 
-    func test_FetchUserInterestConcert_모든_필드가_있을때_Concert로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert의 모든 필드를 Concert로 변환해야 한다")
+    func fetchUserInterestConcert의_모든_필드를_Concert로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 8,
@@ -165,27 +159,28 @@ final class UserMapperTests: XCTestCase {
             "label": "첫 단독 내한 콘서트"
         }
         """.data(using: .utf8)!
-
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
 
         // When
-        let result = try XCTUnwrap(sut.toDomain(from: dto))
+        let result = try #require(sut.toDomain(from: dto))
 
         // Then
-        XCTAssertEqual(result.id, 8)
-        XCTAssertEqual(result.title, "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
-        XCTAssertEqual(result.artist, "JAKE MILLER (제이크 밀러)")
-        XCTAssertEqual(result.status, .completed)
-        XCTAssertEqual(result.posterURL.absoluteString, "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
-        XCTAssertEqual(result.venue, "무신사 개러지")
-        XCTAssertEqual(result.ticketingOffice, "NOL 티켓")
-        XCTAssertEqual(result.ticketingOfficeURL?.absoluteString, "https://tickets.interpark.com/goods/25009244")
-        XCTAssertEqual(result.introduction, "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!")
-        XCTAssertEqual(result.label, "첫 단독 내한 콘서트")
+        #expect(result.id == 8)
+        #expect(result.title == "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
+        #expect(result.artist == "JAKE MILLER (제이크 밀러)")
+        #expect(result.status == .completed)
+        #expect(result.posterURL.absoluteString == "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
+        #expect(result.venue == "무신사 개러지")
+        #expect(result.ticketingOffice == "NOL 티켓")
+        #expect(result.ticketingOfficeURL?.absoluteString == "https://tickets.interpark.com/goods/25009244")
+        #expect(result.introduction == "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!")
+        #expect(result.label == "첫 단독 내한 콘서트")
     }
 
-    func test_FetchUserInterestConcert_Optional필드가_null일때_Concert로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert의 Optional 필드가 null이어도 Concert로 변환해야 한다")
+    func fetchUserInterestConcert의_Optional필드가_null이어도_Concert로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 2,
@@ -204,27 +199,28 @@ final class UserMapperTests: XCTestCase {
             "label": null
         }
         """.data(using: .utf8)!
-
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
 
         // When
-        let result = try XCTUnwrap(sut.toDomain(from: dto))
+        let result = try #require(sut.toDomain(from: dto))
 
         // Then
-        XCTAssertEqual(result.id, 2)
-        XCTAssertEqual(result.title, "버스커버스커 공연")
-        XCTAssertEqual(result.artist, "버스커버스커")
-        XCTAssertEqual(result.status, .ongoing)
-        XCTAssertEqual(result.posterURL.absoluteString, "https://example.com/busker.jpg")
-        XCTAssertEqual(result.venue, "홍대 놀이터")
-        XCTAssertNil(result.ticketingOffice)
-        XCTAssertNil(result.ticketingOfficeURL)
-        XCTAssertEqual(result.introduction, "무료 게릴라 공연")
-        XCTAssertNil(result.label)
+        #expect(result.id == 2)
+        #expect(result.title == "버스커버스커 공연")
+        #expect(result.artist == "버스커버스커")
+        #expect(result.status == .ongoing)
+        #expect(result.posterURL.absoluteString == "https://example.com/busker.jpg")
+        #expect(result.venue == "홍대 놀이터")
+        #expect(result.ticketingOffice == nil)
+        #expect(result.ticketingOfficeURL == nil)
+        #expect(result.introduction == "무료 게릴라 공연")
+        #expect(result.label == nil)
     }
 
-    func test_UpdateUserInterestConcert_모든_필드가_있을때_Concert로_변환해야_한다() throws {
+    @Test("UpdateUserInterestConcert의 모든 필드를 Concert로 변환해야 한다")
+    func updateUserInterestConcert의_모든_필드를_Concert로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 8,
@@ -242,27 +238,28 @@ final class UserMapperTests: XCTestCase {
             "label": "첫 단독 내한 콘서트"
         }
         """.data(using: .utf8)!
-
         let dto = try JSONDecoder().decode(DTO.Response.UpdateUserInterestConcert.self, from: json)
 
         // When
-        let result = try XCTUnwrap(sut.toDomain(from: dto))
+        let result = try #require(sut.toDomain(from: dto))
 
         // Then
-        XCTAssertEqual(result.id, 8)
-        XCTAssertEqual(result.title, "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
-        XCTAssertEqual(result.artist, "JAKE MILLER (제이크 밀러)")
-        XCTAssertEqual(result.status, .completed)
-        XCTAssertEqual(result.posterURL.absoluteString, "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
-        XCTAssertEqual(result.venue, "무신사 개러지")
-        XCTAssertEqual(result.ticketingOffice, "NOL 티켓")
-        XCTAssertEqual(result.ticketingOfficeURL?.absoluteString, "https://tickets.interpark.com/goods/25009244")
-        XCTAssertEqual(result.introduction, "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!")
-        XCTAssertEqual(result.label, "첫 단독 내한 콘서트")
+        #expect(result.id == 8)
+        #expect(result.title == "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
+        #expect(result.artist == "JAKE MILLER (제이크 밀러)")
+        #expect(result.status == .completed)
+        #expect(result.posterURL.absoluteString == "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
+        #expect(result.venue == "무신사 개러지")
+        #expect(result.ticketingOffice == "NOL 티켓")
+        #expect(result.ticketingOfficeURL?.absoluteString == "https://tickets.interpark.com/goods/25009244")
+        #expect(result.introduction == "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!")
+        #expect(result.label == "첫 단독 내한 콘서트")
     }
 
-    func test_UpdateUserInterestConcert_Optional필드가_null일때_Concert로_변환해야_한다() throws {
+    @Test("UpdateUserInterestConcert의 Optional 필드가 null이어도 Concert로 변환해야 한다")
+    func updateUserInterestConcert의_Optional필드가_null이어도_Concert로_변환해야_한다() throws {
         // Given
+        let sut = UserMapper()
         let json = """
         {
             "id": 10,
@@ -280,66 +277,58 @@ final class UserMapperTests: XCTestCase {
             "label": null
         }
         """.data(using: .utf8)!
-
         let dto = try JSONDecoder().decode(DTO.Response.UpdateUserInterestConcert.self, from: json)
 
         // When
-        let result = try XCTUnwrap(sut.toDomain(from: dto))
+        let result = try #require(sut.toDomain(from: dto))
 
         // Then
-        XCTAssertEqual(result.id, 10)
-        XCTAssertEqual(result.title, "무료 버스킹 공연")
-        XCTAssertEqual(result.artist, "인디 밴드")
-        XCTAssertEqual(result.status, .upcoming)
-        XCTAssertEqual(result.posterURL.absoluteString, "https://example.com/busking.jpg")
-        XCTAssertEqual(result.venue, "신촌 연세로")
-        XCTAssertNil(result.ticketingOffice)
-        XCTAssertNil(result.ticketingOfficeURL)
-        XCTAssertEqual(result.introduction, "무료로 즐기는 버스킹 공연")
-        XCTAssertNil(result.label)
+        #expect(result.id == 10)
+        #expect(result.title == "무료 버스킹 공연")
+        #expect(result.artist == "인디 밴드")
+        #expect(result.status == .upcoming)
+        #expect(result.posterURL.absoluteString == "https://example.com/busking.jpg")
+        #expect(result.venue == "신촌 연세로")
+        #expect(result.ticketingOffice == nil)
+        #expect(result.ticketingOfficeURL == nil)
+        #expect(result.introduction == "무료로 즐기는 버스킹 공연")
+        #expect(result.label == nil)
     }
 }
 
-final class UserErrorMapperTests: XCTestCase {
-    private var sut: UserErrorMapper!
-    
-    override func setUp() {
-        super.setUp()
-        sut = UserErrorMapper()
-    }
-    
-    override func tearDown() {
-        sut = nil
-        super.tearDown()
-    }
-    
-    // MARK: - 기본 네트워크 에러 변환 테스트
-    
-    func test_네트워크_연결_없음_에러는_noConnection으로_변환되어야_한다() {
+@Suite("유저 에러 매퍼 테스트")
+struct UserErrorMapperTests {
+    @Test("네트워크 연결 없음 에러를 noConnection으로 변환해야 한다")
+    func 네트워크_연결_없음_에러를_noConnection으로_변환해야_한다() {
         // Given
+        let sut = UserErrorMapper()
         let networkError = NetworkError.noConnection(NSError(domain: "", code: -1))
-        
+
         // When
         let result = sut.mapToUserError(networkError)
-        
+
         // Then
-        XCTAssertEqual(result, .noConnection)
+        #expect(result == .noConnection)
     }
-    
-    func test_서버_에러는_serverError로_변환되어야_한다() {
+
+    @Test("서버 에러를 serverError로 변환해야 한다")
+    func 서버_에러를_serverError로_변환해야_한다() {
         // Given
+        let sut = UserErrorMapper()
         let networkError = NetworkError.serverError(message: nil)
-        
+
         // When
         let result = sut.mapToUserError(networkError)
-        
+
         // Then
-        XCTAssertEqual(result, .serverError)
+        #expect(result == .serverError)
     }
-    
-    func test_잘못된_요청_관련_에러들은_invalidResponse로_변환되어야_한다() {
+
+    @Test("잘못된 요청 관련 에러를 invalidResponse로 변환해야 한다")
+    func 잘못된_요청_관련_에러를_invalidResponse로_변환해야_한다() {
         // Given
-        let errors: [NetworkError] = [
+        let sut = UserErrorMapper()
+        let errorList: [NetworkError] = [
             .noData,
             .decodingFailed(NSError(domain: "", code: -1)),
             .invalidURL,
@@ -347,116 +336,20 @@ final class UserErrorMapperTests: XCTestCase {
             .invalidResponse,
             .clientError(statusCode: 400, message: nil)
         ]
-        
-        errors.forEach { error in
+
+        for error in errorList {
             // When
             let result = sut.mapToUserError(error)
-            
+
             // Then
-            XCTAssertEqual(result, .invalidResponse, "Failed for error: \(error)")
+            #expect(result == .invalidResponse)
         }
     }
-    
-    // MARK: - 메시지 기반 에러 변환 테스트
-    
-    func test_유저_없음_에러_메시지는_userNotFound로_변환되어야_한다() {
-        // Given - 404 Not Found: "해당 유저가 존재하지 않습니다."
-        let networkError = NetworkError.notFound(message: "해당 유저가 존재하지 않습니다.")
-        
-        // When
-        let result = sut.mapToUserError(networkError)
-        
-        // Then
-        XCTAssertEqual(result, .userNotFound)
-    }
-    
-    func test_중복_닉네임_에러_메시지는_duplicateNickname으로_변환되어야_한다() {
-        // Given - 400 Bad Request: "이미 존재하는 닉네임이에요."
-        let networkError = NetworkError.badRequest(message: "이미 존재하는 닉네임이에요.")
-        
-        // When
-        let result = sut.mapToUserError(networkError)
-        
-        // Then
-        XCTAssertEqual(result, .duplicateNickname)
-    }
-    
-    func test_닉네임_길이_초과_에러_메시지는_nicknameTooLong으로_변환되어야_한다() {
-        // Given - 400 Bad Request: "nickname must be shorter than or equal to 10 characters"
-        let networkError = NetworkError.badRequest(message: "nickname must be shorter than or equal to 10 characters")
-        
-        // When
-        let result = sut.mapToUserError(networkError)
-        
-        // Then
-        XCTAssertEqual(result, .nicknameTooLong)
-    }
-    
-    func test_탈퇴한_회원_에러_메시지는_withdrawn으로_변환되어야_한다() {
-        // Given - 403 Forbidden: "탈퇴한 회원입니다."
-        let networkError = NetworkError.forbidden(message: "탈퇴한 회원입니다.")
-        
-        // When
-        let result = sut.mapToUserError(networkError)
-        
-        // Then
-        XCTAssertEqual(result, .withdrawn)
-    }
-    
-    func test_빈_닉네임_에러_메시지는_emptyNickname으로_변환되어야_한다() {
-        // Given - 400 Bad Request: "nickname should not be empty"
-        let networkError = NetworkError.badRequest(message: "nickname should not be empty")
-        
-        // When
-        let result = sut.mapToUserError(networkError)
-        
-        // Then
-        XCTAssertEqual(result, .emptyNickname)
-    }
-    
-    func test_인증_토큰_없음_에러는_unknown으로_변환되어야_한다() {
-        // Given - 401 Unauthorized: "Unauthorized"
-        let networkError = NetworkError.unauthorized(message: "Unauthorized")
-        
-        // When
-        let result = sut.mapToUserError(networkError)
-        
-        // Then
-        XCTAssertEqual(result, .unknown)
-    }
-    
-    // MARK: - 취소 에러 변환 테스트
-    
-    func test_취소_에러는_cancelled로_변환되어야_한다() {
+
+    @Test("메시지 기반 에러를 올바른 UserError로 변환해야 한다")
+    func 메시지_기반_에러를_올바른_UserError로_변환해야_한다() {
         // Given
-        let cancellationError = CancellationError()
-        let urlCancelledError = URLError(.cancelled)
-        let networkCancelledError = NetworkError.unknown(URLError(.cancelled))
-        let networkNoConnectionCancelledError = NetworkError.noConnection(URLError(.cancelled))
-        
-        // When & Then
-        XCTAssertEqual(sut.mapToUserError(cancellationError), .cancelled)
-        XCTAssertEqual(sut.mapToUserError(urlCancelledError), .cancelled)
-        XCTAssertEqual(sut.mapToUserError(networkCancelledError), .cancelled)
-        XCTAssertEqual(sut.mapToUserError(networkNoConnectionCancelledError), .cancelled)
-    }
-    
-    // MARK: - 기타 에러 변환 테스트
-    
-    func test_NetworkError가_아닌_에러는_unknown으로_변환되어야_한다() {
-        // Given
-        struct SomeError: Error {}
-        let error = SomeError()
-        
-        // When
-        let result = sut.mapToUserError(error)
-        
-        // Then
-        XCTAssertEqual(result, .unknown)
-    }
-    
-    func test_메시지_기반_에러들이_올바르게_변환되어야_한다() {
-        // Given
+        let sut = UserErrorMapper()
         let testCases: [(NetworkError, UserError)] = [
             (.notFound(message: "해당 유저가 존재하지 않습니다."), .userNotFound),
             (.badRequest(message: "이미 존재하는 닉네임이에요."), .duplicateNickname),
@@ -464,13 +357,52 @@ final class UserErrorMapperTests: XCTestCase {
             (.forbidden(message: "탈퇴한 회원입니다."), .withdrawn),
             (.badRequest(message: "nickname should not be empty"), .emptyNickname)
         ]
-        
-        testCases.forEach { networkError, expectedError in
+
+        for (networkError, expectedError) in testCases {
             // When
             let result = sut.mapToUserError(networkError)
-            
+
             // Then
-            XCTAssertEqual(result, expectedError, "Failed for error: \(networkError)")
+            #expect(result == expectedError)
         }
+    }
+
+    @Test("인증 토큰 없음 에러를 unknown으로 변환해야 한다")
+    func 인증_토큰_없음_에러를_unknown으로_변환해야_한다() {
+        // Given
+        let sut = UserErrorMapper()
+        let networkError = NetworkError.unauthorized(message: "Unauthorized")
+
+        // When
+        let result = sut.mapToUserError(networkError)
+
+        // Then
+        #expect(result == .unknown)
+    }
+
+    @Test("취소 에러를 cancelled로 변환해야 한다")
+    func 취소_에러를_cancelled로_변환해야_한다() {
+        // Given
+        let sut = UserErrorMapper()
+
+        // When & Then
+        #expect(sut.mapToUserError(CancellationError()) == .cancelled)
+        #expect(sut.mapToUserError(URLError(.cancelled)) == .cancelled)
+        #expect(sut.mapToUserError(NetworkError.unknown(URLError(.cancelled))) == .cancelled)
+        #expect(sut.mapToUserError(NetworkError.noConnection(URLError(.cancelled))) == .cancelled)
+    }
+
+    @Test("NetworkError가 아닌 에러를 unknown으로 변환해야 한다")
+    func NetworkError가_아닌_에러를_unknown으로_변환해야_한다() {
+        // Given
+        struct SomeError: Error {}
+        let sut = UserErrorMapper()
+        let error = SomeError()
+
+        // When
+        let result = sut.mapToUserError(error)
+
+        // Then
+        #expect(result == .unknown)
     }
 }
