@@ -17,27 +17,28 @@
 ## 단계별 원칙
 - 각 단계는 `red -> verify red -> green -> verify green -> refactor` 순서로 진행한다.
 - 생산 코드 변경 전 실패 테스트를 먼저 작성하고, 컴파일 성공 상태에서 실제 실행해 기대 동작 부재로 실패하는지 확인한다.
+- 단, 생산 코드가 이미 요구 동작을 충족해 실패 테스트가 성립하지 않는 경우 사용자 확인 후 보호 테스트로 전환하고 트러블슈팅에 사유를 기록한다.
 - 컴파일 실패는 `red`로 간주하지 않는다.
 - 시그니처 변경 때문에 테스트가 컴파일되지 않으면 컴파일에 필요한 최소 선언만 먼저 추가하고, 동작 구현 없이 런타임 실패를 확인한다.
 - 각 단계의 `green`과 `refactor` 이후에는 영향 범위 보호 테스트를 다시 실행한다.
 - 서브에이전트가 명시적으로 리뷰 통과를 판정하기 전에는 사용자에게 단계 완료 보고를 하지 않는다.
 
 ## 작업 항목
-- [ ] 1단계: 회원가입 API 수정
-  - [ ] 변경된 회원가입 응답의 유저 DTO 스펙을 반영하는 실패 테스트를 작성하고 실패 원인을 확인한다.
-  - [ ] `DTO.Response.Signup` 전체 응답 디코딩 테스트를 추가해 `accessToken`, `refreshToken`, `user.providerId == null`, `user.hasPreferredGenre`, 제거된 `interestConcertId/preferredGenres/preferredArtists` 미포함 응답을 검증한다.
-  - [ ] `DTO.Response.Signup` 및 연관 DTO 디코딩이 `hasPreferredGenre`, nullable `providerId`를 처리하도록 확인한다.
-  - [ ] `AuthRepositoryImpl.handleSignup`과 `AuthMapper`가 변경된 회원가입 응답을 정상적으로 도메인에 매핑하도록 수정한다.
-  - [ ] 이 단계에서는 `User.interestConcertID` 제거와 `User.providerID` nullable 변경을 수행하지 않고, API 응답 변경에 필요한 최소 수정만 적용한다.
-  - [ ] 1단계에서 `providerId == null`은 DTO 디코딩까지 검증하고, 기존 non-null `User.providerID`에는 임시 어댑팅을 유지한다.
-  - [ ] 빈 문자열 대체 임시 어댑팅은 2단계에서 `User.providerID: String?`로 변경하면서 제거한다.
-  - [ ] 관련 테스트를 실행해 통과를 확인한다.
-- [ ] 1단계 리뷰 및 보고
-  - [ ] 1단계 구현 완료 후 서브에이전트에게 이 계획 문서를 기준으로 구현 내용을 리뷰 요청한다.
-  - [ ] 리뷰 지적 사항을 모두 수정하고 관련 테스트를 다시 실행한다.
-  - [ ] 리뷰가 통과될 때까지 수정과 재검증을 반복한다.
-  - [ ] 서브에이전트가 명시적으로 통과 판정을 내리기 전에는 사용자에게 1단계 완료를 보고하지 않는다.
-  - [ ] 1단계 리뷰 통과 후 사용자에게 1단계 완료를 보고한다.
+- [x] 1단계: 회원가입 API 수정
+  - [x] 변경된 회원가입 응답의 유저 DTO 스펙이 기존 구현에서 이미 충족되는지 확인하고 보호 테스트를 추가한다.
+  - [x] `DTO.Response.Signup` 전체 응답 디코딩 테스트를 추가해 `accessToken`, `refreshToken`, `user.providerId == null`, `user.hasPreferredGenre`, 제거된 `interestConcertId/preferredGenres/preferredArtists` 미포함 응답을 검증한다.
+  - [x] `DTO.Response.Signup` 및 연관 DTO 디코딩이 `hasPreferredGenre`, nullable `providerId`를 처리하도록 확인한다.
+  - [x] `AuthRepositoryImpl.handleSignup`과 `AuthMapper`가 변경된 회원가입 응답을 정상적으로 도메인에 매핑하는지 확인한다.
+  - [x] 이 단계에서는 `User.interestConcertID` 제거와 `User.providerID` nullable 변경을 수행하지 않고, API 응답 변경에 필요한 최소 수정만 적용한다.
+  - [x] 1단계에서 `providerId == null`은 DTO 디코딩까지 검증하고, 기존 non-null `User.providerID`에는 임시 어댑팅을 유지한다.
+  - [x] 빈 문자열 대체 임시 어댑팅은 2단계에서 `User.providerID: String?`로 변경하면서 제거한다.
+  - [x] 관련 테스트를 실행해 통과를 확인한다.
+- [x] 1단계 리뷰 및 보고
+  - [x] 1단계 구현 완료 후 서브에이전트에게 이 계획 문서를 기준으로 구현 내용을 리뷰 요청한다.
+  - [x] 리뷰 지적 사항을 모두 수정하고 관련 테스트를 다시 실행한다.
+  - [x] 리뷰가 통과될 때까지 수정과 재검증을 반복한다.
+  - [x] 서브에이전트가 명시적으로 통과 판정을 내리기 전에는 사용자에게 1단계 완료를 보고하지 않는다.
+  - [x] 1단계 리뷰 통과 후 사용자에게 1단계 완료를 보고한다.
 - [ ] 2단계: 유저 도메인 모델 수정
   - [ ] `Domain.User`에서 `interestConcertID` 프로퍼티, initializer 파라미터, `CodingKeys`를 제거하는 실패 테스트를 작성하고 실패 원인을 확인한다.
   - [ ] `Domain.User.providerID`를 `String?`로 변경한다.
