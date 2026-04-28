@@ -2,6 +2,48 @@
 
 ## 기록
 
+### 2026-04-28 19:10 - 2단계 리뷰 피드백 홈 관심 콘서트 표시 데이터 보강
+
+**상황**
+- 2단계 구현 후 서브에이전트 리뷰를 요청했다.
+
+**문제**
+- `HomeStore`의 관심 콘서트 조회 결과가 헤더 분기에만 사용되고, `HomeInterestConcertSectionView`는 mock 카드 데이터를 계속 표시한다는 피드백을 받았다.
+- `HomeStoreTests`가 `interestedConcert` 상태 저장/초기화 자체를 직접 검증하지 않는다는 피드백을 받았다.
+
+**원인**
+- 2단계 범위를 최소 연결로 제한하면서 표시 상태와 실제 표시 데이터의 충돌 가능성을 테스트로 충분히 보호하지 못했다.
+
+**해결**
+- `HomeInterestConcertSectionView`가 조회된 `Concert`를 입력으로 받아 단일 관심 콘서트 카드를 구성하도록 변경했다.
+- `HomeStoreTests`에 관심 콘서트 성공, nil, 실패 결과의 상태 반영 검증을 보강했다.
+- `HomeFeature` 테스트와 `Livith-iOS-Dev` 빌드를 재실행해 통과를 확인했다.
+
+**교훈**
+- 상태 분기만 바꾸는 작업에서도 실제 표시 데이터가 mock 또는 임시 데이터와 충돌하지 않는지 함께 검증한다.
+
+---
+
+### 2026-04-28 19:04 - ConcertFeature 스킴 test action 미설정
+
+**상황**
+- 2단계 `ConcertStore` 변경 후 `ConcertFeature` 스킴 테스트 실행을 시도했다.
+
+**문제**
+- `xcodebuild test -scheme ConcertFeature`가 `Scheme ConcertFeature is not currently configured for the test action.` 오류로 종료됐다.
+
+**원인**
+- `ConcertFeature` 스킴에 test action이 설정되어 있지 않다.
+
+**해결**
+- 동일 스킴을 `xcodebuild build -scheme ConcertFeature`로 검증해 컴파일 회귀가 없는지 확인했다.
+- 앱 스킴 `Livith-iOS-Dev` 빌드도 추가 실행해 App, NotificationService, AppRootView를 포함한 통합 빌드를 확인했다.
+
+**교훈**
+- 테스트 액션이 없는 Feature 스킴은 관련 빌드와 상위 앱 빌드로 검증 범위를 보완한다.
+
+---
+
 ### 2026-04-28 18:49 - 1단계 리뷰 피드백 공백 라인 정리
 
 **상황**

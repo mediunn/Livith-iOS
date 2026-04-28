@@ -72,7 +72,6 @@ struct UserRepositoryImpl: UserRepository {
             guard let concert = mapper.toDomain(from: response) else {
                 throw UserError.invalidResponse
             }
-            await userCache.updateUser { $0.interestConcertID = concert.id }
             await interestConcertCache.saveInterestConcert(concert)
             return concert
         } catch NetworkError.noData {
@@ -92,7 +91,6 @@ struct UserRepositoryImpl: UserRepository {
             guard let concert = mapper.toDomain(from: response) else {
                 throw UserError.invalidResponse
             }
-            await userCache.updateUser { $0.interestConcertID = concert.id }
             await interestConcertCache.saveInterestConcert(concert)
             return concert
         } catch {
@@ -104,7 +102,6 @@ struct UserRepositoryImpl: UserRepository {
     func deleteInterestedConcert() async throws(UserError) {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
-            await userCache.updateUser { $0.interestConcertID = nil }
             await interestConcertCache.deleteInterestConcert()
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)

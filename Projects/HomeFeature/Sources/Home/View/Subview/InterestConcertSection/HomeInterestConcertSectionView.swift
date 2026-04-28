@@ -8,12 +8,14 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 
 struct HomeInterestConcertSectionView: View {
 
     // MARK: - Properties
 
+    let concert: Concert
     let onChangeTap: () -> Void
     let onTitleTap: () -> Void
 
@@ -24,9 +26,11 @@ struct HomeInterestConcertSectionView: View {
     // MARK: - Initializer
 
     init(
+        concert: Concert,
         onChangeTap: @escaping () -> Void = {},
         onTitleTap: @escaping () -> Void = {}
     ) {
+        self.concert = concert
         self.onTitleTap = onTitleTap
         self.onChangeTap = onChangeTap
     }
@@ -53,14 +57,7 @@ struct HomeInterestConcertSectionView: View {
 
 private extension HomeInterestConcertSectionView {
     var visibleItemList: [HomeInterestConcertSectionItem] {
-        let sortedItemList = switch selectedSortOption {
-        case .ticketDate:
-            Self.mockItemList.sorted { $0.ticketDate < $1.ticketDate }
-        case .concertDate:
-            Self.mockItemList.sorted { $0.concertDate < $1.concertDate }
-        }
-
-        return Array(sortedItemList.prefix(5))
+        [makeItem(from: concert)]
     }
 
     var nextIndex: Int {
@@ -214,6 +211,53 @@ private extension HomeInterestConcertSectionView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertSectionView {
+    func makeItem(from concert: Concert) -> HomeInterestConcertSectionItem {
+        HomeInterestConcertSectionItem(
+            id: concert.id,
+            ticketDate: concert.startDate,
+            concertDate: concert.startDate,
+            posterURL: concert.posterURL,
+            badgeText: badgeText(from: concert),
+            titleText: concert.title,
+            dateText: dateText(from: concert),
+            locationText: concert.venue,
+            bottomText: bottomText(from: concert)
+        )
+    }
+
+    func badgeText(from concert: Concert) -> String {
+        guard concert.status == .upcoming else {
+            return concert.status.filterText
+        }
+
+        guard concert.daysLeft > 0 else {
+            return "공연 D-Day"
+        }
+
+        return "공연 D-\(concert.daysLeft)"
+    }
+
+    func dateText(from concert: Concert) -> String {
+        let fullDateFormatter = DateFormatter()
+        fullDateFormatter.dateFormat = "yyyy.MM.dd"
+
+        guard !Calendar.current.isDate(concert.startDate, inSameDayAs: concert.endDate) else {
+            return fullDateFormatter.string(from: concert.startDate)
+        }
+
+        let endDateFormatter = DateFormatter()
+        endDateFormatter.dateFormat = "MM.dd"
+        return "\(fullDateFormatter.string(from: concert.startDate))~\(endDateFormatter.string(from: concert.endDate))"
+    }
+
+    func bottomText(from concert: Concert) -> String {
+        guard let ticketingOffice = concert.ticketingOffice else {
+            return "예매 정보가 곧 공개될 예정이에요"
+        }
+
+        return "예매처 · \(ticketingOffice)"
+    }
+
     func handleDragEnded(_ value: DragGesture.Value) {
         let horizontalAmount = value.translation.width
         let newIndex = calculateNewIndex(from: horizontalAmount)
@@ -245,41 +289,21 @@ private extension HomeInterestConcertSectionView {
         static let animationDuration: Double = 0.5
     }
 
-    static let mockItemList: [HomeInterestConcertSectionItem] = [
-        HomeInterestConcertSectionItem(
-            id: 1,
-            ticketDate: Date(timeIntervalSince1970: 1_782_806_400),
-            concertDate: Date(timeIntervalSince1970: 1_783_584_000),
-            posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg"),
-            badgeText: "공연 D-20",
-            titleText: "원 오크 록 내한공연",
-            dateText: "2025.09.13~09.14",
-            locationText: "잠실 실내 체육관",
-            bottomText: "선예매 오픈 · 9/14(일) 2:00PM"
-        ),
-        HomeInterestConcertSectionItem(
-            id: 2,
-            ticketDate: Date(timeIntervalSince1970: 1_782_115_200),
-            concertDate: Date(timeIntervalSince1970: 1_786_176_000),
-            posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF277177_251023_152216.jpg"),
-            badgeText: "공연 D-35",
-            titleText: "wacci Hall Tour: SHOUKEI",
-            dateText: "2025.10.04~10.05",
-            locationText: "예스24 원더로크홀",
-            bottomText: "일반 예매 오픈 · 9/20(토) 6:00PM"
-        ),
-        HomeInterestConcertSectionItem(
-            id: 3,
-            ticketDate: Date(timeIntervalSince1970: 1_783_324_800),
-            concertDate: Date(timeIntervalSince1970: 1_781_942_400),
-            posterURL: nil,
-            badgeText: "공연 예정",
-            titleText: "Gen Hoshino Live in Seoul",
-            dateText: "2025.08.30~08.31",
-            locationText: "인스파이어 아레나",
-            bottomText: "예매 오픈 일정이 곧 공개될 예정이에요"
-        )
-    ]
+    static let previewConcert = Concert(
+        id: 1,
+        title: "원 오크 록 내한공연",
+        artist: "ONE OK ROCK",
+        status: .upcoming,
+        daysLeft: 20,
+        startDate: Date(timeIntervalSince1970: 1_783_584_000),
+        endDate: Date(timeIntervalSince1970: 1_783_670_400),
+        posterURL: URL(string: "https://kopis.or.kr/upload/pfmPoster/PF_PF278958_251113_113650.jpg")!,
+        venue: "잠실 실내 체육관",
+        ticketSite: "인터파크 티켓",
+        ticketURL: URL(string: "https://ticket.example.com"),
+        introduction: "",
+        label: nil
+    )
 }
 
 private struct HomeInterestConcertSectionItem: Identifiable, Equatable {
@@ -315,6 +339,6 @@ private enum HomeInterestConcertSortOption: CaseIterable {
         Color.livithColor(.black100)
             .ignoresSafeArea()
 
-        HomeInterestConcertSectionView()
+        HomeInterestConcertSectionView(concert: HomeInterestConcertSectionView.previewConcert)
     }
 }

@@ -73,7 +73,6 @@ struct AuthMapperTests {
 
         // Then
         #expect(result.id == 123)
-        #expect(result.interestConcertID == nil)
         #expect(result.provider == "kakao")
         #expect(result.providerID == "provider123")
         #expect(result.email == "test@example.com")
@@ -104,9 +103,8 @@ struct AuthMapperTests {
 
         // Then
         #expect(result.id == 789)
-        #expect(result.interestConcertID == nil)
         #expect(result.provider == "apple")
-        #expect(result.providerID == "")
+        #expect(result.providerID == nil)
         #expect(result.email == nil)
         #expect(result.nickname == "애플유저")
         #expect(!result.hasPreferences)

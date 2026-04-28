@@ -39,33 +39,33 @@
   - [x] 리뷰가 통과될 때까지 수정과 재검증을 반복한다.
   - [x] 서브에이전트가 명시적으로 통과 판정을 내리기 전에는 사용자에게 1단계 완료를 보고하지 않는다.
   - [x] 1단계 리뷰 통과 후 사용자에게 1단계 완료를 보고한다.
-- [ ] 2단계: 유저 도메인 모델 수정
-  - [ ] `Domain.User`에서 `interestConcertID` 프로퍼티, initializer 파라미터, `CodingKeys`를 제거하는 실패 테스트를 작성하고 실패 원인을 확인한다.
-  - [ ] `Domain.User.providerID`를 `String?`로 변경한다.
-  - [ ] `AuthMapper`, `UserMapper`, `UpdateUserNickname` 매핑에서 `interestConcertID` 의존을 제거하고 nullable `providerID`를 그대로 전달한다.
-  - [ ] `AuthMapperTests`, `UserMapperTests`에서 null `providerId` 기대값을 빈 문자열이 아닌 `nil`로 변경한다.
-  - [ ] `UpdateUserNickname` 응답 DTO의 서버 스펙을 확인하고, 새 유저 DTO 스펙과 동일하다면 `interestConcertId` 제거, `providerId` nullable, `hasPreferredGenre` 추가를 DTO와 테스트에 반영한다.
-  - [ ] `UpdateUserNickname` 응답 DTO 스펙이 변경되지 않았다면 DTO는 유지하고, `UserMapper`에서 `interestConcertID`를 도메인에 전달하지 않도록만 수정한다.
-  - [ ] `UserRepositoryImpl`에서 관심 콘서트 변경 시 `User` 캐시를 수정하던 로직을 제거한다.
-  - [ ] `HomeState`에 관심 콘서트 조회 결과 상태를 추가하고, `HomeStore`에서 `UserRepository.fetchInterestedConcert()` 결과로 홈 헤더 분기 상태를 갱신한다.
-  - [ ] `HomeView`의 관심 콘서트 섹션 분기를 `User.interestConcertID`가 아닌 `HomeState`의 관심 콘서트 상태 기반으로 변경한다.
-  - [ ] `HomeInterestConcertSectionView`의 mock 기반 표시가 실제 관심 콘서트 상태와 충돌하지 않는지 확인하고, 필요한 최소 연결만 수행한다.
-  - [ ] `HomeStoreTests`의 `interestConcertID` 기반 테스트를 관심 콘서트 조회 결과 기반 테스트로 재작성한다.
-  - [ ] `ConcertStore`에서 `currentUser.interestConcertID`를 직접 읽고 쓰는 `UserDefaultsStorage` 접근을 제거한다.
-  - [ ] 콘서트 상세 화면의 현재 관심 콘서트 판단은 `UserRepository.fetchInterestedConcert()`를 통해 조회하고, Repository 내부의 기존 관심 콘서트 캐시를 활용하도록 한다.
-  - [ ] 관련 Mock과 테스트의 `User` 생성부 및 기대값을 갱신한다.
-  - [ ] 수정 대상 테스트가 `XCTest` 기반이면 해당 영향을 받는 테스트를 `Swift Testing` 기반으로 전환한다.
-  - [ ] 관련 테스트와 빌드를 실행해 통과를 확인한다.
-- [ ] 2단계 리뷰 및 보고
-  - [ ] 2단계 구현 완료 후 서브에이전트에게 이 계획 문서를 기준으로 구현 내용을 리뷰 요청한다.
-  - [ ] 리뷰 지적 사항을 모두 수정하고 관련 테스트를 다시 실행한다.
-  - [ ] 리뷰가 통과될 때까지 수정과 재검증을 반복한다.
-  - [ ] 서브에이전트가 명시적으로 통과 판정을 내리기 전에는 사용자에게 최종 완료를 보고하지 않는다.
-  - [ ] 2단계 리뷰 통과 후 사용자에게 최종 완료를 보고한다.
-- [ ] 마무리
-  - [ ] 모든 작업 항목이 완료되면 계획 문서를 `docs/archives/`로 이동한다.
-  - [ ] 작업 중 실패, 피드백, 접근 방식 변경이 발생하면 `docs/troubleshooting/LIVD-363-signup-user.md`에 최신순으로 기록한다.
-  - [ ] 트러블슈팅 문서가 생성된 경우 계획 문서 아카이빙 시 함께 `docs/archives/`로 이동한다.
+- [x] 2단계: 유저 도메인 모델 수정
+  - [x] `Domain.User`에서 `interestConcertID` 프로퍼티, initializer 파라미터, `CodingKeys`를 제거하는 실패 테스트를 작성하고 실패 원인을 확인한다.
+  - [x] `Domain.User.providerID`를 `String?`로 변경한다.
+  - [x] `AuthMapper`, `UserMapper`, `UpdateUserNickname` 매핑에서 `interestConcertID` 의존을 제거하고 nullable `providerID`를 그대로 전달한다.
+  - [x] `AuthMapperTests`, `UserMapperTests`에서 null `providerId` 기대값을 빈 문자열이 아닌 `nil`로 변경한다.
+  - [x] `UpdateUserNickname` 응답 DTO의 서버 스펙은 미확정 상태로 두고, DTO를 유지하는 보수 경로를 적용한다.
+  - [x] `UpdateUserNickname` 응답 DTO 스펙이 변경되지 않았다면 DTO는 유지하고, `UserMapper`에서 `interestConcertID`를 도메인에 전달하지 않도록만 수정한다.
+  - [x] `UserRepositoryImpl`에서 관심 콘서트 변경 시 `User` 캐시를 수정하던 로직을 제거한다.
+  - [x] `HomeState`에 관심 콘서트 조회 결과 상태를 추가하고, `HomeStore`에서 `UserRepository.fetchInterestedConcert()` 결과로 홈 헤더 분기 상태를 갱신한다.
+  - [x] `HomeView`의 관심 콘서트 섹션 분기를 `User.interestConcertID`가 아닌 `HomeState`의 관심 콘서트 상태 기반으로 변경한다.
+  - [x] `HomeInterestConcertSectionView`의 mock 기반 표시가 실제 관심 콘서트 상태와 충돌하지 않는지 확인하고, 필요한 최소 연결만 수행한다.
+  - [x] `HomeStoreTests`의 `interestConcertID` 기반 테스트를 관심 콘서트 조회 결과 기반 테스트로 재작성한다.
+  - [x] `ConcertStore`에서 `currentUser.interestConcertID`를 직접 읽고 쓰는 `UserDefaultsStorage` 접근을 제거한다.
+  - [x] 콘서트 상세 화면의 현재 관심 콘서트 판단은 `UserRepository.fetchInterestedConcert()`를 통해 조회하고, Repository 내부의 기존 관심 콘서트 캐시를 활용하도록 한다.
+  - [x] 관련 Mock과 테스트의 `User` 생성부 및 기대값을 갱신한다.
+  - [x] 수정 대상 테스트가 `XCTest` 기반이면 해당 영향을 받는 테스트를 `Swift Testing` 기반으로 전환한다.
+  - [x] 관련 테스트와 빌드를 실행해 통과를 확인한다.
+- [x] 2단계 리뷰 및 보고
+  - [x] 2단계 구현 완료 후 서브에이전트에게 이 계획 문서를 기준으로 구현 내용을 리뷰 요청한다.
+  - [x] 리뷰 지적 사항을 모두 수정하고 관련 테스트를 다시 실행한다.
+  - [x] 리뷰가 통과될 때까지 수정과 재검증을 반복한다.
+  - [x] 서브에이전트가 명시적으로 통과 판정을 내리기 전에는 사용자에게 최종 완료를 보고하지 않는다.
+  - [x] 2단계 리뷰 통과 후 사용자에게 최종 완료를 보고한다.
+- [x] 마무리
+  - [x] 모든 작업 항목이 완료되면 계획 문서를 `docs/archives/`로 이동한다.
+  - [x] 작업 중 실패, 피드백, 접근 방식 변경이 발생하면 `docs/troubleshooting/LIVD-363-signup-user.md`에 최신순으로 기록한다.
+  - [x] 트러블슈팅 문서가 생성된 경우 계획 문서 아카이빙 시 함께 `docs/archives/`로 이동한다.
 
 ## 영향 범위
 - `Projects/Core/LivithNetwork/Sources/DTO/OnboardingFeature/Signup.swift`

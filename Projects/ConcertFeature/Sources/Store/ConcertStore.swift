@@ -11,7 +11,6 @@ import DIContainer
 import Domain
 import LivithDesignSystem
 import LivithFoundation
-import Persistence
 
 public typealias ConcertTab = SegmentedTabBarType.DetailTab
 
@@ -152,12 +151,13 @@ private extension ConcertStore {
         fetchTask?.cancel()
 
         let repo = repository
+        let userRepo = userRepository
 
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
-            send(._setIsCurrentConcertInterested(getInterestedConcertID() == concertID))
 
             do {
+                async let interestedConcertResult = userRepo.fetchInterestedConcert()
                 async let concertResult = repo.fetchConcert(concertID: concertID)
                 async let artistResult = repo.fetchConcertArtistInfo(concertID: concertID)
                 async let cultureResult = repo.fetchConcertCultureList(concertID: concertID)
@@ -175,6 +175,9 @@ private extension ConcertStore {
                     merchandiseResult,
                     setlistResult
                 )
+
+                let interestedConcert = try? await interestedConcertResult
+                send(._setIsCurrentConcertInterested(interestedConcert?.id == concertID))
 
                 guard await Task.wait() else { return }
 
@@ -200,13 +203,6 @@ private extension ConcertStore {
         }
     }
 
-    func getInterestedConcertID() -> Int? {
-        guard let user: User = try? UserDefaultsStorage().fetch(for: .currentUser) else {
-            return nil
-        }
-        return user.interestConcertID
-    }
-
     func formatDateRange(from concert: Concert) -> String {
         DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate)
     }
@@ -219,21 +215,11 @@ private extension ConcertStore {
 
             do {
                 try await userRepository.updateInterestedConcert(state.concertID)
-                updateStoredInterestConcertID(state.concertID)
                 send(._setInterestStatus(.success("관심 공연을 변경했어요")))
                 send(._setIsCurrentConcertInterested(true))
             } catch {
                 send(._setInterestStatus(.failure(error.localizedDescription)))
             }
         }
-    }
-
-    func updateStoredInterestConcertID(_ concertID: Int) {
-        let storage = UserDefaultsStorage()
-        guard var user: User = try? storage.fetch(for: .currentUser) else {
-            return
-        }
-        user.interestConcertID = concertID
-        try? storage.save(user, for: .currentUser)
     }
 }
