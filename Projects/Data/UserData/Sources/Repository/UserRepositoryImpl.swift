@@ -25,14 +25,13 @@ struct UserRepositoryImpl: UserRepository {
         onboardingService: OnboardingService,
         homeService: HomeService,
         userService: UserService,
-        userdefaultsStorage: UserDefaultsStorage,
-        widgetImageStorage: WidgetImageStorage
+        userdefaultsStorage: UserDefaultsStorage
     ) {
         self.onboardingService = onboardingService
         self.homeService = homeService
         self.userService = userService
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
-        self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage, widgetImageStorage: widgetImageStorage)
+        self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage)
     }
 
     func updateNickname(_ nickname: String) async throws(UserError) {

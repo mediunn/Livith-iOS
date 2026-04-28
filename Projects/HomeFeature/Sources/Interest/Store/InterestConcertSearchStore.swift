@@ -8,8 +8,6 @@
 
 import UIKit
 import Foundation
-import WidgetKit
-
 import Domain
 import DIContainer
 import LivithFoundation
@@ -228,7 +226,6 @@ private extension InterestConcertSearchStore {
         Task {
             do {
                 let concert = try await userRepository.updateInterestedConcert(concertID)
-                WidgetCenter.shared.reloadAllTimelines()
                 await send(._updateInterestConcertResult(.success(concert)))
             } catch {
                 await send(._updateInterestConcertResult(.failure(error)))

@@ -7,8 +7,6 @@
 //
 
 import Foundation
-import WidgetKit
-
 import Domain
 import LivithNetwork
 import SocialAuth
@@ -23,7 +21,6 @@ struct AuthRepositoryImpl: AuthRepository {
     private let notificationRepository: NotificationRepository
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenService: TokenService
-    private let widgetImageStorage: WidgetImageStorage
     private let mapper: AuthMapper = .init()
     private let errorMapper: AuthErrorMapper = .init()
 
@@ -33,8 +30,7 @@ struct AuthRepositoryImpl: AuthRepository {
         userService: UserService,
         notificationRepository: NotificationRepository,
         userdefaultsStorage: UserDefaultsStorage,
-        tokenService: TokenService,
-        widgetImageStorage: WidgetImageStorage
+        tokenService: TokenService
     ) {
         self.socialAuthService = socialAuthService
         self.onboardingService = onboardingService
@@ -42,7 +38,6 @@ struct AuthRepositoryImpl: AuthRepository {
         self.notificationRepository = notificationRepository
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenService = tokenService
-        self.widgetImageStorage = widgetImageStorage
     }
     
     func withdraw(reason: String) async throws(AuthError) {
@@ -166,8 +161,6 @@ private extension AuthRepositoryImpl {
         try? await tokenService.removeToken()
         userdefaultsStorage.remove(for: .currentUser)
         userdefaultsStorage.remove(for: .interestConcert)
-        widgetImageStorage.remove(forKey: "interestConcertPoster")
-        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func registerFCMToken() async {
