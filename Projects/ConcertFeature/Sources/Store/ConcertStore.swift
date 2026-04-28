@@ -7,8 +7,6 @@
 //
 
 import Foundation
-import WidgetKit
-
 import DIContainer
 import Domain
 import LivithDesignSystem
@@ -222,7 +220,6 @@ private extension ConcertStore {
             do {
                 try await userRepository.updateInterestedConcert(state.concertID)
                 updateStoredInterestConcertID(state.concertID)
-                WidgetCenter.shared.reloadAllTimelines()
                 send(._setInterestStatus(.success("관심 공연을 변경했어요")))
                 send(._setIsCurrentConcertInterested(true))
             } catch {
