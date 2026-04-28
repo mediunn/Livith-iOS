@@ -31,8 +31,7 @@ private extension UserDataAssembler {
             onboardingService: container.resolve(OnboardingService.self),
             homeService: container.resolve(HomeService.self),
             userService: container.resolve(UserService.self),
-            userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
-            widgetImageStorage: container.resolve(WidgetImageStorage.self)
+            userdefaultsStorage: container.resolve(UserDefaultsStorage.self)
         )
         
         container.register(userRepo, for: UserRepository.self)
@@ -44,7 +43,6 @@ private extension UserDataAssembler {
 private extension UserDataAssembler {
     func registerPersistence(to container: any DependencyContainer) {
         container.register(UserDefaultsStorage(), for: UserDefaultsStorage.self)
-        container.register(WidgetImageStorage(), for: WidgetImageStorage.self)
     }
 }
 

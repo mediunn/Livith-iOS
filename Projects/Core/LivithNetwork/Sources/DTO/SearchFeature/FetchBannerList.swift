@@ -19,6 +19,7 @@ public extension DTO.Response {
         public let category: String
         public let imageURL: String
         public let content: String
+        public let linkURL: String?
 
         enum CodingKeys: String, CodingKey {
             case id
@@ -26,6 +27,7 @@ public extension DTO.Response {
             case category
             case imageURL = "imgUrl"
             case content
+            case linkURL = "linkUrl"
         }
     }
 }

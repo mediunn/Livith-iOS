@@ -14,12 +14,14 @@ public struct Banner: Hashable, Identifiable {
     public let description: String
     public let category: String
     public let imageURL: URL?
+    public let linkURL: URL?
     
-    public init(id: Int, title: String, description: String, category: String, imageURL: URL?) {
+    public init(id: Int, title: String, description: String, category: String, imageURL: URL?, linkURL: URL? = nil) {
         self.id = id
         self.title = title
         self.description = description
         self.category = category
         self.imageURL = imageURL
+        self.linkURL = linkURL
     }
 }

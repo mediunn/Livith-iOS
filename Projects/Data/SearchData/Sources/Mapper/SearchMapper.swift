@@ -20,11 +20,12 @@ struct SearchMapper {
                 title: dto.title,
                 description: dto.content,
                 category: dto.category,
-                imageURL: URL(string: dto.imageURL)
+                imageURL: URL(string: dto.imageURL),
+                linkURL: makeBannerLinkURL(from: dto.linkURL)
             )
         }
     }
-    
+
     func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResult {
         let concerts = response.data.compactMap { dto -> Concert? in
             guard let posterURL = URL(string: dto.posterURL),
@@ -34,7 +35,7 @@ struct SearchMapper {
             else {
                 return nil
             }
-            
+
             return Concert(
                 id: dto.id,
                 title: dto.title,
@@ -51,16 +52,30 @@ struct SearchMapper {
                 label: dto.label
             )
         }
-        
+
         var cursorTuple: (String, Int)?
         if let cursor = response.cursor {
             cursorTuple = (cursor.value, cursor.id)
         }
-        
+
         return SearchResult(
             concerts: concerts,
             cursor: cursorTuple,
             totalCount: response.totalCount
         )
+    }
+}
+
+private extension SearchMapper {
+    func makeBannerLinkURL(from string: String?) -> URL? {
+        guard let string,
+              let url = URL(string: string),
+              url.scheme?.lowercased() == "https",
+              url.host?.isEmpty == false
+        else {
+            return nil
+        }
+
+        return url
     }
 }

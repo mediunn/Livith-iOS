@@ -90,7 +90,7 @@ struct AuthMapperTests {
         {
           "id": 789,
           "provider": "apple",
-          "providerId": "apple456",
+          "providerId": null,
           "email": null,
           "nickname": "애플유저",
           "marketingConsent": false,
@@ -106,7 +106,7 @@ struct AuthMapperTests {
         #expect(result.id == 789)
         #expect(result.interestConcertID == nil)
         #expect(result.provider == "apple")
-        #expect(result.providerID == "apple456")
+        #expect(result.providerID == "")
         #expect(result.email == nil)
         #expect(result.nickname == "애플유저")
         #expect(!result.hasPreferences)

@@ -11,21 +11,26 @@ import SwiftUI
 import LivithDesignSystem
 
 struct BannerCell: View {
+
+    // MARK: - Property
+
     let imageURL: URL?
     let category: String
     let title: String
     let description: String
-    
+
+    // MARK: - Body
+
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             imageView
-                        
+
             VStack(alignment: .leading, spacing: 0) {
                 categoryChip
-                
+
                 titleText
                     .padding(.top, 8)
-                
+
                 descriptionText
                     .padding(.top, 12)
             }
@@ -34,6 +39,8 @@ struct BannerCell: View {
         }
     }
 }
+
+// MARK: - UIComponents
 
 private extension BannerCell {
     var imageView: some View {
@@ -61,17 +68,17 @@ private extension BannerCell {
             BackgroundGradientView()
         }
     }
-    
+
     var categoryChip: some View {
         LivithChip(category, style: .dark)
     }
-    
+
     var titleText: some View {
         Text(title)
             .notosans(.title)
             .foregroundStyle(Color.livithColor(.white100))
     }
-    
+
     var descriptionText: some View {
         Text(description)
             .notosans(.body3Medium)
@@ -79,16 +86,18 @@ private extension BannerCell {
     }
 }
 
+// MARK: - Preview
+
 #Preview {
     let url = URL(string: "https://fastly.picsum.photos/id/643/365/365.jpg?hmac=ltH7rZPrQvX1Lwm0WY-aAWvyxAsOrqwmWilmxnn_GJY")!
     let category = "라이빗 팀블로그"
     let title = "iOS 개발자가 알아두면 좋은 SwiftUI 팁 5가지"
     let description = "SwiftUI를 더 효과적으로 활용할 수 있는 다섯 가지 유용한 팁을 소개합니다."
-    
+
     BannerCell(
         imageURL: url,
         category: category,
-        title: title, 
+        title: title,
         description: description
     )
     .frame(height: 365)
