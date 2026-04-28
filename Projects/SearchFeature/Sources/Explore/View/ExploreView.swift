@@ -13,14 +13,20 @@ import Domain
 import LivithDesignSystem
 
 struct ExploreView: View {
+
+    // MARK: - Property
+
     @Environment(\.searchCoordinator) private var coordinator
+    @Environment(\.openURL) private var openURL
     @StateObject private var store: ExploreStore = ExploreStore()
     @State private var scrollOffset: CGFloat = 0
-    
+
+    // MARK: - Body
+
     var body: some View {
         VStack(spacing: .zero) {
             LivithNavigationView(type: .logo())
-            
+
             ZStack(alignment: .top) {
                 ExploreSearchButton(onTap: handleSearchTap)
                     .zIndex(2)
@@ -29,7 +35,7 @@ struct ExploreView: View {
                         ? Color.livithColor(.black100)
                         : Color.clear
                     )
-                
+
                 scrollView
             }
         }
@@ -37,7 +43,7 @@ struct ExploreView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - UIComponents
 
 private extension ExploreView {
     var scrollView: some View {
@@ -47,10 +53,12 @@ private extension ExploreView {
                     .containerRelativeFrame(.vertical)
             } else {
                 VStack(spacing: 0) {
-                    bannerView
-                    
+                    if !store.state.banners.isEmpty {
+                        bannerView
+                    }
+
                     concertSectionView
-                    
+
                     Spacer(minLength: Constants.emptySpaceHeight)
                 }
             }
@@ -60,14 +68,15 @@ private extension ExploreView {
             store.send(.onRefresh)
         }
     }
-    
+
     var bannerView: some View {
         BannerSectionView(
             currentPage: Binding(
                 get: { store.state.currentPage },
                 set: { store.send(.setCurrentPage($0)) }
             ),
-            banners: store.state.banners
+            banners: store.state.banners,
+            onTapBanner: handleBannerTap
         )
         .frame(height: Constants.bannerHeight)
         .background(
@@ -78,7 +87,7 @@ private extension ExploreView {
             }
         )
     }
-    
+
     var concertSectionView: some View {
         ForEach(store.state.concertSections, id: \.id) { section in
             ConcertSectionView(concertSection: section) { concert in
@@ -96,36 +105,31 @@ private extension ExploreView {
     var shouldShowEmptyState: Bool {
         store.state.banners.isEmpty && store.state.concertSections.isEmpty && !store.state.isLoading
     }
-    
+
     var emptyStateMessage: String {
         store.state.errorMessage.isEmpty ? "탐색할 콘텐츠가 없습니다." : store.state.errorMessage
     }
-    
+
     func handleSearchTap() {
         AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
         coordinator?.push(to: .search)
     }
-}
 
-// MARK: - PreferenceKey
-
-private extension ExploreView {
-    struct ScrollOffsetPreferenceKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-            value = nextValue()
+    func handleBannerTap(_ banner: Banner) {
+        guard let url = banner.linkURL,
+              url.scheme?.lowercased() == "https",
+              url.host?.isEmpty == false
+        else {
+            return
         }
+
+        openURL(url)
     }
-}
 
-// MARK: - Literals & Constants
-
-private extension ExploreView {
     enum Literals {
         static let scrollCoordinateName = "exploreScroll"
     }
-    
+
     enum Constants {
         static let bannerHeight: CGFloat = 365
         static let emptySpaceHeight: CGFloat = 210
