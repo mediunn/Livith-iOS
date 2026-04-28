@@ -14,18 +14,15 @@ import Persistence
 
 actor InterestConcertCache {
     private static let cacheExpirationInterval: TimeInterval = 5 * 60
-    private static let imageKey: String = "interestConcertPoster"
     private static let logger = Logger(subsystem: "com.youz2me.livith", category: "InterestConcertCache")
 
     private let userdefaultsStorage: UserDefaultsStorage
-    private let widgetImageStorage: WidgetImageStorage
 
     private var timestamp: Date? = nil
     private var cachedConcert: Concert? = nil
 
-    init(userdefaultsStorage: UserDefaultsStorage, widgetImageStorage: WidgetImageStorage) {
+    init(userdefaultsStorage: UserDefaultsStorage) {
         self.userdefaultsStorage = userdefaultsStorage
-        self.widgetImageStorage = widgetImageStorage
 
         self.cachedConcert = try? userdefaultsStorage.fetch(for: .interestConcert)
     }
@@ -58,7 +55,7 @@ actor InterestConcertCache {
         return Date().timeIntervalSince(timestamp) >= Self.cacheExpirationInterval
     }
 
-    func saveInterestConcert(_ concert: Concert) async {
+    func saveInterestConcert(_ concert: Concert) {
         cachedConcert = concert
         timestamp = Date()
 
@@ -68,16 +65,11 @@ actor InterestConcertCache {
         } catch {
             Self.logger.error("[Save] Concert 저장 실패: \(error.localizedDescription)")
         }
-
-        Self.logger.debug("[Save] 이미지 다운로드 시작: \(concert.posterURL.absoluteString)")
-        await widgetImageStorage.download(from: concert.posterURL.absoluteString, forKey: Self.imageKey)
-        Self.logger.debug("[Save] 이미지 다운로드 완료")
     }
 
     func deleteInterestConcert() {
         cachedConcert = nil
         timestamp = nil
         userdefaultsStorage.remove(for: .interestConcert)
-        widgetImageStorage.remove(forKey: Self.imageKey)
     }
 }

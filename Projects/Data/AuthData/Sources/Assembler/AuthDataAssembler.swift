@@ -35,8 +35,7 @@ private extension AuthDataAssembler {
             userService: container.resolve(UserService.self),
             notificationRepository: container.resolve(NotificationRepository.self),
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
-            tokenService: container.resolve(TokenService.self),
-            widgetImageStorage: container.resolve(WidgetImageStorage.self)
+            tokenService: container.resolve(TokenService.self)
         )
         container.register(authRepo, for: AuthRepository.self)
     }
@@ -47,7 +46,6 @@ private extension AuthDataAssembler {
 private extension AuthDataAssembler {
     func registerPersistence(to container: any DependencyContainer) {
         container.register(UserDefaultsStorage(), for: UserDefaultsStorage.self)
-        container.register(WidgetImageStorage(), for: WidgetImageStorage.self)
     }
 }
 

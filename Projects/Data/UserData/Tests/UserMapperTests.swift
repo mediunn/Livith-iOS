@@ -114,7 +114,7 @@ struct UserMapperTests {
         {
             "id": 99,
             "provider": "kakao",
-            "providerId": "9876543210",
+            "providerId": null,
             "email": null,
             "nickname": "익명",
             "marketingConsent": false,
@@ -130,7 +130,7 @@ struct UserMapperTests {
         #expect(result.id == 99)
         #expect(result.interestConcertID == nil)
         #expect(result.provider == "kakao")
-        #expect(result.providerID == "9876543210")
+        #expect(result.providerID == "")
         #expect(result.email == nil)
         #expect(result.nickname == "익명")
         #expect(!result.hasPreferences)
