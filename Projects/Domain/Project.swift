@@ -14,6 +14,15 @@ let project = Project.make(
         .make(
             target: .domain(.domain),
             product: .framework
+        ),
+        .make(
+            name: "DomainTests",
+            product: .unitTests,
+            bundleID: "\(BuildConfiguration.baseBundleID).domaintests",
+            sources: ["Tests/**"],
+            dependencies: [
+                .domain(.domain)
+            ]
         )
     ]
 )

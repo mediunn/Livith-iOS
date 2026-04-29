@@ -46,7 +46,7 @@
   - `HomeEndpoint.fetchInterestedConcert`를 `fetchInterestedConcertList(DTO.Request.FetchInterestConcertList)` 형태로 변경한다.
   - 경로를 `/users/interest-concerts`로 변경한다.
   - query 파라미터를 기존 `NetworkEndpoint.query`로 전달한다.
-- [ ] 3단계: 도메인 모델 변경
+- [x] 3단계: 도메인 모델 변경
   - `Concert`의 공통 nullable 필드를 Optional로 변경한다.
   - `InterestConcert`, `InterestConcertTicketingSchedule`, `InterestConcertPage`, `InterestConcertPageCursor`, `InterestConcertListQuery`, `InterestConcertSort` 도메인 모델을 추가한다.
   - `preSaleDate`, `generalSaleDate`는 `Concert`가 아닌 `InterestConcertTicketingSchedule`에 둔다.
@@ -112,8 +112,10 @@
 - `Tuist/ProjectDescriptionHelpers/Module/Module+TargetID.swift`
 - `Projects/Shared/Project.swift`
 - `Projects/Shared/DisplaySupport/Sources/ConcertDisplayText.swift`
+- `Projects/Domain/Project.swift`
 - `Projects/Domain/Sources/Entity/Concert/Concert.swift`
 - `Projects/Domain/Sources/Entity/Concert/*`
+- `Projects/Domain/Tests/ConcertDomainModelTests.swift`
 - `Projects/Domain/Sources/Repository/UserRepository.swift`
 - `Projects/Data/ConcertData/Sources/Mapper/ConcertMapper.swift`
 - `Projects/Data/ConcertData/Tests/ConcertMapperTests.swift`
@@ -193,6 +195,7 @@
 - 계획 변경이 필요하면 먼저 이 문서를 수정하고 사용자 확인을 받은 뒤 진행한다.
 
 ## 검증 방법
+- `tuist test Domain`
 - `tuist test LivithNetwork`
 - `tuist test ConcertData`
 - `tuist test SearchData`
