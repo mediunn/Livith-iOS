@@ -12,7 +12,6 @@ public typealias HomeService = NetworkService<HomeEndpoint>
 
 public enum HomeEndpoint {
     case fetchSectionList
-    case fetchInterestedConcert
     case fetchInterestedConcertList(DTO.Request.FetchInterestConcertList)
     case updateInterestedConcert(id: Int)
     case deleteInterestedConcert
@@ -24,8 +23,6 @@ extension HomeEndpoint: NetworkEndpoint {
         switch self {
         case .fetchSectionList:
             return "/home/sections"
-        case .fetchInterestedConcert:
-            return "/users/interest-concert"
         case .fetchInterestedConcertList:
             return "/users/interest-concerts"
         case .updateInterestedConcert:
@@ -39,7 +36,7 @@ extension HomeEndpoint: NetworkEndpoint {
     
     public var method: HTTPMethod {
         switch self {
-        case .fetchSectionList, .fetchInterestedConcert, .fetchInterestedConcertList:
+        case .fetchSectionList, .fetchInterestedConcertList:
             return .get
         case .updateInterestedConcert:
             return .post
@@ -54,7 +51,7 @@ extension HomeEndpoint: NetworkEndpoint {
         switch self {
         case .fetchInterestedConcertList(let request):
             let query: [String: Any?] = [
-                "sort": request.sort,
+                "sort": request.sort.rawValue,
                 "size": request.size,
                 "cursorDate": request.cursorDate,
                 "cursorId": request.cursorID
@@ -76,7 +73,7 @@ extension HomeEndpoint: NetworkEndpoint {
     
     public var requiresInterceptor: Bool {
         switch self {
-        case .fetchInterestedConcert, .fetchInterestedConcertList, .updateInterestedConcert, .deleteInterestedConcert, .fetchRecommendedConcertList:
+        case .fetchInterestedConcertList, .updateInterestedConcert, .deleteInterestedConcert, .fetchRecommendedConcertList:
             return true
         case .fetchSectionList:
             return false

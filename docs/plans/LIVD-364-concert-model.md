@@ -34,7 +34,7 @@
   - `data.data`, `data.cursor`, `data: null` 응답을 검증한다.
   - optional 필드 누락 또는 null 응답이 디코딩되는지 검증한다.
   - `HomeEndpoint`의 query 생성 보호 테스트를 추가한다.
-- [ ] 2단계: DTO 및 Endpoint 변경
+- [x] 2단계: DTO 및 Endpoint 변경
   - `DTO.Request.FetchInterestConcertList`를 추가해 API query 파라미터를 표현한다.
   - `DTO.Response.FetchUserInterestConcert`를 목록 응답 구조로 변경한다.
   - `preSaleDate`, `generalSaleDate` 필드를 추가한다.

@@ -12,13 +12,13 @@ import Foundation
 
 public extension DTO.Request {
     struct FetchInterestConcertList: Encodable {
-        public let sort: String
+        public let sort: Sort
         public let size: Int
         public let cursorDate: String?
         public let cursorID: Int?
 
         public init(
-            sort: String = "CONCERT",
+            sort: Sort = .concert,
             size: Int = 20,
             cursorDate: String? = nil,
             cursorID: Int? = nil
@@ -34,6 +34,11 @@ public extension DTO.Request {
             case size
             case cursorDate
             case cursorID = "cursorId"
+        }
+
+        public enum Sort: String, Encodable {
+            case concert = "CONCERT"
+            case ticketing = "TICKETING"
         }
     }
 }

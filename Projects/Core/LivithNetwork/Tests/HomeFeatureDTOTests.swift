@@ -77,6 +77,41 @@ struct HomeFeatureDTOTests {
         #expect(result.cursor?.id == 1)
     }
 
+    @Test("FetchUserInterestConcert BaseResponse 목록 응답 디코딩이 정상적으로 되어야 한다")
+    func fetchUserInterestConcert_baseResponse_목록_응답_디코딩이_정상적으로_되어야_한다() throws {
+        // Given
+        let json = """
+        {
+          "statusCode": 200,
+          "message": "요청에 성공하였습니다.",
+          "data": {
+            "data": [
+              {
+                "id": 8,
+                "status": "COMPLETED",
+                "artist": "JAKE MILLER (제이크 밀러)",
+                "introduction": "데뷔 10년 만에 드디어 한국 상륙!"
+              }
+            ],
+            "cursor": {
+              "date": "2025.08.10",
+              "id": 1
+            }
+          }
+        }
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode(BaseResponse<DTO.Response.FetchUserInterestConcert>.self, from: json)
+
+        // Then
+        #expect(result.statusCode == 200)
+        #expect(result.data?.data.count == 1)
+        #expect(result.data?.data[0].id == 8)
+        #expect(result.data?.cursor?.date == "2025.08.10")
+        #expect(result.data?.cursor?.id == 1)
+    }
+
     @Test("FetchUserInterestConcert optional 필드가 null이거나 누락되어도 디코딩되어야 한다")
     func fetchUserInterestConcert_optional_필드가_null이거나_누락되어도_디코딩되어야_한다() throws {
         // Given
@@ -154,6 +189,7 @@ struct HomeFeatureDTOTests {
         // Then
         #expect(endpoint.path == "/users/interest-concerts")
         #expect(endpoint.method == .get)
+        #expect(endpoint.requiresInterceptor)
         #expect(query["sort"] as? String == "CONCERT")
         #expect(query["size"] as? Int == 20)
         #expect(query["cursorDate"] == nil)
@@ -164,7 +200,7 @@ struct HomeFeatureDTOTests {
     func homeEndpoint_관심_콘서트_목록_다음_페이지_query를_생성해야_한다() throws {
         // Given
         let request = DTO.Request.FetchInterestConcertList(
-            sort: "TICKETING",
+            sort: .ticketing,
             size: 10,
             cursorDate: "2025.08.10",
             cursorID: 1
@@ -177,6 +213,7 @@ struct HomeFeatureDTOTests {
         // Then
         #expect(endpoint.path == "/users/interest-concerts")
         #expect(endpoint.method == .get)
+        #expect(endpoint.requiresInterceptor)
         #expect(query["sort"] as? String == "TICKETING")
         #expect(query["size"] as? Int == 10)
         #expect(query["cursorDate"] as? String == "2025.08.10")
