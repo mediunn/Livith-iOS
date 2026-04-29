@@ -202,13 +202,19 @@ private extension InterestConcertSearchStore {
 
     func performFetchSearchList(isNextPage: Bool = false) {
         Task {
+            let cursor = isNextPage ? nextCursor : nil
+            guard !isNextPage || cursor != nil else {
+                await send(._fetchSearchListResult(.success([])))
+                return
+            }
+
             do {
                 let result = try await searchRepository.fetchFilterSearchResult(
                     genre: [],
                     sort: nil,
                     status: [],
                     keyword: state.searchText,
-                    cursor: isNextPage ? nextCursor : nil,
+                    cursor: cursor,
                     size: nil
                 )
                 await send(._fetchSearchListResult(.success(result.concerts)))
@@ -267,7 +273,8 @@ private extension InterestConcertSearchStore {
 
     var nextCursor: String? {
         guard let lastConcert = state.searchList.last else { return nil }
-        let dateString = DateFormatterService.string(from: lastConcert.startDate, type: .dotDate)
+        guard let startDate = lastConcert.startDate else { return nil }
+        let dateString = DateFormatterService.string(from: startDate, type: .dotDate)
         return "{\"value\":\"\(dateString)\",\"id\":\(lastConcert.id)}"
     }
 }

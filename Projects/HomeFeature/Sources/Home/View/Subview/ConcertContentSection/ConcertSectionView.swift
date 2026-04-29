@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import DisplaySupport
 import LivithDesignSystem
 import Domain
 
@@ -26,10 +27,10 @@ struct ConcertSectionView: View {
                     ForEach(concertSection.concertList) { concert in
                         LivithCard(
                             imageURL: concert.posterURL,
-                            title: concert.title,
-                            subtitle: DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate),
+                            title: ConcertDisplayText.title(for: concert),
+                            subtitle: ConcertDisplayText.dateRange(for: concert),
                             secondaryText: concert.artist,
-                            badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+                            badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
                             onTap: { onConcertTap(concert) }
                         )
                     }

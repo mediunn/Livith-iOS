@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import DisplaySupport
 import Domain
 import LivithDesignSystem
 
@@ -49,7 +50,7 @@ private extension InterestConcertSelectionBottomSectionView {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Constants.chipSpacing) {
                 ForEach(selectedConcertList) { concert in
-                    RemovableChip(truncatedTitle(for: concert.title)) {
+                    RemovableChip(truncatedTitle(for: ConcertDisplayText.title(for: concert))) {
                         onRemoveSelectedConcert(concert.id)
                     }
                 }

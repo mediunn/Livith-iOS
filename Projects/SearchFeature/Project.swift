@@ -18,6 +18,7 @@ let project = Project.make(
                 .domain(.domain),
                 .concert(.concertFeature),
                 .designSystem(.designSystem),
+                .shared(.displaySupport),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),

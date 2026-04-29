@@ -17,6 +17,7 @@ let project = Project.make(
                 .setlist(.setlistFeature),
                 .song(.songFeature),
                 .designSystem(.designSystem),
+                .shared(.displaySupport),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),

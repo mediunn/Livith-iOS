@@ -11,7 +11,7 @@ import SwiftUI
 // MARK: - Badge Type
 
 public enum LivithCardBadge: Equatable {
-    case status(text: String, remainDays: Int)
+    case status(text: String, remainDays: Int?)
     case tag(text: String)
     case none
 }
@@ -168,7 +168,11 @@ private extension LivithCard {
     var badgeView: some View {
         switch badge {
         case .status(let text, let remainDays):
-            LivithChip.dDay(text, remainDays: remainDays, isSelected: isSelected)
+            if let remainDays {
+                LivithChip.dDay(text, remainDays: remainDays, isSelected: isSelected)
+            } else {
+                LivithChip(text, style: isSelected ? .selected : .status)
+            }
         case .tag(let text):
             LivithChip(text, style: .tag)
         case .none:

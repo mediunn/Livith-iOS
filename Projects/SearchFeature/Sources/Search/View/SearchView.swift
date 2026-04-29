@@ -9,9 +9,11 @@
 import Combine
 import SwiftUI
 
-import Amplitude
+import DisplaySupport
 import Domain
 import LivithDesignSystem
+
+import Amplitude
 
 struct SearchView: View {
 
@@ -234,10 +236,10 @@ private extension SearchView {
         ForEach(store.state.searchedConcertList, id: \.id) { concert in
             LivithCard(
                 imageURL: concert.posterURL,
-                title: concert.title,
+                title: ConcertDisplayText.title(for: concert),
                 subtitle: concert.formattedStartDate,
                 secondaryText: concert.artist,
-                badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+                badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
                 onTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
                     hideKeyboard()

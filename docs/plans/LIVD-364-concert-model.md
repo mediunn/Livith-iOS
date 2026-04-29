@@ -52,7 +52,7 @@
   - `preSaleDate`, `generalSaleDate`는 `Concert`가 아닌 `InterestConcertTicketingSchedule`에 둔다.
   - `InterestConcertPageCursor`는 핵심 엔티티가 아닌 `InterestConcertPage`의 페이지네이션 메타데이터로 둔다.
   - `InterestConcertListQuery`는 API request가 아닌 관심 콘서트 목록 조회 조건 값 객체로 둔다.
-- [ ] 4단계: DisplaySupport 모듈 추가
+- [x] 4단계: DisplaySupport 모듈 추가
   - `Projects/Shared/DisplaySupport` 모듈을 추가한다.
   - `SharedModule`에 `displaySupport` case를 추가한다.
   - `TargetID.sharedSourcePath`에 `DisplaySupport/Sources/**` 매핑을 추가한다.

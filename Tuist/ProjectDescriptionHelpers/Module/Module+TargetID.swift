@@ -140,6 +140,8 @@ private extension TargetID {
 
     func sharedSourcePath(_ module: SharedModule) -> SourceFilesList {
         switch module {
+        case .displaySupport:
+            return ["DisplaySupport/Sources/**"]
         case .nicknameEditFeature:
             return ["NicknameEditFeature/Sources/**"]
         case .nicknameEditFeatureTests:

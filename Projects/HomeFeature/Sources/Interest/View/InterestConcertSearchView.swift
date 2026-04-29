@@ -9,6 +9,7 @@
 import SwiftUI
 
 import Amplitude
+import DisplaySupport
 import LivithDesignSystem
 import Domain
 
@@ -62,7 +63,7 @@ struct InterestConcertSearchView: View {
                 guard let concert = concert else { return }
                 coordinator?.push(to: .interestConcertComplete(
                     posterURL: concert.posterURL,
-                    title: concert.title,
+                    title: ConcertDisplayText.title(for: concert),
                     prefetchedImage: store.state.prefetchedPosterImage
                 ))
             }

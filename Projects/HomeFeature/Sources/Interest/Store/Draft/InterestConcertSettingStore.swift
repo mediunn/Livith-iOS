@@ -8,6 +8,7 @@
 
 import Foundation
 
+import DisplaySupport
 import Domain
 
 // MARK: - State
@@ -145,7 +146,7 @@ private extension InterestConcertSettingStore {
         guard !searchText.isEmpty else { return concertList }
 
         return concertList.filter {
-            $0.title.localizedCaseInsensitiveContains(searchText)
+            ConcertDisplayText.title(for: $0).localizedCaseInsensitiveContains(searchText)
         }
     }
 

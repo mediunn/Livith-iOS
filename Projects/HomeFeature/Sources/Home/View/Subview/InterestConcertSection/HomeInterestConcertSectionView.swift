@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import DisplaySupport
 import Domain
 import LivithDesignSystem
 
@@ -218,9 +219,9 @@ private extension HomeInterestConcertSectionView {
             concertDate: concert.startDate,
             posterURL: concert.posterURL,
             badgeText: badgeText(from: concert),
-            titleText: concert.title,
+            titleText: ConcertDisplayText.title(for: concert),
             dateText: dateText(from: concert),
-            locationText: concert.venue,
+            locationText: ConcertDisplayText.venue(for: concert),
             bottomText: bottomText(from: concert)
         )
     }
@@ -230,24 +231,19 @@ private extension HomeInterestConcertSectionView {
             return concert.status.filterText
         }
 
-        guard concert.daysLeft > 0 else {
+        guard let daysLeft = concert.daysLeft else {
+            return ConcertDisplayText.unknownDaysLeft
+        }
+
+        guard daysLeft > 0 else {
             return "공연 D-Day"
         }
 
-        return "공연 D-\(concert.daysLeft)"
+        return "공연 D-\(daysLeft)"
     }
 
     func dateText(from concert: Concert) -> String {
-        let fullDateFormatter = DateFormatter()
-        fullDateFormatter.dateFormat = "yyyy.MM.dd"
-
-        guard !Calendar.current.isDate(concert.startDate, inSameDayAs: concert.endDate) else {
-            return fullDateFormatter.string(from: concert.startDate)
-        }
-
-        let endDateFormatter = DateFormatter()
-        endDateFormatter.dateFormat = "MM.dd"
-        return "\(fullDateFormatter.string(from: concert.startDate))~\(endDateFormatter.string(from: concert.endDate))"
+        ConcertDisplayText.dateRange(for: concert)
     }
 
     func bottomText(from concert: Concert) -> String {
@@ -308,8 +304,8 @@ private extension HomeInterestConcertSectionView {
 
 private struct HomeInterestConcertSectionItem: Identifiable, Equatable {
     let id: Int
-    let ticketDate: Date
-    let concertDate: Date
+    let ticketDate: Date?
+    let concertDate: Date?
     let posterURL: URL?
     let badgeText: String
     let titleText: String

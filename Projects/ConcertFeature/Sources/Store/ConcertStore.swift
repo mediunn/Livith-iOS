@@ -7,10 +7,10 @@
 //
 
 import Foundation
+import DisplaySupport
 import DIContainer
 import Domain
 import LivithDesignSystem
-import LivithFoundation
 
 public typealias ConcertTab = SegmentedTabBarType.DetailTab
 
@@ -204,7 +204,7 @@ private extension ConcertStore {
     }
 
     func formatDateRange(from concert: Concert) -> String {
-        DateFormatter.formatDateRange(from: concert.startDate, to: concert.endDate)
+        ConcertDisplayText.dateRange(for: concert)
     }
 
     func setInterestConcert() {

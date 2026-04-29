@@ -17,6 +17,7 @@ let project = Project.make(
                 .concert(.concertFeature),
                 .user(.userFeature),
                 .designSystem(.designSystem),
+                .shared(.displaySupport),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),
@@ -27,7 +28,8 @@ let project = Project.make(
             target: .home(.homeFeatureTests),
             product: .unitTests,
             dependencies: [
-                .home(.homeFeature)
+                .home(.homeFeature),
+                .shared(.displaySupport)
             ]
         )
     ]
