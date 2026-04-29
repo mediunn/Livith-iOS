@@ -37,29 +37,10 @@ struct UserMapper {
         )
     }
 
-    func toDomain(from dto: DTO.Response.FetchUserInterestConcert) -> Concert? {
-        guard let status = ConcertStatus(rawValue: dto.status),
-              let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
-              let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate),
-              let posterURL = URL(string: dto.posterURL)
-        else {
-            return nil
-        }
-
-        return Concert(
-            id: dto.id,
-            title: dto.title,
-            artist: dto.artist,
-            status: status,
-            daysLeft: calculateDaysLeft(from: startDate),
-            startDate: startDate,
-            endDate: endDate,
-            posterURL: posterURL,
-            venue: dto.venue,
-            ticketSite: dto.ticketSite,
-            ticketURL: dto.ticketURL.flatMap { URL(string: $0) },
-            introduction: dto.introduction,
-            label: dto.label
+    func toDomain(from dto: DTO.Response.FetchUserInterestConcert) -> InterestConcertPage {
+        InterestConcertPage(
+            concertList: dto.data.compactMap(toInterestConcert),
+            nextCursor: dto.cursor.flatMap(toCursor)
         )
     }
 
@@ -67,7 +48,7 @@ struct UserMapper {
         guard let status = ConcertStatus(rawValue: dto.status),
               let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
               let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate),
-              let posterURL = URL(string: dto.posterURL)
+              let posterURL = parseURL(dto.posterURL)
         else {
             return nil
         }
@@ -85,16 +66,74 @@ struct UserMapper {
             posterURL: posterURL,
             venue: dto.venue,
             ticketSite: dto.ticketSite,
-            ticketURL: dto.ticketURL.flatMap { URL(string: $0) },
+            ticketURL: parseURL(dto.ticketURL),
             introduction: dto.introduction,
             label: dto.label
         )
     }
+}
 
-    private func calculateDaysLeft(from date: Date) -> Int {
+private extension UserMapper {
+    func calculateDaysLeft(from date: Date) -> Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let targetDate = calendar.startOfDay(for: date)
         return calendar.dateComponents([.day], from: today, to: targetDate).day ?? 0
+    }
+
+    func toInterestConcert(from dto: DTO.Response.FetchUserInterestConcert.Concert) -> InterestConcert? {
+        guard let status = ConcertStatus(rawValue: dto.status) else {
+            return nil
+        }
+
+        let concert = Concert(
+            id: dto.id,
+            title: dto.title,
+            artist: dto.artist,
+            status: status,
+            daysLeft: dto.daysLeft,
+            startDate: parseDate(dto.startDate, type: .dotDate),
+            endDate: parseDate(dto.endDate, type: .dotDate),
+            posterURL: parseURL(dto.posterURL),
+            venue: dto.venue,
+            ticketSite: dto.ticketSite,
+            ticketURL: parseURL(dto.ticketURL),
+            introduction: dto.introduction,
+            label: dto.label
+        )
+        let ticketingSchedule = InterestConcertTicketingSchedule(
+            preSaleDate: parseDate(dto.preSaleDate, type: .iso8601),
+            generalSaleDate: parseDate(dto.generalSaleDate, type: .iso8601)
+        )
+        return InterestConcert(concert: concert, ticketingSchedule: ticketingSchedule)
+    }
+
+    func toCursor(from dto: DTO.Response.FetchUserInterestConcert.Cursor) -> InterestConcertPageCursor? {
+        guard let dateString = dto.date,
+              let id = dto.id,
+              let date = DateFormatterService.date(from: dateString, type: .dotDate)
+        else {
+            return nil
+        }
+
+        return InterestConcertPageCursor(date: date, id: id)
+    }
+
+    func parseDate(_ dateString: String?, type: DateFormatType) -> Date? {
+        guard let dateString else { return nil }
+
+        return DateFormatterService.date(from: dateString, type: type)
+    }
+
+    func parseURL(_ urlString: String?) -> URL? {
+        guard let urlString,
+              let url = URL(string: urlString),
+              url.scheme != nil,
+              url.host != nil
+        else {
+            return nil
+        }
+
+        return url
     }
 }

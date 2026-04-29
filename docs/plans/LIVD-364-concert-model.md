@@ -65,7 +65,7 @@
   - Home, Search, Concert Feature가 `DisplaySupport`에 의존하도록 Project 설정을 갱신한다.
   - 별도 `DisplaySupportTests` 타겟은 이번 작업에서 만들지 않고, `HomeFeatureTests`에 `ConcertDisplayText` fallback 정책 단위 테스트를 추가해 대표로 보호한다.
   - Search, Concert Feature는 테스트 타겟이 없으므로 각 Feature 빌드로 `DisplaySupport` import와 적용 누락을 검증한다.
-- [ ] 5단계: Mapper 변경
+- [x] 5단계: Mapper 변경
   - `UserMapper`가 새 DTO를 `InterestConcertPage`로 변환하도록 변경한다.
   - `preSaleDate`, `generalSaleDate`는 ISO8601 date-time으로 파싱한다.
   - `startDate`, `endDate`는 값이 있을 때만 `Date`로 변환한다.

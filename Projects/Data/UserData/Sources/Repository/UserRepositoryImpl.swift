@@ -67,11 +67,12 @@ struct UserRepositoryImpl: UserRepository {
         }
 
         do {
-            let response: DTO.Response.FetchUserInterestConcert? = try await homeService.request(.fetchInterestedConcert)
-            guard let response else { return nil }
-            guard let concert = mapper.toDomain(from: response) else {
-                throw UserError.invalidResponse
-            }
+            let request = DTO.Request.FetchInterestConcertList()
+            let response: DTO.Response.FetchUserInterestConcert = try await homeService.request(
+                .fetchInterestedConcertList(request)
+            )
+            let concert = mapper.toDomain(from: response).concertList.first?.concert
+            guard let concert else { return nil }
             await interestConcertCache.saveInterestConcert(concert)
             return concert
         } catch NetworkError.noData {

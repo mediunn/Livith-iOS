@@ -61,7 +61,7 @@ actor InterestConcertCache {
 
         do {
             try userdefaultsStorage.save(concert, for: .interestConcert)
-            Self.logger.debug("[Save] Concert 저장 성공: \(concert.title) (id: \(concert.id))")
+            Self.logger.debug("[Save] Concert 저장 성공: \(concert.title ?? "") (id: \(concert.id))")
         } catch {
             Self.logger.error("[Save] Concert 저장 실패: \(error.localizedDescription)")
         }

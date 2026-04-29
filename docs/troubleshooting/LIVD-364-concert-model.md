@@ -2,6 +2,30 @@
 
 ## 기록
 
+### 2026-04-29 16:09 - 5단계 UserData 테스트 baseline 컴파일 실패
+
+**상황**
+- 5단계 Mapper 변경을 TDD로 진행하기 위해 `UserMapperTests` 작성 전 `tuist test UserData` baseline을 확인했다.
+
+**문제**
+- `UserRepositoryImpl`이 2단계에서 제거된 `HomeEndpoint.fetchInterestedConcert`를 참조해 `UserData` 타겟이 컴파일되지 않았다.
+- 새 Mapper 테스트의 red를 확인하려면 6단계 Repository 변경 일부가 먼저 필요했다.
+
+**원인**
+- 2단계에서 Endpoint를 목록 API로 바꿨지만, 계획상 Repository/Cache 변경은 6단계로 분리되어 있어 `UserData` 타겟이 중간 단계에서 깨진 상태였다.
+
+**해결**
+- 사용자에게 진행 방식을 확인했고, `최소 컴파일 수정` 지시를 받았다.
+- 6단계 전체 구현은 하지 않고, `UserRepositoryImpl`의 기존 단일 관심 콘서트 메서드가 새 목록 endpoint의 첫 항목을 사용하도록 최소 수정했다.
+- `InterestConcertCache`는 `Concert.title` optional 전환으로 인한 로그 문자열 컴파일 오류만 수정했다.
+
+**교훈**
+- 단계가 분리되어 있어도 테스트 대상 타겟 전체가 컴파일되어야 하는 경우, 다음 단계 파일의 최소 컴파일 수정이 필요할 수 있다.
+- 이 경우 임의로 범위를 넓히지 말고 사용자 확인을 받은 뒤 진행한다.
+- 최소 컴파일 수정과 실제 단계 구현 범위를 최종 보고와 리뷰 요청에 명확히 구분한다.
+
+---
+
 ### 2026-04-29 16:00 - 단계 단위 진행 원칙 위반
 
 **상황**
