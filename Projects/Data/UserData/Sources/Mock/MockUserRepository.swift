@@ -37,6 +37,10 @@ public struct MockUserRepository: UserRepository {
         nil
     }
 
+    public func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
+        InterestConcertPage(concertList: [], nextCursor: nil)
+    }
+
     @discardableResult
     public func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         throw UserError.unknown

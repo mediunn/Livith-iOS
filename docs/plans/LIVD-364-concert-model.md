@@ -71,7 +71,7 @@
   - `startDate`, `endDate`는 값이 있을 때만 `Date`로 변환한다.
   - `preSaleDate`, `generalSaleDate` 파싱 실패는 항목 제외가 아니라 해당 예매 일정만 nil로 처리한다.
   - 필수 필드인 `id`, `status`, `artist`, `introduction`이 유효하지 않으면 해당 항목을 제외하거나 invalid response 처리한다.
-- [ ] 6단계: Repository 및 Cache 변경
+- [x] 6단계: Repository 및 Cache 변경
   - `UserRepository.fetchInterestedConcert()`를 `InterestConcertListQuery`를 받는 목록 조회 메서드로 변경한다.
   - 다음 페이지 요청은 배열의 마지막 항목에서 cursor를 재계산하지 않고 `InterestConcertPage.nextCursor`를 사용한다.
   - `UserRepositoryImpl`에서 `InterestConcertListQuery`를 `DTO.Request.FetchInterestConcertList`로 변환한다.

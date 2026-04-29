@@ -19,33 +19,36 @@ actor InterestConcertCache {
     private let userdefaultsStorage: UserDefaultsStorage
 
     private var timestamp: Date? = nil
-    private var cachedConcert: Concert? = nil
+    private var cachedQuery: InterestConcertListQuery? = nil
+    private var cachedPage: InterestConcertPage? = nil
 
     init(userdefaultsStorage: UserDefaultsStorage) {
         self.userdefaultsStorage = userdefaultsStorage
 
-        self.cachedConcert = try? userdefaultsStorage.fetch(for: .interestConcert)
+        self.cachedPage = try? userdefaultsStorage.fetch(for: .interestConcert)
     }
 
-    func fetchInterestConcertIfValid() -> Concert? {
+    func fetchInterestConcertPageIfValid(for query: InterestConcertListQuery) -> InterestConcertPage? {
         guard let timestamp = timestamp,
+              cachedQuery == query,
               Date().timeIntervalSince(timestamp) < Self.cacheExpirationInterval
         else {
             return nil
         }
 
-        let stored: Concert? = try? userdefaultsStorage.fetch(for: .interestConcert)
+        let stored: InterestConcertPage? = try? userdefaultsStorage.fetch(for: .interestConcert)
         if stored == nil {
-            cachedConcert = nil
+            cachedPage = nil
+            cachedQuery = nil
             self.timestamp = nil
             return nil
         }
 
-        return cachedConcert
+        return cachedPage
     }
 
-    func fetchInterestConcert() -> Concert? {
-        return cachedConcert
+    func fetchInterestConcertPage() -> InterestConcertPage? {
+        return cachedPage
     }
 
     func isCacheExpired() -> Bool {
@@ -55,20 +58,22 @@ actor InterestConcertCache {
         return Date().timeIntervalSince(timestamp) >= Self.cacheExpirationInterval
     }
 
-    func saveInterestConcert(_ concert: Concert) {
-        cachedConcert = concert
+    func saveInterestConcertPage(_ page: InterestConcertPage, for query: InterestConcertListQuery) {
+        cachedQuery = query
+        cachedPage = page
         timestamp = Date()
 
         do {
-            try userdefaultsStorage.save(concert, for: .interestConcert)
-            Self.logger.debug("[Save] Concert 저장 성공: \(concert.title ?? "") (id: \(concert.id))")
+            try userdefaultsStorage.save(page, for: .interestConcert)
+            Self.logger.debug("[Save] InterestConcertPage 저장 성공: \(page.concertList.count)개")
         } catch {
-            Self.logger.error("[Save] Concert 저장 실패: \(error.localizedDescription)")
+            Self.logger.error("[Save] InterestConcertPage 저장 실패: \(error.localizedDescription)")
         }
     }
 
-    func deleteInterestConcert() {
-        cachedConcert = nil
+    func deleteInterestConcertPage() {
+        cachedQuery = nil
+        cachedPage = nil
         timestamp = nil
         userdefaultsStorage.remove(for: .interestConcert)
     }

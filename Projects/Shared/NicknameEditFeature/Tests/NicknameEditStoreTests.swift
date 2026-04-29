@@ -97,6 +97,10 @@ final class MockUserRepository: UserRepository {
 
     func fetchInterestedConcert() async throws(UserError) -> Concert? { nil }
 
+    func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
+        InterestConcertPage(concertList: [], nextCursor: nil)
+    }
+
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         Concert(
             id: 1,

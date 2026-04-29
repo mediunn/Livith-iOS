@@ -58,6 +58,21 @@ final class MockUserRepository: UserRepository {
         }
         return interestedConcertStub
     }
+
+    func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
+        fetchInterestedConcertCallCount += 1
+        if let error = errorStub {
+            throw error
+        }
+        guard let interestedConcertStub else {
+            return InterestConcertPage(concertList: [], nextCursor: nil)
+        }
+        let interestConcert = InterestConcert(
+            concert: interestedConcertStub,
+            ticketingSchedule: InterestConcertTicketingSchedule(preSaleDate: nil, generalSaleDate: nil)
+        )
+        return InterestConcertPage(concertList: [interestConcert], nextCursor: nil)
+    }
     
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {

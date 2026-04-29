@@ -2,6 +2,27 @@
 
 ## 기록
 
+### 2026-04-29 16:28 - Tuist 테스트 병렬 실행 상태 파일 충돌
+
+**상황**
+- 6단계 Repository/Cache 변경 후 `tuist test HomeFeature`와 `tuist test Domain`을 병렬로 실행했다.
+
+**문제**
+- `tuist test Domain`이 `recent-paths.json` 제거 실패로 종료되었다.
+- `HomeFeature` 테스트 자체는 통과했다.
+
+**원인**
+- 두 Tuist 명령이 동시에 workspace 생성/상태 파일 갱신을 수행하면서 로컬 Tuist 상태 파일 접근이 충돌했다.
+
+**해결**
+- `tuist test Domain`을 단독으로 재실행했고 성공했다.
+
+**교훈**
+- Tuist project generation을 포함하는 명령은 같은 workspace에서 병렬 실행하지 않는다.
+- 독립 검증처럼 보여도 Tuist 전역/로컬 상태 파일을 공유할 수 있으므로 순차 실행한다.
+
+---
+
 ### 2026-04-29 16:09 - 5단계 UserData 테스트 baseline 컴파일 실패
 
 **상황**
