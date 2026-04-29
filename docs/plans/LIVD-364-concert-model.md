@@ -63,7 +63,8 @@
   - `ConcertDisplayText`에서 콘서트 표시용 fallback 문구와 날짜 표시 정책을 제공한다.
   - 기존 `LivithFoundation.DateFormatter.formatDateRange(from:to:)`는 이동하지 않고 `ConcertDisplayText`에서 감싸서 사용한다.
   - Home, Search, Concert Feature가 `DisplaySupport`에 의존하도록 Project 설정을 갱신한다.
-  - 별도 `DisplaySupportTests` 타겟은 이번 작업에서 만들지 않고, 표시 정책이 확장될 때 후속 작업으로 검토한다.
+  - 별도 `DisplaySupportTests` 타겟은 이번 작업에서 만들지 않고, `HomeFeatureTests`에 `ConcertDisplayText` fallback 정책 단위 테스트를 추가해 대표로 보호한다.
+  - Search, Concert Feature는 테스트 타겟이 없으므로 각 Feature 빌드로 `DisplaySupport` import와 적용 누락을 검증한다.
 - [ ] 5단계: Mapper 변경
   - `UserMapper`가 새 DTO를 `InterestConcertPage`로 변환하도록 변경한다.
   - `preSaleDate`, `generalSaleDate`는 ISO8601 date-time으로 파싱한다.
@@ -82,16 +83,24 @@
   - `AppRootView`의 시작 시점 관심 콘서트 preload 호출을 제거한다.
   - `HomeState.interestedConcert`를 목록 기반 상태로 변경한다.
   - `HomeStore`는 유저 정보 조회 성공 후 관심 콘서트를 순차 조회하지 않는다.
-  - `HomeStore` 초기 조회는 `async let` 기반 구조적 동시성으로 `fetchUser()`와 `fetchInterestConcertList(query:)`를 동시에 실행한다.
-  - 유저 정보 조회 실패는 홈 초기 데이터 실패로 처리하고, 관심 콘서트 목록 조회 실패 또는 `data: null`은 빈 목록 페이지로 처리한다.
+  - `HomeStore` 초기 조회는 하나의 Task 안에서 `async let` 기반 구조적 동시성으로 `fetchUser()`와 `fetchInterestConcertList(query:)`를 동시에 실행한다.
+  - 두 요청 결과는 `Result`로 분리 수집해 관심 콘서트 목록 실패가 유저 정보 실패처럼 전파되지 않도록 한다.
+  - 유저 정보 조회 실패만 홈 초기 데이터 실패로 처리하고, 관심 콘서트 목록 조회 실패 또는 `data: null`은 빈 목록 페이지로 처리한다.
   - 홈 섹션 및 추천 콘서트 조회는 유저 정보의 `hasPreferences` 반영 이후 기존 흐름을 유지한다.
   - `HomeInterestConcertSectionView`가 관심 콘서트 목록을 표시하도록 변경한다.
   - Optional 날짜, 포스터, 제목, 장소에 대한 UI fallback은 `ConcertDisplayText`를 통해 적용한다.
-  - `ConcertStore`의 현재 콘서트 관심 여부 판단 로직을 새 목록 구조에 맞게 재검토한다.
+  - `ConcertStore`의 현재 콘서트 관심 여부 판단 로직은 구현 전에 서버 계약 또는 UI 상태 정책을 확인한 뒤 새 목록 구조에 맞게 변경한다.
 - [ ] 8단계: 테스트 및 Mock 갱신
-  - `DisplaySupport` 표시 fallback은 영향 Feature 테스트에서 검증한다.
+  - `DisplaySupport` 표시 fallback은 `HomeFeatureTests`의 `ConcertDisplayText` 단위 테스트로 검증한다.
+  - Search, Concert Feature는 테스트 타겟이 없으므로 빌드 검증으로 표시 helper 적용 누락을 확인한다.
   - `UserMapperTests`를 새 관심 콘서트 목록 응답 기준으로 수정한다.
   - `HomeStoreTests`를 목록 기반 상태 검증으로 변경한다.
+  - `HomeStoreTests`에 유저 정보 조회 실패와 관심 콘서트 목록 조회 실패를 분리 검증하는 테스트를 추가한다.
+  - 유저 정보 조회 실패는 홈 초기 데이터 실패로 전파되는지 검증한다.
+  - 관심 콘서트 목록 조회 실패는 홈 초기 데이터 실패로 전파하지 않고 빈 `InterestConcertPage` 상태로 처리되는지 검증한다.
+  - `async let` 기반 동시 조회 결과를 각각 `Result`로 수집해 한쪽 실패가 다른 요청 결과를 덮어쓰지 않는지 검증한다.
+  - `InterestConcertSearchStore` 페이지네이션 테스트를 추가하거나 기존 `HomeFeatureTests` 범위에 포함한다.
+  - `Concert.startDate`가 nil인 항목이 있어도 다음 페이지 cursor를 항목의 `startDate`에서 재계산하지 않고 서버가 제공한 cursor 또는 페이지 메타데이터를 사용해 첫 페이지 중복 요청이 발생하지 않는지 검증한다.
   - `MockUserRepository`, Preview, 테스트용 `Concert(...)` 생성부를 새 모델에 맞춘다.
   - 영향받는 테스트와 빌드를 실행한다.
 
@@ -107,7 +116,9 @@
 - `Projects/Domain/Sources/Entity/Concert/*`
 - `Projects/Domain/Sources/Repository/UserRepository.swift`
 - `Projects/Data/ConcertData/Sources/Mapper/ConcertMapper.swift`
+- `Projects/Data/ConcertData/Tests/ConcertMapperTests.swift`
 - `Projects/Data/SearchData/Sources/Mapper/SearchMapper.swift`
+- `Projects/Data/SearchData/Tests/SearchMapperTests.swift`
 - `Projects/Data/UserData/Sources/Mapper/UserMapper.swift`
 - `Projects/Data/UserData/Sources/Repository/UserRepositoryImpl.swift`
 - `Projects/Data/UserData/Sources/DiskCache/InterestConcertCache.swift`
@@ -125,6 +136,7 @@
 - `Projects/HomeFeature/Sources/Interest/View/Subview/SearchResultGridView.swift`
 - `Projects/HomeFeature/Sources/Interest/View/Draft/Subview/InterestConcertSelectionGridView.swift`
 - `Projects/HomeFeature/Sources/Interest/View/Draft/Subview/InterestConcertSelectionBottomSectionView.swift`
+- `Projects/HomeFeature/Sources/Interest/Store/InterestConcertSearchStore.swift`
 - `Projects/HomeFeature/Tests/HomeStoreTests.swift`
 - `Projects/SearchFeature/Project.swift`
 - `Projects/SearchFeature/Sources/Search/View/SearchView.swift`
@@ -146,11 +158,11 @@
 | nullable 표시 fallback 위치 | Domain computed property, Feature별 helper, Shared helper 모듈 | Shared helper 모듈 | UI 카피와 날짜 표시 정책을 Domain에 넣지 않고 Home/Search/Concert에서 공통 재사용한다. |
 | 표시 헬퍼 모듈명 | `ConcertDisplaySupport`, `DisplaySupport` | `DisplaySupport` | 추후 다른 도메인의 표시 정책도 같은 모듈에서 확장할 수 있게 한다. |
 | 표시 헬퍼 의존성 | Feature 의존, DesignSystem 의존, Domain/Foundation 의존 | Domain/LivithFoundation 의존 | 표시 문구와 날짜 포맷만 담당하고 UI 타입 의존을 만들지 않는다. |
-| DisplaySupport 테스트 타겟 | 즉시 추가 또는 후속 추가 | 후속 추가 | 이번 작업의 변경 범위를 줄이고, 표시 정책은 영향 Feature 테스트에서 먼저 검증한다. |
+| DisplaySupport 테스트 타겟 | 즉시 추가 또는 후속 추가 | 후속 추가 | 이번 작업의 변경 범위를 줄이고, 표시 정책은 `HomeFeatureTests`에서 대표 검증하며 Search/Concert는 빌드로 적용 누락을 확인한다. |
 | 날짜 포맷 유틸 위치 | `LivithFoundation` 유지 또는 Shared로 이동 | `LivithFoundation` 유지 | 기존 날짜 포맷 유틸은 일반 기능이고, nullable fallback만 표시 헬퍼가 감싼다. |
 | cursor 모델링 | 배열 마지막 항목에서 재계산 또는 응답 cursor 유지 | 응답 cursor 유지 | 정렬 기준별 fallback과 optional 날짜 정책을 클라이언트에서 중복 구현하지 않는다. |
 | cursor 위치 | `Concert` 포함, `InterestConcert` 포함, 페이지 메타데이터 | 페이지 메타데이터 | cursor는 개별 콘서트 속성이 아니라 목록 조회 결과의 다음 페이지 정보다. |
-| 현재 콘서트 관심 여부 판단 | 첫 페이지만 확인 또는 별도 API 필요 | 구현 중 재검토 | 목록 API만으로는 페이지 밖 관심 여부를 안정적으로 판단하기 어렵다. |
+| 현재 콘서트 관심 여부 판단 | 첫 페이지만 확인, 별도 API, 상세 응답 필드, 전체 페이지 조회, unknown 상태 | 구현 전 정책 확인 | 목록 API 첫 페이지만으로는 페이지 밖 관심 여부를 안정적으로 `false`로 확정할 수 없다. |
 
 ## 표시 정책
 - 공연명이 없으면 `"{artist} 내한 예정"`을 표시한다.
@@ -166,20 +178,26 @@
 - `InterestConcertPageCursor`는 API 파라미터명인 `cursorDate`, `cursorId`를 그대로 노출하지 않고 의미 중심의 `date`, `id` 값으로 표현한다.
 - 서버가 제공한 cursor를 우선 사용하고, 서버 cursor가 없는 API에서만 예외적으로 마지막 항목 기반 cursor 생성을 검토한다.
 - `DisplaySupport`는 표시 정책만 담당하고 UI 컴포넌트 타입을 반환하지 않는다.
+- Domain은 `DisplaySupport`를 참조하지 않고, `DisplaySupport`만 Domain을 참조한다.
 - `DisplaySupport`는 기존 `DateFormatter.formatDateRange(from:to:)`를 대체하지 않고 nullable date fallback을 감싸는 역할만 수행한다.
 - `DisplaySupportTests` 타겟은 이번 작업에서 만들지 않고, 표시 정책이 여러 도메인으로 확장될 때 추가한다.
 - 작성자가 `김진웅`이 아닌 파일에서는 정책이 아직 확정되지 않아 후속 재검토가 필요한 fallback, nullable 처리, 관심 여부 판단 지점에만 TODO 주석을 남긴다.
 - 확정 정책을 단순 반영하는 변경에는 TODO 주석을 남기지 않는다.
 - TODO 주석은 단순 변경 기록이 아니라 재검토해야 할 정책을 구체적으로 적는다.
 - `Concert` optional 변경은 검색, 추천, 상세, 홈 섹션 UI에 영향을 줄 수 있으므로 fallback을 함께 확인한다.
+- `InterestConcertSearchStore`의 페이지네이션 cursor가 `state.concertList.last?.startDate`에 의존하는 경우, `Concert.startDate` Optional 변경으로 nil cursor가 되어 첫 페이지 중복 요청이 발생하지 않도록 서버 cursor 기반 구조로 변경한다.
 - 관심 콘서트 목록 API의 pagination 때문에 `ConcertStore`의 관심 여부 판단은 별도 정책 확인이 필요하다.
+- `ConcertStore`의 현재 콘서트 관심 여부는 목록 API 첫 페이지만으로 `false` 확정하지 않는다. 별도 API, 상세 응답 필드, 전체 페이지 조회, unknown 상태 중 하나를 구현 전에 확정한다.
 - 보안 규칙에 따라 토큰이나 인증 응답 원문을 로그, 테스트, 문서에 남기지 않는다.
 - 다른 작업자의 변경을 되돌리지 않는다.
 - 계획 변경이 필요하면 먼저 이 문서를 수정하고 사용자 확인을 받은 뒤 진행한다.
 
 ## 검증 방법
 - `tuist test LivithNetwork`
+- `tuist test ConcertData`
+- `tuist test SearchData`
 - `tuist test UserData`
 - `tuist test HomeFeature`
-- `tuist test SearchFeature` 또는 `xcodebuild build -scheme SearchFeature`
-- 필요 시 `xcodebuild build`로 영향 Feature 빌드 검증
+- `xcodebuild build -scheme SearchFeature`
+- `xcodebuild build -scheme ConcertFeature`
+- `xcodebuild build -scheme Livith-iOS` 또는 실제 App 스킴명
