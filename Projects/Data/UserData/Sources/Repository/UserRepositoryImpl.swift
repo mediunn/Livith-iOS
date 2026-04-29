@@ -18,10 +18,6 @@ struct UserRepositoryImpl: UserRepository {
     private let homeService: HomeService
     private let userService: UserService
     private let userCache: UserDiskCache
-    private let interestConcertCache: InterestConcertCache
-    private let fetchInterestConcertListRequest: (DTO.Request.FetchInterestConcertList) async throws -> DTO.Response.FetchUserInterestConcert
-    private let updateInterestConcertRequest: (Int) async throws -> DTO.Response.UpdateUserInterestConcert
-    private let deleteInterestConcertRequest: () async throws -> DTO.Response.EmptyResponse
     private let mapper: UserMapper = .init()
     private let errorMapper: UserErrorMapper = .init()
 
@@ -35,36 +31,6 @@ struct UserRepositoryImpl: UserRepository {
         self.homeService = homeService
         self.userService = userService
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
-        self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage)
-        self.fetchInterestConcertListRequest = { request in
-            try await homeService.request(.fetchInterestedConcertList(request))
-        }
-        self.updateInterestConcertRequest = { concertID in
-            try await homeService.request(.updateInterestedConcert(id: concertID))
-        }
-        self.deleteInterestConcertRequest = {
-            try await homeService.request(.deleteInterestedConcert)
-        }
-    }
-
-    init(
-        userdefaultsStorage: UserDefaultsStorage,
-        fetchInterestConcertListRequest: @escaping (DTO.Request.FetchInterestConcertList) async throws -> DTO.Response.FetchUserInterestConcert,
-        updateInterestConcertRequest: @escaping (Int) async throws -> DTO.Response.UpdateUserInterestConcert = { _ in
-            throw NetworkError.invalidRequest
-        },
-        deleteInterestConcertRequest: @escaping () async throws -> DTO.Response.EmptyResponse = {
-            throw NetworkError.invalidRequest
-        }
-    ) {
-        self.onboardingService = OnboardingService(interceptor: nil, eventMonitors: [])
-        self.homeService = HomeService(interceptor: nil, eventMonitors: [])
-        self.userService = UserService(interceptor: nil, eventMonitors: [])
-        self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
-        self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage)
-        self.fetchInterestConcertListRequest = fetchInterestConcertListRequest
-        self.updateInterestConcertRequest = updateInterestConcertRequest
-        self.deleteInterestConcertRequest = deleteInterestConcertRequest
     }
 
     func updateNickname(_ nickname: String) async throws(UserError) {
@@ -95,21 +61,14 @@ struct UserRepositoryImpl: UserRepository {
     }
 
     func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
-        if query.cursor == nil,
-           let cachedPage = await interestConcertCache.fetchInterestConcertPageIfValid(for: query) {
-            return cachedPage
-        }
-
         do {
             let request = makeFetchInterestConcertListRequest(from: query)
-            let response = try await fetchInterestConcertListRequest(request)
-            let page = mapper.toDomain(from: response)
-            await saveFirstPageIfNeeded(page, for: query)
-            return page
+            let response: DTO.Response.FetchUserInterestConcert = try await homeService.request(
+                .fetchInterestedConcertList(request)
+            )
+            return mapper.toDomain(from: response)
         } catch NetworkError.noData {
-            let page = InterestConcertPage(concertList: [], nextCursor: nil)
-            await saveFirstPageIfNeeded(page, for: query)
-            return page
+            return InterestConcertPage(concertList: [], nextCursor: nil)
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -119,8 +78,9 @@ struct UserRepositoryImpl: UserRepository {
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         do {
-            let response = try await updateInterestConcertRequest(concertID)
-            await interestConcertCache.deleteInterestConcertPage()
+            let response: DTO.Response.UpdateUserInterestConcert = try await homeService.request(
+                .updateInterestedConcert(id: concertID)
+            )
             guard let concert = mapper.toDomain(from: response) else {
                 throw UserError.invalidResponse
             }
@@ -135,8 +95,7 @@ struct UserRepositoryImpl: UserRepository {
 
     func deleteInterestedConcert() async throws(UserError) {
         do {
-            let _: DTO.Response.EmptyResponse = try await deleteInterestConcertRequest()
-            await interestConcertCache.deleteInterestConcertPage()
+            let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -167,12 +126,6 @@ private extension UserRepositoryImpl {
         case .ticketing:
             return .ticketing
         }
-    }
-
-    func saveFirstPageIfNeeded(_ page: InterestConcertPage, for query: InterestConcertListQuery) async {
-        guard query.cursor == nil else { return }
-
-        await interestConcertCache.saveInterestConcertPage(page, for: query)
     }
 
     func fetchUserFromNetwork() async throws(UserError) -> User {

@@ -351,7 +351,7 @@ private extension ConcertView {
             posterImage
                 .frame(height: 337)
 
-            if !store.state.isCurrentConcertInterested {
+            if store.state.isCurrentConcertInterested == false {
                 LivithActionButton("관심 콘서트 설정하기", type: .plus) {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertDetail))
                     showInterestConfirmDialog = true

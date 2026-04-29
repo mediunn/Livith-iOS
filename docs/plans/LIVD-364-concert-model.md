@@ -71,15 +71,16 @@
   - `startDate`, `endDate`는 값이 있을 때만 `Date`로 변환한다.
   - `preSaleDate`, `generalSaleDate` 파싱 실패는 항목 제외가 아니라 해당 예매 일정만 nil로 처리한다.
   - 필수 필드인 `id`, `status`, `artist`, `introduction`이 유효하지 않으면 해당 항목을 제외하거나 invalid response 처리한다.
-- [x] 6단계: Repository 및 Cache 변경
+- [x] 6단계: Repository 변경 및 관심 콘서트 캐시 제거
   - `UserRepository.fetchInterestedConcert()`를 `InterestConcertListQuery`를 받는 목록 조회 메서드로 변경한다.
   - 다음 페이지 요청은 배열의 마지막 항목에서 cursor를 재계산하지 않고 `InterestConcertPage.nextCursor`를 사용한다.
   - `UserRepositoryImpl`에서 `InterestConcertListQuery`를 `DTO.Request.FetchInterestConcertList`로 변환한다.
   - `UserRepositoryImpl`에서 새 Endpoint와 Mapper를 사용한다.
   - `NetworkService`가 관심 콘서트 목록 `data: null` 응답을 `NetworkError.noData`로 반환하면 `UserRepositoryImpl`에서 빈 `InterestConcertPage`로 변환한다.
-  - `InterestConcertCache`를 단일 `Concert` 캐시에서 관심 콘서트 목록 또는 첫 페이지 캐시로 변경한다.
+  - 관심 콘서트 목록은 캐시하지 않고 매번 네트워크에서 조회한다.
+  - 기존 `InterestConcertCache`와 관심 콘서트용 `UserDefaultsStorage` 키를 제거한다.
   - 관심 콘서트가 없을 때 `data: null`은 빈 목록 페이지로 변환한다.
-- [ ] 7단계: Presentation 변경
+- [x] 7단계: Presentation 변경
   - `AppRootView`의 시작 시점 관심 콘서트 preload 호출을 제거한다.
   - `HomeState.interestedConcert`를 목록 기반 상태로 변경한다.
   - `HomeStore`는 유저 정보 조회 성공 후 관심 콘서트를 순차 조회하지 않는다.
@@ -164,7 +165,8 @@
 | 날짜 포맷 유틸 위치 | `LivithFoundation` 유지 또는 Shared로 이동 | `LivithFoundation` 유지 | 기존 날짜 포맷 유틸은 일반 기능이고, nullable fallback만 표시 헬퍼가 감싼다. |
 | cursor 모델링 | 배열 마지막 항목에서 재계산 또는 응답 cursor 유지 | 응답 cursor 유지 | 정렬 기준별 fallback과 optional 날짜 정책을 클라이언트에서 중복 구현하지 않는다. |
 | cursor 위치 | `Concert` 포함, `InterestConcert` 포함, 페이지 메타데이터 | 페이지 메타데이터 | cursor는 개별 콘서트 속성이 아니라 목록 조회 결과의 다음 페이지 정보다. |
-| 현재 콘서트 관심 여부 판단 | 첫 페이지만 확인, 별도 API, 상세 응답 필드, 전체 페이지 조회, unknown 상태 | 구현 전 정책 확인 | 목록 API 첫 페이지만으로는 페이지 밖 관심 여부를 안정적으로 `false`로 확정할 수 없다. |
+| 관심 콘서트 목록 캐시 | 첫 페이지 캐시 유지 또는 캐시 제거 | 캐시 제거 | 홈 진입 시 최신 관심 콘서트 상태가 중요하고, 목록 API 전환 후 별도 로컬 캐시 무효화 정책을 유지하지 않는다. |
+| 현재 콘서트 관심 여부 판단 | 첫 페이지만 확인, 별도 API, 상세 응답 필드, 전체 페이지 조회, unknown 상태 | 별도 API | 목록 API 첫 페이지만으로는 페이지 밖 관심 여부를 안정적으로 `false`로 확정할 수 없어 별도 API 추가 후 연결한다. |
 
 ## 표시 정책
 - 공연명이 없으면 `"{artist} 내한 예정"`을 표시한다.
@@ -177,6 +179,7 @@
 - `preSaleDate`, `generalSaleDate`를 일반 `Concert` 의미로 확장하지 않는다.
 - Domain의 `InterestConcertListQuery`는 API 파라미터명인 `size` 대신 의미 중심의 `pageSize`를 사용한다.
 - API query 변환은 `UserRepositoryImpl` 또는 Endpoint 경계에서만 수행한다.
+- 관심 콘서트 목록은 `UserDefaults`에 저장하지 않는다.
 - `InterestConcertPageCursor`는 API 파라미터명인 `cursorDate`, `cursorId`를 그대로 노출하지 않고 의미 중심의 `date`, `id` 값으로 표현한다.
 - 서버가 제공한 cursor를 우선 사용하고, 서버 cursor가 없는 API에서만 예외적으로 마지막 항목 기반 cursor 생성을 검토한다.
 - `DisplaySupport`는 표시 정책만 담당하고 UI 컴포넌트 타입을 반환하지 않는다.
@@ -189,7 +192,7 @@
 - `Concert` optional 변경은 검색, 추천, 상세, 홈 섹션 UI에 영향을 줄 수 있으므로 fallback을 함께 확인한다.
 - `InterestConcertSearchStore`의 페이지네이션 cursor가 `state.concertList.last?.startDate`에 의존하는 경우, `Concert.startDate` Optional 변경으로 nil cursor가 되어 첫 페이지 중복 요청이 발생하지 않도록 서버 cursor 기반 구조로 변경한다.
 - 관심 콘서트 목록 API의 pagination 때문에 `ConcertStore`의 관심 여부 판단은 별도 정책 확인이 필요하다.
-- `ConcertStore`의 현재 콘서트 관심 여부는 목록 API 첫 페이지만으로 `false` 확정하지 않는다. 별도 API, 상세 응답 필드, 전체 페이지 조회, unknown 상태 중 하나를 구현 전에 확정한다.
+- `ConcertStore`의 현재 콘서트 관심 여부는 목록 API 첫 페이지만으로 `false` 확정하지 않고, 별도 API가 추가되면 연결한다.
 - 보안 규칙에 따라 토큰이나 인증 응답 원문을 로그, 테스트, 문서에 남기지 않는다.
 - 다른 작업자의 변경을 되돌리지 않는다.
 - 계획 변경이 필요하면 먼저 이 문서를 수정하고 사용자 확인을 받은 뒤 진행한다.

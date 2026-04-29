@@ -14,7 +14,6 @@ public struct UserDefaultsStorage {
     public enum Key: String {
         case currentUser
         case lastLoginPlatform
-        case interestConcert
     }
 
     private let defaults: UserDefaults

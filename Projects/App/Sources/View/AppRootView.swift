@@ -68,7 +68,7 @@ private extension AppRootView {
             let _: User = try UserDefaultsStorage().fetch(for: .currentUser)
             targetRoute = .main
 
-            preloadUserData()
+            preloadUser()
         } catch {
             targetRoute = .login
         }
@@ -85,11 +85,9 @@ private extension AppRootView {
         }
     }
     
-    func preloadUserData() {
+    func preloadUser() {
         Task {
-            async let userFetch = try? userRepository.fetchUser()
-            async let concertFetch = try? userRepository.fetchInterestedConcert()
-            _ = await (userFetch, concertFetch)
+            _ = try? await userRepository.fetchUser()
         }
     }
 }

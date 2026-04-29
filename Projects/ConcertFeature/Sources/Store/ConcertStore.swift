@@ -52,7 +52,7 @@ public struct ConcertState {
     public var setlistList: [Setlist] = []
     public var interestStatus: InterestSettingStatus = .idle
     public var showTicketReturnBanner: Bool = false
-    public var isCurrentConcertInterested: Bool = false
+    public var isCurrentConcertInterested: Bool? = nil
 
     public init() {}
 }
@@ -77,7 +77,7 @@ public enum ConcertIntent {
     case _setConcert(Concert, formattedDateRange: String)
     case _setInterestStatus(InterestSettingStatus)
     case _setFetchError(String?)
-    case _setIsCurrentConcertInterested(Bool)
+    case _setIsCurrentConcertInterested(Bool?)
 }
 
 public final class ConcertStore: ObservableObject {
@@ -151,13 +151,11 @@ private extension ConcertStore {
         fetchTask?.cancel()
 
         let repo = repository
-        let userRepo = userRepository
 
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
 
             do {
-                async let interestedConcertResult = userRepo.fetchInterestedConcert()
                 async let concertResult = repo.fetchConcert(concertID: concertID)
                 async let artistResult = repo.fetchConcertArtistInfo(concertID: concertID)
                 async let cultureResult = repo.fetchConcertCultureList(concertID: concertID)
@@ -176,8 +174,7 @@ private extension ConcertStore {
                     setlistResult
                 )
 
-                let interestedConcert = try? await interestedConcertResult
-                send(._setIsCurrentConcertInterested(interestedConcert?.id == concertID))
+                // TODO: 현재 콘서트 관심 여부 확인용 별도 API가 추가되면 이 지점에서 연결한다.
 
                 guard await Task.wait() else { return }
 

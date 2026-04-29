@@ -16,7 +16,7 @@ struct HomeInterestConcertSectionView: View {
 
     // MARK: - Properties
 
-    let concert: Concert
+    let interestConcertList: [InterestConcert]
     let onChangeTap: () -> Void
     let onTitleTap: () -> Void
 
@@ -27,11 +27,11 @@ struct HomeInterestConcertSectionView: View {
     // MARK: - Initializer
 
     init(
-        concert: Concert,
+        interestConcertList: [InterestConcert],
         onChangeTap: @escaping () -> Void = {},
         onTitleTap: @escaping () -> Void = {}
     ) {
-        self.concert = concert
+        self.interestConcertList = interestConcertList
         self.onTitleTap = onTitleTap
         self.onChangeTap = onChangeTap
     }
@@ -51,6 +51,9 @@ struct HomeInterestConcertSectionView: View {
                 .padding(.top, Constants.verticalSpacing)
         }
         .padding(.horizontal, 16)
+        .onChange(of: interestConcertList) { _, newValue in
+            clampCurrentPage(itemCount: newValue.count)
+        }
     }
 }
 
@@ -58,15 +61,28 @@ struct HomeInterestConcertSectionView: View {
 
 private extension HomeInterestConcertSectionView {
     var visibleItemList: [HomeInterestConcertSectionItem] {
-        [makeItem(from: concert)]
+        let itemList = interestConcertList.map(makeItem)
+
+        return itemList.sorted { lhs, rhs in
+            switch selectedSortOption {
+            case .ticketDate:
+                return (lhs.ticketDate ?? .distantFuture) < (rhs.ticketDate ?? .distantFuture)
+            case .concertDate:
+                return (lhs.concertDate ?? .distantFuture) < (rhs.concertDate ?? .distantFuture)
+            }
+        }
     }
 
     var nextIndex: Int {
-        (currentPage + 1) % visibleItemList.count
+        guard !visibleItemList.isEmpty else { return currentPage }
+
+        return (currentPage + 1) % visibleItemList.count
     }
 
     var previousIndex: Int {
-        (currentPage - 1 + visibleItemList.count) % visibleItemList.count
+        guard !visibleItemList.isEmpty else { return currentPage }
+
+        return (currentPage - 1 + visibleItemList.count) % visibleItemList.count
     }
 
     var dragGesture: some Gesture {
@@ -212,18 +228,26 @@ private extension HomeInterestConcertSectionView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertSectionView {
-    func makeItem(from concert: Concert) -> HomeInterestConcertSectionItem {
-        HomeInterestConcertSectionItem(
+    func makeItem(from interestConcert: InterestConcert) -> HomeInterestConcertSectionItem {
+        let concert = interestConcert.concert
+
+        return HomeInterestConcertSectionItem(
             id: concert.id,
-            ticketDate: concert.startDate,
+            ticketDate: ticketDate(from: interestConcert.ticketingSchedule),
             concertDate: concert.startDate,
             posterURL: concert.posterURL,
             badgeText: badgeText(from: concert),
             titleText: ConcertDisplayText.title(for: concert),
             dateText: dateText(from: concert),
             locationText: ConcertDisplayText.venue(for: concert),
-            bottomText: bottomText(from: concert)
+            bottomText: bottomText(from: interestConcert.ticketingSchedule)
         )
+    }
+
+    func ticketDate(from schedule: InterestConcertTicketingSchedule) -> Date? {
+        [schedule.preSaleDate, schedule.generalSaleDate]
+            .compactMap { $0 }
+            .min()
     }
 
     func badgeText(from concert: Concert) -> String {
@@ -246,12 +270,13 @@ private extension HomeInterestConcertSectionView {
         ConcertDisplayText.dateRange(for: concert)
     }
 
-    func bottomText(from concert: Concert) -> String {
-        guard let ticketingOffice = concert.ticketingOffice else {
-            return "예매 정보가 곧 공개될 예정이에요"
+    func bottomText(from schedule: InterestConcertTicketingSchedule) -> String {
+        guard let ticketDate = ticketDate(from: schedule) else {
+            return ConcertDisplayText.unknownTicketingDate
         }
 
-        return "예매처 · \(ticketingOffice)"
+        let prefix = schedule.preSaleDate == ticketDate ? "선예매 오픈" : "일반 예매 오픈"
+        return "\(prefix) · \(ConcertDisplayText.ticketingDate(ticketDate))"
     }
 
     func handleDragEnded(_ value: DragGesture.Value) {
@@ -272,6 +297,17 @@ private extension HomeInterestConcertSectionView {
             return previousIndex
         }
         return currentPage
+    }
+
+    func clampCurrentPage(itemCount: Int) {
+        guard itemCount > 0 else {
+            currentPage = 0
+            return
+        }
+
+        guard currentPage >= itemCount else { return }
+
+        currentPage = itemCount - 1
     }
 }
 
@@ -335,6 +371,16 @@ private enum HomeInterestConcertSortOption: CaseIterable {
         Color.livithColor(.black100)
             .ignoresSafeArea()
 
-        HomeInterestConcertSectionView(concert: HomeInterestConcertSectionView.previewConcert)
+        HomeInterestConcertSectionView(
+            interestConcertList: [
+                InterestConcert(
+                    concert: HomeInterestConcertSectionView.previewConcert,
+                    ticketingSchedule: InterestConcertTicketingSchedule(
+                        preSaleDate: Date(timeIntervalSince1970: 1_782_201_600),
+                        generalSaleDate: Date(timeIntervalSince1970: 1_782_288_000)
+                    )
+                )
+            ]
+        )
     }
 }

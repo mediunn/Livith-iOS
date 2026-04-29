@@ -91,9 +91,9 @@ private extension HomeView {
 
     @ViewBuilder
     var headerSection: some View {
-        if let interestedConcert = store.state.interestedConcert {
+        if !store.state.interestConcertPage.concertList.isEmpty {
             HomeInterestConcertSectionView(
-                concert: interestedConcert,
+                interestConcertList: store.state.interestConcertPage.concertList,
                 onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
                 onTitleTap: {}
             )
