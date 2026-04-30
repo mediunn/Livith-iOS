@@ -9,13 +9,12 @@
 import Foundation
 
 public enum ConcertGenre: String, CaseIterable {
+    case all = "ALL"
     case jpop = "JPOP"
     case rockMetal = "ROCK_METAL"
     case rapHiphop = "RAP_HIPHOP"
-    case classicJazz = "CLASSIC_JAZZ"
-    case acoustic = "ACOUSTIC"
-    case electronic = "ELECTRONIC"
-    case all = "ALL"
+    case pop = "POP"
+    case indie = "INDIE"
 }
 
 public extension ConcertGenre {
@@ -27,12 +26,27 @@ public extension ConcertGenre {
             return "락/메탈"
         case .rapHiphop:
             return "랩/힙합"
-        case .classicJazz:
-            return "클래식/재즈"
-        case .acoustic:
-            return "어쿠스틱"
-        case .electronic:
-            return "일렉트로닉"
+        case .pop:
+            return "팝"
+        case .indie:
+            return "인디"
+        case .all:
+            return "전체"
+        }
+    }
+
+    var genreEnglishText: String {
+        switch self {
+        case .jpop:
+            return "J-POP"
+        case .rockMetal:
+            return "ROCK/METAL"
+        case .rapHiphop:
+            return "RAP/HIPHOP"
+        case .pop:
+            return "POP"
+        case .indie:
+            return "INDIE"
         case .all:
             return "전체"
         }

@@ -346,12 +346,23 @@ private extension ConcertView {
 // MARK: - Poster Section
 
 private extension ConcertView {
+    var shouldShowInterestButton: Bool {
+        guard !store.state.isCurrentConcertInterested else { return false }
+        guard let status = store.state.concert?.status else { return true }
+        switch status {
+        case .canceled, .completed, .past:
+            return false
+        case .ongoing, .upcoming:
+            return true
+        }
+    }
+
     var posterSection: some View {
         ZStack(alignment: .topTrailing) {
             posterImage
                 .frame(height: 337)
 
-            if store.state.isCurrentConcertInterested == false {
+            if shouldShowInterestButton {
                 LivithActionButton("관심 콘서트 설정하기", type: .plus) {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertDetail))
                     showInterestConfirmDialog = true

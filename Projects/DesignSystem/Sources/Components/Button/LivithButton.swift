@@ -13,6 +13,7 @@ import SwiftUI
 public enum LivithButtonVariant {
     case primary
     case pink
+    case secondary
 
     var enabledBackground: Color {
         switch self {
@@ -20,6 +21,8 @@ public enum LivithButtonVariant {
             return .livithColor(.yellow30)
         case .pink:
             return .livithColor(.translation)
+        case .secondary:
+            return .livithColor(.black50)
         }
     }
 
@@ -29,19 +32,36 @@ public enum LivithButtonVariant {
             return .livithColor(.yellow60)
         case .pink:
             return .livithColor(.translation).opacity(0.8)
+        case .secondary:
+            return .livithColor(.black80)
         }
     }
 
     var disabledBackground: Color {
-        return .livithColor(.black50)
+        switch self {
+        case .primary, .pink:
+            return .livithColor(.black50)
+        case .secondary:
+            return .livithColor(.black80)
+        }
     }
 
     var enabledForeground: Color {
-        return .livithColor(.black100)
+        switch self {
+        case .primary, .pink:
+            return .livithColor(.black100)
+        case .secondary:
+            return .livithColor(.white100)
+        }
     }
 
     var disabledForeground: Color {
-        return .livithColor(.black30)
+        switch self {
+        case .primary, .pink:
+            return .livithColor(.black30)
+        case .secondary:
+            return .livithColor(.black50)
+        }
     }
 }
 

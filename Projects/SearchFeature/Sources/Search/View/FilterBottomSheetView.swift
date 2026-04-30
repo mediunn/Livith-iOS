@@ -80,7 +80,7 @@ private extension FilterBottomSheetView {
     }
 
     var genreOptions: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .center, spacing: 10) {
                 LivithChipButton(
                     "전체",
@@ -89,18 +89,7 @@ private extension FilterBottomSheetView {
                     tempGenreList = []
                 }
 
-                ForEach(selectableGenres.prefix(3), id: \.self) { genre in
-                    LivithChipButton(
-                        genre.genreText,
-                        style: tempGenreList.contains(genre) ? .selected : .outline
-                    ) {
-                        toggleGenre(genre)
-                    }
-                }
-            }
-
-            HStack(alignment: .center, spacing: 10) {
-                ForEach(selectableGenres.suffix(3), id: \.self) { genre in
+                ForEach(selectableGenres, id: \.self) { genre in
                     LivithChipButton(
                         genre.genreText,
                         style: tempGenreList.contains(genre) ? .selected : .outline
@@ -164,12 +153,10 @@ private extension FilterBottomSheetView {
                 AmplitudeService.shared.trackEvent(tag: .setFilter(.rockMetal))
             case .rapHiphop:
                 AmplitudeService.shared.trackEvent(tag: .setFilter(.rapHiphop))
-            case .classicJazz:
-                AmplitudeService.shared.trackEvent(tag: .setFilter(.classicJazz))
-            case .acoustic:
-                AmplitudeService.shared.trackEvent(tag: .setFilter(.acoustic))
-            case .electronic:
-                AmplitudeService.shared.trackEvent(tag: .setFilter(.electronic))
+            case .pop:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.pop))
+            case .indie:
+                AmplitudeService.shared.trackEvent(tag: .setFilter(.indie))
             case .all:
                 break
             }
