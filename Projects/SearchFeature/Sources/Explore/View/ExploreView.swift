@@ -107,7 +107,7 @@ private extension ExploreView {
     var genreTabView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                ForEach(genreList, id: \.self) { genre in
+                ForEach(ConcertGenre.allCases, id: \.self) { genre in
                     genreTabButton(genre: genre)
                 }
             }
@@ -253,10 +253,6 @@ private extension ExploreView {
 // MARK: - Helpers
 
 private extension ExploreView {
-    var genreList: [ConcertGenre] {
-        [.all, .jpop, .rockMetal, .rapHiphop, .pop, .indie]
-    }
-
     var statusSelectedText: String? {
         guard !store.state.selectedStatusList.isEmpty else { return nil }
         let names = store.state.selectedStatusList.map { $0.filterText }

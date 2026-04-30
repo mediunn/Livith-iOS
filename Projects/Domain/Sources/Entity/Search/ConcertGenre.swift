@@ -9,12 +9,12 @@
 import Foundation
 
 public enum ConcertGenre: String, CaseIterable {
+    case all = "ALL"
     case jpop = "JPOP"
     case rockMetal = "ROCK_METAL"
     case rapHiphop = "RAP_HIPHOP"
     case pop = "POP"
     case indie = "INDIE"
-    case all = "ALL"
 }
 
 public extension ConcertGenre {
