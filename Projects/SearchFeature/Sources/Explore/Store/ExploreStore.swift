@@ -50,12 +50,10 @@ final class ExploreStore: ObservableObject {
 
     @Injected private var searchRepository: SearchRepository
 
-    private var bannersTask: Task<Void, Never>? = nil
     private var fetchTask: Task<Void, Never>? = nil
 
     init() {
-        performFetchBanners()
-        performFetchConcertList()
+        performInitialFetch()
     }
 
     @MainActor
@@ -72,8 +70,7 @@ final class ExploreStore: ObservableObject {
             state.hasMorePages = true
             state.errorMessage = ""
 
-            performFetchBanners()
-            performFetchConcertList()
+            performInitialFetch()
 
         case .setCurrentPage(let page):
             state.currentPage = page
@@ -130,18 +127,46 @@ final class ExploreStore: ObservableObject {
 // MARK: - Helpers
 
 private extension ExploreStore {
-    func performFetchBanners() {
-        bannersTask?.cancel()
+    func performInitialFetch() {
+        fetchTask?.cancel()
 
         let repository = searchRepository
-        bannersTask = Task {
+        let genreList: [ConcertGenre] = state.selectedGenre == .all ? [] : [state.selectedGenre]
+        let statusList = state.selectedStatusList
+        let sort = state.sortState
+
+        fetchTask = Task { @MainActor in
+            async let bannersResult = repository.fetchBanners()
+            async let concertResult = repository.fetchFilterSearchResult(
+                genre: genreList,
+                sort: sort,
+                status: statusList,
+                keyword: nil,
+                cursor: nil,
+                size: 12
+            )
+
             do {
-                let banners = try await repository.fetchBanners()
-                await send(._fetchBannersResult(.success(banners)))
+                let banners = try await bannersResult
+                send(._fetchBannersResult(.success(banners)))
             } catch is CancellationError {
                 return
             } catch {
-                await send(._fetchBannersResult(.failure(error)))
+                send(._fetchBannersResult(.failure(error)))
+            }
+
+            do {
+                let result = try await concertResult
+                guard await Task.wait() else { return }
+                send(._setConcertList(result.concerts))
+                send(._setCursor(result.cursor))
+                send(._setLoadingMore(false))
+            } catch is CancellationError {
+                return
+            } catch {
+                guard await Task.wait() else { return }
+                send(.setErrorMessage(getErrorMessage(from: error)))
+                send(._setLoadingMore(false))
             }
         }
     }
