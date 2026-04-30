@@ -16,7 +16,6 @@ struct UserMapper {
     func toDomain(from dto: DTO.Response.UpdateUserNickname) -> User {
         User(
             id: dto.id,
-            interestConcertID: dto.interestConcertID,
             provider: dto.provider,
             providerID: dto.providerID,
             email: dto.email,
@@ -29,11 +28,8 @@ struct UserMapper {
     func toDomain(from dto: DTO.Response.FetchUserInfo) -> User {
         User(
             id: dto.id,
-            // TODO: LIVD-357 User 모델에서 interestConcertID를 제거하고 관심 콘서트 상태를 별도 API/모델로 분리한다.
-            interestConcertID: nil,
             provider: dto.provider,
-            // TODO: LIVD-357 User 모델에서 providerID nullable 여부를 반영하거나 제거한다.
-            providerID: dto.providerID ?? "",
+            providerID: dto.providerID,
             email: dto.email,
             nickname: dto.nickname,
             hasPreferences: dto.hasPreferredGenre,

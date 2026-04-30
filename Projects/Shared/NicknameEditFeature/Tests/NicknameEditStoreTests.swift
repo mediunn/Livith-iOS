@@ -6,8 +6,8 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-import Testing
 import Foundation
+import Testing
 
 import DIContainer
 import Domain
@@ -73,7 +73,6 @@ final class MockUserRepository: UserRepository {
     func fetchUser() async throws(UserError) -> User {
         User(
             id: 1,
-            interestConcertID: nil,
             provider: "kakao",
             providerID: "123",
             email: nil,
@@ -86,7 +85,6 @@ final class MockUserRepository: UserRepository {
     func refreshUser() async throws(UserError) -> User {
         User(
             id: 1,
-            interestConcertID: nil,
             provider: "kakao",
             providerID: "123",
             email: nil,
@@ -280,10 +278,9 @@ struct NicknameEditStoreTests {
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
 
-        if case .failure = sut.state.submitResult {
-            #expect(true)
-        } else {
+        guard case .failure = sut.state.submitResult else {
             Issue.record("Expected failure state")
+            return
         }
         #expect(sut.state.isSubmitting == false)
     }

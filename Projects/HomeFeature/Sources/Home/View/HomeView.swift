@@ -91,7 +91,14 @@ private extension HomeView {
 
     @ViewBuilder
     var headerSection: some View {
-        if store.state.user?.interestConcertID == nil {
+        if let interestedConcert = store.state.interestedConcert {
+            HomeInterestConcertSectionView(
+                concert: interestedConcert,
+                onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
+                onTitleTap: {}
+            )
+            .zIndex(1)
+        } else {
             EmptyInterestConcertSectionView(
                 nickname: store.state.user?.nickname ?? "라이빗",
                 shouldShowPreferenceBanner: store.state.shouldShowPreferenceBanner,
@@ -104,12 +111,6 @@ private extension HomeView {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
                     coordinator?.push(to: .interestConcertSearch)
                 }
-            )
-            .zIndex(1)
-        } else {
-            HomeInterestConcertSectionView(
-                onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
-                onTitleTap: {}
             )
             .zIndex(1)
         }

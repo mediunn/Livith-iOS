@@ -37,7 +37,6 @@ struct UserMapperTests {
 
         // Then
         #expect(result.id == 1)
-        #expect(result.interestConcertID == 100)
         #expect(result.provider == "kakao")
         #expect(result.providerID == "4484239560")
         #expect(result.email == "test@example.com")
@@ -67,7 +66,6 @@ struct UserMapperTests {
 
         // Then
         #expect(result.id == 1)
-        #expect(result.interestConcertID == nil)
         #expect(result.provider == "kakao")
         #expect(result.providerID == "4484239560")
         #expect(result.email == nil)
@@ -97,7 +95,6 @@ struct UserMapperTests {
 
         // Then
         #expect(result.id == 42)
-        #expect(result.interestConcertID == nil)
         #expect(result.provider == "apple")
         #expect(result.providerID == "001234.abcd1234")
         #expect(result.email == "user@icloud.com")
@@ -128,9 +125,8 @@ struct UserMapperTests {
 
         // Then
         #expect(result.id == 99)
-        #expect(result.interestConcertID == nil)
         #expect(result.provider == "kakao")
-        #expect(result.providerID == "")
+        #expect(result.providerID == nil)
         #expect(result.email == nil)
         #expect(result.nickname == "익명")
         #expect(!result.hasPreferences)

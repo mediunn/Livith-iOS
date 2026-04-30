@@ -15,6 +15,7 @@ import Domain
 
 struct HomeState {
     var user: User? = nil
+    var interestedConcert: Concert? = nil
     var errorMessage: String = ""
     var hasNewNotice: Bool = false
     var concertSectionList: [ConcertSection] = []
@@ -32,6 +33,7 @@ enum HomeIntent {
     case onErrorToastDisappear
     case checkUnreadNotification
     case _fetchUserResult(Result<User, Error>)
+    case _fetchInterestedConcertResult(Result<Concert?, Error>)
     case _fetchUnreadNotificationCountResult(Result<Int, Error>)
     case _fetchConcertSectionDataResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
@@ -42,6 +44,7 @@ enum HomeIntent {
 final class HomeStore: ObservableObject {
     private enum CancelID {
         case fetchUser
+        case fetchInterestedConcert
         case refreshSections
         case fetchUnreadNotificationCount
     }
@@ -75,9 +78,18 @@ final class HomeStore: ObservableObject {
             switch result {
             case .success(let user):
                 state.user = user
+                performFetchInterestedConcert()
                 executeInitialConcertSectionLoadIfNeeded()
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
+            }
+
+        case ._fetchInterestedConcertResult(let result):
+            switch result {
+            case .success(let concert):
+                state.interestedConcert = concert
+            case .failure:
+                state.interestedConcert = nil
             }
 
         case ._fetchUnreadNotificationCountResult(let result):
@@ -125,6 +137,18 @@ private extension HomeStore {
                 send(._fetchUserResult(.success(result)))
             } catch {
                 send(._fetchUserResult(.failure(error)))
+            }
+        }
+    }
+
+    func performFetchInterestedConcert() {
+        cancellables[.fetchInterestedConcert]?.cancel()
+        cancellables[.fetchInterestedConcert] = Task {
+            do {
+                let result = try await userRepository.fetchInterestedConcert()
+                send(._fetchInterestedConcertResult(.success(result)))
+            } catch {
+                send(._fetchInterestedConcertResult(.failure(error)))
             }
         }
     }
