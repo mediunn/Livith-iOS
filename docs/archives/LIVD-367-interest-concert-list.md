@@ -63,7 +63,7 @@
   - `HomeCoordinator`에서 관심 콘서트 목록 화면을 생성하고 `hidesBottomBarWhenPushed = true`를 적용한다.
   - `HomeView`의 `HomeInterestConcertSectionView.onTitleTap`에서 관심 콘서트 목록 route로 이동한다.
   - 목록 화면의 변경하기 버튼은 기존 관심 콘서트 검색 화면으로 이동한다.
-- [ ] 검증 및 정리
+- [x] 검증 및 정리
   - 추가/수정한 Store 테스트를 실행한다.
   - HomeFeature 빌드 또는 관련 테스트 타겟 실행으로 컴파일을 확인한다.
   - 작업 완료 후 계획 문서를 `docs/archives/`로 이동한다.
