@@ -14,6 +14,7 @@
 - 서버가 내려주는 cursor는 배열의 마지막 항목에서 재계산하지 않고 관심 콘서트 목록 조회 결과의 페이지네이션 메타데이터로 유지한다.
 - 관심 콘서트 목록 조회 조건은 Domain에서 API request가 아닌 `InterestConcertListQuery` 값 객체로 표현한다.
 - 콘서트 nullable 필드의 표시 fallback은 새 Shared 모듈 `DisplaySupport`에서 공통 관리한다.
+- 관심 콘서트 섹션의 표시 문구는 일반 콘서트 표시 정책과 분리해 `InterestConcertDisplayText`에서 별도 관리한다.
 - 기존 단일 관심 콘서트 의존 흐름을 목록 기반 흐름으로 전환한다.
 - App 시작 시점 관심 콘서트 preload를 제거하고, 홈 화면 진입 후 `HomeStore`가 유저 정보와 관심 콘서트 목록을 구조적 동시성으로 함께 조회한다.
 - 변경 대상 동작은 테스트를 먼저 작성하고 `red -> verify red -> green -> verify green -> refactor` 순서로 진행한다.
@@ -63,7 +64,8 @@
   - `ConcertDisplayText`에서 콘서트 표시용 fallback 문구와 날짜 표시 정책을 제공한다.
   - 기존 `LivithFoundation.DateFormatter.formatDateRange(from:to:)`는 이동하지 않고 `ConcertDisplayText`에서 감싸서 사용한다.
   - Home, Search, Concert Feature가 `DisplaySupport`에 의존하도록 Project 설정을 갱신한다.
-  - 별도 `DisplaySupportTests` 타겟은 이번 작업에서 만들지 않고, `HomeFeatureTests`에 `ConcertDisplayText` fallback 정책 단위 테스트를 추가해 대표로 보호한다.
+  - `DisplaySupportTests` unit test target을 추가한다.
+  - 기존 `HomeFeatureTests`의 `ConcertDisplayText` fallback 정책 단위 테스트는 `DisplaySupportTests`로 이동한다.
   - Search, Concert Feature는 테스트 타겟이 없으므로 각 Feature 빌드로 `DisplaySupport` import와 적용 누락을 검증한다.
 - [x] 5단계: Mapper 변경
   - `UserMapper`가 새 DTO를 `InterestConcertPage`로 변환하도록 변경한다.
@@ -91,18 +93,13 @@
   - `HomeInterestConcertSectionView`가 관심 콘서트 목록을 표시하도록 변경한다.
   - Optional 날짜, 포스터, 제목, 장소에 대한 UI fallback은 `ConcertDisplayText`를 통해 적용한다.
   - `ConcertStore`의 현재 콘서트 관심 여부 판단 로직은 구현 전에 서버 계약 또는 UI 상태 정책을 확인한 뒤 새 목록 구조에 맞게 변경한다.
-- [ ] 8단계: 테스트 및 Mock 갱신
-  - `DisplaySupport` 표시 fallback은 `HomeFeatureTests`의 `ConcertDisplayText` 단위 테스트로 검증한다.
-  - Search, Concert Feature는 테스트 타겟이 없으므로 빌드 검증으로 표시 helper 적용 누락을 확인한다.
-  - `UserMapperTests`를 새 관심 콘서트 목록 응답 기준으로 수정한다.
-  - `HomeStoreTests`를 목록 기반 상태 검증으로 변경한다.
-  - `HomeStoreTests`에 유저 정보 조회 실패와 관심 콘서트 목록 조회 실패를 분리 검증하는 테스트를 추가한다.
-  - 유저 정보 조회 실패는 홈 초기 데이터 실패로 전파되는지 검증한다.
-  - 관심 콘서트 목록 조회 실패는 홈 초기 데이터 실패로 전파하지 않고 빈 `InterestConcertPage` 상태로 처리되는지 검증한다.
-  - `async let` 기반 동시 조회 결과를 각각 `Result`로 수집해 한쪽 실패가 다른 요청 결과를 덮어쓰지 않는지 검증한다.
-  - `InterestConcertSearchStore` 페이지네이션 테스트를 추가하거나 기존 `HomeFeatureTests` 범위에 포함한다.
-  - `Concert.startDate`가 nil인 항목이 있어도 다음 페이지 cursor를 항목의 `startDate`에서 재계산하지 않고 서버가 제공한 cursor 또는 페이지 메타데이터를 사용해 첫 페이지 중복 요청이 발생하지 않는지 검증한다.
-  - `MockUserRepository`, Preview, 테스트용 `Concert(...)` 생성부를 새 모델에 맞춘다.
+- [ ] 8단계: 관심 콘서트 표시 정책 분리 및 테스트 타겟 추가
+  - `SharedModule`에 `displaySupportTests` case를 추가한다.
+  - `TargetID.sharedSourcePath`에 `DisplaySupport/Tests/**` 매핑을 추가한다.
+  - `Projects/Shared/Project.swift`에 `DisplaySupportTests` unit test target을 추가한다.
+  - 기존 `Projects/HomeFeature/Tests/ConcertDisplayTextTests.swift`를 `Projects/Shared/DisplaySupport/Tests/ConcertDisplayTextTests.swift`로 이동한다.
+  - 관심 콘서트 전용 표시 정책은 `InterestConcertDisplayText`로 분리하고 `DisplaySupportTests` 단위 테스트로 검증한다.
+  - `HomeInterestConcertSectionView`는 `InterestConcertDisplayText`를 사용하고, 관심 콘서트 표시 문구 계산 helper를 직접 보유하지 않는다.
   - 영향받는 테스트와 빌드를 실행한다.
 
 ## 영향 범위
@@ -113,6 +110,8 @@
 - `Tuist/ProjectDescriptionHelpers/Module/Module+TargetID.swift`
 - `Projects/Shared/Project.swift`
 - `Projects/Shared/DisplaySupport/Sources/ConcertDisplayText.swift`
+- `Projects/Shared/DisplaySupport/Sources/InterestConcertDisplayText.swift`
+- `Projects/Shared/DisplaySupport/Tests/InterestConcertDisplayTextTests.swift`
 - `Projects/Domain/Project.swift`
 - `Projects/Domain/Sources/Entity/Concert/Concert.swift`
 - `Projects/Domain/Sources/Entity/Concert/*`
@@ -161,7 +160,8 @@
 | nullable 표시 fallback 위치 | Domain computed property, Feature별 helper, Shared helper 모듈 | Shared helper 모듈 | UI 카피와 날짜 표시 정책을 Domain에 넣지 않고 Home/Search/Concert에서 공통 재사용한다. |
 | 표시 헬퍼 모듈명 | `ConcertDisplaySupport`, `DisplaySupport` | `DisplaySupport` | 추후 다른 도메인의 표시 정책도 같은 모듈에서 확장할 수 있게 한다. |
 | 표시 헬퍼 의존성 | Feature 의존, DesignSystem 의존, Domain/Foundation 의존 | Domain/LivithFoundation 의존 | 표시 문구와 날짜 포맷만 담당하고 UI 타입 의존을 만들지 않는다. |
-| DisplaySupport 테스트 타겟 | 즉시 추가 또는 후속 추가 | 후속 추가 | 이번 작업의 변경 범위를 줄이고, 표시 정책은 `HomeFeatureTests`에서 대표 검증하며 Search/Concert는 빌드로 적용 누락을 확인한다. |
+| DisplaySupport 테스트 타겟 | 즉시 추가 또는 후속 추가 | 즉시 추가 | 관심 콘서트 전용 표시 정책을 `DisplaySupport`로 분리하므로 같은 모듈의 테스트 타겟에서 정책을 고정한다. |
+| 관심 콘서트 표시 정책 위치 | `ConcertDisplayText` 통합 또는 별도 타입 분리 | 별도 타입 분리 | 일반 콘서트 도메인 표시 정책과 관심 콘서트 맥락의 예매/하단 문구 정책이 다르므로 `InterestConcertDisplayText`에서 별도 관리한다. |
 | 날짜 포맷 유틸 위치 | `LivithFoundation` 유지 또는 Shared로 이동 | `LivithFoundation` 유지 | 기존 날짜 포맷 유틸은 일반 기능이고, nullable fallback만 표시 헬퍼가 감싼다. |
 | cursor 모델링 | 배열 마지막 항목에서 재계산 또는 응답 cursor 유지 | 응답 cursor 유지 | 정렬 기준별 fallback과 optional 날짜 정책을 클라이언트에서 중복 구현하지 않는다. |
 | cursor 위치 | `Concert` 포함, `InterestConcert` 포함, 페이지 메타데이터 | 페이지 메타데이터 | cursor는 개별 콘서트 속성이 아니라 목록 조회 결과의 다음 페이지 정보다. |
@@ -175,6 +175,22 @@
 - 공연 D-day 값이 없으면 `"공연 예정"`을 표시한다.
 - 예매 일정이 없으면 `"예매 오픈 예정"`을 표시한다.
 
+### 관심 콘서트 표시 정책
+- 관심 콘서트 표시 정책은 `ConcertDisplayText`와 분리해 `InterestConcertDisplayText`에서 관리한다.
+- 공연명 없으면 `"{artist} 내한 예정"`을 표시한다.
+- 공연장 정보가 없으면 `"장소 공개 예정"`을 표시한다.
+- 공연 시작일 또는 종료일이 없으면 일정 문구는 `"추후 발표"`를 표시한다.
+- 공연 D-day 값이 없으면 배지는 `"공연 예정"`을 표시한다.
+- 공연 D-day 값이 `0`이면 배지는 `"공연 D-Day"`를 표시한다.
+- 공연 D-day 값이 양수이면 배지는 `"공연 D-{daysLeft}"`를 표시한다.
+- 공연 D-day 값이 음수이거나 예정 공연이 아니면 배지는 상태 문구를 표시한다.
+- 공연 D-day 값이 `0`이면 하단 문구는 티켓 문구 대신 `"공연 진행 중"`을 표시한다.
+- 선예매 일정이 있으면 하단 문구는 `"선예매 오픈 · {예매 일자}"`를 표시한다.
+- 선예매 일정이 없고 일반 예매 일정이 있으면 하단 문구는 `"일반 예매 오픈 · {예매 일자}"`를 표시한다.
+- 선예매와 일반 예매가 모두 있으면 선예매 문구를 우선 표시한다.
+- 선예매와 일반 예매가 모두 없으면 하단 문구는 `"예매 오픈 예정"`을 표시한다.
+- 공연 이미지가 없거나 로드에 실패하면 관심 콘서트 대체 이미지를 표시한다.
+
 ## 주의 사항
 - `preSaleDate`, `generalSaleDate`를 일반 `Concert` 의미로 확장하지 않는다.
 - Domain의 `InterestConcertListQuery`는 API 파라미터명인 `size` 대신 의미 중심의 `pageSize`를 사용한다.
@@ -185,7 +201,8 @@
 - `DisplaySupport`는 표시 정책만 담당하고 UI 컴포넌트 타입을 반환하지 않는다.
 - Domain은 `DisplaySupport`를 참조하지 않고, `DisplaySupport`만 Domain을 참조한다.
 - `DisplaySupport`는 기존 `DateFormatter.formatDateRange(from:to:)`를 대체하지 않고 nullable date fallback을 감싸는 역할만 수행한다.
-- `DisplaySupportTests` 타겟은 이번 작업에서 만들지 않고, 표시 정책이 여러 도메인으로 확장될 때 추가한다.
+- `DisplaySupportTests` 타겟을 추가해 표시 정책 단위 테스트를 `HomeFeatureTests`에 의존하지 않도록 한다.
+- 관심 콘서트 표시 정책은 일반 콘서트 표시 정책과 다른 도메인 정책으로 보고 `ConcertDisplayText`에 합치지 않는다.
 - 작성자가 `김진웅`이 아닌 파일에서는 정책이 아직 확정되지 않아 후속 재검토가 필요한 fallback, nullable 처리, 관심 여부 판단 지점에만 TODO 주석을 남긴다.
 - 확정 정책을 단순 반영하는 변경에는 TODO 주석을 남기지 않는다.
 - TODO 주석은 단순 변경 기록이 아니라 재검토해야 할 정책을 구체적으로 적는다.
@@ -199,6 +216,7 @@
 
 ## 검증 방법
 - `tuist test Domain`
+- `tuist test DisplaySupport`
 - `tuist test LivithNetwork`
 - `tuist test ConcertData`
 - `tuist test SearchData`
