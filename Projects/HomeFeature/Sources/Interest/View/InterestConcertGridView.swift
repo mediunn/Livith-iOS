@@ -171,21 +171,31 @@ private extension InterestConcertGridView {
 
     var gridView: some View {
         ScrollView(showsIndicators: false) {
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
-                spacing: 24
-            ) {
-                ForEach(store.state.interestConcertList, id: \.id) { interestConcert in
-                    concertCard(for: interestConcert)
+            if shouldShowErrorEmptyView {
+                errorEmptyView
+            } else {
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
+                    spacing: 24
+                ) {
+                    ForEach(store.state.interestConcertList, id: \.id) { interestConcert in
+                        concertCard(for: interestConcert)
+                    }
+                }
+
+                if store.state.isLoadingMore {
+                    ProgressView()
+                        .tint(Color.livithColor(.white100))
+                        .padding(.vertical, 16)
                 }
             }
-
-            if store.state.isLoadingMore {
-                ProgressView()
-                    .tint(Color.livithColor(.white100))
-                    .padding(.vertical, 16)
-            }
         }
+    }
+
+    var errorEmptyView: some View {
+        LivithEmptyView(text: store.state.errorMessage)
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical)
     }
 
     func concertCard(for interestConcert: InterestConcert) -> some View {
@@ -205,6 +215,14 @@ private extension InterestConcertGridView {
                 store.send(.loadNextPage)
             }
         }
+    }
+}
+
+// MARK: - Computed Properties
+
+private extension InterestConcertGridView {
+    var shouldShowErrorEmptyView: Bool {
+        store.state.interestConcertList.isEmpty && !store.state.errorMessage.isEmpty
     }
 }
 

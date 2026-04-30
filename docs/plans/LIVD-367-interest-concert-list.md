@@ -54,7 +54,7 @@
   - 우측 상단에 현재 정렬 텍스트와 화살표 아이콘을 표시한다.
   - 팝오버는 기존 `LivithOptionButton` 패턴을 재사용한다.
   - 정렬 선택 시 팝오버를 닫고 Store에 정렬 변경 intent를 전달한다.
-- [ ] 빈/오류 상태 구현
+- [x] 빈/오류 상태 구현
   - 최초 조회 실패 등으로 목록이 비어 있고 오류 메시지가 있으면 `LivithEmptyView(text: errorMessage)`를 표시한다.
   - `ScrollView` 내부에서 빈 화면 높이를 확보하기 위해 `LivithEmptyView(text: errorMessage).frame(maxWidth: .infinity).containerRelativeFrame(.vertical)` 형태로 적용한다.
   - 기획상 정상 빈 상태는 없으므로 별도 기본 빈 문구는 추가하지 않는다.
