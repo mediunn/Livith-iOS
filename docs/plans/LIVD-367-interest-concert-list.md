@@ -50,7 +50,7 @@
   - `LivithCard` 카드 매핑은 `title: InterestConcertDisplayText.title(for:)`, `subtitle: InterestConcertDisplayText.dateRange(for:)`, `secondaryText: interestConcert.concert.artist`, `badge: InterestConcertDisplayText.badge(for:)`로 고정한다.
   - 관심 콘서트 카드 탭 시 `HomeCoordinator.showConcertDetail(concertID:)`로 콘서트 상세 화면을 연다.
   - 마지막 카드 노출 시 다음 페이지를 요청하고 로딩 중이면 하단에 `ProgressView`를 표시한다.
-- [ ] 정렬 필터 UI 구현
+- [x] 정렬 필터 UI 구현
   - 우측 상단에 현재 정렬 텍스트와 화살표 아이콘을 표시한다.
   - 팝오버는 기존 `LivithOptionButton` 패턴을 재사용한다.
   - 정렬 선택 시 팝오버를 닫고 Store에 정렬 변경 intent를 전달한다.

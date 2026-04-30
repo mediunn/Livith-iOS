@@ -19,6 +19,8 @@ struct InterestConcertGridView: View {
     @Environment(\.homeCoordinator) private var coordinator
     @StateObject private var store: InterestConcertListStore = .init()
 
+    @State private var showSortOption: Bool = false
+
     private let onChangeTap: () -> Void
 
     // MARK: - Initializer
@@ -32,10 +34,17 @@ struct InterestConcertGridView: View {
     var body: some View {
         VStack(spacing: .zero) {
             headerView
+                .zIndex(2)
+
+            sortControlRow
+                .padding(.top, 44)
+                .padding(.horizontal, 16)
+                .zIndex(1)
 
             contentView
-                .padding(.top, 20)
+                .padding(.top, 16)
                 .padding(.horizontal, 16)
+                .zIndex(0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
@@ -80,6 +89,62 @@ private extension InterestConcertGridView {
                     Capsule()
                         .strokeBorder(Color.livithColor(.black90), lineWidth: 1)
                 }
+        }
+    }
+
+    var sortControlRow: some View {
+        HStack(spacing: .zero) {
+            Spacer()
+
+            sortButton
+        }
+    }
+
+    var sortButton: some View {
+        Button {
+            showSortOption.toggle()
+        } label: {
+            HStack(spacing: 4) {
+                Text(store.state.selectedSort.title)
+                    .notosans(.caption1Bold)
+                    .foregroundStyle(Color.livithColor(.white100))
+
+                Image.livithIcon(showSortOption ? .upLineSmall : .down1_5LineSmall)
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.livithColor(.white100))
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if showSortOption {
+                sortOptionView
+                    .offset(y: 30)
+                    .zIndex(1000)
+            }
+        }
+    }
+
+    var sortOptionView: some View {
+        VStack(alignment: .center, spacing: .zero) {
+            ForEach(InterestConcertSort.gridOptionList, id: \.self) { option in
+                LivithOptionButton(option.title, isSelected: store.state.selectedSort == option) {
+                    handleSortOptionSelected(option)
+                }
+                .padding(.bottom, option == InterestConcertSort.gridOptionList.last ? .zero : 8)
+            }
+        }
+        .fixedSize()
+        .padding(.horizontal, 14)
+        .padding(.vertical, 16)
+        .background {
+            UnevenRoundedRectangle(
+                topLeadingRadius: 16,
+                bottomLeadingRadius: 16,
+                bottomTrailingRadius: 16,
+                topTrailingRadius: .zero
+            )
+            .fill(Color.livithColor(.black90))
+            .strokeBorder(Color.livithColor(.black80), lineWidth: 1)
+            .shadow(color: .black.opacity(0.25), radius: 5.2)
         }
     }
 
@@ -139,6 +204,31 @@ private extension InterestConcertGridView {
             if interestConcert.id == store.state.interestConcertList.last?.id {
                 store.send(.loadNextPage)
             }
+        }
+    }
+}
+
+// MARK: - Helpers
+
+private extension InterestConcertGridView {
+    func handleSortOptionSelected(_ sort: InterestConcertSort) {
+        showSortOption = false
+
+        guard store.state.selectedSort != sort else { return }
+
+        store.send(.sortSelected(sort))
+    }
+}
+
+private extension InterestConcertSort {
+    static let gridOptionList: [InterestConcertSort] = [.ticketing, .concert]
+
+    var title: String {
+        switch self {
+        case .concert:
+            return "공연 일정"
+        case .ticketing:
+            return "예매일"
         }
     }
 }
