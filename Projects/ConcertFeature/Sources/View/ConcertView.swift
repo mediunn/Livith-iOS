@@ -347,7 +347,8 @@ private extension ConcertView {
 
 private extension ConcertView {
     var shouldShowInterestButton: Bool {
-        guard !store.state.isCurrentConcertInterested else { return false }
+        // TODO: 추후 확인 필요
+        guard !(store.state.isCurrentConcertInterested ?? false) else { return false }
         guard let status = store.state.concert?.status else { return true }
         switch status {
         case .canceled, .completed, .past:

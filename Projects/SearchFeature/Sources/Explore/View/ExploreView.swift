@@ -9,6 +9,7 @@
 import SwiftUI
 
 import Amplitude
+import DisplaySupport
 import Domain
 import LivithDesignSystem
 
@@ -219,7 +220,7 @@ private extension ExploreView {
                 ForEach(store.state.concertList, id: \.id) { concert in
                     LivithCard(
                         imageURL: concert.posterURL,
-                        title: concert.title,
+                        title: ConcertDisplayText.title(for: concert),
                         subtitle: concert.formattedStartDate,
                         secondaryText: concert.artist,
                         badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
