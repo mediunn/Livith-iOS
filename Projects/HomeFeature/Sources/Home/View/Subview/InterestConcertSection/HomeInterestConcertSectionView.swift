@@ -197,11 +197,11 @@ private extension HomeInterestConcertSectionView {
 
                 InterestConcertCardView(
                     posterURL: concert.posterURL,
-                    badgeText: badgeText(from: concert),
-                    titleText: ConcertDisplayText.title(for: concert),
-                    dateText: dateText(from: concert),
-                    locationText: ConcertDisplayText.venue(for: concert),
-                    bottomText: bottomText(from: interestConcert)
+                    badgeText: InterestConcertDisplayText.badge(for: interestConcert),
+                    titleText: InterestConcertDisplayText.title(for: interestConcert),
+                    dateText: InterestConcertDisplayText.dateRange(for: interestConcert),
+                    locationText: InterestConcertDisplayText.venue(for: interestConcert),
+                    bottomText: InterestConcertDisplayText.bottom(for: interestConcert)
                 )
                 .opacity(index == currentPage ? 1 : 0)
             }
@@ -229,47 +229,6 @@ private extension HomeInterestConcertSectionView {
 
         currentPage = 0
         onSortSelected(sort)
-    }
-
-    func badgeText(from concert: Concert) -> String {
-        guard concert.status == .upcoming else {
-            return concert.status.filterText
-        }
-
-        guard let daysLeft = concert.daysLeft else {
-            return ConcertDisplayText.unknownDaysLeft
-        }
-
-        guard daysLeft != 0 else {
-            return "공연 D-Day"
-        }
-
-        guard daysLeft > 0 else {
-            return ConcertStatus.completed.filterText
-        }
-
-        return "공연 D-\(daysLeft)"
-    }
-
-    func dateText(from concert: Concert) -> String {
-        ConcertDisplayText.dateRange(for: concert)
-    }
-
-    func bottomText(from interestConcert: InterestConcert) -> String {
-        guard interestConcert.concert.daysLeft != 0 else {
-            return "공연 진행 중"
-        }
-
-        let schedule = interestConcert.ticketingSchedule
-        if let preSaleDate = schedule.preSaleDate {
-            return "선예매 오픈 · \(ConcertDisplayText.ticketingDate(preSaleDate))"
-        }
-
-        guard let generalSaleDate = schedule.generalSaleDate else {
-            return ConcertDisplayText.unknownTicketingDate
-        }
-
-        return "일반 예매 오픈 · \(ConcertDisplayText.ticketingDate(generalSaleDate))"
     }
 
     func handleDragEnded(_ value: DragGesture.Value) {
