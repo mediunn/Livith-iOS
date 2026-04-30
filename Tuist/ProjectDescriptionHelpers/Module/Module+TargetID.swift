@@ -142,6 +142,8 @@ private extension TargetID {
         switch module {
         case .displaySupport:
             return ["DisplaySupport/Sources/**"]
+        case .displaySupportTests:
+            return ["DisplaySupport/Tests/**"]
         case .nicknameEditFeature:
             return ["NicknameEditFeature/Sources/**"]
         case .nicknameEditFeatureTests:

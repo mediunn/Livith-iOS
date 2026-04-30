@@ -1,6 +1,6 @@
 //
 //  ConcertDisplayTextTests.swift
-//  HomeFeatureTests
+//  DisplaySupportTests
 //
 //  Created by 김진웅 on 4/29/26.
 //  Copyright © 2026 Livith. All rights reserved.

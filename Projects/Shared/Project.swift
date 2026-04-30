@@ -21,6 +21,13 @@ let project = Project.make(
             ]
         ),
         .make(
+            target: .shared(.displaySupportTests),
+            product: .unitTests,
+            dependencies: [
+                .shared(.displaySupport)
+            ]
+        ),
+        .make(
             target: .shared(.nicknameEditFeature),
             product: .framework,
             dependencies: [

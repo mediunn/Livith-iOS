@@ -109,6 +109,7 @@ public enum DataModule: String {
 
 public enum SharedModule: String {
     case displaySupport = "DisplaySupport"
+    case displaySupportTests = "DisplaySupportTests"
     case nicknameEditFeature = "NicknameEditFeature"
     case nicknameEditFeatureTests = "NicknameEditFeatureTests"
     case preferenceFeature = "PreferenceFeature"
