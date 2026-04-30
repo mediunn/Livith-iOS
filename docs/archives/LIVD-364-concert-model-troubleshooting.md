@@ -2,6 +2,84 @@
 
 ## 기록
 
+### 2026-04-30 17:04 - xcodebuild 테스트 시뮬레이터 이름 불일치
+
+**상황**
+- `DisplaySupport` 테스트를 직접 확인하기 위해 `xcodebuild test -workspace "Livith-iOS.xcworkspace" -scheme "DisplaySupport" -destination "platform=iOS Simulator,name=iPhone 16"`를 실행했다.
+
+**문제**
+- 현재 개발 환경의 사용 가능한 시뮬레이터 목록에 `iPhone 16`이 없어 `Unable to find a device matching the provided destination specifier` 오류가 발생했다.
+- 사용 가능한 iPhone 시뮬레이터에는 `iPhone 17`, `iPhone 17 Pro`, `iPhone 17 Pro Max`, `iPhone 17e`, `iPhone Air` 등이 있었다.
+
+**원인**
+- 로컬 Xcode 시뮬레이터 런타임과 디바이스 목록이 명령에 지정한 `iPhone 16`과 일치하지 않았다.
+- 테스트 명령의 destination을 고정할 때 실제 설치된 시뮬레이터 이름을 확인하지 않았다.
+
+**해결**
+- 이 환경에서 직접 `xcodebuild test`를 실행할 때는 `iPhone 16`이 아니라 `iPhone 17`을 사용한다.
+- 사용한 명령은 `xcodebuild test -workspace "Livith-iOS.xcworkspace" -scheme "DisplaySupport" -destination "platform=iOS Simulator,name=iPhone 17"`이다.
+
+**교훈**
+- `xcodebuild test`의 `-destination`은 환경별 설치 디바이스 이름에 의존하므로, 실패하면 사용 가능한 destination 목록을 먼저 확인한다.
+- 이 작업 환경에서는 iPhone 시뮬레이터가 필요할 때 기본적으로 `iPhone 17`을 사용한다.
+
+---
+
+### 2026-04-30 17:03 - 관심 콘서트 표시 정책 분리 부족 피드백
+
+**상황**
+- 8단계에서 `InterestConcertDisplayText`를 추가했지만, 내부 구현이 `ConcertDisplayText.title`, `ConcertDisplayText.venue`, `ConcertDisplayText.dateRange`, `ConcertDisplayText.ticketingDate`와 공통 fallback 상수를 호출하고 있었다.
+- 사용자로부터 관심 콘서트 표시 정책 구현 내용을 `ConcertDisplayText`와 분리하라는 피드백을 받았다.
+
+**문제**
+- 타입은 분리했지만 구현이 일반 콘서트 표시 정책 타입에 의존해 계획의 “관심 콘서트 표시 정책은 일반 콘서트 표시 정책과 분리” 기준을 충분히 만족하지 못했다.
+- `InterestConcertDisplayTextTests`도 기대값 계산에 `ConcertDisplayText.ticketingDate`를 사용해 테스트가 일반 콘서트 표시 정책에 결합되어 있었다.
+
+**원인**
+- 중복을 줄이려는 의도로 기존 표시 정책 helper를 재사용했지만, 이번 계획에서 요구한 분리는 타입 이름 분리가 아니라 정책 구현과 테스트 기대값의 독립까지 포함한다는 점을 놓쳤다.
+
+**해결**
+- `InterestConcertDisplayText`에 관심 콘서트 전용 fallback 상수와 title, venue, dateRange, badge, bottom 구현을 직접 둔다.
+- 날짜 범위와 예매 일시 포맷은 `ConcertDisplayText`를 거치지 않고 `LivithFoundation` 포맷터를 직접 사용한다.
+- `InterestConcertDisplayTextTests`에서 `ConcertDisplayText` 참조를 제거하고 기대 문자열을 관심 콘서트 테스트 안에서 고정한다.
+
+**교훈**
+- “정책 분리” 요구가 있으면 타입만 분리하지 말고 구현 의존과 테스트 기대값 의존까지 함께 분리한다.
+- 표시 정책 타입 간 재사용은 요구사항상 같은 정책으로 취급해도 되는 경우에만 한다.
+
+---
+
+### 2026-04-30 16:50 - DisplaySupportTests 스킴 연결 오판
+
+**상황**
+- 8단계에서 `DisplaySupportTests` 타겟과 관심 콘서트 표시 정책 테스트를 추가했다.
+- `xcodebuild test -workspace "Livith-iOS.xcworkspace" -scheme "DisplaySupport" -destination "platform=iOS Simulator,name=iPhone 17"`로 Swift Testing 테스트 24개 통과를 확인했다.
+- `tuist test DisplaySupport`는 실행 성공으로 보였지만 출력상 XCTest 0개만 표시되어 서브에이전트 리뷰에서 `DisplaySupport` 스킴 test action에 `DisplaySupportTests`가 연결되지 않았다는 지적을 받았다.
+- 이를 해결하려고 `Projects/Shared/Project.swift`에 `DisplaySupport` 명시 스킴을 추가했다.
+
+**문제**
+- 이 저장소의 기존 Shared 모듈은 별도 명시 스킴을 두지 않는 구조인데, 스킴 추가로 문제를 해결하려 했다.
+- 실제 문제는 스킴이 아니라 `DisplaySupportTests` 타겟 생성 또는 Tuist test action 해석을 기존 패턴에 맞게 확인해야 하는 상황이었다.
+- 추가로 원인 확인 중 `tuist clean`을 실행해 외부 의존성 설치 상태가 제거되었고, 이후 `tuist install`이 GitHub credentials 관련 메시지와 긴 artifact 다운로드 중 사용자 중단으로 끝났다.
+
+**원인**
+- `tuist test DisplaySupport`의 출력과 `xcodebuild test`의 Swift Testing 출력 차이를 구분하지 못하고, 자동/생성 스킴 구조를 충분히 확인하기 전에 스킴 추가를 선택했다.
+- 생성된 `Shared.xcodeproj`에 `DisplaySupportTests` native target이 보이지 않는 현상을 스킴 문제와 혼동했다.
+- Tuist 생성 산출물 문제를 확인하는 과정에서 `tuist clean`의 영향 범위를 과소평가했다.
+
+**해결**
+- 미해결.
+- 다음 작업은 먼저 `Projects/Shared/Project.swift`에 추가한 명시 `schemes` 설정을 제거한다.
+- 이후 기존 `NicknameEditFeatureTests`, `PreferenceFeatureTests`와 같은 Shared 테스트 타겟 패턴을 기준으로 `DisplaySupportTests` 타겟 생성 누락 원인을 확인한다.
+- `tuist clean` 이후 의존성 상태가 깨졌으면 `tuist install`을 재시도하기 전에 필요한 범위와 예상 시간을 사용자에게 확인한다.
+
+**교훈**
+- 기존 프로젝트 생성 패턴과 다른 명시 스킴을 추가하기 전에 실제 `.xcodeproj`의 target 생성 여부와 기존 helper 동작을 먼저 확인한다.
+- Tuist 명령 결과에서 XCTest 0개 출력과 Swift Testing 실행 출력이 다를 수 있으므로, 테스트 발견 여부를 한 출력만으로 판단하지 않는다.
+- `tuist clean`은 외부 의존성 설치 상태에 영향을 줄 수 있으므로 테스트 스킴 확인 목적으로 먼저 사용하지 않는다.
+
+---
+
 ### 2026-04-29 - Repository 테스트를 위한 HomeService 행위 추상화 필요
 
 **상황**

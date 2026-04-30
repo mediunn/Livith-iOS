@@ -93,7 +93,7 @@
   - `HomeInterestConcertSectionView`가 관심 콘서트 목록을 표시하도록 변경한다.
   - Optional 날짜, 포스터, 제목, 장소에 대한 UI fallback은 `ConcertDisplayText`를 통해 적용한다.
   - `ConcertStore`의 현재 콘서트 관심 여부 판단 로직은 구현 전에 서버 계약 또는 UI 상태 정책을 확인한 뒤 새 목록 구조에 맞게 변경한다.
-- [ ] 8단계: 관심 콘서트 표시 정책 분리 및 테스트 타겟 추가
+- [x] 8단계: 관심 콘서트 표시 정책 분리 및 테스트 타겟 추가
   - `SharedModule`에 `displaySupportTests` case를 추가한다.
   - `TargetID.sharedSourcePath`에 `DisplaySupport/Tests/**` 매핑을 추가한다.
   - `Projects/Shared/Project.swift`에 `DisplaySupportTests` unit test target을 추가한다.
