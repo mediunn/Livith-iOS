@@ -29,12 +29,12 @@ struct InterestConcertListView: View {
                 .zIndex(2)
 
             sortControlRow
-                .padding(.top, 44)
+                .padding(.top, 24)
                 .padding(.horizontal, 16)
                 .zIndex(1)
 
             contentView
-                .padding(.top, 16)
+                .padding(.top, 24)
                 .padding(.horizontal, 16)
                 .zIndex(0)
         }
@@ -65,8 +65,9 @@ private extension InterestConcertListView {
 
             changeButton
         }
-        .padding(.top, 12)
+        .padding(.top, 24)
         .padding(.horizontal, 16)
+        .padding(.bottom, 12)
         .frame(height: 66)
     }
 
@@ -76,12 +77,12 @@ private extension InterestConcertListView {
         } label: {
             Text("변경하기")
                 .notosans(.body4Medium)
-                .foregroundStyle(Color.livithColor(.black50))
+                .foregroundStyle(Color.livithColor(.black80))
                 .padding(.horizontal, 12)
-                .padding(.vertical, 7)
+                .padding(.vertical, 4)
                 .background {
                     Capsule()
-                        .strokeBorder(Color.livithColor(.black90), lineWidth: 1)
+                        .strokeBorder(Color.livithColor(.black80), lineWidth: 1)
                 }
         }
     }
