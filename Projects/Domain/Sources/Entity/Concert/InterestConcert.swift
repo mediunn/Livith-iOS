@@ -75,6 +75,12 @@ public struct InterestConcertListQuery: Hashable {
     }
 }
 
+public extension InterestConcertListQuery {
+    static func homeSection(sort: InterestConcertSort = .concert) -> InterestConcertListQuery {
+        InterestConcertListQuery(sort: sort, pageSize: 5)
+    }
+}
+
 public enum InterestConcertSort: Hashable {
     case concert
     case ticketing

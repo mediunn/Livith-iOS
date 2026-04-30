@@ -78,6 +78,17 @@ struct ConcertDomainModelTests {
         #expect(query.cursor == nil)
     }
 
+    @Test("InterestConcertListQuery는 홈 섹션 조회 조건을 제공해야 한다")
+    func interestConcertListQuery는_홈_섹션_조회_조건을_제공해야_한다() {
+        // When
+        let query = InterestConcertListQuery.homeSection(sort: .ticketing)
+
+        // Then
+        #expect(query.sort == .ticketing)
+        #expect(query.pageSize == 5)
+        #expect(query.cursor == nil)
+    }
+
     @Test("InterestConcertPage는 목록과 다음 cursor를 페이지 메타데이터로 보관해야 한다")
     func interestConcertPage는_목록과_다음_cursor를_페이지_메타데이터로_보관해야_한다() {
         // Given

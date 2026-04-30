@@ -16,37 +16,23 @@ struct EmptyInterestConcertSectionView: View {
 
     @State private var buttonHeight: CGFloat = .zero
 
-    @Binding var isPreferenceBannerExpanded: Bool
-
     let nickname: String
-    let shouldShowPreferenceBanner: Bool
-    let onPreferenceBannerTap: () -> Void
     let onSettingTap: () -> Void
 
     // MARK: - Initializer
 
     init(
         nickname: String,
-        shouldShowPreferenceBanner: Bool,
-        isPreferenceBannerExpanded: Binding<Bool>,
-        onPreferenceBannerTap: @escaping () -> Void,
         onSettingTap: @escaping () -> Void
     ) {
         self.nickname = nickname
-        self.shouldShowPreferenceBanner = shouldShowPreferenceBanner
-        self._isPreferenceBannerExpanded = isPreferenceBannerExpanded
-        self.onPreferenceBannerTap = onPreferenceBannerTap
         self.onSettingTap = onSettingTap
     }
 
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: .zero) {
-            preferenceBanner
-
-            headerContentView
-        }
+        headerContentView
         .background(Color.livithColor(.black90))
     }
 }
@@ -54,18 +40,6 @@ struct EmptyInterestConcertSectionView: View {
 // MARK: - UIComponents
 
 private extension EmptyInterestConcertSectionView {
-    @ViewBuilder
-    var preferenceBanner: some View {
-        if shouldShowPreferenceBanner {
-            PreferenceBannerView(
-                isExpanded: $isPreferenceBannerExpanded,
-                onTapBanner: onPreferenceBannerTap
-            )
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-        }
-    }
-
     var headerContentView: some View {
         HStack(spacing: .zero) {
             VStack(spacing: .zero) {
@@ -133,9 +107,6 @@ private struct InterestConcertButtonHeightPreferenceKey: PreferenceKey {
 #Preview {
     EmptyInterestConcertSectionView(
         nickname: "유지미",
-        shouldShowPreferenceBanner: true,
-        isPreferenceBannerExpanded: .constant(true),
-        onPreferenceBannerTap: {},
         onSettingTap: {}
     )
 }

@@ -34,11 +34,11 @@ struct HomeStoreTests {
 
     // MARK: - onAppear 테스트
 
-    @Test("onAppear 시 유저와 관심 콘서트 목록을 함께 조회한 뒤 홈 콘서트 섹션 데이터를 로드해야 한다")
-    func testOnAppearFetchesUserAndInterestConcertList() async throws {
+    @Test("onAppear 시 유저와 관심 콘서트 목록과 알림 수를 함께 조회한 뒤 홈 콘서트 섹션 데이터를 로드해야 한다")
+    func testOnAppearFetchesInitialHomeDataTogether() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
-        container.userRepository.interestConcertPageStub = makeInterestConcertPage(concertIDList: [123])
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
         container.notificationRepository.unreadNotificationCountStub = 3
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
         
@@ -51,11 +51,13 @@ struct HomeStoreTests {
         // Then
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(container.userRepository.fetchInterestedConcertListQuery?.sort == .concert)
+        #expect(container.userRepository.fetchInterestedConcertListQuery?.pageSize == 5)
         #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
         #expect(sut.state.user?.nickname == "홍길동")
-        #expect(sut.state.interestConcertPage.concertList.map(\.id) == [123])
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
         #expect(sut.state.hasNewNotice)
         #expect(sut.state.concertSectionList.count == 1)
     }
@@ -65,6 +67,7 @@ struct HomeStoreTests {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.fetchInterestedConcertListErrorStub = .serverError
+        container.notificationRepository.unreadNotificationCountStub = 3
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
 
         let sut = HomeStore()
@@ -77,16 +80,19 @@ struct HomeStoreTests {
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
         #expect(sut.state.user?.nickname == "홍길동")
-        #expect(sut.state.interestConcertPage.concertList.isEmpty)
+        #expect(sut.state.interestConcertList.isEmpty)
+        #expect(sut.state.hasNewNotice)
         #expect(sut.state.errorMessage.isEmpty)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
     }
 
-    @Test("onAppear 시 유저 조회 실패만 홈 초기 데이터 실패로 전파해야 한다")
-    func testOnAppearUserFailureFailsHomeInitialData() async throws {
+    @Test("onAppear 시 알림 수 조회 실패는 홈 초기 데이터 실패로 전파하지 않아야 한다")
+    func testOnAppearNotificationCountFailureDoesNotFailHomeInitialData() async throws {
         // Given
-        container.userRepository.fetchUserErrorStub = .serverError
-        container.userRepository.interestConcertPageStub = makeInterestConcertPage(concertIDList: [123])
+        container.userRepository.userStub = makeMockUser(nickname: "홍길동")
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
+        container.notificationRepository.errorStub = .serverError
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
 
         let sut = HomeStore()
 
@@ -97,8 +103,34 @@ struct HomeStoreTests {
         // Then
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
+        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
+        #expect(!sut.state.hasNewNotice)
+        #expect(sut.state.errorMessage.isEmpty)
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+    }
+
+    @Test("onAppear 시 유저 조회 실패만 홈 초기 데이터 실패로 전파해야 한다")
+    func testOnAppearUserFailureFailsHomeInitialData() async throws {
+        // Given
+        container.userRepository.fetchUserErrorStub = .serverError
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
+        container.notificationRepository.unreadNotificationCountStub = 3
+
+        let sut = HomeStore()
+
+        // When
+        sut.send(.onAppear)
+        try await Task.sleep(nanoseconds: 150_000_000)
+
+        // Then
+        #expect(container.userRepository.fetchUserCallCount == 1)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
         #expect(sut.state.user == nil)
-        #expect(sut.state.interestConcertPage.concertList.isEmpty)
+        #expect(sut.state.interestConcertList.isEmpty)
+        #expect(!sut.state.hasNewNotice)
         #expect(!sut.state.errorMessage.isEmpty)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
     }
@@ -148,14 +180,69 @@ struct HomeStoreTests {
         #expect(sut.state.recommendedConcertList.first?.id == recommended.first?.id)
     }
 
-    @Test("관심 콘서트 목록 조회 실패 결과가 들어오면 관심 콘서트 목록 상태를 비워야 한다")
-    func testInterestConcertPageFailureClearsInterestConcertPageState() {
+    @Test("관심 콘서트 목록 조회 실패 결과가 들어오면 기존 관심 콘서트 목록을 유지하고 errorMessage를 설정해야 한다")
+    func testInterestConcertListFailureKeepsInterestConcertListAndSetsErrorMessage() {
         let sut = HomeStore()
 
-        sut.send(._fetchInterestConcertPageResult(.success(makeInterestConcertPage(concertIDList: [123]))))
-        sut.send(._fetchInterestConcertPageResult(.failure(UserError.serverError)))
+        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+        sut.send(._fetchInterestConcertListResult(.failure(UserError.serverError)))
 
-        #expect(sut.state.interestConcertPage.concertList.isEmpty)
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
+        #expect(!sut.state.errorMessage.isEmpty)
+    }
+
+    @Test("관심 콘서트 정렬을 선택하면 홈 섹션 조회 조건으로 목록을 다시 조회해야 한다")
+    func testInterestConcertSortSelectedRefetchesInterestConcertList() async throws {
+        // Given
+        let sut = HomeStore()
+        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [456])
+
+        // When
+        sut.send(.interestConcertSortSelected(.ticketing))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(sut.state.interestConcertSort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(container.userRepository.fetchInterestedConcertListQuery?.sort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListQuery?.pageSize == 5)
+        #expect(sut.state.interestConcertList.map(\.id) == [456])
+        #expect(sut.state.errorMessage.isEmpty)
+    }
+
+    @Test("관심 콘서트 정렬 조회가 실패하면 기존 목록을 유지하고 errorMessage를 설정해야 한다")
+    func testInterestConcertSortFetchFailureKeepsExistingListAndSetsErrorMessage() async throws {
+        // Given
+        let sut = HomeStore()
+        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+        container.userRepository.fetchInterestedConcertListErrorStub = .serverError
+
+        // When
+        sut.send(.interestConcertSortSelected(.ticketing))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(sut.state.interestConcertSort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(container.userRepository.fetchInterestedConcertListQuery?.sort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListQuery?.pageSize == 5)
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
+        #expect(!sut.state.errorMessage.isEmpty)
+    }
+
+    @Test("같은 관심 콘서트 정렬을 다시 선택하면 목록을 다시 조회하지 않아야 한다")
+    func testSameInterestConcertSortSelectedDoesNotRefetchInterestConcertList() async throws {
+        // Given
+        let sut = HomeStore()
+
+        // When
+        sut.send(.interestConcertSortSelected(.concert))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(sut.state.interestConcertSort == .concert)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
     }
 
     @Test("유저 조회 결과가 다시 들어와도 홈 콘서트 섹션 초기 로딩은 한 번만 수행되어야 한다")
@@ -177,7 +264,7 @@ struct HomeStoreTests {
     }
 
     @Test("관심 콘서트 목록 조회 결과가 바뀌어도 홈 콘서트 섹션 초기 로딩은 한 번만 수행되어야 한다")
-    func testInterestConcertPageResultChangeDoesNotResetHomeConcertSectionInitialLoad() async throws {
+    func testInterestConcertListResultChangeDoesNotResetHomeConcertSectionInitialLoad() async throws {
         let sut = HomeStore()
         let user = makeMockUser(hasPreferences: true)
 
@@ -187,10 +274,10 @@ struct HomeStoreTests {
         sut.send(._fetchUserResult(.success(user)))
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        sut.send(._fetchInterestConcertPageResult(.success(makeInterestConcertPage(concertIDList: [123]))))
+        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        sut.send(._fetchInterestConcertPageResult(.success(.init(concertList: [], nextCursor: nil))))
+        sut.send(._fetchInterestConcertListResult(.success([])))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
@@ -337,15 +424,12 @@ private extension HomeStoreTests {
         )
     }
 
-    func makeInterestConcertPage(concertIDList: [Int]) -> InterestConcertPage {
-        InterestConcertPage(
-            concertList: concertIDList.map { concertID in
-                InterestConcert(
-                    concert: makeMockConcert(id: concertID),
-                    ticketingSchedule: InterestConcertTicketingSchedule(preSaleDate: nil, generalSaleDate: nil)
-                )
-            },
-            nextCursor: nil
-        )
+    func makeInterestConcertList(concertIDList: [Int]) -> [InterestConcert] {
+        concertIDList.map { concertID in
+            InterestConcert(
+                concert: makeMockConcert(id: concertID),
+                ticketingSchedule: InterestConcertTicketingSchedule(preSaleDate: nil, generalSaleDate: nil)
+            )
+        }
     }
 }
