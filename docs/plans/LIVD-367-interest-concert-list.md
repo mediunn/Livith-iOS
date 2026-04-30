@@ -13,7 +13,7 @@
 
 ## 진행 방식
 - 모든 작업 항목을 한 번에 구현하지 않는다.
-- Store 테스트/Store 구현, 그리드 화면 구현, 라우팅 연결, 검증 및 정리처럼 단계별로 나누어 진행한다.
+- Store 테스트/Store 구현, 목록 화면 구현, 라우팅 연결, 검증 및 정리처럼 단계별로 나누어 진행한다.
 - 각 단계 구현이 끝나면 다음 단계로 넘어가기 전에 서브에이전트에게 계획 문서를 기준으로 구현 내용을 리뷰받는다.
 - 서브에이전트 리뷰에서 발견된 문제는 해당 단계 안에서 먼저 수정하고 다시 리뷰받는다.
 - 서브에이전트 리뷰가 통과되면 다음 단계를 바로 실행하지 않고 사용자에게 통과 사실과 다음 단계 진행 여부를 알린다.
@@ -43,8 +43,8 @@
   - 정렬 변경 조회 실패 시 기존 목록, 기존 정렬, 기존 커서를 유지하고 오류 메시지만 설정한다.
   - 조회 성공 시 이전 `errorMessage`를 비운다.
   - 정렬 변경 또는 새 첫 페이지 요청 시 이전 페이지 요청을 취소하거나, 응답의 정렬 기준이 현재 상태와 다르면 무시한다.
-- [x] 관심 콘서트 그리드 화면 구현
-  - `InterestConcertGridView`를 추가한다.
+- [x] 관심 콘서트 목록 화면 구현
+  - `InterestConcertListView`를 추가한다.
   - 시안에 맞춰 뒤로가기, 타이틀, 변경하기 버튼이 있는 상단 영역을 구성한다.
   - `RecommendedConcertGridView`와 같은 3열 그리드 레이아웃을 사용한다.
   - `LivithCard` 카드 매핑은 `title: InterestConcertDisplayText.title(for:)`, `subtitle: InterestConcertDisplayText.dateRange(for:)`, `secondaryText: interestConcert.concert.artist`, `badge: InterestConcertDisplayText.badge(for:)`로 고정한다.
@@ -58,7 +58,7 @@
   - 최초 조회 실패 등으로 목록이 비어 있고 오류 메시지가 있으면 `LivithEmptyView(text: errorMessage)`를 표시한다.
   - `ScrollView` 내부에서 빈 화면 높이를 확보하기 위해 `LivithEmptyView(text: errorMessage).frame(maxWidth: .infinity).containerRelativeFrame(.vertical)` 형태로 적용한다.
   - 기획상 정상 빈 상태는 없으므로 별도 기본 빈 문구는 추가하지 않는다.
-- [ ] 홈 라우팅 연결
+- [x] 홈 라우팅 연결
   - `HomeRoute`에 관심 콘서트 목록 route를 추가한다.
   - `HomeCoordinator`에서 관심 콘서트 목록 화면을 생성하고 `hidesBottomBarWhenPushed = true`를 적용한다.
   - `HomeView`의 `HomeInterestConcertSectionView.onTitleTap`에서 관심 콘서트 목록 route로 이동한다.
@@ -105,13 +105,13 @@
 - 단계별 구현 후 서브에이전트 리뷰가 통과되기 전까지 다음 단계로 넘어가지 않는다.
 - 서브에이전트 리뷰 통과 후에는 다음 단계를 자동 진행하지 않고 사용자에게 먼저 보고한다.
 - 홈 섹션의 5개 제한 조회 로직은 변경하지 않는다.
-- 전체 관심 콘서트 그리드 화면의 페이징 크기는 12개로 고정한다.
+- 전체 관심 콘서트 목록 화면의 페이징 크기는 12개로 고정한다.
 - 화면 전환은 View에서 직접 처리하지 않고 `HomeCoordinator` route를 통해 연결한다.
 - 기존 사용자의 변경 사항이 있는 파일은 되돌리지 않는다.
 
 ## 검증 방법
 - `HomeFeatureTests`에서 관심 콘서트 목록 Store 테스트를 실행한다.
-- HomeFeature 또는 앱 타겟 빌드로 신규 그리드 화면과 라우팅 컴파일을 확인한다.
+- HomeFeature 또는 앱 타겟 빌드로 신규 목록 화면과 라우팅 컴파일을 확인한다.
 - 시뮬레이터 또는 Preview에서 다음 항목을 수동 확인한다.
   - 홈 관심 콘서트 타이틀 탭 시 목록 화면으로 이동한다.
   - 뒤로가기와 변경하기 버튼이 동작한다.

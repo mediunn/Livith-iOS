@@ -16,6 +16,7 @@ import Domain
 enum HomeRoute: Route {
     case home
     case interestConcertSearch
+    case interestConcertList
     case interestConcertComplete(posterURL: URL?, title: String, prefetchedImage: UIImage?)
     case notice
     case noticeSetting

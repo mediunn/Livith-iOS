@@ -1,5 +1,5 @@
 //
-//  InterestConcertGridView.swift
+//  InterestConcertListView.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 5/1/26.
@@ -12,7 +12,7 @@ import DisplaySupport
 import Domain
 import LivithDesignSystem
 
-struct InterestConcertGridView: View {
+struct InterestConcertListView: View {
 
     // MARK: - Properties
 
@@ -20,14 +20,6 @@ struct InterestConcertGridView: View {
     @StateObject private var store: InterestConcertListStore = .init()
 
     @State private var showSortOption: Bool = false
-
-    private let onChangeTap: () -> Void
-
-    // MARK: - Initializer
-
-    init(onChangeTap: @escaping () -> Void = {}) {
-        self.onChangeTap = onChangeTap
-    }
 
     // MARK: - Body
 
@@ -54,7 +46,7 @@ struct InterestConcertGridView: View {
 
 // MARK: - UIComponents
 
-private extension InterestConcertGridView {
+private extension InterestConcertListView {
     var headerView: some View {
         HStack(spacing: 4) {
             Button {
@@ -79,7 +71,9 @@ private extension InterestConcertGridView {
     }
 
     var changeButton: some View {
-        Button(action: onChangeTap) {
+        Button {
+            coordinator?.push(to: .interestConcertSearch)
+        } label: {
             Text("변경하기")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black50))
@@ -125,11 +119,11 @@ private extension InterestConcertGridView {
 
     var sortOptionView: some View {
         VStack(alignment: .center, spacing: .zero) {
-            ForEach(InterestConcertSort.gridOptionList, id: \.self) { option in
+            ForEach(InterestConcertSort.sortOptionList, id: \.self) { option in
                 LivithOptionButton(option.title, isSelected: store.state.selectedSort == option) {
                     handleSortOptionSelected(option)
                 }
-                .padding(.bottom, option == InterestConcertSort.gridOptionList.last ? .zero : 8)
+                .padding(.bottom, option == InterestConcertSort.sortOptionList.last ? .zero : 8)
             }
         }
         .fixedSize()
@@ -220,7 +214,7 @@ private extension InterestConcertGridView {
 
 // MARK: - Computed Properties
 
-private extension InterestConcertGridView {
+private extension InterestConcertListView {
     var shouldShowErrorEmptyView: Bool {
         store.state.interestConcertList.isEmpty && !store.state.errorMessage.isEmpty
     }
@@ -228,7 +222,7 @@ private extension InterestConcertGridView {
 
 // MARK: - Helpers
 
-private extension InterestConcertGridView {
+private extension InterestConcertListView {
     func handleSortOptionSelected(_ sort: InterestConcertSort) {
         showSortOption = false
 
@@ -239,7 +233,7 @@ private extension InterestConcertGridView {
 }
 
 private extension InterestConcertSort {
-    static let gridOptionList: [InterestConcertSort] = [.ticketing, .concert]
+    static let sortOptionList: [InterestConcertSort] = [.ticketing, .concert]
 
     var title: String {
         switch self {

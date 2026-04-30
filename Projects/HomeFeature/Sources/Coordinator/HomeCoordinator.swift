@@ -37,7 +37,14 @@ final class HomeCoordinator: Coordinator {
             
         case .interestConcertSearch:
             return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))
-            
+
+        case .interestConcertList:
+            let vc = UIHostingController(
+                rootView: InterestConcertListView().environment(\.homeCoordinator, self)
+            )
+            vc.hidesBottomBarWhenPushed = true
+            return vc
+             
         case .interestConcertComplete(posterURL: let url, title: let title, prefetchedImage: let image):
             return UIHostingController(
                 rootView: InterestConcertCompleteView(
