@@ -76,8 +76,8 @@ private extension MockUserRepository {
                 label: "월드투어"
             ),
             ticketingSchedule: InterestConcertTicketingSchedule(
-                preSaleDate: Date(timeIntervalSince1970: 1_781_164_800),
-                generalSaleDate: Date(timeIntervalSince1970: 1_781_424_000)
+                preSaleDate: Date(timeIntervalSince1970: 1_779_955_200),
+                generalSaleDate: Date(timeIntervalSince1970: 1_780_214_400)
             )
         ),
         InterestConcert(
@@ -98,7 +98,7 @@ private extension MockUserRepository {
             ),
             ticketingSchedule: InterestConcertTicketingSchedule(
                 preSaleDate: nil,
-                generalSaleDate: Date(timeIntervalSince1970: 1_782_288_000)
+                generalSaleDate: Date(timeIntervalSince1970: 1_777_363_200)
             )
         ),
         InterestConcert(
@@ -118,8 +118,8 @@ private extension MockUserRepository {
                 label: nil
             ),
             ticketingSchedule: InterestConcertTicketingSchedule(
-                preSaleDate: Date(timeIntervalSince1970: 1_779_955_200),
-                generalSaleDate: Date(timeIntervalSince1970: 1_780_214_400)
+                preSaleDate: Date(timeIntervalSince1970: 1_781_164_800),
+                generalSaleDate: Date(timeIntervalSince1970: 1_781_424_000)
             )
         ),
         InterestConcert(
@@ -160,8 +160,8 @@ private extension MockUserRepository {
                 label: "Stadium Live"
             ),
             ticketingSchedule: InterestConcertTicketingSchedule(
-                preSaleDate: Date(timeIntervalSince1970: 1_777_363_200),
-                generalSaleDate: Date(timeIntervalSince1970: 1_777_622_400)
+                preSaleDate: Date(timeIntervalSince1970: 1_780_732_800),
+                generalSaleDate: Date(timeIntervalSince1970: 1_780_992_000)
             )
         )
     ]
