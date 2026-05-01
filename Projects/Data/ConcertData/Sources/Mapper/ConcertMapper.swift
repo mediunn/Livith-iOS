@@ -125,7 +125,8 @@ struct ConcertMapper {
             imageURL: response.imageURL.flatMap { URL(string: $0) },
             detail: response.detail,
             keywords: response.keywords,
-            instagramURL: response.instagramURL.flatMap { URL(string: $0) }
+            instagramURL: response.instagramURL.flatMap { URL(string: $0) },
+            twitterURL: response.twitterURL.flatMap { URL(string: $0) }
         )
     }
 

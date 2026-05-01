@@ -18,6 +18,7 @@ public extension DTO.Response {
         public let category: String
         public let detail: String
         public let instagramURL: String?
+        public let twitterURL: String?
         public let keywords: [String]
         public let imageURL: String?
 
@@ -28,6 +29,7 @@ public extension DTO.Response {
             case category
             case detail
             case instagramURL = "instagramUrl"
+            case twitterURL = "twitterUrl"
             case keywords
             case imageURL = "imgUrl"
         }
