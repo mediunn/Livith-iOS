@@ -13,6 +13,10 @@ import Domain
 final class MockUserRepository: UserRepository {
     var userStub: User?
     var interestConcertListStub: [InterestConcert] = []
+    var interestConcertPageStub: InterestConcertPage?
+    var interestConcertPageByCursorID: [Int: InterestConcertPage] = [:]
+    var interestConcertPageResultQueue: [Result<InterestConcertPage, UserError>] = []
+    var fetchInterestedConcertListDelayQueue: [UInt64] = []
     var updatedConcertStub: Concert?
     var errorStub: UserError?
     var fetchUserErrorStub: UserError?
@@ -21,10 +25,11 @@ final class MockUserRepository: UserRepository {
     var fetchUserCallCount: Int = 0
     var fetchInterestedConcertListCallCount: Int = 0
     var fetchInterestedConcertListQuery: InterestConcertListQuery?
+    var fetchInterestedConcertListQueryList: [InterestConcertListQuery] = []
     var updateInterestedConcertCallCount: Int = 0
     var deleteInterestedConcertCallCount: Int = 0
     var updateNicknameCallCount: Int = 0
-    
+
     func updateNickname(_ nickname: String) async throws(UserError) {
         updateNicknameCallCount += 1
         if let error = errorStub {
@@ -58,15 +63,67 @@ final class MockUserRepository: UserRepository {
     }
     
     func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
-        fetchInterestedConcertListCallCount += 1
-        fetchInterestedConcertListQuery = query
-        if let error = fetchInterestedConcertListErrorStub {
+        let (delay, queuedResult) = await MainActor.run {
+            fetchInterestedConcertListCallCount += 1
+            fetchInterestedConcertListQuery = query
+            fetchInterestedConcertListQueryList.append(query)
+
+            let delay: UInt64
+            if !fetchInterestedConcertListDelayQueue.isEmpty {
+                delay = fetchInterestedConcertListDelayQueue.removeFirst()
+            } else {
+                delay = 0
+            }
+
+            let queuedResult: Result<InterestConcertPage, UserError>?
+            if !interestConcertPageResultQueue.isEmpty {
+                queuedResult = interestConcertPageResultQueue.removeFirst()
+            } else {
+                queuedResult = nil
+            }
+
+            return (delay, queuedResult)
+        }
+
+        if delay > 0 {
+            try? await Task.sleep(nanoseconds: delay)
+        }
+
+        if let queuedResult {
+            switch queuedResult {
+            case .success(let page):
+                return page
+            case .failure(let error):
+                throw error
+            }
+        }
+
+        let fallbackResult: Result<InterestConcertPage, UserError> = await MainActor.run {
+            if let error = fetchInterestedConcertListErrorStub {
+                return .failure(error)
+            }
+            if let error = errorStub {
+                return .failure(error)
+            }
+
+            if let cursorID = query.cursor?.id,
+               let cursorPage = interestConcertPageByCursorID[cursorID] {
+                return .success(cursorPage)
+            }
+
+            if let interestConcertPageStub {
+                return .success(interestConcertPageStub)
+            }
+
+            return .success(InterestConcertPage(concertList: interestConcertListStub, nextCursor: nil))
+        }
+
+        switch fallbackResult {
+        case .success(let page):
+            return page
+        case .failure(let error):
             throw error
         }
-        if let error = errorStub {
-            throw error
-        }
-        return InterestConcertPage(concertList: interestConcertListStub, nextCursor: nil)
     }
     
     @discardableResult

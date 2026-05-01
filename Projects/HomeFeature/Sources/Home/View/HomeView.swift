@@ -130,7 +130,7 @@ private extension HomeView {
                 interestConcertList: store.state.interestConcertList,
                 selectedSort: store.state.interestConcertSort,
                 onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
-                onTitleTap: {},
+                onTitleTap: { coordinator?.push(to: .interestConcertList) },
                 onSortSelected: { store.send(.interestConcertSortSelected($0)) }
             )
         } else {
