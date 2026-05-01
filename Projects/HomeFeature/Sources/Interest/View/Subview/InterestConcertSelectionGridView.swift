@@ -57,12 +57,12 @@ private extension InterestConcertSelectionGridView {
                 ProgressView()
                     .tint(Color.livithColor(.white100))
                     .gridCellColumns(Constants.gridColumns)
-                    .padding(.vertical, Constants.loadingVerticalPadding)
+                    .padding(.vertical, 16)
             }
         }
-        .padding(.top, Constants.gridTopPadding)
-        .padding(.horizontal, Constants.horizontalPadding)
-        .padding(.bottom, Constants.gridBottomPadding)
+        .padding(.top, 20)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
     }
 
     func concertCard(for concert: Concert) -> some View {
@@ -96,9 +96,5 @@ private extension InterestConcertSelectionGridView {
     enum Constants {
         static let gridColumns = 3
         static let gridSpacing: CGFloat = 12
-        static let horizontalPadding: CGFloat = 16
-        static let gridTopPadding: CGFloat = 20
-        static let gridBottomPadding: CGFloat = 16
-        static let loadingVerticalPadding: CGFloat = 16
     }
 }

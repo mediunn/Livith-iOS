@@ -31,12 +31,16 @@ struct InterestConcertSettingView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: .zero) {
-            navigationBar
+        ZStack(alignment: .bottom) {
+            VStack(spacing: .zero) {
+                navigationBar
 
-            topSection
+                topSection
 
-            gridSection
+                gridSection
+            }
+
+            bottomSection
         }
         .background(Color.livithColor(.black100))
         .ignoresSafeArea(.keyboard)
@@ -44,9 +48,6 @@ struct InterestConcertSettingView: View {
         .simultaneousGesture(TapGesture().onEnded { _ in
             store.send(.setSearchFocused(false))
         })
-        .safeAreaInset(edge: .bottom) {
-            bottomSection
-        }
         .livithToast(
             isPresented: Binding(
                 get: { showErrorToast && !store.state.errorMessage.isEmpty },
@@ -90,7 +91,7 @@ private extension InterestConcertSettingView {
             }
 
             searchTextField
-                .padding(.top, store.state.isSearchFocused ? Constants.searchFocusedTopPadding : Constants.searchDefaultTopPadding)
+                .padding(.top, store.state.isSearchFocused ? 12 : 30)
                 .padding(.horizontal, Constants.horizontalPadding)
         }
     }
@@ -158,7 +159,7 @@ private extension InterestConcertSettingView {
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black50))
         }
-        .padding(.top, Constants.guideTopPadding)
+        .padding(.top, 30)
         .padding(.horizontal, Constants.horizontalPadding)
     }
 
@@ -200,9 +201,6 @@ private extension InterestConcertSettingView {
 private extension InterestConcertSettingView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
-        static let guideTopPadding: CGFloat = 30
-        static let searchDefaultTopPadding: CGFloat = 30
-        static let searchFocusedTopPadding: CGFloat = 12
     }
 
     enum Literals {
