@@ -181,7 +181,7 @@ private extension ConcertRepositoryImpl {
     func makeCursor(from nextToken: (any NextToken)?) throws(ConcertError) -> Int? {
         guard let nextToken else { return nil }
         guard let concertListNextToken = nextToken as? ConcertListNextToken else {
-            throw ConcertError.invalidResponse
+            throw ConcertError.invalidRequest
         }
 
         return concertListNextToken.cursor
