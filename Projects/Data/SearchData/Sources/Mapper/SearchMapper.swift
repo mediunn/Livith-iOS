@@ -53,14 +53,9 @@ struct SearchMapper {
             )
         }
 
-        var cursorTuple: (String, Int)?
-        if let cursor = response.cursor {
-            cursorTuple = (cursor.value, cursor.id)
-        }
-
         return SearchResult(
             concerts: concerts,
-            cursor: cursorTuple,
+            cursor: response.cursor,
             totalCount: response.totalCount
         )
     }

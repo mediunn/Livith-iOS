@@ -182,7 +182,9 @@ private extension NoticeView {
         switch type {
         case .interestConcert:
             AmplitudeService.shared.trackEvent(tag: .click(.interestConcertNotification))
-        case .ticket1D, .ticket7D, .ticketToday:
+        case .preTicketingOpen, .generalTicketingOpen,
+             .preTicketing1D, .preTicketing30M,
+             .generalTicketing1D, .generalTicketing30M:
             AmplitudeService.shared.trackEvent(tag: .click(.bookingScheduleNotification))
         case .concertInfoUpdateSetlist:
             AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateSetlistNotification))

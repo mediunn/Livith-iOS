@@ -200,7 +200,7 @@ private extension ConcertInfoTabView {
                     id: 1,
                     category: "티켓팅 오픈",
                     scheduledAt: Date().addingTimeInterval(86400),
-                    type: .ticketing
+                    type: .preTicketing
                 ),
                 ConcertSchedule(
                     id: 2,

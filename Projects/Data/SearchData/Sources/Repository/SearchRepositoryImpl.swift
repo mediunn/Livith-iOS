@@ -34,7 +34,7 @@ struct SearchRepositoryImpl: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        cursor: String?,
+        cursor: Int?,
         size: Int?
     ) async throws(SearchError) -> SearchResult {
         do {
