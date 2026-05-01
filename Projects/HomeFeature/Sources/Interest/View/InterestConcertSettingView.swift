@@ -19,6 +19,7 @@ struct InterestConcertSettingView: View {
     @StateObject private var store: InterestConcertSettingStore
     @State private var showErrorToast: Bool = false
     @State private var showSuccessToast: Bool = false
+    @State private var isDiscardChangesModalPresented: Bool = false
 
     // MARK: - Initializer
 
@@ -64,6 +65,20 @@ struct InterestConcertSettingView: View {
             type: .success,
             message: store.state.successMessage
         )
+        .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: "선택된 콘서트가 해제돼요.\n이전 페이지로 돌아가시나요?",
+                confirmTitle: "뒤로 갈게요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: {
+                    isDiscardChangesModalPresented = false
+                    coordinator?.pop()
+                }),
+                onCancel: {
+                    isDiscardChangesModalPresented = false
+                }
+            )
+        }
         .onChange(of: store.state.errorMessage) { _, errorMessage in
             if !errorMessage.isEmpty {
                 showErrorToast = true
@@ -129,7 +144,7 @@ private extension InterestConcertSettingView {
         LivithNavigationView(
             type: .back(
                 title: store.state.mode.navigationTitle,
-                onBack: { coordinator?.pop() }
+                onBack: handleBackButtonTap
             )
         )
     }
@@ -193,6 +208,15 @@ private extension InterestConcertSettingView {
             get: { store.state.isSearchFocused },
             set: { store.send(.setSearchFocused($0)) }
         )
+    }
+
+    func handleBackButtonTap() {
+        guard store.state.hasUnsavedChanges else {
+            coordinator?.pop()
+            return
+        }
+
+        isDiscardChangesModalPresented = true
     }
 }
 

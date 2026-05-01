@@ -26,6 +26,7 @@ struct InterestConcertSettingState {
     var isLoadingMore: Bool = false
     var isSubmitting: Bool = false
     var isCTAEnabled: Bool = false
+    var hasUnsavedChanges: Bool = false
     var errorMessage: String = ""
     var successMessage: String = ""
 
@@ -277,11 +278,12 @@ private extension InterestConcertSettingStore {
 
     func syncSelectionState() {
         state.selectedConcertList = state.selectedConcertIDList.compactMap { selectedConcertByID[$0] }
-        state.isCTAEnabled = Self.isCTAEnabled(
+        state.hasUnsavedChanges = Self.hasUnsavedChanges(
             mode: state.mode,
             selectedConcertIDList: state.selectedConcertIDList,
             initialSelectedConcertIDList: initialSelectedConcertIDList
         )
+        state.isCTAEnabled = state.hasUnsavedChanges
     }
 
     func applySearchFilter() {
@@ -317,7 +319,7 @@ private extension InterestConcertSettingStore {
 }
 
 private extension InterestConcertSettingStore {
-    static func isCTAEnabled(
+    static func hasUnsavedChanges(
         mode: InterestConcertSettingMode,
         selectedConcertIDList: [Int],
         initialSelectedConcertIDList: [Int]

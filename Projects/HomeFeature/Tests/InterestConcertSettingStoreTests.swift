@@ -95,6 +95,7 @@ struct InterestConcertSettingStoreTests {
         #expect(sut.state.selectedConcertIDList == [2, 4])
         #expect(sut.state.selectedConcertList.map(\.id) == [2, 4])
         #expect(!sut.state.isCTAEnabled)
+        #expect(!sut.state.hasUnsavedChanges)
     }
 
     @Test("initialSetup 모드는 선택 변경에 따라 CTA 활성화 상태를 갱신해야 한다")
@@ -106,6 +107,8 @@ struct InterestConcertSettingStoreTests {
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
 
+        #expect(!sut.state.hasUnsavedChanges)
+
         // When
         sut.send(.toggleConcertSelection(1))
 
@@ -113,6 +116,7 @@ struct InterestConcertSettingStoreTests {
         #expect(sut.state.selectedConcertIDList == [1])
         #expect(sut.state.selectedConcertList.map(\.id) == [1])
         #expect(sut.state.isCTAEnabled)
+        #expect(sut.state.hasUnsavedChanges)
 
         // When
         sut.send(.toggleConcertSelection(1))
@@ -121,6 +125,7 @@ struct InterestConcertSettingStoreTests {
         #expect(sut.state.selectedConcertIDList.isEmpty)
         #expect(sut.state.selectedConcertList.isEmpty)
         #expect(!sut.state.isCTAEnabled)
+        #expect(!sut.state.hasUnsavedChanges)
     }
 
     @Test("update 모드는 초기 선택과 달라질 때만 CTA를 활성화해야 한다")
@@ -141,6 +146,7 @@ struct InterestConcertSettingStoreTests {
         // Then
         #expect(sut.state.selectedConcertIDList == [1])
         #expect(sut.state.isCTAEnabled)
+        #expect(sut.state.hasUnsavedChanges)
 
         // When
         sut.send(.toggleConcertSelection(2))
@@ -148,6 +154,7 @@ struct InterestConcertSettingStoreTests {
         // Then
         #expect(Set(sut.state.selectedConcertIDList) == Set([1, 2]))
         #expect(!sut.state.isCTAEnabled)
+        #expect(!sut.state.hasUnsavedChanges)
     }
 
     @Test("검색어 입력과 초기화는 표시 목록과 포커스 상태를 갱신해야 한다")
@@ -233,6 +240,7 @@ struct InterestConcertSettingStoreTests {
         #expect(container.userRepository.updateInterestedConcertIDList == [1, 2])
         #expect(sut.state.successMessage == "관심 콘서트를 설정했어요")
         #expect(!sut.state.isSubmitting)
+        #expect(!sut.state.hasUnsavedChanges)
     }
 
     @Test("CTA 비활성 상태에서 제출하면 관심 콘서트 설정 API를 호출하지 않아야 한다")
