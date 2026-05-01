@@ -45,7 +45,7 @@ struct InterestConcertSettingStoreTests {
         #expect(container.concertRepository.fetchAllConcertListCallCount == 1)
         #expect(container.concertRepository.fetchAllConcertListNextTokenList.first == nil)
         #expect(container.concertRepository.fetchAllConcertListSizeList.first == 12)
-        #expect(sut.state.filteredConcertList.map(\.id) == [1, 2])
+        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
         #expect(sut.state.hasMoreConcertList)
         #expect(!sut.state.isInitialLoading)
     }
@@ -68,7 +68,7 @@ struct InterestConcertSettingStoreTests {
         // Then
         #expect(container.concertRepository.fetchAllConcertListCallCount == 2)
         #expect(container.concertRepository.fetchAllConcertListNextTokenList.dropFirst().first != nil)
-        #expect(sut.state.filteredConcertList.map(\.id) == [1, 2, 3])
+        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2, 3])
         #expect(!sut.state.hasMoreConcertList)
         #expect(!sut.state.isLoadingMore)
     }
@@ -157,8 +157,8 @@ struct InterestConcertSettingStoreTests {
         #expect(!sut.state.hasUnsavedChanges)
     }
 
-    @Test("검색어 입력과 초기화는 표시 목록과 포커스 상태를 갱신해야 한다")
-    func 검색어_입력과_초기화는_표시_목록과_포커스_상태를_갱신해야_한다() async throws {
+    @Test("검색어 입력은 원문을 저장하고 초기화는 기본 목록과 포커스 상태를 갱신해야 한다")
+    func 검색어_입력은_원문을_저장하고_초기화는_기본_목록과_포커스_상태를_갱신해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
@@ -167,17 +167,177 @@ struct InterestConcertSettingStoreTests {
         try await waitForAsyncTask()
 
         // When
-        sut.send(.updateSearchText("2"))
+        sut.send(.updateSearchText("  freedom  "))
 
         // Then
-        #expect(sut.state.filteredConcertList.map(\.id) == [2])
+        #expect(sut.state.searchText == "  freedom  ")
 
         // When
         sut.send(.clearSearchText)
 
         // Then
         #expect(sut.state.searchText.isEmpty)
-        #expect(sut.state.filteredConcertList.map(\.id) == [1, 2])
+        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
+        #expect(sut.state.isSearchFocused)
+    }
+
+    @Test("검색어 입력 후 debounce 전에는 검색 API를 호출하지 않아야 한다")
+    func 검색어_입력_후_debounce_전에는_검색_API를_호출하지_않아야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.searchRepository.searchResultStub = SearchResult(
+            concerts: makeConcertList([3]),
+            cursor: nil,
+            totalCount: 1
+        )
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.updateSearchText("  freedom  "))
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(container.searchRepository.fetchFilterSearchResultCallCount == 0)
+        #expect(sut.state.searchText == "  freedom  ")
+    }
+
+    @Test("검색어 입력 후 debounce가 지나면 고정 status로 검색 API를 호출하고 결과를 표시해야 한다")
+    func 검색어_입력_후_debounce가_지나면_고정_status로_검색_API를_호출하고_결과를_표시해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.searchRepository.searchResultStub = SearchResult(
+            concerts: makeConcertList([3]),
+            cursor: 3,
+            totalCount: 1
+        )
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.updateSearchText("  freedom  "))
+        try await waitForDebounceTask()
+
+        // Then
+        #expect(container.searchRepository.fetchFilterSearchResultCallCount == 1)
+        #expect(container.searchRepository.fetchFilterSearchResultGenreList.first == [])
+        #expect(container.searchRepository.fetchFilterSearchResultSortList.first == nil)
+        #expect(container.searchRepository.fetchFilterSearchResultStatusList.first == [.ongoing, .upcoming])
+        #expect(container.searchRepository.fetchFilterSearchResultKeywordList.first == "freedom")
+        #expect(container.searchRepository.fetchFilterSearchResultCursorList.first == nil)
+        #expect(container.searchRepository.fetchFilterSearchResultSizeList.first == 12)
+        #expect(sut.state.displayedConcertList.map(\.id) == [3])
+    }
+
+    @Test("검색 첫 요청 중에는 로딩 상태를 표시해야 한다")
+    func 검색_첫_요청_중에는_로딩_상태를_표시해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.searchRepository.fetchFilterSearchResultDelayQueue = [300_000_000]
+        container.searchRepository.searchResultStub = SearchResult(
+            concerts: makeConcertList([3]),
+            cursor: nil,
+            totalCount: 1
+        )
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.updateSearchText("freedom"))
+        try await waitForDebounceTask()
+
+        // Then
+        #expect(sut.state.isSearchLoading)
+
+        // When
+        try await waitForDebounceTask()
+
+        // Then
+        #expect(!sut.state.isSearchLoading)
+        #expect(sut.state.displayedConcertList.map(\.id) == [3])
+    }
+
+    @Test("검색 실패 시 표시 목록을 비우고 errorMessage를 설정해야 한다")
+    func 검색_실패_시_표시_목록을_비우고_errorMessage를_설정해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.searchRepository.searchResultQueue = [
+            .failure(.serverError)
+        ]
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.updateSearchText("freedom"))
+        try await waitForDebounceTask()
+
+        // Then
+        #expect(sut.state.displayedConcertList.isEmpty)
+        #expect(!sut.state.hasMoreConcertList)
+        #expect(!sut.state.isSearchLoading)
+        #expect(!sut.state.errorMessage.isEmpty)
+    }
+
+    @Test("검색 다음 페이지 조회 시 search cursor를 넘기고 목록 뒤에 추가해야 한다")
+    func 검색_다음_페이지_조회_시_search_cursor를_넘기고_목록_뒤에_추가해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: TestNextToken()))
+        ]
+        container.searchRepository.searchResultQueue = [
+            .success(SearchResult(concerts: makeConcertList([3]), cursor: 3, totalCount: 2)),
+            .success(SearchResult(concerts: makeConcertList([4]), cursor: nil, totalCount: 2))
+        ]
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+        sut.send(.updateSearchText("freedom"))
+        try await waitForDebounceTask()
+
+        // When
+        sut.send(.loadNextPage)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(container.concertRepository.fetchAllConcertListCallCount == 1)
+        #expect(container.searchRepository.fetchFilterSearchResultCallCount == 2)
+        #expect(container.searchRepository.fetchFilterSearchResultCursorList == [nil, 3])
+        #expect(sut.state.displayedConcertList.map(\.id) == [3, 4])
+        #expect(!sut.state.hasMoreConcertList)
+        #expect(!sut.state.isLoadingMore)
+    }
+
+    @Test("검색어를 비우면 검색 API를 추가 호출하지 않고 기본 목록으로 복귀해야 한다")
+    func 검색어를_비우면_검색_API를_추가_호출하지_않고_기본_목록으로_복귀해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.searchRepository.searchResultStub = SearchResult(
+            concerts: makeConcertList([3]),
+            cursor: nil,
+            totalCount: 1
+        )
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+        sut.send(.updateSearchText("freedom"))
+        try await waitForDebounceTask()
+
+        // When
+        sut.send(.clearSearchText)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(container.searchRepository.fetchFilterSearchResultCallCount == 1)
+        #expect(sut.state.searchText.isEmpty)
+        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
         #expect(sut.state.isSearchFocused)
     }
 
@@ -193,7 +353,7 @@ struct InterestConcertSettingStoreTests {
         try await waitForAsyncTask()
 
         // Then
-        #expect(sut.state.filteredConcertList.isEmpty)
+        #expect(sut.state.displayedConcertList.isEmpty)
         #expect(!sut.state.hasMoreConcertList)
         #expect(!sut.state.isInitialLoading)
         #expect(!sut.state.errorMessage.isEmpty)
@@ -214,7 +374,7 @@ struct InterestConcertSettingStoreTests {
         try await waitForAsyncTask()
 
         // Then
-        #expect(sut.state.filteredConcertList.map(\.id) == [1, 2])
+        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
         #expect(!sut.state.isLoadingMore)
         #expect(!sut.state.errorMessage.isEmpty)
     }
@@ -318,6 +478,10 @@ private extension InterestConcertSettingStoreTests {
 
     func waitForAsyncTask() async throws {
         try await Task.sleep(nanoseconds: 100_000_000)
+    }
+
+    func waitForDebounceTask() async throws {
+        try await Task.sleep(nanoseconds: 450_000_000)
     }
 }
 

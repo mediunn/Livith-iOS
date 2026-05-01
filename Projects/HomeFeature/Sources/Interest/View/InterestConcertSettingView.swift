@@ -113,11 +113,11 @@ private extension InterestConcertSettingView {
 
     var gridSection: some View {
         Group {
-            if store.state.isInitialLoading {
+            if store.state.isInitialLoading || store.state.isSearchLoading {
                 loadingView
             } else {
                 InterestConcertSelectionGridView(
-                    concertList: store.state.filteredConcertList,
+                    concertList: store.state.displayedConcertList,
                     selectedConcertIDList: store.state.selectedConcertIDList,
                     isLoadingMore: store.state.isLoadingMore,
                     onConcertTap: { store.send(.toggleConcertSelection($0)) },

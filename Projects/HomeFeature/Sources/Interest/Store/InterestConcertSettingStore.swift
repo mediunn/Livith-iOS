@@ -16,13 +16,14 @@ import Domain
 
 struct InterestConcertSettingState {
     let mode: InterestConcertSettingMode
-    var filteredConcertList: [Concert] = []
+    var displayedConcertList: [Concert] = []
     var searchText: String = ""
     var isSearchFocused: Bool = false
     var selectedConcertIDList: [Int] = []
     var selectedConcertList: [Concert] = []
     var hasMoreConcertList: Bool = false
     var isInitialLoading: Bool = true
+    var isSearchLoading: Bool = false
     var isLoadingMore: Bool = false
     var isSubmitting: Bool = false
     var isCTAEnabled: Bool = false
@@ -73,6 +74,7 @@ enum InterestConcertSettingIntent {
     case _fetchInitialSelectionResult(Result<ListResult<InterestConcert>, Error>)
     case _fetchFirstPageResult(Result<ListResult<Concert>, Error>)
     case _fetchNextPageResult(Result<ListResult<Concert>, Error>)
+    case _fetchSearchResult(keyword: String, isNextPage: Bool, Result<SearchResult, Error>)
     case _submitResult(Result<[Concert], Error>)
 }
 
@@ -86,20 +88,25 @@ final class InterestConcertSettingStore: ObservableObject {
     @Published private(set) var state: InterestConcertSettingState
 
     @Injected private var concertRepository: ConcertRepository
+    @Injected private var searchRepository: SearchRepository
     @Injected private var userRepository: UserRepository
 
-    private var concertList: [Concert]
+    private var baseConcertList: [Concert]
     private var initialSelectedConcertIDList: [Int]
     private var selectedConcertByID: [Int: Concert]
-    private var nextToken: (any NextToken)?
+    private var baseNextToken: (any NextToken)?
+    private var searchCursor: Int?
+    private var searchDebounceTask: Task<Void, Never>?
+    private var searchFetchTask: Task<Void, Never>?
 
     // MARK: - Initializer
 
     init(mode: InterestConcertSettingMode) {
-        self.concertList = []
+        self.baseConcertList = []
         self.initialSelectedConcertIDList = []
         self.selectedConcertByID = [:]
-        self.nextToken = nil
+        self.baseNextToken = nil
+        self.searchCursor = nil
 
         self.state = InterestConcertSettingState(
             mode: mode
@@ -115,13 +122,12 @@ final class InterestConcertSettingStore: ObservableObject {
     func send(_ intent: InterestConcertSettingIntent) {
         switch intent {
         case .updateSearchText(let text):
-            let trimmedText = trimmedSearchText(from: text)
-
-            state.searchText = trimmedText
-            applySearchFilter()
+            state.searchText = text
+            scheduleSearchIfNeeded(for: text)
         case .clearSearchText:
             state.searchText = ""
-            applySearchFilter()
+            cancelSearchTasks()
+            restoreBaseConcertList()
             state.isSearchFocused = true
         case .setSearchFocused(let isFocused):
             state.isSearchFocused = isFocused
@@ -138,13 +144,24 @@ final class InterestConcertSettingStore: ObservableObject {
             )
             syncSelectionState()
         case .loadNextPage:
-            guard !state.isInitialLoading,
-                  !state.isLoadingMore,
-                  let nextToken
-            else { return }
+            guard !state.isInitialLoading, !state.isLoadingMore else { return }
 
             state.isLoadingMore = true
-            performFetchNextPage(nextToken: nextToken)
+            if let keyword = currentSearchKeyword() {
+                guard searchCursor != nil else {
+                    state.isLoadingMore = false
+                    return
+                }
+
+                performFetchSearch(keyword: keyword, isNextPage: true)
+            } else {
+                guard let baseNextToken else {
+                    state.isLoadingMore = false
+                    return
+                }
+
+                performFetchNextPage(nextToken: baseNextToken)
+            }
         case .submit:
             guard state.isCTAEnabled, !state.isSubmitting else { return }
 
@@ -171,16 +188,18 @@ final class InterestConcertSettingStore: ObservableObject {
             state.isInitialLoading = false
             switch result {
             case .success(let listResult):
-                concertList = listResult.items
+                baseConcertList = listResult.items
                 mergeSelectedConcerts(listResult.items)
-                nextToken = listResult.nextToken
+                baseNextToken = listResult.nextToken
                 state.hasMoreConcertList = listResult.nextToken != nil
                 syncSelectionState()
-                applySearchFilter()
+                if currentSearchKeyword() == nil {
+                    restoreBaseConcertList()
+                }
             case .failure(let error):
-                concertList = []
-                state.filteredConcertList = []
-                nextToken = nil
+                baseConcertList = []
+                state.displayedConcertList = []
+                baseNextToken = nil
                 state.hasMoreConcertList = false
                 state.errorMessage = error.localizedDescription
             }
@@ -188,13 +207,39 @@ final class InterestConcertSettingStore: ObservableObject {
             state.isLoadingMore = false
             switch result {
             case .success(let listResult):
-                concertList.append(contentsOf: listResult.items)
+                baseConcertList.append(contentsOf: listResult.items)
                 mergeSelectedConcerts(listResult.items)
-                nextToken = listResult.nextToken
+                baseNextToken = listResult.nextToken
                 state.hasMoreConcertList = listResult.nextToken != nil
                 syncSelectionState()
-                applySearchFilter()
+                if currentSearchKeyword() == nil {
+                    restoreBaseConcertList()
+                }
             case .failure(let error):
+                state.errorMessage = error.localizedDescription
+            }
+        case ._fetchSearchResult(let keyword, let isNextPage, let result):
+            guard currentSearchKeyword() == keyword else { return }
+
+            if !isNextPage {
+                state.isSearchLoading = false
+            }
+            state.isLoadingMore = false
+            switch result {
+            case .success(let searchResult):
+                mergeSelectedConcerts(searchResult.concerts)
+                if isNextPage {
+                    state.displayedConcertList.append(contentsOf: searchResult.concerts)
+                } else {
+                    state.displayedConcertList = searchResult.concerts
+                }
+                searchCursor = searchResult.cursor
+                state.hasMoreConcertList = searchResult.cursor != nil
+                syncSelectionState()
+            case .failure(let error):
+                state.displayedConcertList = []
+                searchCursor = nil
+                state.hasMoreConcertList = false
                 state.errorMessage = error.localizedDescription
             }
         case ._submitResult(let result):
@@ -256,6 +301,38 @@ private extension InterestConcertSettingStore {
         }
     }
 
+    func performFetchSearch(keyword: String, isNextPage: Bool) {
+        if !isNextPage {
+            searchFetchTask?.cancel()
+            state.isSearchLoading = true
+        }
+
+        let repository = searchRepository
+        let cursor = isNextPage ? searchCursor : nil
+
+        searchFetchTask = Task {
+            do {
+                let result = try await repository.fetchFilterSearchResult(
+                    genre: [],
+                    sort: nil,
+                    status: Constants.searchStatusList,
+                    keyword: keyword,
+                    cursor: cursor,
+                    size: Constants.pageSize
+                )
+                guard !Task.isCancelled else { return }
+
+                send(._fetchSearchResult(keyword: keyword, isNextPage: isNextPage, .success(result)))
+            } catch is CancellationError {
+                return
+            } catch {
+                guard !Task.isCancelled else { return }
+
+                send(._fetchSearchResult(keyword: keyword, isNextPage: isNextPage, .failure(error)))
+            }
+        }
+    }
+
     func performSubmit() {
         let repository = userRepository
         let selectedConcertIDList = state.selectedConcertIDList
@@ -286,23 +363,49 @@ private extension InterestConcertSettingStore {
         state.isCTAEnabled = state.hasUnsavedChanges
     }
 
-    func applySearchFilter() {
-        state.filteredConcertList = filteredConcertList(
-            from: concertList,
-            searchText: state.searchText
-        )
-    }
-
     func trimmedSearchText(from text: String) -> String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func filteredConcertList(from concertList: [Concert], searchText: String) -> [Concert] {
-        guard !searchText.isEmpty else { return concertList }
+    func currentSearchKeyword() -> String? {
+        let keyword = trimmedSearchText(from: state.searchText)
+        guard !keyword.isEmpty else { return nil }
 
-        return concertList.filter {
-            ConcertDisplayText.title(for: $0).localizedCaseInsensitiveContains(searchText)
+        return keyword
+    }
+
+    func scheduleSearchIfNeeded(for text: String) {
+        let keyword = trimmedSearchText(from: text)
+        guard !keyword.isEmpty else {
+            cancelSearchTasks()
+            restoreBaseConcertList()
+            return
         }
+
+        searchDebounceTask?.cancel()
+        searchFetchTask?.cancel()
+        searchCursor = nil
+
+        searchDebounceTask = Task {
+            try? await Task.sleep(for: Constants.searchDebounceDuration)
+            guard !Task.isCancelled else { return }
+
+            performFetchSearch(keyword: keyword, isNextPage: false)
+        }
+    }
+
+    func cancelSearchTasks() {
+        searchDebounceTask?.cancel()
+        searchFetchTask?.cancel()
+        searchDebounceTask = nil
+        searchFetchTask = nil
+        searchCursor = nil
+        state.isSearchLoading = false
+    }
+
+    func restoreBaseConcertList() {
+        state.displayedConcertList = baseConcertList
+        state.hasMoreConcertList = baseNextToken != nil
     }
 
     func toggledConcertIDList(from selectedConcertIDList: [Int], concertID: Int) -> [Int] {
@@ -334,6 +437,8 @@ private extension InterestConcertSettingStore {
 
     enum Constants {
         static let pageSize = 12
+        static let searchDebounceDuration: Duration = .milliseconds(300)
+        static let searchStatusList: [ConcertStatus] = [.ongoing, .upcoming]
     }
 }
 
