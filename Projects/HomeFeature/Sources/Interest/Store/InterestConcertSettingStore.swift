@@ -80,7 +80,7 @@ enum InterestConcertSettingIntent {
 @MainActor
 final class InterestConcertSettingStore: ObservableObject {
 
-    // MARK: - Property
+    // MARK: - Properties
 
     @Published private(set) var state: InterestConcertSettingState
 

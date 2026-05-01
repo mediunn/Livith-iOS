@@ -181,7 +181,6 @@ private extension HomeInterestConcertSectionView {
 
     var changeButton: some View {
         Button {
-            // TODO: 새 관심 콘서트 변경 플로우 확정 후 interestConcertSearch 이동을 연결한다.
             onChangeTap()
         } label: {
             Text("변경하기")

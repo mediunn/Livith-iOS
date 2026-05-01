@@ -15,8 +15,10 @@ import Domain
 struct InterestConcertSelectionGridView: View {
     let concertList: [Concert]
     let selectedConcertIDList: [Int]
+    let isLoadingMore: Bool
     let onConcertTap: (Int) -> Void
     let onScroll: () -> Void
+    let onLoadMore: () -> Void
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -50,6 +52,13 @@ private extension InterestConcertSelectionGridView {
             ForEach(concertList) { concert in
                 concertCard(for: concert)
             }
+
+            if isLoadingMore {
+                ProgressView()
+                    .tint(Color.livithColor(.white100))
+                    .gridCellColumns(Constants.gridColumns)
+                    .padding(.vertical, Constants.loadingVerticalPadding)
+            }
         }
         .padding(.top, Constants.gridTopPadding)
         .padding(.horizontal, Constants.horizontalPadding)
@@ -66,6 +75,11 @@ private extension InterestConcertSelectionGridView {
             isSelected: selectedConcertIDList.contains(concert.id),
             onTap: { onConcertTap(concert.id) }
         )
+        .onAppear {
+            if concert.id == concertList.last?.id {
+                onLoadMore()
+            }
+        }
     }
 }
 
@@ -85,5 +99,6 @@ private extension InterestConcertSelectionGridView {
         static let horizontalPadding: CGFloat = 16
         static let gridTopPadding: CGFloat = 20
         static let gridBottomPadding: CGFloat = 16
+        static let loadingVerticalPadding: CGFloat = 16
     }
 }

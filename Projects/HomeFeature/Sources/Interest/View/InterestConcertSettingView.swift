@@ -1,5 +1,5 @@
 //
-//  InterestConcertSettingDraftView.swift
+//  InterestConcertSettingView.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 4/20/26.
@@ -11,11 +11,14 @@ import SwiftUI
 import Domain
 import LivithDesignSystem
 
-struct InterestConcertSettingDraftView: View {
+struct InterestConcertSettingView: View {
 
-    // MARK: - Property
+    // MARK: - Properties
 
+    @Environment(\.homeCoordinator) private var coordinator
     @StateObject private var store: InterestConcertSettingStore
+    @State private var showErrorToast: Bool = false
+    @State private var showSuccessToast: Bool = false
 
     // MARK: - Initializer
 
@@ -44,12 +47,42 @@ struct InterestConcertSettingDraftView: View {
         .safeAreaInset(edge: .bottom) {
             bottomSection
         }
+        .livithToast(
+            isPresented: Binding(
+                get: { showErrorToast && !store.state.errorMessage.isEmpty },
+                set: { if !$0 { showErrorToast = false; store.send(.clearErrorMessage) } }
+            ),
+            type: .failure,
+            message: store.state.errorMessage
+        )
+        .livithToast(
+            isPresented: Binding(
+                get: { showSuccessToast && !store.state.successMessage.isEmpty },
+                set: { if !$0 { showSuccessToast = false; store.send(.clearSuccessMessage) } }
+            ),
+            type: .success,
+            message: store.state.successMessage
+        )
+        .onChange(of: store.state.errorMessage) { _, errorMessage in
+            if !errorMessage.isEmpty {
+                showErrorToast = true
+            }
+        }
+        .onChange(of: store.state.successMessage) { _, successMessage in
+            if !successMessage.isEmpty {
+                showSuccessToast = true
+                Task { @MainActor in
+                    await Task.yield()
+                    coordinator?.popToRoot()
+                }
+            }
+        }
     }
 }
 
 // MARK: - UIComponents
 
-private extension InterestConcertSettingDraftView {
+private extension InterestConcertSettingView {
     var topSection: some View {
         VStack(spacing: .zero) {
             if !store.state.isSearchFocused {
@@ -63,12 +96,20 @@ private extension InterestConcertSettingDraftView {
     }
 
     var gridSection: some View {
-        InterestConcertSelectionGridView(
-            concertList: store.state.filteredConcertList,
-            selectedConcertIDList: store.state.selectedConcertIDList,
-            onConcertTap: { store.send(.toggleConcertSelection($0)) },
-            onScroll: { store.send(.setSearchFocused(false)) }
-        )
+        Group {
+            if store.state.isInitialLoading {
+                loadingView
+            } else {
+                InterestConcertSelectionGridView(
+                    concertList: store.state.filteredConcertList,
+                    selectedConcertIDList: store.state.selectedConcertIDList,
+                    isLoadingMore: store.state.isLoadingMore,
+                    onConcertTap: { store.send(.toggleConcertSelection($0)) },
+                    onScroll: { store.send(.setSearchFocused(false)) },
+                    onLoadMore: { store.send(.loadNextPage) }
+                )
+            }
+        }
         .padding(.top, 12)
     }
 
@@ -77,9 +118,9 @@ private extension InterestConcertSettingDraftView {
             selectedConcertList: store.state.selectedConcertList,
             ctaTitle: store.state.mode.ctaTitle,
             isCTAEnabled: store.state.isCTAEnabled,
+            isSubmitting: store.state.isSubmitting,
             onRemoveSelectedConcert: { store.send(.removeSelectedConcert($0)) },
-            // TODO: 실제 관심 콘서트 저장/변경 플로우가 확정되면 CTA 액션을 연결한다.
-            onSubmit: {}
+            onSubmit: { store.send(.submit) }
         )
     }
 
@@ -87,10 +128,21 @@ private extension InterestConcertSettingDraftView {
         LivithNavigationView(
             type: .back(
                 title: store.state.mode.navigationTitle,
-                // TODO: 실제 화면 연결 시 뒤로가기 액션을 주입하거나 coordinator와 연결한다.
-                onBack: {}
+                onBack: { coordinator?.pop() }
             )
         )
+    }
+
+    var loadingView: some View {
+        VStack(spacing: .zero) {
+            Spacer()
+
+            ProgressView()
+                .tint(Color.livithColor(.white100))
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     var guideSection: some View {
@@ -123,7 +175,7 @@ private extension InterestConcertSettingDraftView {
 
 // MARK: - Helpers
 
-private extension InterestConcertSettingDraftView {
+private extension InterestConcertSettingView {
     var selectedCountText: String {
         "\(store.state.selectedConcertCount)개 선택"
     }
@@ -143,7 +195,9 @@ private extension InterestConcertSettingDraftView {
     }
 }
 
-private extension InterestConcertSettingDraftView {
+// MARK: - Constants
+
+private extension InterestConcertSettingView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
         static let guideTopPadding: CGFloat = 30
@@ -160,14 +214,14 @@ private extension InterestConcertSettingDraftView {
 // MARK: - Preview
 
 #Preview("Initial Setup") {
-    InterestConcertSettingDraftView(
+    InterestConcertSettingView(
         mode: .initialSetup
     )
     .background(Color.livithColor(.black100))
 }
 
 #Preview("Update") {
-    InterestConcertSettingDraftView(
+    InterestConcertSettingView(
         mode: .update
     )
     .background(Color.livithColor(.black100))

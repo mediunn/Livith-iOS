@@ -73,7 +73,7 @@ private extension InterestConcertListView {
 
     var changeButton: some View {
         Button {
-            coordinator?.push(to: .interestConcertSearch)
+            coordinator?.push(to: .interestConcertSetting(mode: .update))
         } label: {
             Text("변경하기")
                 .notosans(.body4Medium)

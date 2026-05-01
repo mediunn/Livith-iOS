@@ -16,6 +16,7 @@ struct InterestConcertSelectionBottomSectionView: View {
     let selectedConcertList: [Concert]
     let ctaTitle: String
     let isCTAEnabled: Bool
+    let isSubmitting: Bool
     let onRemoveSelectedConcert: (Int) -> Void
     let onSubmit: () -> Void
 
@@ -26,8 +27,8 @@ struct InterestConcertSelectionBottomSectionView: View {
                     .padding(.top, Constants.chipTopPadding)
             }
 
-            LivithButton(ctaTitle, variant: .primary, action: onSubmit)
-                .disabled(!isCTAEnabled)
+            LivithButton(ctaTitle, variant: .primary, isLoading: isSubmitting, action: onSubmit)
+                .disabled(!isCTAEnabled || isSubmitting)
                 .padding(.top, selectedConcertList.isEmpty ? Constants.emptyChipButtonTopPadding : Constants.buttonTopPadding)
                 .padding(.horizontal, Constants.horizontalPadding)
                 .padding(.bottom, Constants.bottomPadding)
