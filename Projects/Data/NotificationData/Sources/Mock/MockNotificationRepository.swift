@@ -88,9 +88,12 @@ private extension MockNotificationRepository {
 
         let types: [NotificationType] = [
             .interestConcert,
-            .ticket1D,
-            .ticket7D,
-            .ticketToday,
+            .preTicketOpen,
+            .generalTicketOpen,
+            .preTicket1D,
+            .preTicket30M,
+            .generalTicket1D,
+            .generalTicket30M,
             .concertInfoUpdateDetail,
             .artistConcertOpen,
             .recommend
