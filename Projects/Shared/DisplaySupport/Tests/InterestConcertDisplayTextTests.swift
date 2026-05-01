@@ -87,8 +87,8 @@ struct InterestConcertDisplayTextTests {
         #expect(badge == "공연 D-7")
     }
 
-    @Test("D-day가 음수이면 배지는 상태 문구를 표시해야 한다")
-    func dday가_음수이면_배지는_상태_문구를_표시해야_한다() {
+    @Test("D-day가 음수이면 배지는 공연 예정 문구를 표시해야 한다")
+    func dday가_음수이면_배지는_공연_예정_문구를_표시해야_한다() {
         // Given
         let interestConcert = makeInterestConcert(daysLeft: -1)
 
@@ -96,7 +96,7 @@ struct InterestConcertDisplayTextTests {
         let badge = InterestConcertDisplayText.badge(for: interestConcert)
 
         // Then
-        #expect(badge == "진행예정")
+        #expect(badge == "공연 예정")
     }
 
     @Test("예정 공연이 아니면 배지는 상태 문구를 표시해야 한다")
@@ -151,6 +151,18 @@ struct InterestConcertDisplayTextTests {
     func 예매_일정이_없으면_하단_문구는_예매_오픈_예정_문구를_표시해야_한다() {
         // Given
         let interestConcert = makeInterestConcert(preSaleDate: nil, generalSaleDate: nil)
+
+        // When
+        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "예매 오픈 예정")
+    }
+
+    @Test("D-day가 없고 예매 일정도 없으면 하단 문구는 예매 오픈 예정 문구를 표시해야 한다")
+    func dday가_없고_예매_일정도_없으면_하단_문구는_예매_오픈_예정_문구를_표시해야_한다() {
+        // Given
+        let interestConcert = makeInterestConcert(daysLeft: nil, preSaleDate: nil, generalSaleDate: nil)
 
         // When
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)

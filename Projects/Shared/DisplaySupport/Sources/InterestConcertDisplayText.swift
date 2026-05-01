@@ -57,14 +57,14 @@ public enum InterestConcertDisplayText {
         }
 
         guard daysLeft > 0 else {
-            return concert.status.filterText
+            return unknownDaysLeft
         }
 
         return "공연 D-\(daysLeft)"
     }
 
     public static func bottom(for interestConcert: InterestConcert) -> String {
-        guard interestConcert.concert.daysLeft != 0 else {
+        if interestConcert.concert.daysLeft == 0 {
             return "공연 진행 중"
         }
 
