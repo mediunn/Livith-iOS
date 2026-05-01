@@ -18,7 +18,7 @@ public enum SearchEndpoint {
         sort: String?,
         status: [String],
         keyword: String?,
-        cursor: String?,
+        cursor: Int?,
         size: Int?
     )
     case fetchRecommendedSearchResult(letter: String)

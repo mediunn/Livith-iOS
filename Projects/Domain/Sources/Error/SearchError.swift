@@ -56,15 +56,15 @@ public enum SearchError: DomainError {
     
     public static func from(message: String) -> SearchError {
         switch message {
-        case "genre는 JPOP | ROCK_METAL | RAP_HIPHOP | CLASSIC_JAZZ | ACOUSTIC | ELECTRONIC | ALL 중 하나여야 해요":
+        case "genre는 JPOP | ROCK_METAL | RAP_HIPHOP | POP | INDIE | ALL 중 하나여야 해요":
             return .invalidGenre
-        case "status는 ONGOING | UPCOMING | COMPLETED | ALL 중 하나여야 해요":
+        case "status는 ONGOING | UPCOMING | COMPLETED | CANCELED | ALL 중 하나여야 해요":
             return .invalidStatus
         case "sort는 LATEST | ALPHABETICAL 중 하나여야 해요":
             return .invalidSort
         case "size must be a positive number", "size must not be less than 1":
             return .invalidSize
-        case "유효하지 않은 cursor 형식입니다.":
+        case "콘서트를 찾을 수 없어요.":
             return .invalidCursor
         case "id must not be less than 1":
             return .invalidID

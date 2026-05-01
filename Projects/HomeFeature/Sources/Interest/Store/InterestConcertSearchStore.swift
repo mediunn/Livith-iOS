@@ -271,10 +271,7 @@ private extension InterestConcertSearchStore {
         }
     }
 
-    var nextCursor: String? {
-        guard let lastConcert = state.searchList.last else { return nil }
-        guard let startDate = lastConcert.startDate else { return nil }
-        let dateString = DateFormatterService.string(from: startDate, type: .dotDate)
-        return "{\"value\":\"\(dateString)\",\"id\":\(lastConcert.id)}"
+    var nextCursor: Int? {
+        state.searchList.last?.id
     }
 }
