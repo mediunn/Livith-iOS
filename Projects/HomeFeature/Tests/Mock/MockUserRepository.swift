@@ -26,8 +26,11 @@ final class MockUserRepository: UserRepository {
     var fetchInterestedConcertListCallCount: Int = 0
     var fetchInterestedConcertListQuery: InterestConcertListQuery?
     var fetchInterestedConcertListQueryList: [InterestConcertListQuery] = []
-    var updateInterestedConcertCallCount: Int = 0
-    var deleteInterestedConcertCallCount: Int = 0
+    var checkInterestedConcertCallCount: Int = 0
+    var checkInterestedConcertID: Int?
+    var checkInterestedConcertResult: Bool = false
+    var updateInterestedConcertsCallCount: Int = 0
+    var updateInterestedConcertsIDs: [Int]?
     var updateNicknameCallCount: Int = 0
 
     func updateNickname(_ nickname: String) async throws(UserError) {
@@ -126,20 +129,18 @@ final class MockUserRepository: UserRepository {
         }
     }
     
-    @discardableResult
-    func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
-        updateInterestedConcertCallCount += 1
+    func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
+        checkInterestedConcertCallCount += 1
+        checkInterestedConcertID = id
         if let error = errorStub {
             throw error
         }
-        guard let concert = updatedConcertStub else {
-            throw UserError.serverError
-        }
-        return concert
+        return checkInterestedConcertResult
     }
-    
-    func deleteInterestedConcert() async throws(UserError) {
-        deleteInterestedConcertCallCount += 1
+
+    func updateInterestedConcerts(ids: [Int]) async throws(UserError) {
+        updateInterestedConcertsCallCount += 1
+        updateInterestedConcertsIDs = ids
         if let error = errorStub {
             throw error
         }

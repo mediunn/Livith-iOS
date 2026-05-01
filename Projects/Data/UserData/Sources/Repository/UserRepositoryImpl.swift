@@ -75,27 +75,24 @@ struct UserRepositoryImpl: UserRepository {
         }
     }
 
-    @discardableResult
-    func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
+    func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
         do {
-            let response: DTO.Response.UpdateUserInterestConcert = try await homeService.request(
-                .updateInterestedConcert(id: concertID)
+            let response: DTO.Response.CheckInterestedConcert = try await homeService.request(
+                .checkInterestedConcert(concertID: id)
             )
-            guard let concert = mapper.toDomain(from: response) else {
-                throw UserError.invalidResponse
-            }
-            return concert
-        } catch let error as UserError {
-            throw error
+            return response.isInterested
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
         }
     }
 
-    func deleteInterestedConcert() async throws(UserError) {
+    func updateInterestedConcerts(ids: [Int]) async throws(UserError) {
         do {
-            let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
+            let request = DTO.Request.UpdateInterestedConcerts(concertIDList: ids)
+            let _: DTO.Response.EmptyResponse = try await homeService.request(
+                .updateInterestedConcerts(request)
+            )
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError

@@ -49,12 +49,11 @@ public struct MockUserRepository: UserRepository {
         )
     }
 
-    @discardableResult
-    public func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
-        throw UserError.unknown
+    public func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
+        Self.interestConcertList.contains(where: { $0.concert.id == id })
     }
 
-    public func deleteInterestedConcert() async throws(UserError) {}
+    public func updateInterestedConcerts(ids: [Int]) async throws(UserError) {}
 }
 
 private extension MockUserRepository {

@@ -13,8 +13,8 @@ public typealias HomeService = NetworkService<HomeEndpoint>
 public enum HomeEndpoint {
     case fetchSectionList
     case fetchInterestedConcertList(DTO.Request.FetchInterestConcertList)
-    case updateInterestedConcert(id: Int)
-    case deleteInterestedConcert
+    case updateInterestedConcerts(DTO.Request.UpdateInterestedConcerts)
+    case checkInterestedConcert(concertID: Int)
     case fetchRecommendedConcertList
 }
 
@@ -23,27 +23,21 @@ extension HomeEndpoint: NetworkEndpoint {
         switch self {
         case .fetchSectionList:
             return "/home/sections"
-        case .fetchInterestedConcertList:
+        case .fetchInterestedConcertList, .updateInterestedConcerts:
             return "/users/interest-concerts"
-        case .updateInterestedConcert:
-            return "/users/interest-concert"
-        case .deleteInterestedConcert:
-            return "/users/interest-concert"
+        case .checkInterestedConcert(let concertID):
+            return "/users/interest-concerts/\(concertID)/exists"
         case .fetchRecommendedConcertList:
             return "/recommendation/concerts"
         }
     }
-    
+
     public var method: HTTPMethod {
         switch self {
-        case .fetchSectionList, .fetchInterestedConcertList:
+        case .fetchSectionList, .fetchInterestedConcertList, .checkInterestedConcert, .fetchRecommendedConcertList:
             return .get
-        case .updateInterestedConcert:
-            return .post
-        case .deleteInterestedConcert:
-            return .delete
-        case .fetchRecommendedConcertList:
-            return .get
+        case .updateInterestedConcerts:
+            return .put
         }
     }
 
@@ -61,19 +55,19 @@ extension HomeEndpoint: NetworkEndpoint {
             return nil
         }
     }
-    
+
     public var body: Encodable? {
         switch self {
-        case .updateInterestedConcert(let id):
-            return DTO.Request.UpdateUserInterestConcert(concertID: id)
+        case .updateInterestedConcerts(let request):
+            return request
         default:
             return nil
-        }        
+        }
     }
-    
+
     public var requiresInterceptor: Bool {
         switch self {
-        case .fetchInterestedConcertList, .updateInterestedConcert, .deleteInterestedConcert, .fetchRecommendedConcertList:
+        case .fetchInterestedConcertList, .updateInterestedConcerts, .checkInterestedConcert, .fetchRecommendedConcertList:
             return true
         case .fetchSectionList:
             return false
