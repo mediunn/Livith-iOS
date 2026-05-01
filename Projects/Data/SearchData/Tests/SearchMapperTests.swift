@@ -222,10 +222,7 @@ struct SearchMapperTests {
               "label": "많이 찾는 콘서트 1위"
             }
           ],
-          "cursor": {
-            "value": "Taylor Swift | The Eras Tour2",
-            "id": 1
-          },
+          "cursor": 1,
           "totalCount": 5
         }
         """.data(using: .utf8)!
@@ -238,7 +235,7 @@ struct SearchMapperTests {
         #expect(result.concerts.count == 3)
         #expect(result.concerts[0].title == "Ariana Grande Live in Tokyo2")
         #expect(result.concerts[0].status == .upcoming)
-        #expect(result.cursor?.value == "Taylor Swift | The Eras Tour2")
+        #expect(result.cursor == 1)
         #expect(result.totalCount == 5)
 
         let yearStart = Calendar.current.component(.year, from: result.concerts[0].startDate)
@@ -261,12 +258,12 @@ struct SearchErrorMapperTests {
     @Test("메시지가 있는 에러는 해당 메시지에 매핑되는 SearchError로 변환되어야 한다")
     func 메시지가있는에러는해당메시지에매핑되는SearchError로변환되어야한다() {
         let testCases: [(NetworkError, SearchError)] = [
-            (.badRequest(message: "genre는 JPOP | ROCK_METAL | RAP_HIPHOP | CLASSIC_JAZZ | ACOUSTIC | ELECTRONIC | ALL 중 하나여야 해요"), .invalidGenre),
-            (.badRequest(message: "status는 ONGOING | UPCOMING | COMPLETED | ALL 중 하나여야 해요"), .invalidStatus),
+            (.badRequest(message: "genre는 JPOP | ROCK_METAL | RAP_HIPHOP | POP | INDIE | ALL 중 하나여야 해요"), .invalidGenre),
+            (.badRequest(message: "status는 ONGOING | UPCOMING | COMPLETED | CANCELED | ALL 중 하나여야 해요"), .invalidStatus),
             (.badRequest(message: "sort는 LATEST | ALPHABETICAL 중 하나여야 해요"), .invalidSort),
             (.badRequest(message: "size must be a positive number"), .invalidSize),
             (.badRequest(message: "size must not be less than 1"), .invalidSize),
-            (.badRequest(message: "유효하지 않은 cursor 형식입니다."), .invalidCursor),
+            (.badRequest(message: "콘서트를 찾을 수 없어요."), .invalidCursor),
             (.badRequest(message: "id must not be less than 1"), .invalidID),
             (.badRequest(message: "검색어(letter)는 필수입니다."), .missingKeyword)
         ]

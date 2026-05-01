@@ -24,7 +24,7 @@ enum ExploreIntent {
     case _fetchBannersResult(Result<[Banner], Error>)
     case _setConcertList([Concert])
     case _appendConcertList([Concert])
-    case _setCursor((value: String, id: Int)?)
+    case _setCursor(Int?)
     case _setLoadingMore(Bool)
 }
 
@@ -37,7 +37,7 @@ struct ExploreState {
     var sortState: SearchSort = .latest
 
     var concertList: [Concert] = []
-    var cursor: (value: String, id: Int)? = nil
+    var cursor: Int? = nil
     var hasMorePages: Bool = true
     var isLoadingMore: Bool = false
 
@@ -189,9 +189,7 @@ private extension ExploreStore {
         let genreList: [ConcertGenre] = state.selectedGenre == .all ? [] : [state.selectedGenre]
         let statusList = state.selectedStatusList
         let sort = state.sortState
-        let cursorText: String? = state.cursor.map { cursor in
-            "{\"value\":\"\(cursor.value)\",\"id\":\(cursor.id)}"
-        }
+        let cursor = state.cursor
 
         fetchTask = Task { @MainActor in
             do {
@@ -200,7 +198,7 @@ private extension ExploreStore {
                     sort: sort,
                     status: statusList,
                     keyword: nil,
-                    cursor: cursorText,
+                    cursor: cursor,
                     size: 12
                 )
 

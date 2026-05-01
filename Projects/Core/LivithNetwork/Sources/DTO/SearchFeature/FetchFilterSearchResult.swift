@@ -13,7 +13,7 @@ import Foundation
 public extension DTO.Response {
     struct FetchFilterSearchResult: Decodable {
         public let data: [FilteredConcert]
-        public let cursor: Cursor?
+        public let cursor: Int?
         public let totalCount: Int
 
         public struct FilteredConcert: Decodable {
@@ -48,11 +48,6 @@ public extension DTO.Response {
                 case introduction
                 case label
             }
-        }
-
-        public struct Cursor: Decodable {
-            public let value: String
-            public let id: Int
         }
     }
 }
