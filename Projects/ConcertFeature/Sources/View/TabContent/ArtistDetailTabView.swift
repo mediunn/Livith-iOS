@@ -128,7 +128,7 @@ private extension ArtistDetailTabView {
     }
 
     func artistNameRow(for artist: Artist) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Text(artist.name)
                 .notosans(.body2Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
