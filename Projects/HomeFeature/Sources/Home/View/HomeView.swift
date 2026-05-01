@@ -30,7 +30,7 @@ struct HomeView: View {
 
             scrollView
         }
-        .background(.livithColor(.black90))
+        .background(backgroundColor.ignoresSafeArea())
         .onAppear {
             isPreferenceBannerExpanded = true
             store.send(.onAppear)
@@ -51,6 +51,18 @@ struct HomeView: View {
     }
 }
 
+// MARK: - Computed Properties
+
+private extension HomeView {
+    var backgroundColor: Color {
+        Color.livithColor(store.state.interestConcertList.isEmpty ? .black90 : .black100)
+    }
+
+    var preferenceBannerBackgroundColor: Color {
+        Color.livithColor(store.state.interestConcertList.isEmpty ? .black100 : .black90)
+    }
+}
+
 // MARK: - UIComponents
 
 private extension HomeView {
@@ -67,7 +79,13 @@ private extension HomeView {
                 loadingView
             } else {
                 VStack(spacing: .zero) {
+                    preferenceBannerSection
+                        .zIndex(2)
+
                     headerSection
+                        .padding(.top, Constants.headerSectionTopPadding)
+                        .zIndex(1)
+
                     concertContentSection
                 }
             }
@@ -90,29 +108,39 @@ private extension HomeView {
     }
 
     @ViewBuilder
-    var headerSection: some View {
-        if let interestedConcert = store.state.interestedConcert {
-            HomeInterestConcertSectionView(
-                concert: interestedConcert,
-                onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
-                onTitleTap: {}
-            )
-            .zIndex(1)
-        } else {
-            EmptyInterestConcertSectionView(
-                nickname: store.state.user?.nickname ?? "라이빗",
-                shouldShowPreferenceBanner: store.state.shouldShowPreferenceBanner,
-                isPreferenceBannerExpanded: $isPreferenceBannerExpanded,
-                onPreferenceBannerTap: {
+    var preferenceBannerSection: some View {
+        if store.state.shouldShowPreferenceBanner {
+            PreferenceBannerView(
+                isExpanded: $isPreferenceBannerExpanded,
+                onTapBanner: {
                     AmplitudeService.shared.trackEvent(tag: .click(.setPreferenceBannerMain))
                     coordinator?.push(to: .preferredGenreUpdate)
                 },
+                backgroundColor: preferenceBannerBackgroundColor
+            )
+            .padding(.horizontal, Constants.sectionHorizontalPadding)
+            .padding(.top, Constants.headerSectionTopPadding)
+        }
+    }
+
+    @ViewBuilder
+    var headerSection: some View {
+        if !store.state.interestConcertList.isEmpty {
+            HomeInterestConcertSectionView(
+                interestConcertList: store.state.interestConcertList,
+                selectedSort: store.state.interestConcertSort,
+                onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
+                onTitleTap: {},
+                onSortSelected: { store.send(.interestConcertSortSelected($0)) }
+            )
+        } else {
+            EmptyInterestConcertSectionView(
+                nickname: store.state.user?.nickname ?? "라이빗",
                 onSettingTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
                     coordinator?.push(to: .interestConcertSearch)
                 }
             )
-            .zIndex(1)
         }
     }
 
@@ -141,6 +169,8 @@ private extension HomeView {
 
 private extension HomeView {
     enum Constants {
+        static let headerSectionTopPadding: CGFloat = 16
+        static let sectionHorizontalPadding: CGFloat = 16
         static let loadingMinHeight: CGFloat = 240
     }
 }

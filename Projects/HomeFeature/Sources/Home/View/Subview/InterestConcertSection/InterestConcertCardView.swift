@@ -116,8 +116,7 @@ private extension InterestConcertCardView {
                 .resizable()
                 .scaledToFill()
         }
-        .aspectRatio(Poster.aspectRatio, contentMode: .fit)
-        .frame(height: Poster.height)
+        .frame(width: Poster.width, height: Poster.height)
         .clipShape(RoundedRectangle(cornerRadius: Poster.cornerRadius))
     }
 
@@ -183,7 +182,7 @@ private extension InterestConcertCardView {
         static let cornerRadius: CGFloat = 16
         static let borderLineWidth: CGFloat = 1
         static let sectionPadding: CGFloat = 16
-        static let topSectionMinHeight: CGFloat = 143
+        static let topSectionMinHeight: CGFloat = 144
         static let bottomSectionMinHeight: CGFloat = 65
     }
 
@@ -191,6 +190,7 @@ private extension InterestConcertCardView {
         static let cornerRadius: CGFloat = 8
         static let aspectRatio: CGFloat = 84 / 112
         static let height: CGFloat = Card.topSectionMinHeight - (Card.sectionPadding * 2)
+        static var width: CGFloat { height * aspectRatio }
     }
 
     enum Divider {

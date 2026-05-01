@@ -133,84 +133,268 @@ struct UserMapperTests {
         #expect(!result.authority.marketingConsent)
     }
 
-    @Test("FetchUserInterestConcert의 모든 필드를 Concert로 변환해야 한다")
-    func fetchUserInterestConcert의_모든_필드를_Concert로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert 목록 응답을 InterestConcertPage로 변환해야 한다")
+    func fetchUserInterestConcert_목록_응답을_InterestConcertPage로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let json = """
         {
-            "id": 8,
-            "code": "PF268438",
-            "title": "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR",
-            "startDate": "2025.09.27",
-            "endDate": "2025.09.27",
-            "status": "COMPLETED",
-            "poster": "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif",
-            "artist": "JAKE MILLER (제이크 밀러)",
-            "daysLeft": -16,
-            "ticketSite": "NOL 티켓",
-            "ticketUrl": "https://tickets.interpark.com/goods/25009244",
-            "venue": "무신사 개러지",
-            "introduction": "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!",
-            "label": "첫 단독 내한 콘서트"
+            "data": [
+                {
+                    "id": 8,
+                    "code": "PF268438",
+                    "title": "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR",
+                    "startDate": "2025.09.27",
+                    "endDate": "2025.09.27",
+                    "status": "COMPLETED",
+                    "poster": "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif",
+                    "artist": "JAKE MILLER (제이크 밀러)",
+                    "daysLeft": -16,
+                    "ticketSite": "NOL 티켓",
+                    "ticketUrl": "https://tickets.interpark.com/goods/25009244",
+                    "venue": "무신사 개러지",
+                    "introduction": "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!",
+                    "label": "첫 단독 내한 콘서트",
+                    "preSaleDate": "2025-06-15T12:00:00.000Z",
+                    "generalSaleDate": "2025-06-20T12:00:00.000Z"
+                }
+            ],
+            "cursor": {
+                "date": "2025.09.27",
+                "id": 8
+            }
         }
         """.data(using: .utf8)!
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
 
         // When
-        let result = try #require(sut.toDomain(from: dto))
+        let result = sut.toDomain(from: dto)
+        let interestConcert = try #require(result.concertList.first)
+        let concert = interestConcert.concert
 
         // Then
-        #expect(result.id == 8)
-        #expect(result.title == "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
-        #expect(result.artist == "JAKE MILLER (제이크 밀러)")
-        #expect(result.status == .completed)
-        #expect(result.posterURL.absoluteString == "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
-        #expect(result.venue == "무신사 개러지")
-        #expect(result.ticketingOffice == "NOL 티켓")
-        #expect(result.ticketingOfficeURL?.absoluteString == "https://tickets.interpark.com/goods/25009244")
-        #expect(result.introduction == "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!")
-        #expect(result.label == "첫 단독 내한 콘서트")
+        #expect(result.concertList.count == 1)
+        #expect(result.nextCursor?.id == 8)
+        #expect(dateString(result.nextCursor?.date) == "2025.09.27")
+        #expect(concert.id == 8)
+        #expect(concert.title == "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
+        #expect(concert.artist == "JAKE MILLER (제이크 밀러)")
+        #expect(concert.status == .completed)
+        #expect(concert.daysLeft == -16)
+        #expect(dateString(concert.startDate) == "2025.09.27")
+        #expect(dateString(concert.endDate) == "2025.09.27")
+        #expect(concert.posterURL?.absoluteString == "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
+        #expect(concert.venue == "무신사 개러지")
+        #expect(concert.ticketingOffice == "NOL 티켓")
+        #expect(concert.ticketingOfficeURL?.absoluteString == "https://tickets.interpark.com/goods/25009244")
+        #expect(concert.introduction == "데뷔 10년 만에 드디어 한국 상륙! 제이크 밀러, 첫 단독 내한 'BALANCE TOUR'로 잊지 못할 밤을 선사!")
+        #expect(concert.label == "첫 단독 내한 콘서트")
+        #expect(dateTimeString(interestConcert.ticketingSchedule.preSaleDate) == "2025.06.15 12:00")
+        #expect(dateTimeString(interestConcert.ticketingSchedule.generalSaleDate) == "2025.06.20 12:00")
     }
 
-    @Test("FetchUserInterestConcert의 Optional 필드가 null이어도 Concert로 변환해야 한다")
-    func fetchUserInterestConcert의_Optional필드가_null이어도_Concert로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert의 Optional 필드가 null이어도 InterestConcertPage로 변환해야 한다")
+    func fetchUserInterestConcert의_Optional필드가_null이어도_InterestConcertPage로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let json = """
         {
-            "id": 2,
-            "code": "CONCERT-002",
-            "title": "버스커버스커 공연",
-            "startDate": "2026.04.15",
-            "endDate": "2026.04.15",
-            "status": "ONGOING",
-            "poster": "https://example.com/busker.jpg",
-            "artist": "버스커버스커",
-            "daysLeft": 0,
-            "ticketSite": null,
-            "ticketUrl": null,
-            "venue": "홍대 놀이터",
-            "introduction": "무료 게릴라 공연",
-            "label": null
+            "data": [
+                {
+                    "id": 2,
+                    "code": null,
+                    "title": null,
+                    "startDate": null,
+                    "endDate": null,
+                    "status": "ONGOING",
+                    "poster": null,
+                    "artist": "버스커버스커",
+                    "daysLeft": null,
+                    "ticketSite": null,
+                    "ticketUrl": null,
+                    "venue": null,
+                    "introduction": "무료 게릴라 공연",
+                    "label": null,
+                    "preSaleDate": null,
+                    "generalSaleDate": null
+                }
+            ],
+            "cursor": null
         }
         """.data(using: .utf8)!
         let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
 
         // When
-        let result = try #require(sut.toDomain(from: dto))
+        let result = sut.toDomain(from: dto)
+        let interestConcert = try #require(result.concertList.first)
+        let concert = interestConcert.concert
 
         // Then
-        #expect(result.id == 2)
-        #expect(result.title == "버스커버스커 공연")
-        #expect(result.artist == "버스커버스커")
-        #expect(result.status == .ongoing)
-        #expect(result.posterURL.absoluteString == "https://example.com/busker.jpg")
-        #expect(result.venue == "홍대 놀이터")
-        #expect(result.ticketingOffice == nil)
-        #expect(result.ticketingOfficeURL == nil)
-        #expect(result.introduction == "무료 게릴라 공연")
-        #expect(result.label == nil)
+        #expect(result.concertList.count == 1)
+        #expect(result.nextCursor == nil)
+        #expect(concert.id == 2)
+        #expect(concert.title == nil)
+        #expect(concert.artist == "버스커버스커")
+        #expect(concert.status == .ongoing)
+        #expect(concert.daysLeft == nil)
+        #expect(concert.startDate == nil)
+        #expect(concert.endDate == nil)
+        #expect(concert.posterURL == nil)
+        #expect(concert.venue == nil)
+        #expect(concert.ticketingOffice == nil)
+        #expect(concert.ticketingOfficeURL == nil)
+        #expect(concert.introduction == "무료 게릴라 공연")
+        #expect(concert.label == nil)
+        #expect(interestConcert.ticketingSchedule.preSaleDate == nil)
+        #expect(interestConcert.ticketingSchedule.generalSaleDate == nil)
+    }
+
+    @Test("FetchUserInterestConcert의 예매 일정 파싱 실패는 해당 일정만 nil로 변환해야 한다")
+    func fetchUserInterestConcert의_예매_일정_파싱_실패는_해당_일정만_nil로_변환해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "data": [
+                {
+                    "id": 3,
+                    "status": "UPCOMING",
+                    "artist": "Oasis",
+                    "daysLeft": 30,
+                    "introduction": "Oasis Live",
+                    "preSaleDate": "invalid-date",
+                    "generalSaleDate": "2025-07-01T12:00:00.000Z"
+                }
+            ],
+            "cursor": null
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+        let schedule = try #require(result.concertList.first?.ticketingSchedule)
+
+        // Then
+        #expect(result.concertList.count == 1)
+        #expect(schedule.preSaleDate == nil)
+        #expect(dateTimeString(schedule.generalSaleDate) == "2025.07.01 12:00")
+    }
+
+    @Test("FetchUserInterestConcert의 URL과 공연일 파싱 실패는 해당 필드만 nil로 변환해야 한다")
+    func fetchUserInterestConcert의_URL과_공연일_파싱_실패는_해당_필드만_nil로_변환해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "data": [
+                {
+                    "id": 4,
+                    "title": "Invalid Field Concert",
+                    "startDate": "invalid-date",
+                    "endDate": "invalid-date",
+                    "status": "UPCOMING",
+                    "poster": "invalid-poster-url",
+                    "artist": "Invalid URL Artist",
+                    "daysLeft": 10,
+                    "ticketSite": "Invalid Ticket",
+                    "ticketUrl": "/relative-ticket-url",
+                    "venue": "Invalid Venue",
+                    "introduction": "Invalid URL and date fields"
+                }
+            ],
+            "cursor": null
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+        let concert = try #require(result.concertList.first?.concert)
+
+        // Then
+        #expect(result.concertList.count == 1)
+        #expect(concert.startDate == nil)
+        #expect(concert.endDate == nil)
+        #expect(concert.posterURL == nil)
+        #expect(concert.ticketingOfficeURL == nil)
+    }
+
+    @Test("FetchUserInterestConcert의 cursor 값이 유효하지 않으면 nextCursor를 nil로 변환해야 한다")
+    func fetchUserInterestConcert의_cursor_값이_유효하지_않으면_nextCursor를_nil로_변환해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let jsonList = [
+            """
+            {
+                "data": [],
+                "cursor": {
+                    "date": "invalid-date",
+                    "id": 1
+                }
+            }
+            """,
+            """
+            {
+                "data": [],
+                "cursor": {
+                    "date": null,
+                    "id": 1
+                }
+            }
+            """,
+            """
+            {
+                "data": [],
+                "cursor": {
+                    "date": "2025.09.27",
+                    "id": null
+                }
+            }
+            """
+        ]
+
+        for json in jsonList {
+            let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json.data(using: .utf8)!)
+
+            // When
+            let result = sut.toDomain(from: dto)
+
+            // Then
+            #expect(result.nextCursor == nil)
+        }
+    }
+
+    @Test("FetchUserInterestConcert의 status가 유효하지 않으면 해당 항목을 제외해야 한다")
+    func fetchUserInterestConcert의_status가_유효하지_않으면_해당_항목을_제외해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "data": [
+                {
+                    "id": 1,
+                    "status": "INVALID",
+                    "artist": "Invalid Artist",
+                    "introduction": "Invalid"
+                },
+                {
+                    "id": 2,
+                    "status": "UPCOMING",
+                    "artist": "Valid Artist",
+                    "introduction": "Valid"
+                }
+            ],
+            "cursor": null
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+
+        // Then
+        #expect(result.concertList.map(\.id) == [2])
     }
 
     @Test("UpdateUserInterestConcert의 모든 필드를 Concert로 변환해야 한다")
@@ -244,7 +428,7 @@ struct UserMapperTests {
         #expect(result.title == "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
         #expect(result.artist == "JAKE MILLER (제이크 밀러)")
         #expect(result.status == .completed)
-        #expect(result.posterURL.absoluteString == "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
+        #expect(result.posterURL?.absoluteString == "http://www.kopis.or.kr/upload/pfmPoster/PF_PF268438_250703_114113.gif")
         #expect(result.venue == "무신사 개러지")
         #expect(result.ticketingOffice == "NOL 티켓")
         #expect(result.ticketingOfficeURL?.absoluteString == "https://tickets.interpark.com/goods/25009244")
@@ -283,13 +467,33 @@ struct UserMapperTests {
         #expect(result.title == "무료 버스킹 공연")
         #expect(result.artist == "인디 밴드")
         #expect(result.status == .upcoming)
-        #expect(result.posterURL.absoluteString == "https://example.com/busking.jpg")
+        #expect(result.posterURL?.absoluteString == "https://example.com/busking.jpg")
         #expect(result.venue == "신촌 연세로")
         #expect(result.ticketingOffice == nil)
         #expect(result.ticketingOfficeURL == nil)
         #expect(result.introduction == "무료로 즐기는 버스킹 공연")
         #expect(result.label == nil)
     }
+}
+
+private func dateString(_ date: Date?) -> String? {
+    guard let date else { return nil }
+
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy.MM.dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+    return formatter.string(from: date)
+}
+
+private func dateTimeString(_ date: Date?) -> String? {
+    guard let date else { return nil }
+
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy.MM.dd HH:mm"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+    return formatter.string(from: date)
 }
 
 @Suite("유저 에러 매퍼 테스트")

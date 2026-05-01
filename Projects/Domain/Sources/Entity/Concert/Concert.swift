@@ -10,14 +10,14 @@ import Foundation
 
 public struct Concert: Hashable, Identifiable, Codable {
     public let id: Int
-    public let title: String
+    public let title: String?
     public let artist: String
     public let status: ConcertStatus
-    public let daysLeft: Int
-    public let startDate: Date
-    public let endDate: Date
-    public let posterURL: URL
-    public let venue: String
+    public let daysLeft: Int?
+    public let startDate: Date?
+    public let endDate: Date?
+    public let posterURL: URL?
+    public let venue: String?
     public let ticketingOffice: String?
     public let ticketingOfficeURL: URL?
     public let introduction: String
@@ -25,14 +25,14 @@ public struct Concert: Hashable, Identifiable, Codable {
     
     public init(
         id: Int,
-        title: String,
+        title: String?,
         artist: String,
         status: ConcertStatus,
-        daysLeft: Int,
-        startDate: Date,
-        endDate: Date,
-        posterURL: URL,
-        venue: String,
+        daysLeft: Int?,
+        startDate: Date?,
+        endDate: Date?,
+        posterURL: URL?,
+        venue: String?,
         ticketSite: String?,
         ticketURL: URL?,
         introduction: String,

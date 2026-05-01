@@ -13,6 +13,21 @@ let project = Project.make(
     project: .shared,
     targets: [
         .make(
+            target: .shared(.displaySupport),
+            product: .framework,
+            dependencies: [
+                .domain(.domain),
+                .core(.livithFoundation)
+            ]
+        ),
+        .make(
+            target: .shared(.displaySupportTests),
+            product: .unitTests,
+            dependencies: [
+                .shared(.displaySupport)
+            ]
+        ),
+        .make(
             target: .shared(.nicknameEditFeature),
             product: .framework,
             dependencies: [

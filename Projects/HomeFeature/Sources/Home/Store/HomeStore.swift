@@ -15,7 +15,8 @@ import Domain
 
 struct HomeState {
     var user: User? = nil
-    var interestedConcert: Concert? = nil
+    var interestConcertList: [InterestConcert] = []
+    var interestConcertSort: InterestConcertSort = .concert
     var errorMessage: String = ""
     var hasNewNotice: Bool = false
     var concertSectionList: [ConcertSection] = []
@@ -32,8 +33,10 @@ enum HomeIntent {
     case onRefresh
     case onErrorToastDisappear
     case checkUnreadNotification
+    case interestConcertSortSelected(InterestConcertSort)
+    case _fetchInitialHomeDataResult(Result<(user: User, interestConcertList: [InterestConcert], hasNewNotice: Bool), Error>)
     case _fetchUserResult(Result<User, Error>)
-    case _fetchInterestedConcertResult(Result<Concert?, Error>)
+    case _fetchInterestConcertListResult(Result<[InterestConcert], Error>)
     case _fetchUnreadNotificationCountResult(Result<Int, Error>)
     case _fetchConcertSectionDataResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
@@ -43,8 +46,8 @@ enum HomeIntent {
 @MainActor
 final class HomeStore: ObservableObject {
     private enum CancelID {
-        case fetchUser
-        case fetchInterestedConcert
+        case fetchInitialHomeData
+        case fetchInterestConcertList
         case refreshSections
         case fetchUnreadNotificationCount
     }
@@ -62,8 +65,7 @@ final class HomeStore: ObservableObject {
     func send(_ intent: HomeIntent) {
         switch intent {
         case .onAppear:
-            performFetchUser()
-            performFetchUnreadNotificationCount()
+            performFetchInitialHomeData()
 
         case .onRefresh:
             performFetchConcertSectionData()
@@ -74,22 +76,39 @@ final class HomeStore: ObservableObject {
         case .checkUnreadNotification:
             performFetchUnreadNotificationCount()
 
-        case ._fetchUserResult(let result):
+        case .interestConcertSortSelected(let sort):
+            guard state.interestConcertSort != sort else { return }
+
+            state.interestConcertSort = sort
+            performFetchInterestConcertList(query: .homeSection(sort: sort))
+
+        case ._fetchInitialHomeDataResult(let result):
             switch result {
-            case .success(let user):
-                state.user = user
-                performFetchInterestedConcert()
+            case .success(let data):
+                state.user = data.user
+                state.interestConcertList = data.interestConcertList
+                state.hasNewNotice = data.hasNewNotice
                 executeInitialConcertSectionLoadIfNeeded()
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
             }
 
-        case ._fetchInterestedConcertResult(let result):
+        case ._fetchUserResult(let result):
             switch result {
-            case .success(let concert):
-                state.interestedConcert = concert
-            case .failure:
-                state.interestedConcert = nil
+            case .success(let user):
+                state.user = user
+                executeInitialConcertSectionLoadIfNeeded()
+            case .failure(let error):
+                state.errorMessage = getErrorMessage(from: error)
+            }
+
+        case ._fetchInterestConcertListResult(let result):
+            switch result {
+            case .success(let list):
+                state.interestConcertList = list
+                state.errorMessage = ""
+            case .failure(let error):
+                state.errorMessage = getErrorMessage(from: error)
             }
 
         case ._fetchUnreadNotificationCountResult(let result):
@@ -129,27 +148,81 @@ private extension HomeStore {
         performFetchConcertSectionData()
     }
 
-    func performFetchUser() {
-        cancellables[.fetchUser]?.cancel()
-        cancellables[.fetchUser] = Task {
-            do {
-                let result = try await userRepository.fetchUser()
-                send(._fetchUserResult(.success(result)))
-            } catch {
-                send(._fetchUserResult(.failure(error)))
+    func performFetchInitialHomeData() {
+        cancellables[.fetchInitialHomeData]?.cancel()
+        cancellables[.fetchInitialHomeData] = Task {
+            async let userResult = fetchUserResult()
+            async let interestConcertListResult = fetchInterestConcertListResult(
+                query: .homeSection(sort: state.interestConcertSort)
+            )
+            async let hasNewNoticeResult = fetchHasNewNoticeResult()
+
+            let (resolvedUserResult, resolvedInterestConcertListResult, resolvedHasNewNoticeResult) = await (
+                userResult,
+                interestConcertListResult,
+                hasNewNoticeResult
+            )
+
+            switch resolvedUserResult {
+            case .success(let user):
+                let list: [InterestConcert]
+                switch resolvedInterestConcertListResult {
+                case .success(let interestConcertList):
+                    list = interestConcertList
+                case .failure:
+                    list = []
+                }
+
+                let hasNewNotice: Bool
+                switch resolvedHasNewNoticeResult {
+                case .success(let result):
+                    hasNewNotice = result
+                case .failure:
+                    hasNewNotice = false
+                }
+
+                send(._fetchInitialHomeDataResult(.success((
+                    user: user,
+                    interestConcertList: list,
+                    hasNewNotice: hasNewNotice
+                ))))
+            case .failure(let error):
+                send(._fetchInitialHomeDataResult(.failure(error)))
             }
         }
     }
 
-    func performFetchInterestedConcert() {
-        cancellables[.fetchInterestedConcert]?.cancel()
-        cancellables[.fetchInterestedConcert] = Task {
-            do {
-                let result = try await userRepository.fetchInterestedConcert()
-                send(._fetchInterestedConcertResult(.success(result)))
-            } catch {
-                send(._fetchInterestedConcertResult(.failure(error)))
-            }
+    func fetchUserResult() async -> Result<User, Error> {
+        do {
+            return .success(try await userRepository.fetchUser())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    func fetchInterestConcertListResult(query: InterestConcertListQuery) async -> Result<[InterestConcert], Error> {
+        do {
+            let response = try await userRepository.fetchInterestedConcertList(query: query)
+            return .success(response.concertList)
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    func fetchHasNewNoticeResult() async -> Result<Bool, Error> {
+        do {
+            let count = try await notificationRepository.fetchUnreadNotificationCount()
+            return .success(count > 0)
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    func performFetchInterestConcertList(query: InterestConcertListQuery) {
+        cancellables[.fetchInterestConcertList]?.cancel()
+        cancellables[.fetchInterestConcertList] = Task {
+            let result = await fetchInterestConcertListResult(query: query)
+            send(._fetchInterestConcertListResult(result))
         }
     }
 

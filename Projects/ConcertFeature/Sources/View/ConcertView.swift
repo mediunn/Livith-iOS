@@ -9,6 +9,7 @@
 import SwiftUI
 
 import Amplitude
+import DisplaySupport
 import Domain
 import LivithDesignSystem
 
@@ -54,7 +55,7 @@ public struct ConcertView: View {
     public var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(
-                type: .back(title: store.state.concert?.title ?? "", onBack: onDismiss)
+                type: .back(title: navigationTitle, onBack: onDismiss)
             )
 
             if showEmptyView {
@@ -346,7 +347,8 @@ private extension ConcertView {
 
 private extension ConcertView {
     var shouldShowInterestButton: Bool {
-        guard !store.state.isCurrentConcertInterested else { return false }
+        // TODO: 추후 확인 필요
+        guard !(store.state.isCurrentConcertInterested ?? false) else { return false }
         guard let status = store.state.concert?.status else { return true }
         switch status {
         case .canceled, .completed, .past:
@@ -413,7 +415,7 @@ private extension ConcertView {
     }
 
     var concertTitle: some View {
-        Text(store.state.concert?.title ?? "")
+        Text(navigationTitle)
             .notosans(.headSemibold)
             .foregroundStyle(Color.livithColor(.white100))
     }
@@ -442,10 +444,14 @@ private extension ConcertView {
                 .resizable()
                 .frame(width: 24, height: 24)
 
-            Text(store.state.concert?.venue ?? "")
+            Text(store.state.concert.map { ConcertDisplayText.venue(for: $0) } ?? "")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
         }
+    }
+
+    var navigationTitle: String {
+        store.state.concert.map { ConcertDisplayText.title(for: $0) } ?? ""
     }
 }
 

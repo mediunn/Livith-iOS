@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import DisplaySupport
 import Domain
 import LivithDesignSystem
 
@@ -15,24 +16,29 @@ struct HomeInterestConcertSectionView: View {
 
     // MARK: - Properties
 
-    let concert: Concert
+    let interestConcertList: [InterestConcert]
+    let selectedSort: InterestConcertSort
     let onChangeTap: () -> Void
     let onTitleTap: () -> Void
+    let onSortSelected: (InterestConcertSort) -> Void
 
     @State private var currentPage: Int = 0
     @State private var showSortOption: Bool = false
-    @State private var selectedSortOption: HomeInterestConcertSortOption = .ticketDate
 
     // MARK: - Initializer
 
     init(
-        concert: Concert,
+        interestConcertList: [InterestConcert],
+        selectedSort: InterestConcertSort = .concert,
         onChangeTap: @escaping () -> Void = {},
-        onTitleTap: @escaping () -> Void = {}
+        onTitleTap: @escaping () -> Void = {},
+        onSortSelected: @escaping (InterestConcertSort) -> Void = { _ in }
     ) {
-        self.concert = concert
+        self.interestConcertList = interestConcertList
+        self.selectedSort = selectedSort
         self.onTitleTap = onTitleTap
         self.onChangeTap = onChangeTap
+        self.onSortSelected = onSortSelected
     }
 
     // MARK: - Body
@@ -50,22 +56,27 @@ struct HomeInterestConcertSectionView: View {
                 .padding(.top, Constants.verticalSpacing)
         }
         .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .background(Color.livithColor(.black100))
+        .onChange(of: interestConcertList) { _, newValue in
+            clampCurrentPage(itemCount: newValue.count)
+        }
     }
 }
 
 // MARK: - Computed Properties
 
 private extension HomeInterestConcertSectionView {
-    var visibleItemList: [HomeInterestConcertSectionItem] {
-        [makeItem(from: concert)]
-    }
-
     var nextIndex: Int {
-        (currentPage + 1) % visibleItemList.count
+        guard !interestConcertList.isEmpty else { return currentPage }
+
+        return (currentPage + 1) % interestConcertList.count
     }
 
     var previousIndex: Int {
-        (currentPage - 1 + visibleItemList.count) % visibleItemList.count
+        guard !interestConcertList.isEmpty else { return currentPage }
+
+        return (currentPage - 1 + interestConcertList.count) % interestConcertList.count
     }
 
     var dragGesture: some Gesture {
@@ -114,7 +125,7 @@ private extension HomeInterestConcertSectionView {
             showSortOption.toggle()
         } label: {
             HStack(spacing: 4) {
-                Text(selectedSortOption.title)
+                Text(selectedSort.title)
                     .notosans(.body1Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
 
@@ -127,13 +138,11 @@ private extension HomeInterestConcertSectionView {
 
     var sortOptionView: some View {
         VStack(alignment: .center, spacing: .zero) {
-            ForEach(HomeInterestConcertSortOption.allCases, id: \.self) { option in
-                LivithOptionButton(option.title, isSelected: selectedSortOption == option) {
-                    selectedSortOption = option
-                    currentPage = 0
-                    showSortOption = false
+            ForEach(InterestConcertSort.homeOptionList, id: \.self) { option in
+                LivithOptionButton(option.title, isSelected: selectedSort == option) {
+                    handleSortOptionSelected(option)
                 }
-                .padding(.bottom, option == HomeInterestConcertSortOption.allCases.last ? .zero : 8)
+                .padding(.bottom, option == InterestConcertSort.homeOptionList.last ? .zero : 8)
             }
         }
         .fixedSize()
@@ -183,14 +192,16 @@ private extension HomeInterestConcertSectionView {
 
     var cardPagerView: some View {
         ZStack {
-            ForEach(Array(visibleItemList.enumerated()), id: \.element.id) { index, item in
+            ForEach(Array(interestConcertList.enumerated()), id: \.element.id) { index, interestConcert in
+                let concert = interestConcert.concert
+
                 InterestConcertCardView(
-                    posterURL: item.posterURL,
-                    badgeText: item.badgeText,
-                    titleText: item.titleText,
-                    dateText: item.dateText,
-                    locationText: item.locationText,
-                    bottomText: item.bottomText
+                    posterURL: concert.posterURL,
+                    badgeText: InterestConcertDisplayText.badge(for: interestConcert),
+                    titleText: InterestConcertDisplayText.title(for: interestConcert),
+                    dateText: InterestConcertDisplayText.dateRange(for: interestConcert),
+                    locationText: InterestConcertDisplayText.venue(for: interestConcert),
+                    bottomText: InterestConcertDisplayText.bottom(for: interestConcert)
                 )
                 .opacity(index == currentPage ? 1 : 0)
             }
@@ -202,7 +213,7 @@ private extension HomeInterestConcertSectionView {
     var pageIndicatorView: some View {
         LivithPageIndicatorView(
             currentPage: currentPage,
-            pageCount: visibleItemList.count
+            pageCount: interestConcertList.count
         )
         .frame(maxWidth: .infinity)
     }
@@ -211,51 +222,13 @@ private extension HomeInterestConcertSectionView {
 // MARK: - Helpers
 
 private extension HomeInterestConcertSectionView {
-    func makeItem(from concert: Concert) -> HomeInterestConcertSectionItem {
-        HomeInterestConcertSectionItem(
-            id: concert.id,
-            ticketDate: concert.startDate,
-            concertDate: concert.startDate,
-            posterURL: concert.posterURL,
-            badgeText: badgeText(from: concert),
-            titleText: concert.title,
-            dateText: dateText(from: concert),
-            locationText: concert.venue,
-            bottomText: bottomText(from: concert)
-        )
-    }
+    func handleSortOptionSelected(_ sort: InterestConcertSort) {
+        showSortOption = false
 
-    func badgeText(from concert: Concert) -> String {
-        guard concert.status == .upcoming else {
-            return concert.status.filterText
-        }
+        guard selectedSort != sort else { return }
 
-        guard concert.daysLeft > 0 else {
-            return "공연 D-Day"
-        }
-
-        return "공연 D-\(concert.daysLeft)"
-    }
-
-    func dateText(from concert: Concert) -> String {
-        let fullDateFormatter = DateFormatter()
-        fullDateFormatter.dateFormat = "yyyy.MM.dd"
-
-        guard !Calendar.current.isDate(concert.startDate, inSameDayAs: concert.endDate) else {
-            return fullDateFormatter.string(from: concert.startDate)
-        }
-
-        let endDateFormatter = DateFormatter()
-        endDateFormatter.dateFormat = "MM.dd"
-        return "\(fullDateFormatter.string(from: concert.startDate))~\(endDateFormatter.string(from: concert.endDate))"
-    }
-
-    func bottomText(from concert: Concert) -> String {
-        guard let ticketingOffice = concert.ticketingOffice else {
-            return "예매 정보가 곧 공개될 예정이에요"
-        }
-
-        return "예매처 · \(ticketingOffice)"
+        currentPage = 0
+        onSortSelected(sort)
     }
 
     func handleDragEnded(_ value: DragGesture.Value) {
@@ -276,6 +249,17 @@ private extension HomeInterestConcertSectionView {
             return previousIndex
         }
         return currentPage
+    }
+
+    func clampCurrentPage(itemCount: Int) {
+        guard itemCount > 0 else {
+            currentPage = 0
+            return
+        }
+
+        guard currentPage >= itemCount else { return }
+
+        currentPage = itemCount - 1
     }
 }
 
@@ -306,28 +290,15 @@ private extension HomeInterestConcertSectionView {
     )
 }
 
-private struct HomeInterestConcertSectionItem: Identifiable, Equatable {
-    let id: Int
-    let ticketDate: Date
-    let concertDate: Date
-    let posterURL: URL?
-    let badgeText: String
-    let titleText: String
-    let dateText: String
-    let locationText: String
-    let bottomText: String
-}
-
-private enum HomeInterestConcertSortOption: CaseIterable {
-    case ticketDate
-    case concertDate
+private extension InterestConcertSort {
+    static let homeOptionList: [InterestConcertSort] = [.concert, .ticketing]
 
     var title: String {
         switch self {
-        case .ticketDate:
-            return "예매일"
-        case .concertDate:
+        case .concert:
             return "공연 일정"
+        case .ticketing:
+            return "예매일"
         }
     }
 }
@@ -339,6 +310,16 @@ private enum HomeInterestConcertSortOption: CaseIterable {
         Color.livithColor(.black100)
             .ignoresSafeArea()
 
-        HomeInterestConcertSectionView(concert: HomeInterestConcertSectionView.previewConcert)
+        HomeInterestConcertSectionView(
+            interestConcertList: [
+                InterestConcert(
+                    concert: HomeInterestConcertSectionView.previewConcert,
+                    ticketingSchedule: InterestConcertTicketingSchedule(
+                        preSaleDate: Date(timeIntervalSince1970: 1_782_201_600),
+                        generalSaleDate: Date(timeIntervalSince1970: 1_782_288_000)
+                    )
+                )
+            ]
+        )
     }
 }

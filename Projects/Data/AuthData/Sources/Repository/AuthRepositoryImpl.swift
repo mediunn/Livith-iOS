@@ -160,7 +160,6 @@ private extension AuthRepositoryImpl {
         await deleteFCMToken()
         try? await tokenService.removeToken()
         userdefaultsStorage.remove(for: .currentUser)
-        userdefaultsStorage.remove(for: .interestConcert)
     }
 
     func registerFCMToken() async {

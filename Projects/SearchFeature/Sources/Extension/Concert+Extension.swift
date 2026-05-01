@@ -8,13 +8,11 @@
 
 import Foundation
 
+import DisplaySupport
 import Domain
 
 extension Concert {
     var formattedStartDate: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter.string(from: startDate)
+        ConcertDisplayText.dateRange(for: self)
     }
 }

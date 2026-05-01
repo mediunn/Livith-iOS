@@ -9,6 +9,7 @@
 import Foundation
 
 import Domain
+import LivithFoundation
 import LivithNetwork
 import Persistence
 
@@ -17,7 +18,6 @@ struct UserRepositoryImpl: UserRepository {
     private let homeService: HomeService
     private let userService: UserService
     private let userCache: UserDiskCache
-    private let interestConcertCache: InterestConcertCache
     private let mapper: UserMapper = .init()
     private let errorMapper: UserErrorMapper = .init()
 
@@ -31,7 +31,6 @@ struct UserRepositoryImpl: UserRepository {
         self.homeService = homeService
         self.userService = userService
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
-        self.interestConcertCache = InterestConcertCache(userdefaultsStorage: userdefaultsStorage)
     }
 
     func updateNickname(_ nickname: String) async throws(UserError) {
@@ -61,21 +60,15 @@ struct UserRepositoryImpl: UserRepository {
         try await fetchUserFromNetwork()
     }
 
-    func fetchInterestedConcert() async throws(UserError) -> Concert? {
-        if let cachedConcert = await interestConcertCache.fetchInterestConcertIfValid() {
-            return cachedConcert
-        }
-
+    func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
         do {
-            let response: DTO.Response.FetchUserInterestConcert? = try await homeService.request(.fetchInterestedConcert)
-            guard let response else { return nil }
-            guard let concert = mapper.toDomain(from: response) else {
-                throw UserError.invalidResponse
-            }
-            await interestConcertCache.saveInterestConcert(concert)
-            return concert
+            let request = makeFetchInterestConcertListRequest(from: query)
+            let response: DTO.Response.FetchUserInterestConcert = try await homeService.request(
+                .fetchInterestedConcertList(request)
+            )
+            return mapper.toDomain(from: response)
         } catch NetworkError.noData {
-            return nil
+            return InterestConcertPage(concertList: [], nextCursor: nil)
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -91,8 +84,9 @@ struct UserRepositoryImpl: UserRepository {
             guard let concert = mapper.toDomain(from: response) else {
                 throw UserError.invalidResponse
             }
-            await interestConcertCache.saveInterestConcert(concert)
             return concert
+        } catch let error as UserError {
+            throw error
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -102,7 +96,6 @@ struct UserRepositoryImpl: UserRepository {
     func deleteInterestedConcert() async throws(UserError) {
         do {
             let _: DTO.Response.EmptyResponse = try await homeService.request(.deleteInterestedConcert)
-            await interestConcertCache.deleteInterestConcert()
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -113,6 +106,28 @@ struct UserRepositoryImpl: UserRepository {
 // MARK: - Helpers
 
 private extension UserRepositoryImpl {
+    func makeFetchInterestConcertListRequest(
+        from query: InterestConcertListQuery
+    ) -> DTO.Request.FetchInterestConcertList {
+        DTO.Request.FetchInterestConcertList(
+            sort: makeFetchInterestConcertListSort(from: query.sort),
+            size: query.pageSize,
+            cursorDate: query.cursor.map { DateFormatterService.string(from: $0.date, type: .dotDate) },
+            cursorID: query.cursor?.id
+        )
+    }
+
+    func makeFetchInterestConcertListSort(
+        from sort: InterestConcertSort
+    ) -> DTO.Request.FetchInterestConcertList.Sort {
+        switch sort {
+        case .concert:
+            return .concert
+        case .ticketing:
+            return .ticketing
+        }
+    }
+
     func fetchUserFromNetwork() async throws(UserError) -> User {
         do {
             let response: DTO.Response.FetchUserInfo = try await onboardingService.request(.fetchUserInfo)

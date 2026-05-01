@@ -17,6 +17,19 @@ struct PreferenceBannerView: View {
     @Binding var isExpanded: Bool
 
     let onTapBanner: () -> Void
+    let backgroundColor: Color
+
+    // MARK: - Initializer
+
+    init(
+        isExpanded: Binding<Bool>,
+        onTapBanner: @escaping () -> Void,
+        backgroundColor: Color = Color.livithColor(.black100)
+    ) {
+        self._isExpanded = isExpanded
+        self.onTapBanner = onTapBanner
+        self.backgroundColor = backgroundColor
+    }
 
     // MARK: - Body
 
@@ -69,7 +82,7 @@ private extension PreferenceBannerView {
             .padding(.top, 16)
         }
         .padding(16)
-        .background(Color.livithColor(.black100))
+        .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
@@ -96,7 +109,7 @@ private extension PreferenceBannerView {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .padding(16)
-            .background(Color.livithColor(.black100))
+            .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)

@@ -12,12 +12,15 @@ import Domain
 
 final class MockUserRepository: UserRepository {
     var userStub: User?
-    var interestedConcertStub: Concert?
+    var interestConcertListStub: [InterestConcert] = []
     var updatedConcertStub: Concert?
     var errorStub: UserError?
+    var fetchUserErrorStub: UserError?
+    var fetchInterestedConcertListErrorStub: UserError?
     
     var fetchUserCallCount: Int = 0
-    var fetchInterestedConcertCallCount: Int = 0
+    var fetchInterestedConcertListCallCount: Int = 0
+    var fetchInterestedConcertListQuery: InterestConcertListQuery?
     var updateInterestedConcertCallCount: Int = 0
     var deleteInterestedConcertCallCount: Int = 0
     var updateNicknameCallCount: Int = 0
@@ -31,6 +34,9 @@ final class MockUserRepository: UserRepository {
     
     func fetchUser() async throws(UserError) -> User {
         fetchUserCallCount += 1
+        if let error = fetchUserErrorStub {
+            throw error
+        }
         if let error = errorStub {
             throw error
         }
@@ -51,12 +57,16 @@ final class MockUserRepository: UserRepository {
         return user
     }
     
-    func fetchInterestedConcert() async throws(UserError) -> Concert? {
-        fetchInterestedConcertCallCount += 1
+    func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
+        fetchInterestedConcertListCallCount += 1
+        fetchInterestedConcertListQuery = query
+        if let error = fetchInterestedConcertListErrorStub {
+            throw error
+        }
         if let error = errorStub {
             throw error
         }
-        return interestedConcertStub
+        return InterestConcertPage(concertList: interestConcertListStub, nextCursor: nil)
     }
     
     @discardableResult

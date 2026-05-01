@@ -11,8 +11,14 @@ public protocol UserRepository {
     func fetchUser() async throws(UserError) -> User
     @discardableResult
     func refreshUser() async throws(UserError) -> User
-    func fetchInterestedConcert() async throws(UserError) -> Concert?
+    func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert
     func deleteInterestedConcert() async throws(UserError)
+}
+
+public extension UserRepository {
+    func fetchInterestedConcert() async throws(UserError) -> Concert? {
+        try await fetchInterestedConcertList(query: .init()).concertList.first?.concert
+    }
 }
