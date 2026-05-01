@@ -22,7 +22,7 @@
   - Data 레이어는 다음 요청 시 전달받은 `NextToken`을 구체 토큰으로 변환해 API cursor로 사용한다.
   - Mapper가 optional 날짜, 포스터, 티켓 정보 때문에 유효한 콘서트를 버리지 않도록 수정한다.
   - 구현 후 계획 대비 구현 내용을 리뷰받고 `통과` 결과를 확인한 뒤 유저에게 알린다.
-- [ ] API 스펙에 맞춰 관심 콘서트 설정/수정 API를 교체한다.
+- [x] API 스펙에 맞춰 관심 콘서트 설정/수정 API를 교체한다.
   - `PUT /users/interest-concerts` endpoint를 추가하거나 기존 단일 설정 endpoint를 대체한다.
   - 요청 body를 `concertIds` 배열로 변경한다.
   - 응답의 `[Concert]?`를 Domain의 `[Concert]`로 매핑하고 `data: null`은 빈 목록으로 처리한다.

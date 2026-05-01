@@ -116,6 +116,10 @@ final class MockUserRepository: UserRepository {
         )
     }
 
+    func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert] {
+        []
+    }
+
     func deleteInterestedConcert() async throws(UserError) {}
 }
 

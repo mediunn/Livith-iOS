@@ -54,6 +54,11 @@ public struct MockUserRepository: UserRepository {
         throw UserError.unknown
     }
 
+    @discardableResult
+    public func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert] {
+        []
+    }
+
     public func deleteInterestedConcert() async throws(UserError) {}
 }
 

@@ -18,6 +18,7 @@ final class MockUserRepository: UserRepository {
     var interestConcertPageResultQueue: [Result<InterestConcertPage, UserError>] = []
     var fetchInterestedConcertListDelayQueue: [UInt64] = []
     var updatedConcertStub: Concert?
+    var updatedConcertListStub: [Concert] = []
     var errorStub: UserError?
     var fetchUserErrorStub: UserError?
     var fetchInterestedConcertListErrorStub: UserError?
@@ -27,6 +28,8 @@ final class MockUserRepository: UserRepository {
     var fetchInterestedConcertListQuery: InterestConcertListQuery?
     var fetchInterestedConcertListQueryList: [InterestConcertListQuery] = []
     var updateInterestedConcertCallCount: Int = 0
+    var updateInterestedConcertListCallCount: Int = 0
+    var updateInterestedConcertIDList: [Int]?
     var deleteInterestedConcertCallCount: Int = 0
     var updateNicknameCallCount: Int = 0
 
@@ -136,6 +139,16 @@ final class MockUserRepository: UserRepository {
             throw UserError.serverError
         }
         return concert
+    }
+
+    @discardableResult
+    func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert] {
+        updateInterestedConcertListCallCount += 1
+        updateInterestedConcertIDList = concertIDList
+        if let error = errorStub {
+            throw error
+        }
+        return updatedConcertListStub
     }
     
     func deleteInterestedConcert() async throws(UserError) {

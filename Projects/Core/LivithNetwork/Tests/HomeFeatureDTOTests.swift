@@ -271,4 +271,59 @@ struct HomeFeatureDTOTests {
         #expect(result[1].id == 1613)
         #expect(result[1].title == "호시노 겐 내한공연 (Gen Hoshino Live) : 약속 [서울]")
     }
+
+    @Test("UpdateUserInterestConcertList request는 concertIds 정수 배열로 인코딩되어야 한다")
+    func updateUserInterestConcertList_request는_concertIds_정수_배열로_인코딩되어야_한다() throws {
+        // Given
+        let request = DTO.Request.UpdateUserInterestConcertList(concertIDList: [8, 1])
+
+        // When
+        let data = try JSONEncoder().encode(request)
+        let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let concertIDList = try #require(jsonObject?["concertIds"] as? [Int])
+
+        // Then
+        #expect(concertIDList == [8, 1])
+    }
+
+    @Test("HomeEndpoint 관심 콘서트 목록 설정 수정 endpoint를 생성해야 한다")
+    func homeEndpoint_관심_콘서트_목록_설정_수정_endpoint를_생성해야_한다() throws {
+        // Given
+        let request = DTO.Request.UpdateUserInterestConcertList(concertIDList: [8, 1])
+
+        // When
+        let endpoint = HomeEndpoint.updateInterestedConcertList(request: request)
+
+        // Then
+        #expect(endpoint.path == "/users/interest-concerts")
+        #expect(endpoint.method == .put)
+        #expect(endpoint.body != nil)
+        #expect(endpoint.requiresInterceptor)
+    }
+
+    @Test("UpdateUserInterestConcertList 응답은 optional 필드가 누락되어도 디코딩되어야 한다")
+    func updateUserInterestConcertList_응답은_optional_필드가_누락되어도_디코딩되어야_한다() throws {
+        // Given
+        let json = """
+        [
+            {
+                "id": 8,
+                "status": "COMPLETED",
+                "artist": "JAKE MILLER (제이크 밀러)",
+                "introduction": "첫 단독 내한 공연"
+            }
+        ]
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode(DTO.Response.UpdateUserInterestConcertList.self, from: json)
+
+        // Then
+        let concert = try #require(result.first)
+        #expect(concert.id == 8)
+        #expect(concert.title == nil)
+        #expect(concert.startDate == nil)
+        #expect(concert.posterURL == nil)
+        #expect(concert.artist == "JAKE MILLER (제이크 밀러)")
+    }
 }

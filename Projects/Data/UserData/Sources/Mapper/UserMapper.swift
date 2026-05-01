@@ -71,6 +71,10 @@ struct UserMapper {
             label: dto.label
         )
     }
+
+    func toDomain(from dto: DTO.Response.UpdateUserInterestConcertList) -> [Concert] {
+        dto.compactMap(toConcert)
+    }
 }
 
 private extension UserMapper {
@@ -106,6 +110,28 @@ private extension UserMapper {
             generalSaleDate: parseDate(dto.generalSaleDate, type: .iso8601)
         )
         return InterestConcert(concert: concert, ticketingSchedule: ticketingSchedule)
+    }
+
+    func toConcert(from dto: DTO.Response.UpdatedUserInterestConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: dto.status) else {
+            return nil
+        }
+
+        return Concert(
+            id: dto.id,
+            title: dto.title,
+            artist: dto.artist,
+            status: status,
+            daysLeft: dto.daysLeft,
+            startDate: parseDate(dto.startDate, type: .dotDate),
+            endDate: parseDate(dto.endDate, type: .dotDate),
+            posterURL: parseURL(dto.posterURL),
+            venue: dto.venue,
+            ticketSite: dto.ticketSite,
+            ticketURL: parseURL(dto.ticketURL),
+            introduction: dto.introduction,
+            label: dto.label
+        )
     }
 
     func toCursor(from dto: DTO.Response.FetchUserInterestConcert.Cursor) -> InterestConcertPageCursor? {
