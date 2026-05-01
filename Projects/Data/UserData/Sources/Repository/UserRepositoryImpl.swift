@@ -60,15 +60,17 @@ struct UserRepositoryImpl: UserRepository {
         try await fetchUserFromNetwork()
     }
 
-    func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
+    func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
         do {
-            let request = makeFetchInterestConcertListRequest(from: query)
+            let request = try makeFetchInterestConcertListRequest(from: filter)
             let response: DTO.Response.FetchUserInterestConcert = try await homeService.request(
                 .fetchInterestedConcertList(request)
             )
             return mapper.toDomain(from: response)
         } catch NetworkError.noData {
-            return InterestConcertPage(concertList: [], nextCursor: nil)
+            return ListResult(items: [], nextToken: nil)
+        } catch let error as UserError {
+            throw error
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -123,14 +125,27 @@ struct UserRepositoryImpl: UserRepository {
 
 private extension UserRepositoryImpl {
     func makeFetchInterestConcertListRequest(
-        from query: InterestConcertListQuery
-    ) -> DTO.Request.FetchInterestConcertList {
-        DTO.Request.FetchInterestConcertList(
-            sort: makeFetchInterestConcertListSort(from: query.sort),
-            size: query.pageSize,
-            cursorDate: query.cursor.map { DateFormatterService.string(from: $0.date, type: .dotDate) },
-            cursorID: query.cursor?.id
+        from filter: InterestConcertListFilter
+    ) throws(UserError) -> DTO.Request.FetchInterestConcertList {
+        let nextToken = try makeInterestConcertListNextToken(from: filter.nextToken)
+
+        return DTO.Request.FetchInterestConcertList(
+            sort: filter.sort.map(makeFetchInterestConcertListSort),
+            size: filter.limit,
+            cursorDate: nextToken?.cursorDate,
+            cursorID: nextToken?.id
         )
+    }
+
+    func makeInterestConcertListNextToken(
+        from nextToken: (any NextToken)?
+    ) throws(UserError) -> InterestConcertListNextToken? {
+        guard let nextToken else { return nil }
+        guard let interestConcertListNextToken = nextToken as? InterestConcertListNextToken else {
+            throw UserError.invalidRequest
+        }
+
+        return interestConcertListNextToken
     }
 
     func makeFetchInterestConcertListSort(

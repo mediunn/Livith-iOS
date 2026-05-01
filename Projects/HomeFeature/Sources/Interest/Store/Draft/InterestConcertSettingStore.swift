@@ -69,6 +69,7 @@ enum InterestConcertSettingIntent {
     case submit
     case clearErrorMessage
     case clearSuccessMessage
+    case _fetchInitialSelectionResult(Result<ListResult<InterestConcert>, Error>)
     case _fetchFirstPageResult(Result<ListResult<Concert>, Error>)
     case _fetchNextPageResult(Result<ListResult<Concert>, Error>)
     case _submitResult(Result<[Concert], Error>)
@@ -93,25 +94,18 @@ final class InterestConcertSettingStore: ObservableObject {
 
     // MARK: - Initializer
 
-    init(
-        mode: InterestConcertSettingMode,
-        userInterestConcertList: [Concert] = []
-    ) {
-        let initialUserInterestConcertIDList = userInterestConcertList.map(\.id)
-        let selectedConcertByID = Dictionary(uniqueKeysWithValues: userInterestConcertList.map { ($0.id, $0) })
-
+    init(mode: InterestConcertSettingMode) {
         self.concertList = []
-        self.initialSelectedConcertIDList = initialUserInterestConcertIDList
-        self.selectedConcertByID = selectedConcertByID
+        self.initialSelectedConcertIDList = []
+        self.selectedConcertByID = [:]
         self.nextToken = nil
 
         self.state = InterestConcertSettingState(
-            mode: mode,
-            selectedConcertIDList: initialUserInterestConcertIDList,
-            selectedConcertList: userInterestConcertList
+            mode: mode
         )
         syncSelectionState()
 
+        performFetchInitialSelectionIfNeeded()
         performFetchFirstPage()
     }
 
@@ -161,6 +155,17 @@ final class InterestConcertSettingStore: ObservableObject {
             state.errorMessage = ""
         case .clearSuccessMessage:
             state.successMessage = ""
+        case ._fetchInitialSelectionResult(let result):
+            switch result {
+            case .success(let listResult):
+                let selectedConcertList = listResult.items.map(\.concert)
+                mergeSelectedConcerts(selectedConcertList)
+                initialSelectedConcertIDList = selectedConcertList.map(\.id)
+                state.selectedConcertIDList = initialSelectedConcertIDList
+                syncSelectionState()
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+            }
         case ._fetchFirstPageResult(let result):
             state.isInitialLoading = false
             switch result {
@@ -209,6 +214,21 @@ final class InterestConcertSettingStore: ObservableObject {
 // MARK: - Helpers
 
 private extension InterestConcertSettingStore {
+    func performFetchInitialSelectionIfNeeded() {
+        guard state.mode == .update else { return }
+
+        let repository = userRepository
+
+        Task {
+            do {
+                let result = try await repository.fetchInterestedConcertList(filter: .all)
+                send(._fetchInitialSelectionResult(.success(result)))
+            } catch {
+                send(._fetchInitialSelectionResult(.failure(error)))
+            }
+        }
+    }
+
     func performFetchFirstPage() {
         let repository = concertRepository
 

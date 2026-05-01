@@ -37,10 +37,10 @@ struct UserMapper {
         )
     }
 
-    func toDomain(from dto: DTO.Response.FetchUserInterestConcert) -> InterestConcertPage {
-        InterestConcertPage(
-            concertList: dto.data.compactMap(toInterestConcert),
-            nextCursor: dto.cursor.flatMap(toCursor)
+    func toDomain(from dto: DTO.Response.FetchUserInterestConcert) -> ListResult<InterestConcert> {
+        ListResult(
+            items: dto.data.compactMap(toInterestConcert),
+            nextToken: dto.cursor.flatMap(toNextToken)
         )
     }
 
@@ -134,15 +134,14 @@ private extension UserMapper {
         )
     }
 
-    func toCursor(from dto: DTO.Response.FetchUserInterestConcert.Cursor) -> InterestConcertPageCursor? {
-        guard let dateString = dto.date,
-              let id = dto.id,
-              let date = DateFormatterService.date(from: dateString, type: .dotDate)
+    func toNextToken(from dto: DTO.Response.FetchUserInterestConcert.Cursor) -> InterestConcertListNextToken? {
+        guard let cursorDate = dto.date,
+              let id = dto.id
         else {
             return nil
         }
 
-        return InterestConcertPageCursor(date: date, id: id)
+        return InterestConcertListNextToken(cursorDate: cursorDate, id: id)
     }
 
     func parseDate(_ dateString: String?, type: DateFormatType) -> Date? {

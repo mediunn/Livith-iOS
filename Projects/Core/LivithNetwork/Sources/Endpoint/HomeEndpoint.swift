@@ -56,7 +56,7 @@ extension HomeEndpoint: NetworkEndpoint {
         switch self {
         case .fetchInterestedConcertList(let request):
             let query: [String: Any?] = [
-                "sort": request.sort.rawValue,
+                "sort": request.sort?.rawValue,
                 "size": request.size,
                 "cursorDate": request.cursorDate,
                 "cursorId": request.cursorID

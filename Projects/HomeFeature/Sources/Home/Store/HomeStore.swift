@@ -80,7 +80,7 @@ final class HomeStore: ObservableObject {
             guard state.interestConcertSort != sort else { return }
 
             state.interestConcertSort = sort
-            performFetchInterestConcertList(query: .homeSection(sort: sort))
+            performFetchInterestConcertList(filter: .homeSection(sort: sort))
 
         case ._fetchInitialHomeDataResult(let result):
             switch result {
@@ -153,7 +153,7 @@ private extension HomeStore {
         cancellables[.fetchInitialHomeData] = Task {
             async let userResult = fetchUserResult()
             async let interestConcertListResult = fetchInterestConcertListResult(
-                query: .homeSection(sort: state.interestConcertSort)
+                filter: .homeSection(sort: state.interestConcertSort)
             )
             async let hasNewNoticeResult = fetchHasNewNoticeResult()
 
@@ -200,10 +200,10 @@ private extension HomeStore {
         }
     }
 
-    func fetchInterestConcertListResult(query: InterestConcertListQuery) async -> Result<[InterestConcert], Error> {
+    func fetchInterestConcertListResult(filter: InterestConcertListFilter) async -> Result<[InterestConcert], Error> {
         do {
-            let response = try await userRepository.fetchInterestedConcertList(query: query)
-            return .success(response.concertList)
+            let response = try await userRepository.fetchInterestedConcertList(filter: filter)
+            return .success(response.items)
         } catch {
             return .failure(error)
         }
@@ -218,10 +218,10 @@ private extension HomeStore {
         }
     }
 
-    func performFetchInterestConcertList(query: InterestConcertListQuery) {
+    func performFetchInterestConcertList(filter: InterestConcertListFilter) {
         cancellables[.fetchInterestConcertList]?.cancel()
         cancellables[.fetchInterestConcertList] = Task {
-            let result = await fetchInterestConcertListResult(query: query)
+            let result = await fetchInterestConcertListResult(filter: filter)
             send(._fetchInterestConcertListResult(result))
         }
     }

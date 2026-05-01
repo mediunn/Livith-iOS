@@ -33,9 +33,9 @@ struct InterestConcertListStoreTests {
     @Test("onAppear 시 첫 페이지를 기본 정렬과 12개 페이지 크기로 조회해야 한다")
     func onAppear는_첫_페이지를_기본_정렬과_12개_페이지_크기로_조회해야_한다() async throws {
         // Given
-        let nextCursor = makeCursor(id: 2)
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: nextCursor))
+        let nextToken = makeToken(id: 2)
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: nextToken))
         ]
         let sut = InterestConcertListStore()
 
@@ -45,23 +45,22 @@ struct InterestConcertListStoreTests {
 
         // Then
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.sort == .concert)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.pageSize == 12)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.cursor == nil)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .concert)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 12)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.nextToken == nil)
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2])
-        #expect(sut.state.nextCursor == nextCursor)
         #expect(sut.state.hasMorePages)
         #expect(!sut.state.isInitialLoading)
         #expect(sut.state.errorMessage.isEmpty)
     }
 
-    @Test("다음 페이지 요청 시 nextCursor로 조회하고 기존 목록 뒤에 추가해야 한다")
-    func 다음_페이지_요청은_nextCursor로_조회하고_기존_목록_뒤에_추가해야_한다() async throws {
+    @Test("다음 페이지 요청 시 nextToken으로 조회하고 기존 목록 뒤에 추가해야 한다")
+    func 다음_페이지_요청은_nextToken으로_조회하고_기존_목록_뒤에_추가해야_한다() async throws {
         // Given
-        let firstCursor = makeCursor(id: 2)
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: firstCursor)),
-            .success(makePage(concertIDList: [3, 4], nextCursor: nil))
+        let firstToken = makeToken(id: 2)
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: firstToken)),
+            .success(makeListResult(concertIDList: [3, 4], nextToken: nil))
         ]
         let sut = InterestConcertListStore()
         sut.send(.onAppear)
@@ -73,11 +72,10 @@ struct InterestConcertListStoreTests {
 
         // Then
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
-        let nextPageQuery = container.userRepository.fetchInterestedConcertListQueryList.dropFirst().first
-        #expect(nextPageQuery?.cursor == firstCursor)
-        #expect(nextPageQuery?.pageSize == 12)
+        let nextPageFilter = container.userRepository.fetchInterestedConcertListFilterList.dropFirst().first
+        #expect(nextPageFilter?.nextToken as? TestNextToken == firstToken)
+        #expect(nextPageFilter?.limit == 12)
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2, 3, 4])
-        #expect(sut.state.nextCursor == nil)
         #expect(!sut.state.hasMorePages)
         #expect(!sut.state.isLoadingMore)
     }
@@ -85,8 +83,8 @@ struct InterestConcertListStoreTests {
     @Test("더 이상 페이지가 없거나 로딩 중이면 다음 페이지를 중복 조회하지 않아야 한다")
     func 다음_페이지가_없거나_로딩_중이면_중복_조회하지_않아야_한다() async throws {
         // Given
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1], nextCursor: nil))
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1], nextToken: nil))
         ]
         let sut = InterestConcertListStore()
         sut.send(.onAppear)
@@ -105,8 +103,8 @@ struct InterestConcertListStoreTests {
     func 초기_로딩_중이면_다음_페이지를_조회하지_않아야_한다() async throws {
         // Given
         container.userRepository.fetchInterestedConcertListDelayQueue = [200_000_000]
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: makeCursor(id: 2)))
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: makeToken(id: 2)))
         ]
         let sut = InterestConcertListStore()
 
@@ -123,9 +121,9 @@ struct InterestConcertListStoreTests {
     @Test("다음 페이지 로딩 중이면 다음 페이지를 중복 조회하지 않아야 한다")
     func 다음_페이지_로딩_중이면_다음_페이지를_중복_조회하지_않아야_한다() async throws {
         // Given
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: makeCursor(id: 2))),
-            .success(makePage(concertIDList: [3, 4], nextCursor: makeCursor(id: 4)))
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: makeToken(id: 2))),
+            .success(makeListResult(concertIDList: [3, 4], nextToken: makeToken(id: 4)))
         ]
         container.userRepository.fetchInterestedConcertListDelayQueue = [0, 200_000_000]
         let sut = InterestConcertListStore()
@@ -142,14 +140,14 @@ struct InterestConcertListStoreTests {
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
     }
 
-    @Test("정렬 변경 성공 시 목록과 커서를 새 정렬 결과로 교체해야 한다")
-    func 정렬_변경_성공은_목록과_커서를_새_정렬_결과로_교체해야_한다() async throws {
+    @Test("정렬 변경 성공 시 목록과 다음 페이지 여부를 새 정렬 결과로 교체해야 한다")
+    func 정렬_변경_성공은_목록과_다음_페이지_여부를_새_정렬_결과로_교체해야_한다() async throws {
         // Given
-        let concertCursor = makeCursor(id: 2)
-        let ticketingCursor = makeCursor(id: 12)
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: concertCursor)),
-            .success(makePage(concertIDList: [11, 12], nextCursor: ticketingCursor))
+        let concertToken = makeToken(id: 2)
+        let ticketingToken = makeToken(id: 12)
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: concertToken)),
+            .success(makeListResult(concertIDList: [11, 12], nextToken: ticketingToken))
         ]
         let sut = InterestConcertListStore()
         sut.send(.onAppear)
@@ -160,29 +158,27 @@ struct InterestConcertListStoreTests {
 
         #expect(sut.state.selectedSort == .ticketing)
         #expect(sut.state.interestConcertList.isEmpty)
-        #expect(sut.state.nextCursor == nil)
+        #expect(sut.state.hasMorePages)
         #expect(sut.state.isInitialLoading)
 
         try await waitForAsyncTask()
 
         // Then
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
-        let sortQuery = container.userRepository.fetchInterestedConcertListQueryList.dropFirst().first
-        #expect(sortQuery?.sort == .ticketing)
-        #expect(sortQuery?.cursor == nil)
+        let sortFilter = container.userRepository.fetchInterestedConcertListFilterList.dropFirst().first
+        #expect(sortFilter?.sort == .ticketing)
+        #expect(sortFilter?.nextToken == nil)
         #expect(sut.state.selectedSort == .ticketing)
         #expect(sut.state.interestConcertList.map(\.id) == [11, 12])
-        #expect(sut.state.nextCursor == ticketingCursor)
         #expect(sut.state.hasMorePages)
         #expect(sut.state.errorMessage.isEmpty)
     }
 
-    @Test("정렬 변경 실패 시 기존 목록과 정렬과 커서를 유지하고 오류 메시지만 설정해야 한다")
-    func 정렬_변경_실패는_기존_목록과_정렬과_커서를_유지하고_오류_메시지만_설정해야_한다() async throws {
+    @Test("정렬 변경 실패 시 기존 목록과 정렬과 다음 페이지 여부를 유지하고 오류 메시지만 설정해야 한다")
+    func 정렬_변경_실패는_기존_목록과_정렬과_다음_페이지_여부를_유지하고_오류_메시지만_설정해야_한다() async throws {
         // Given
-        let existingCursor = makeCursor(id: 2)
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: existingCursor)),
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: makeToken(id: 2))),
             .failure(.serverError)
         ]
         let sut = InterestConcertListStore()
@@ -196,7 +192,6 @@ struct InterestConcertListStoreTests {
         // Then
         #expect(sut.state.selectedSort == .concert)
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2])
-        #expect(sut.state.nextCursor == existingCursor)
         #expect(sut.state.hasMorePages)
         #expect(!sut.state.errorMessage.isEmpty)
     }
@@ -204,10 +199,10 @@ struct InterestConcertListStoreTests {
     @Test("정렬 변경 응답 이후 이전 다음 페이지 응답이 도착해도 새 정렬 목록에 섞지 않아야 한다")
     func 정렬_변경_이후_이전_다음_페이지_응답은_무시해야_한다() async throws {
         // Given
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: makeCursor(id: 2))),
-            .success(makePage(concertIDList: [3, 4], nextCursor: nil)),
-            .success(makePage(concertIDList: [11, 12], nextCursor: nil))
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: makeToken(id: 2))),
+            .success(makeListResult(concertIDList: [3, 4], nextToken: nil)),
+            .success(makeListResult(concertIDList: [11, 12], nextToken: nil))
         ]
         container.userRepository.fetchInterestedConcertListDelayQueue = [0, 200_000_000, 0]
         let sut = InterestConcertListStore()
@@ -223,14 +218,13 @@ struct InterestConcertListStoreTests {
         // Then
         #expect(sut.state.selectedSort == .ticketing)
         #expect(sut.state.interestConcertList.map(\.id) == [11, 12])
-        #expect(sut.state.nextCursor == nil)
         #expect(!sut.state.hasMorePages)
     }
 
     @Test("최초 조회 실패 시 목록은 비어 있고 오류 메시지를 설정해야 한다")
     func 최초_조회_실패는_목록을_비우고_오류_메시지를_설정해야_한다() async throws {
         // Given
-        container.userRepository.interestConcertPageResultQueue = [.failure(.serverError)]
+        container.userRepository.interestConcertListResultQueue = [.failure(.serverError)]
         let sut = InterestConcertListStore()
 
         // When
@@ -239,18 +233,16 @@ struct InterestConcertListStoreTests {
 
         // Then
         #expect(sut.state.interestConcertList.isEmpty)
-        #expect(sut.state.nextCursor == nil)
         #expect(!sut.state.hasMorePages)
         #expect(!sut.state.isInitialLoading)
         #expect(!sut.state.errorMessage.isEmpty)
     }
 
-    @Test("다음 페이지 조회 실패 시 기존 목록과 커서를 유지하고 오류 메시지를 설정해야 한다")
-    func 다음_페이지_조회_실패는_기존_목록과_커서를_유지하고_오류_메시지를_설정해야_한다() async throws {
+    @Test("다음 페이지 조회 실패 시 기존 목록과 다음 페이지 여부를 유지하고 오류 메시지를 설정해야 한다")
+    func 다음_페이지_조회_실패는_기존_목록과_다음_페이지_여부를_유지하고_오류_메시지를_설정해야_한다() async throws {
         // Given
-        let existingCursor = makeCursor(id: 2)
-        container.userRepository.interestConcertPageResultQueue = [
-            .success(makePage(concertIDList: [1, 2], nextCursor: existingCursor)),
+        container.userRepository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], nextToken: makeToken(id: 2))),
             .failure(.serverError)
         ]
         let sut = InterestConcertListStore()
@@ -263,7 +255,6 @@ struct InterestConcertListStoreTests {
 
         // Then
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2])
-        #expect(sut.state.nextCursor == existingCursor)
         #expect(sut.state.hasMorePages)
         #expect(!sut.state.isLoadingMore)
         #expect(!sut.state.errorMessage.isEmpty)
@@ -272,10 +263,10 @@ struct InterestConcertListStoreTests {
     @Test("조회 성공 시 이전 오류 메시지를 비워야 한다")
     func 조회_성공은_이전_오류_메시지를_비워야_한다() async throws {
         // Given
-        let nextCursor = makeCursor(id: 2)
-        container.userRepository.interestConcertPageResultQueue = [
+        let nextToken = makeToken(id: 2)
+        container.userRepository.interestConcertListResultQueue = [
             .failure(.serverError),
-            .success(makePage(concertIDList: [1, 2], nextCursor: nextCursor))
+            .success(makeListResult(concertIDList: [1, 2], nextToken: nextToken))
         ]
         let sut = InterestConcertListStore()
         sut.send(.onAppear)
@@ -299,13 +290,13 @@ private extension InterestConcertListStoreTests {
         try await Task.sleep(nanoseconds: 100_000_000)
     }
 
-    func makePage(
+    func makeListResult(
         concertIDList: [Int],
-        nextCursor: InterestConcertPageCursor?
-    ) -> InterestConcertPage {
-        InterestConcertPage(
-            concertList: makeInterestConcertList(concertIDList: concertIDList),
-            nextCursor: nextCursor
+        nextToken: TestNextToken?
+    ) -> ListResult<InterestConcert> {
+        ListResult(
+            items: makeInterestConcertList(concertIDList: concertIDList),
+            nextToken: nextToken
         )
     }
 
@@ -336,10 +327,15 @@ private extension InterestConcertListStoreTests {
         )
     }
 
-    func makeCursor(id: Int) -> InterestConcertPageCursor {
-        InterestConcertPageCursor(
+    func makeToken(id: Int) -> TestNextToken {
+        TestNextToken(
             date: Date(timeIntervalSince1970: TimeInterval(1_783_584_000 + id)),
             id: id
         )
     }
+}
+
+private struct TestNextToken: NextToken, Equatable {
+    let date: Date
+    let id: Int
 }

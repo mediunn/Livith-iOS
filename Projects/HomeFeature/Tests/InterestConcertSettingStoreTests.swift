@@ -73,22 +73,25 @@ struct InterestConcertSettingStoreTests {
         #expect(!sut.state.isLoadingMore)
     }
 
-    @Test("update 모드는 기존 관심 콘서트를 초기 선택값으로 사용해야 한다")
-    func update_모드는_기존_관심_콘서트를_초기_선택값으로_사용해야_한다() async throws {
+    @Test("update 모드는 저장된 관심 콘서트를 조회해 초기 선택값으로 사용해야 한다")
+    func update_모드는_저장된_관심_콘서트를_조회해_초기_선택값으로_사용해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
         ]
-        let userInterestConcertList = makeConcertList([2, 4])
+        container.userRepository.interestConcertListResultQueue = [
+            .success(ListResult(items: makeInterestConcertList([2, 4]), nextToken: nil))
+        ]
 
         // When
-        let sut = InterestConcertSettingStore(
-            mode: .update,
-            userInterestConcertList: userInterestConcertList
-        )
+        let sut = InterestConcertSettingStore(mode: .update)
         try await waitForAsyncTask()
 
         // Then
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == nil)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == nil)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.nextToken == nil)
         #expect(sut.state.selectedConcertIDList == [2, 4])
         #expect(sut.state.selectedConcertList.map(\.id) == [2, 4])
         #expect(!sut.state.isCTAEnabled)
@@ -144,6 +147,15 @@ struct InterestConcertSettingStoreTests {
 private extension InterestConcertSettingStoreTests {
     func makeConcertList(_ idList: [Int]) -> [Concert] {
         idList.map(makeConcert)
+    }
+
+    func makeInterestConcertList(_ idList: [Int]) -> [InterestConcert] {
+        makeConcertList(idList).map {
+            InterestConcert(
+                concert: $0,
+                ticketingSchedule: InterestConcertTicketingSchedule(preSaleDate: nil, generalSaleDate: nil)
+            )
+        }
     }
 
     func makeConcert(id: Int) -> Concert {

@@ -177,8 +177,8 @@ struct HomeFeatureDTOTests {
         #expect(result.data == nil)
     }
 
-    @Test("HomeEndpoint 관심 콘서트 목록 첫 페이지 query를 생성해야 한다")
-    func homeEndpoint_관심_콘서트_목록_첫_페이지_query를_생성해야_한다() throws {
+    @Test("HomeEndpoint 관심 콘서트 목록 기본 요청은 query를 비워야 한다")
+    func homeEndpoint_관심_콘서트_목록_기본_요청은_query를_비워야_한다() throws {
         // Given
         let request = DTO.Request.FetchInterestConcertList()
 
@@ -190,10 +190,7 @@ struct HomeFeatureDTOTests {
         #expect(endpoint.path == "/users/interest-concerts")
         #expect(endpoint.method == .get)
         #expect(endpoint.requiresInterceptor)
-        #expect(query["sort"] as? String == "CONCERT")
-        #expect(query["size"] as? Int == 20)
-        #expect(query["cursorDate"] == nil)
-        #expect(query["cursorId"] == nil)
+        #expect(query.isEmpty)
     }
 
     @Test("HomeEndpoint 관심 콘서트 목록 다음 페이지 query를 생성해야 한다")

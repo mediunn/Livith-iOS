@@ -19,15 +19,9 @@ struct InterestConcertSettingDraftView: View {
 
     // MARK: - Initializer
 
-    init(
-        mode: InterestConcertSettingMode,
-        userInterestConcertList: [Concert] = []
-    ) {
+    init(mode: InterestConcertSettingMode) {
         _store = StateObject(
-            wrappedValue: InterestConcertSettingStore(
-                mode: mode,
-                userInterestConcertList: userInterestConcertList
-            )
+            wrappedValue: InterestConcertSettingStore(mode: mode)
         )
     }
 
@@ -174,24 +168,7 @@ private extension InterestConcertSettingDraftView {
 
 #Preview("Update") {
     InterestConcertSettingDraftView(
-        mode: .update,
-        userInterestConcertList: [
-            Concert(
-                id: 1,
-                title: "IU 2026 TOUR H.E.R.",
-                artist: "IU",
-                status: .upcoming,
-                daysLeft: 1,
-                startDate: Date(),
-                endDate: Date().addingTimeInterval(86_400),
-                posterURL: URL(string: "https://fastly.picsum.photos/id/1023/216/316.jpg?hmac=Wunm3hRG7WiE7puCI0_-RyR4Do-XrvPTOd02kuc1ktw")!,
-                venue: "KSPO DOME",
-                ticketSite: "인터파크",
-                ticketURL: URL(string: "https://example.com/ticket-1"),
-                introduction: "Draft 관심 콘서트 데이터",
-                label: nil
-            )
-        ]
+        mode: .update
     )
     .background(Color.livithColor(.black100))
 }

@@ -39,7 +39,10 @@ struct UserErrorMapper {
         case .serverError:
             return .serverError
             
-        case .noData, .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse:
+        case .invalidURL, .invalidRequest:
+            return .invalidRequest
+
+        case .noData, .decodingFailed, .invalidResponse:
             return .invalidResponse
             
         case .badRequest(let message):

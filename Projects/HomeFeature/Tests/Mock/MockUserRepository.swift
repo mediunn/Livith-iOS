@@ -13,9 +13,8 @@ import Domain
 final class MockUserRepository: UserRepository {
     var userStub: User?
     var interestConcertListStub: [InterestConcert] = []
-    var interestConcertPageStub: InterestConcertPage?
-    var interestConcertPageByCursorID: [Int: InterestConcertPage] = [:]
-    var interestConcertPageResultQueue: [Result<InterestConcertPage, UserError>] = []
+    var interestConcertListResultStub: ListResult<InterestConcert>?
+    var interestConcertListResultQueue: [Result<ListResult<InterestConcert>, UserError>] = []
     var fetchInterestedConcertListDelayQueue: [UInt64] = []
     var updatedConcertStub: Concert?
     var updatedConcertListStub: [Concert] = []
@@ -25,8 +24,8 @@ final class MockUserRepository: UserRepository {
     
     var fetchUserCallCount: Int = 0
     var fetchInterestedConcertListCallCount: Int = 0
-    var fetchInterestedConcertListQuery: InterestConcertListQuery?
-    var fetchInterestedConcertListQueryList: [InterestConcertListQuery] = []
+    var fetchInterestedConcertListFilter: InterestConcertListFilter?
+    var fetchInterestedConcertListFilterList: [InterestConcertListFilter] = []
     var updateInterestedConcertCallCount: Int = 0
     var updateInterestedConcertListCallCount: Int = 0
     var updateInterestedConcertIDList: [Int]?
@@ -65,11 +64,11 @@ final class MockUserRepository: UserRepository {
         return user
     }
     
-    func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
+    func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
         let (delay, queuedResult) = await MainActor.run {
             fetchInterestedConcertListCallCount += 1
-            fetchInterestedConcertListQuery = query
-            fetchInterestedConcertListQueryList.append(query)
+            fetchInterestedConcertListFilter = filter
+            fetchInterestedConcertListFilterList.append(filter)
 
             let delay: UInt64
             if !fetchInterestedConcertListDelayQueue.isEmpty {
@@ -78,9 +77,9 @@ final class MockUserRepository: UserRepository {
                 delay = 0
             }
 
-            let queuedResult: Result<InterestConcertPage, UserError>?
-            if !interestConcertPageResultQueue.isEmpty {
-                queuedResult = interestConcertPageResultQueue.removeFirst()
+            let queuedResult: Result<ListResult<InterestConcert>, UserError>?
+            if !interestConcertListResultQueue.isEmpty {
+                queuedResult = interestConcertListResultQueue.removeFirst()
             } else {
                 queuedResult = nil
             }
@@ -101,7 +100,7 @@ final class MockUserRepository: UserRepository {
             }
         }
 
-        let fallbackResult: Result<InterestConcertPage, UserError> = await MainActor.run {
+        let fallbackResult: Result<ListResult<InterestConcert>, UserError> = await MainActor.run {
             if let error = fetchInterestedConcertListErrorStub {
                 return .failure(error)
             }
@@ -109,16 +108,11 @@ final class MockUserRepository: UserRepository {
                 return .failure(error)
             }
 
-            if let cursorID = query.cursor?.id,
-               let cursorPage = interestConcertPageByCursorID[cursorID] {
-                return .success(cursorPage)
+            if let interestConcertListResultStub {
+                return .success(interestConcertListResultStub)
             }
 
-            if let interestConcertPageStub {
-                return .success(interestConcertPageStub)
-            }
-
-            return .success(InterestConcertPage(concertList: interestConcertListStub, nextCursor: nil))
+            return .success(ListResult(items: interestConcertListStub, nextToken: nil))
         }
 
         switch fallbackResult {
