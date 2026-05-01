@@ -128,7 +128,7 @@ private extension ArtistDetailTabView {
     }
 
     func artistNameRow(for artist: Artist) -> some View {
-        HStack {
+        HStack(spacing: 8) {
             Text(artist.name)
                 .notosans(.body2Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
@@ -140,6 +140,16 @@ private extension ArtistDetailTabView {
                     coordinator?.present(to: .safari(instagramURL))
                 } label: {
                     Image.livithImage(.instagram)
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                }
+            }
+
+            if let twitterURL = artist.twitterURL {
+                Button {
+                    coordinator?.present(to: .safari(twitterURL))
+                } label: {
+                    Image.livithImage(.twitter)
                         .resizable()
                         .frame(width: 30, height: 30)
                 }
@@ -261,7 +271,8 @@ private extension ArtistDetailTabView {
                 imageURL: nil,
                 detail: "단순한 가수를 넘어, 연기, 음악, 글쓰기, 라디오 등 다방면에서 활약하는 일본의 대표적인 크리에이터",
                 keywords: ["다채로운 사운드", "팝", "재즈"],
-                instagramURL: URL(string: "https://instagram.com/iamgenhoshino")
+                instagramURL: URL(string: "https://instagram.com/iamgenhoshino"),
+                twitterURL: URL(string: "https://twitter.com/iamgenhoshino")
             ),
             introduction: "호시노 겐의 n 년만의 내한!\nKoi 열풍으로 한국에서도 인기 아티스트",
             fanCultures: [
