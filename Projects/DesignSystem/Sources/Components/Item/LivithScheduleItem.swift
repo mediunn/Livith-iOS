@@ -65,12 +65,12 @@ private extension LivithScheduleItem {
     var dDayBadge: some View {
         Text(dDayText)
             .notosans(.caption1Bold)
-            .foregroundStyle(Color.livithColor(.black100))
+            .foregroundStyle(Color.livithColor(.white100))
             .padding(.horizontal, 13)
             .padding(.vertical, 7)
             .background(
                 Capsule()
-                    .fill(Color.livithColor(.yellow30))
+                    .fill(Color.livithColor(.black80))
             )
     }
 
