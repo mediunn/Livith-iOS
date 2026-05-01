@@ -133,8 +133,8 @@ struct UserMapperTests {
         #expect(!result.authority.marketingConsent)
     }
 
-    @Test("FetchUserInterestConcert 목록 응답을 InterestConcertPage로 변환해야 한다")
-    func fetchUserInterestConcert_목록_응답을_InterestConcertPage로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert 목록 응답을 ListResult로 변환해야 한다")
+    func fetchUserInterestConcert_목록_응답을_ListResult로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let json = """
@@ -169,13 +169,14 @@ struct UserMapperTests {
 
         // When
         let result = sut.toDomain(from: dto)
-        let interestConcert = try #require(result.concertList.first)
+        let interestConcert = try #require(result.items.first)
         let concert = interestConcert.concert
+        let nextToken = try #require(result.nextToken as? InterestConcertListNextToken)
 
         // Then
-        #expect(result.concertList.count == 1)
-        #expect(result.nextCursor?.id == 8)
-        #expect(dateString(result.nextCursor?.date) == "2025.09.27")
+        #expect(result.items.count == 1)
+        #expect(nextToken.id == 8)
+        #expect(nextToken.cursorDate == "2025.09.27")
         #expect(concert.id == 8)
         #expect(concert.title == "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
         #expect(concert.artist == "JAKE MILLER (제이크 밀러)")
@@ -193,8 +194,8 @@ struct UserMapperTests {
         #expect(dateTimeString(interestConcert.ticketingSchedule.generalSaleDate) == "2025.06.20 12:00")
     }
 
-    @Test("FetchUserInterestConcert의 Optional 필드가 null이어도 InterestConcertPage로 변환해야 한다")
-    func fetchUserInterestConcert의_Optional필드가_null이어도_InterestConcertPage로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert의 Optional 필드가 null이어도 ListResult로 변환해야 한다")
+    func fetchUserInterestConcert의_Optional필드가_null이어도_ListResult로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let json = """
@@ -226,12 +227,12 @@ struct UserMapperTests {
 
         // When
         let result = sut.toDomain(from: dto)
-        let interestConcert = try #require(result.concertList.first)
+        let interestConcert = try #require(result.items.first)
         let concert = interestConcert.concert
 
         // Then
-        #expect(result.concertList.count == 1)
-        #expect(result.nextCursor == nil)
+        #expect(result.items.count == 1)
+        #expect(result.nextToken == nil)
         #expect(concert.id == 2)
         #expect(concert.title == nil)
         #expect(concert.artist == "버스커버스커")
@@ -273,10 +274,10 @@ struct UserMapperTests {
 
         // When
         let result = sut.toDomain(from: dto)
-        let schedule = try #require(result.concertList.first?.ticketingSchedule)
+        let schedule = try #require(result.items.first?.ticketingSchedule)
 
         // Then
-        #expect(result.concertList.count == 1)
+        #expect(result.items.count == 1)
         #expect(schedule.preSaleDate == nil)
         #expect(dateTimeString(schedule.generalSaleDate) == "2025.07.01 12:00")
     }
@@ -310,30 +311,45 @@ struct UserMapperTests {
 
         // When
         let result = sut.toDomain(from: dto)
-        let concert = try #require(result.concertList.first?.concert)
+        let concert = try #require(result.items.first?.concert)
 
         // Then
-        #expect(result.concertList.count == 1)
+        #expect(result.items.count == 1)
         #expect(concert.startDate == nil)
         #expect(concert.endDate == nil)
         #expect(concert.posterURL == nil)
         #expect(concert.ticketingOfficeURL == nil)
     }
 
-    @Test("FetchUserInterestConcert의 cursor 값이 유효하지 않으면 nextCursor를 nil로 변환해야 한다")
-    func fetchUserInterestConcert의_cursor_값이_유효하지_않으면_nextCursor를_nil로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert의 cursor date는 원문 문자열로 보관해야 한다")
+    func fetchUserInterestConcert의_cursor_date는_원문_문자열로_보관해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "data": [],
+            "cursor": {
+                "date": "invalid-date",
+                "id": 1
+            }
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchUserInterestConcert.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+        let nextToken = try #require(result.nextToken as? InterestConcertListNextToken)
+
+        // Then
+        #expect(nextToken.cursorDate == "invalid-date")
+        #expect(nextToken.id == 1)
+    }
+
+    @Test("FetchUserInterestConcert의 cursor 필수 값이 없으면 nextToken을 nil로 변환해야 한다")
+    func fetchUserInterestConcert의_cursor_필수_값이_없으면_nextToken을_nil로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let jsonList = [
-            """
-            {
-                "data": [],
-                "cursor": {
-                    "date": "invalid-date",
-                    "id": 1
-                }
-            }
-            """,
             """
             {
                 "data": [],
@@ -361,7 +377,7 @@ struct UserMapperTests {
             let result = sut.toDomain(from: dto)
 
             // Then
-            #expect(result.nextCursor == nil)
+            #expect(result.nextToken == nil)
         }
     }
 
@@ -394,7 +410,7 @@ struct UserMapperTests {
         let result = sut.toDomain(from: dto)
 
         // Then
-        #expect(result.concertList.map(\.id) == [2])
+        #expect(result.items.map(\.id) == [2])
     }
 
     @Test("UpdateUserInterestConcert의 모든 필드를 Concert로 변환해야 한다")
@@ -524,15 +540,31 @@ struct UserErrorMapperTests {
         #expect(result == .serverError)
     }
 
-    @Test("잘못된 요청 관련 에러를 invalidResponse로 변환해야 한다")
-    func 잘못된_요청_관련_에러를_invalidResponse로_변환해야_한다() {
+    @Test("요청 생성 관련 에러를 invalidRequest로 변환해야 한다")
+    func 요청_생성_관련_에러를_invalidRequest로_변환해야_한다() {
+        // Given
+        let sut = UserErrorMapper()
+        let errorList: [NetworkError] = [
+            .invalidURL,
+            .invalidRequest
+        ]
+
+        for error in errorList {
+            // When
+            let result = sut.mapToUserError(error)
+
+            // Then
+            #expect(result == .invalidRequest)
+        }
+    }
+
+    @Test("응답 관련 에러를 invalidResponse로 변환해야 한다")
+    func 응답_관련_에러를_invalidResponse로_변환해야_한다() {
         // Given
         let sut = UserErrorMapper()
         let errorList: [NetworkError] = [
             .noData,
             .decodingFailed(NSError(domain: "", code: -1)),
-            .invalidURL,
-            .invalidRequest,
             .invalidResponse,
             .clientError(statusCode: 400, message: nil)
         ]

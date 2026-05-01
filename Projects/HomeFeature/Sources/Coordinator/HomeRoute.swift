@@ -7,17 +7,14 @@
 //
 
 import Foundation
-import UIKit
 
-import LivithDesignSystem
 import Coordinator
 import Domain
 
 enum HomeRoute: Route {
     case home
-    case interestConcertSearch
+    case interestConcertSetting(mode: InterestConcertSettingMode)
     case interestConcertList
-    case interestConcertComplete(posterURL: URL?, title: String, prefetchedImage: UIImage?)
     case notice
     case noticeSetting
     case recommendedConcertList(concertList: [Concert])

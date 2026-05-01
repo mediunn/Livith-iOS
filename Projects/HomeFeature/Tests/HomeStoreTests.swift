@@ -51,8 +51,8 @@ struct HomeStoreTests {
         // Then
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.sort == .concert)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.pageSize == 5)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .concert)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 5)
         #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
@@ -205,8 +205,8 @@ struct HomeStoreTests {
         // Then
         #expect(sut.state.interestConcertSort == .ticketing)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.sort == .ticketing)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.pageSize == 5)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 5)
         #expect(sut.state.interestConcertList.map(\.id) == [456])
         #expect(sut.state.errorMessage.isEmpty)
     }
@@ -225,8 +225,8 @@ struct HomeStoreTests {
         // Then
         #expect(sut.state.interestConcertSort == .ticketing)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.sort == .ticketing)
-        #expect(container.userRepository.fetchInterestedConcertListQuery?.pageSize == 5)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 5)
         #expect(sut.state.interestConcertList.map(\.id) == [123])
         #expect(!sut.state.errorMessage.isEmpty)
     }

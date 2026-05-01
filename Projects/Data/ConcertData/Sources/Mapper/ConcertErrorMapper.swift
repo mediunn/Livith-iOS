@@ -37,7 +37,10 @@ struct ConcertErrorMapper {
             return .serverError
         case .noData, .notFound:
             return .concertNotFound
-        case .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
+        case .invalidURL, .invalidRequest:
+            return .invalidRequest
+
+        case .decodingFailed, .invalidResponse, .badRequest, .clientError:
             return .invalidResponse
         case .unauthorized, .forbidden, .unknown:
             return .unknown

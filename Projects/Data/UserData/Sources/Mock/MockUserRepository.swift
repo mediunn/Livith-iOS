@@ -33,25 +33,30 @@ public struct MockUserRepository: UserRepository {
         try await fetchUser()
     }
 
-    public func fetchInterestedConcertList(query: InterestConcertListQuery) async throws(UserError) -> InterestConcertPage {
+    public func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
         let sortedConcertList = Self.interestConcertList.sorted { lhs, rhs in
-            switch query.sort {
+            switch filter.sort ?? .concert {
             case .concert:
                 return (lhs.concert.startDate ?? .distantFuture) < (rhs.concert.startDate ?? .distantFuture)
             case .ticketing:
                 return Self.ticketingDate(from: lhs.ticketingSchedule) < Self.ticketingDate(from: rhs.ticketingSchedule)
             }
         }
-        let pageSize = max(query.pageSize, 0)
-        return InterestConcertPage(
-            concertList: Array(sortedConcertList.prefix(pageSize)),
-            nextCursor: nil
+        let interestConcertList = filter.limit.map { Array(sortedConcertList.prefix(max($0, 0))) } ?? sortedConcertList
+        return ListResult(
+            items: interestConcertList,
+            nextToken: nil
         )
     }
 
     @discardableResult
     public func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         throw UserError.unknown
+    }
+
+    @discardableResult
+    public func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert] {
+        []
     }
 
     public func deleteInterestedConcert() async throws(UserError) {}

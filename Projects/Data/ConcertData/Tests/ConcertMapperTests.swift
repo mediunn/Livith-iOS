@@ -126,7 +126,8 @@ final class ConcertMapperTests: XCTestCase {
         XCTAssertEqual(result.label, "많이 찾는 콘서트 1위")
         
         let calendar = Calendar.current
-        let dateComponents = calendar.dateComponents([.year, .month, .day], from: result.startDate)
+        let startDate = try XCTUnwrap(result.startDate)
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
         XCTAssertEqual(dateComponents.year, 2025)
         XCTAssertEqual(dateComponents.month, 8)
         XCTAssertEqual(dateComponents.day, 10)
@@ -157,7 +158,7 @@ final class ConcertMapperTests: XCTestCase {
         // Then
         XCTAssertNil(result)
     }
-    
+
     func test_FetchHomeSectionList가_ConcertSection_List로_변환되어야_한다() throws {
         // Given
         let json = """

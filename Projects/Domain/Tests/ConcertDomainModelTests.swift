@@ -67,51 +67,51 @@ struct ConcertDomainModelTests {
         #expect(interestConcert.ticketingSchedule.generalSaleDate == nil)
     }
 
-    @Test("InterestConcertListQuery는 기본 조회 조건을 제공해야 한다")
-    func interestConcertListQuery는_기본_조회_조건을_제공해야_한다() {
+    @Test("InterestConcertListFilter all은 모든 조회 조건을 생략해야 한다")
+    func interestConcertListFilter_all은_모든_조회_조건을_생략해야_한다() {
         // When
-        let query = InterestConcertListQuery()
+        let filter = InterestConcertListFilter.all
 
         // Then
-        #expect(query.sort == .concert)
-        #expect(query.pageSize == 20)
-        #expect(query.cursor == nil)
+        #expect(filter.sort == nil)
+        #expect(filter.limit == nil)
+        #expect(filter.nextToken == nil)
     }
 
-    @Test("InterestConcertListQuery는 홈 섹션 조회 조건을 제공해야 한다")
-    func interestConcertListQuery는_홈_섹션_조회_조건을_제공해야_한다() {
+    @Test("InterestConcertListFilter는 홈 섹션 조회 조건을 제공해야 한다")
+    func interestConcertListFilter는_홈_섹션_조회_조건을_제공해야_한다() {
         // When
-        let query = InterestConcertListQuery.homeSection(sort: .ticketing)
+        let filter = InterestConcertListFilter.homeSection(sort: .ticketing)
 
         // Then
-        #expect(query.sort == .ticketing)
-        #expect(query.pageSize == 5)
-        #expect(query.cursor == nil)
+        #expect(filter.sort == .ticketing)
+        #expect(filter.limit == 5)
+        #expect(filter.nextToken == nil)
     }
 
-    @Test("InterestConcertPage는 목록과 다음 cursor를 페이지 메타데이터로 보관해야 한다")
-    func interestConcertPage는_목록과_다음_cursor를_페이지_메타데이터로_보관해야_한다() {
+    @Test("ListResult는 관심 콘서트 목록과 다음 token을 보관해야 한다")
+    func listResult는_관심_콘서트_목록과_다음_token을_보관해야_한다() {
         // Given
-        let cursorDate = Date(timeIntervalSince1970: 1_761_479_200)
-        let cursor = InterestConcertPageCursor(date: cursorDate, id: 1)
+        let nextToken = TestNextToken()
         let interestConcert = InterestConcert(
             concert: makeConcert(),
             ticketingSchedule: InterestConcertTicketingSchedule(preSaleDate: nil, generalSaleDate: nil)
         )
 
         // When
-        let page = InterestConcertPage(
-            concertList: [interestConcert],
-            nextCursor: cursor
+        let result = ListResult(
+            items: [interestConcert],
+            nextToken: nextToken
         )
 
         // Then
-        #expect(page.concertList.count == 1)
-        #expect(page.concertList[0].id == interestConcert.id)
-        #expect(page.nextCursor?.date == cursorDate)
-        #expect(page.nextCursor?.id == 1)
+        #expect(result.items.count == 1)
+        #expect(result.items[0].id == interestConcert.id)
+        #expect(result.nextToken != nil)
     }
 }
+
+private struct TestNextToken: NextToken {}
 
 private extension ConcertDomainModelTests {
     func makeConcert() -> Concert {

@@ -12,6 +12,7 @@ public enum UserError: DomainError {
     case noConnection
     case serverError
     case invalidResponse
+    case invalidRequest
     case unknown
     case userNotFound
     case duplicateNickname
@@ -30,6 +31,8 @@ public enum UserError: DomainError {
             return "서버 오류가 발생했어요."
         case .invalidResponse:
             return "데이터를 불러오는데 실패했어요."
+        case .invalidRequest:
+            return "요청 정보를 확인할 수 없어요."
         case .unknown:
             return "알 수 없는 오류가 발생했어요."
         case .userNotFound:

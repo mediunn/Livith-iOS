@@ -16,27 +16,29 @@ struct InterestConcertSelectionBottomSectionView: View {
     let selectedConcertList: [Concert]
     let ctaTitle: String
     let isCTAEnabled: Bool
+    let isSubmitting: Bool
     let onRemoveSelectedConcert: (Int) -> Void
     let onSubmit: () -> Void
 
     var body: some View {
-        VStack(spacing: .zero) {
+        VStack(spacing: 12) {
             if !selectedConcertList.isEmpty {
                 selectedConcertChipScrollView
-                    .padding(.top, Constants.chipTopPadding)
+                    .padding(.top, 20)
+                    .padding(.bottom, 10)
             }
 
-            LivithButton(ctaTitle, variant: .primary, action: onSubmit)
-                .disabled(!isCTAEnabled)
-                .padding(.top, selectedConcertList.isEmpty ? Constants.emptyChipButtonTopPadding : Constants.buttonTopPadding)
+            LivithButton(ctaTitle, variant: .primary, isLoading: isSubmitting, action: onSubmit)
+                .disabled(!isCTAEnabled || isSubmitting)
                 .padding(.horizontal, Constants.horizontalPadding)
-                .padding(.bottom, Constants.bottomPadding)
+                .padding(.bottom, 16)
         }
         .frame(maxWidth: .infinity)
+        .padding(.top, 50)
         .background {
             BackgroundGradientView(
                 baseColor: Color.livithColor(.black100),
-                transparentOpacity: 0.08
+                transparentOpacity: 0
             )
             .ignoresSafeArea(edges: .bottom)
         }
@@ -48,7 +50,7 @@ struct InterestConcertSelectionBottomSectionView: View {
 private extension InterestConcertSelectionBottomSectionView {
     var selectedConcertChipScrollView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Constants.chipSpacing) {
+            HStack(spacing: 8) {
                 ForEach(selectedConcertList) { concert in
                     RemovableChip(truncatedTitle(for: ConcertDisplayText.title(for: concert))) {
                         onRemoveSelectedConcert(concert.id)
@@ -72,11 +74,6 @@ private extension InterestConcertSelectionBottomSectionView {
 private extension InterestConcertSelectionBottomSectionView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
-        static let chipSpacing: CGFloat = 8
-        static let chipTopPadding: CGFloat = 20
-        static let buttonTopPadding: CGFloat = 12
-        static let emptyChipButtonTopPadding: CGFloat = 16
-        static let bottomPadding: CGFloat = 16
         static let titleMaxCount = 20
     }
 }
