@@ -17,8 +17,19 @@ public struct Artist: Hashable, Identifiable {
     public let detail: String
     public let keywords: [String]
     public let instagramURL: URL?
-    
-    public init(id: Int, name: String, debutYear: String, category: String, imageURL: URL?, detail: String, keywords: [String], instagramURL: URL?) {
+    public let twitterURL: URL?
+
+    public init(
+        id: Int,
+        name: String,
+        debutYear: String,
+        category: String,
+        imageURL: URL?,
+        detail: String,
+        keywords: [String],
+        instagramURL: URL?,
+        twitterURL: URL?
+    ) {
         self.id = id
         self.name = name
         self.debutYear = debutYear
@@ -27,5 +38,6 @@ public struct Artist: Hashable, Identifiable {
         self.detail = detail
         self.keywords = keywords
         self.instagramURL = instagramURL
+        self.twitterURL = twitterURL
     }
 }
