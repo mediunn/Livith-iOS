@@ -227,16 +227,52 @@ private extension InterestConcertSearchStore {
     }
 
     func performUpdateInterestConcert() {
-        guard let concertID = state.selectedConcertID else { return }
+        guard let concertID = state.selectedConcertID,
+              let concert = findSelectedConcert(by: concertID) else {
+            Task { await send(._updateInterestConcertResult(.failure(ConcertError.cancelled))) }
+            return
+        }
+
+        let repository = userRepository
 
         Task {
             do {
-                let concert = try await userRepository.updateInterestedConcert(concertID)
+                var ids = try await fetchAllInterestedConcertIDs(using: repository)
+                if !ids.contains(concertID) {
+                    ids.append(concertID)
+                }
+                try await repository.updateInterestedConcerts(ids: ids)
                 await send(._updateInterestConcertResult(.success(concert)))
             } catch {
                 await send(._updateInterestConcertResult(.failure(error)))
             }
         }
+    }
+
+    func findSelectedConcert(by id: Int) -> Concert? {
+        switch state.mode {
+        case .initial:
+            return state.concertList.first { $0.id == id }
+        case .showingSearchResults:
+            return state.searchList.first { $0.id == id }
+        case .recommendingKeywords:
+            return nil
+        }
+    }
+
+    func fetchAllInterestedConcertIDs(using repository: UserRepository) async throws(UserError) -> [Int] {
+        var ids: [Int] = []
+        var cursor: InterestConcertPageCursor? = nil
+
+        repeat {
+            let page = try await repository.fetchInterestedConcertList(
+                query: InterestConcertListQuery(cursor: cursor)
+            )
+            ids.append(contentsOf: page.concertList.map { $0.concert.id })
+            cursor = page.nextCursor
+        } while cursor != nil
+
+        return ids
     }
 
     func performPrefetchImageAndSubmit() {
