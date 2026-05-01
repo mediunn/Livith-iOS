@@ -198,10 +198,10 @@ private extension InterestConcertListView {
 
         return LivithCard(
             imageURL: concert.posterURL,
-            title: InterestConcertDisplayText.title(for: interestConcert),
-            subtitle: InterestConcertDisplayText.dateRange(for: interestConcert),
+            title: ConcertDisplayText.title(for: concert),
+            subtitle: ConcertDisplayText.dateRange(for: concert),
             secondaryText: concert.artist,
-            badge: .status(text: InterestConcertDisplayText.badge(for: interestConcert), remainDays: nil),
+            badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
             onTap: { coordinator?.showConcertDetail(concertID: concert.id) }
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))

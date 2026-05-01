@@ -2,6 +2,26 @@
 
 ## 기록
 
+### 2026-05-01 21:00 - LivithCard 표시 정책 구분
+
+**상황**
+- 관심 콘서트 목록 조회 UI의 `LivithCard` 표시 문자열을 확인했다.
+
+**문제**
+- `LivithCard`로 `Concert` 카드를 표시하는 UI에서 `InterestConcertDisplayText`를 사용하면 카드 표시 정책이 다른 Concert 기반 카드와 달라질 수 있다.
+
+**원인**
+- `InterestConcertDisplayText`는 예매 일정과 하단 문구처럼 `InterestConcert.ticketingSchedule`이 필요한 UI 정책을 포함한다.
+
+**해결**
+- `LivithCard`로 `Concert`를 표시하는 UI는 `ConcertDisplayText`를 사용한다.
+- `InterestConcertDisplayText`는 홈 관심 콘서트 섹션처럼 예매 일정, 장소, 하단 문구가 필요한 `InterestConcert` 전용 UI에서만 사용한다.
+
+**교훈**
+- 추후 `LivithCard` 기반 Concert 카드 UI를 추가하거나 수정할 때는 `ConcertDisplayText` 정책을 우선 적용한다.
+
+---
+
 ### 2026-05-01 20:46 - HomeFeature Swift Testing 테스트 0개 실행
 
 **상황**
