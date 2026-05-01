@@ -23,6 +23,7 @@ final class MockConcertRepository: ConcertRepository {
     var homeSectionListStub: [ConcertSection] = []
     var mainSetlistStub: Setlist?
     var recommendedConcertListStub: [Concert] = []
+    var concertListResultStub: ListResult<Concert>?
     var errorStub: ConcertError?
     
     var fetchAllConcertListCallCount: Int = 0
@@ -37,6 +38,17 @@ final class MockConcertRepository: ConcertRepository {
             throw error
         }
         return concertListStub
+    }
+
+    func fetchAllConcertList(after nextToken: (any NextToken)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
+        fetchAllConcertListCallCount += 1
+        if let error = errorStub {
+            throw error
+        }
+        if let concertListResultStub {
+            return concertListResultStub
+        }
+        return ListResult(items: concertListStub, nextToken: nil)
     }
     
     func fetchConcertArtistInfo(concertID: Int) async throws(ConcertError) -> Artist {

@@ -33,13 +33,18 @@ struct ConcertRepositoryImpl: ConcertRepository {
     }
     
     func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert] {
-        let cursor: String? = configureCursor(startDate: startDate)
+        let nextToken = concertID.map { ConcertListNextToken(cursor: $0) }
+        return try await fetchAllConcertList(after: nextToken, size: 12).items
+    }
+
+    func fetchAllConcertList(after nextToken: (any NextToken)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
+        let cursor = try makeCursor(from: nextToken)
 
         do {
             let response: DTO.Response.FetchConcertList = try await searchService.request(
-                .fetchConcertList(cursor: concertID, size: 12)
+                .fetchConcertList(cursor: cursor, size: size)
             )
-            return mapper.toDomain(from: response)
+            return mapper.toConcertListResult(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
         }
@@ -173,8 +178,12 @@ struct ConcertRepositoryImpl: ConcertRepository {
 // MARK: - Helpers
 
 private extension ConcertRepositoryImpl {
-    func configureCursor(startDate: Date?) -> String? {
-        guard let startDate else { return nil }
-        return DateFormatterService.string(from: startDate, type: .dotDate)
+    func makeCursor(from nextToken: (any NextToken)?) throws(ConcertError) -> Int? {
+        guard let nextToken else { return nil }
+        guard let concertListNextToken = nextToken as? ConcertListNextToken else {
+            throw ConcertError.invalidResponse
+        }
+
+        return concertListNextToken.cursor
     }
 }

@@ -12,9 +12,14 @@
 - 변경된 DTO와 Store 동작을 테스트로 보호하고, Repository 계층은 컴파일 확인으로 검증한다.
 
 ## 작업 항목
-- [ ] API 스펙에 맞춰 콘서트 목록 조회 모델을 수정한다.
+- [x] API 스펙에 맞춰 콘서트 목록 조회 모델을 수정한다.
   - `FetchConcertList` DTO의 optional 필드와 optional cursor를 문서 스펙에 맞춘다.
-  - 콘서트 목록 조회 결과가 cursor를 포함하도록 Domain 모델과 Repository 반환 타입을 정리한다.
+  - Domain에 목록 조회 결과를 표현하는 공통 모델을 `Projects/Domain/Sources/Entity/List/ListResult.swift`에 작성한다.
+  - 공통 모델 이름은 `ListResult<Item>`와 `NextToken`을 사용하고, `NextToken`은 `ListResult.swift` 안에서 `MARK`로 구분한다.
+  - `ListResult`는 `items`와 `nextToken`만 노출하고, `nextToken`의 구체 타입은 Domain과 Presentation에서 알 수 없도록 한다.
+  - 콘서트 목록 조회 결과는 `ListResult<Concert>`로 반환하도록 Repository 반환 타입을 정리한다.
+  - Data 레이어에서만 API cursor 값을 `NextToken` 구현체로 구체화하고, 구체 토큰은 `Projects/Data/ConcertData/Sources/Model/` 아래에 둔다.
+  - Data 레이어는 다음 요청 시 전달받은 `NextToken`을 구체 토큰으로 변환해 API cursor로 사용한다.
   - Mapper가 optional 날짜, 포스터, 티켓 정보 때문에 유효한 콘서트를 버리지 않도록 수정한다.
   - 구현 후 계획 대비 구현 내용을 리뷰받고 `통과` 결과를 확인한 뒤 유저에게 알린다.
 - [ ] API 스펙에 맞춰 관심 콘서트 설정/수정 API를 교체한다.
@@ -63,7 +68,7 @@
 - `Projects/Core/LivithNetwork`
   - `SearchEndpoint`, `HomeEndpoint`, 관심 콘서트 관련 DTO, 콘서트 목록 DTO, 네트워크 테스트
 - `Projects/Domain`
-  - `ConcertRepository`, `UserRepository`, 콘서트 목록 페이지 모델, 관심 콘서트 설정 반환 모델
+  - `ConcertRepository`, `UserRepository`, 공통 목록 결과 모델, 관심 콘서트 설정 반환 모델
 - `Projects/Data/ConcertData`
   - `ConcertRepositoryImpl`, `ConcertMapper`
 - `Projects/Data/UserData`
@@ -79,7 +84,9 @@
 
 | 결정 사항 | 선택지 | 결정 | 근거 |
 |-----------|--------|------|------|
-| 콘서트 목록 조회 cursor 보존 | Repository에서 `[Concert]`만 반환 또는 page 모델 반환 | page 모델 반환 | 서버 cursor가 별도 필드이므로 UI 페이지네이션에서 안전하게 다음 페이지 여부를 판단해야 한다. |
+| 목록 조회 결과 모델 | 도메인별 page 모델 또는 공통 목록 결과 모델 | `ListResult<Item>` 공통 모델 | 콘서트 외 다른 목록에서도 같은 구조가 반복될 수 있어 공통 모델로 중복과 API 용어 노출을 줄인다. |
+| 다음 페이지 식별값 명칭 | `cursor`, `pageToken`, `nextToken` | `nextToken` | 화면은 값을 해석하지 않고 다음 요청에 그대로 넘기는 토큰으로만 알면 되므로 쉬운 용어를 사용한다. |
+| 다음 페이지 식별값 구체 타입 | Domain에 `Int` 노출 또는 `NextToken` 프로토콜로 은닉 | `NextToken` 프로토콜 | API cursor 구체 타입은 Data 레이어 세부사항이므로 Domain과 Presentation에서 숨긴다. |
 | 관심 콘서트 설정 API 모델 | 단일 `concertID` 유지 또는 `concertIDList`로 교체 | `concertIDList`로 교체 | 서버 API가 다중 선택 배열을 필수 요청값으로 받도록 변경되었다. |
 | `concertIds` 원소 타입 | `[Int]` 또는 `[String]` | `[Int]` | 유저 확인에 따라 콘서트 ID 정수 배열로 전송한다. |
 | 관심 콘서트 전체 삭제 | 별도 DELETE 유지 또는 `concertIds: []` PUT 사용 | 기존 API와 별도로 작성 | 기존 API는 유지하고, 새 설정/수정 API는 별도 메서드로 추가한다. |
@@ -89,6 +96,8 @@
 
 ## 주의 사항
 - `concertIds` 요청 배열은 유저 확인에 따라 `[Int]`로 전송한다.
+- 목록 조회의 다음 페이지 식별값은 Domain에서 `cursor`라는 이름과 구체 타입을 노출하지 않는다.
+- `NextToken` 구현체는 Data 레이어 내부 타입으로 두고, Presentation은 존재 여부와 그대로 전달하는 역할만 수행한다.
 - `GET /concerts`는 인증이 필요하지 않은 API로 문서화되어 있으므로 기존 `SearchEndpoint.fetchConcertList`의 `requiresInterceptor = false`와 맞는지 유지한다.
 - `PUT /users/interest-concerts`는 인증이 필요한 API이므로 interceptor가 필요하다.
 - 콘서트 응답의 `status`, `artist`, `introduction`, `id`는 필수이고 나머지 표시 필드는 optional일 수 있다.

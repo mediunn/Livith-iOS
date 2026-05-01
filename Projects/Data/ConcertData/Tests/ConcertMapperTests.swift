@@ -126,7 +126,8 @@ final class ConcertMapperTests: XCTestCase {
         XCTAssertEqual(result.label, "많이 찾는 콘서트 1위")
         
         let calendar = Calendar.current
-        let dateComponents = calendar.dateComponents([.year, .month, .day], from: result.startDate)
+        let startDate = try XCTUnwrap(result.startDate)
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
         XCTAssertEqual(dateComponents.year, 2025)
         XCTAssertEqual(dateComponents.month, 8)
         XCTAssertEqual(dateComponents.day, 10)
