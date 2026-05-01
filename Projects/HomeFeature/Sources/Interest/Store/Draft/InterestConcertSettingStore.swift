@@ -8,6 +8,7 @@
 
 import Foundation
 
+import DIContainer
 import DisplaySupport
 import Domain
 
@@ -15,29 +16,21 @@ import Domain
 
 struct InterestConcertSettingState {
     let mode: InterestConcertSettingMode
-    var concertList: [Concert]
-    var filteredConcertList: [Concert]
-    var searchText: String
-    var isSearchFocused: Bool
-    var initialUserInterestConcertIDList: [Int]
-    var selectedConcertIDList: [Int]
+    var filteredConcertList: [Concert] = []
+    var searchText: String = ""
+    var isSearchFocused: Bool = false
+    var selectedConcertIDList: [Int] = []
+    var selectedConcertList: [Concert] = []
+    var hasMoreConcertList: Bool = false
+    var isInitialLoading: Bool = true
+    var isLoadingMore: Bool = false
+    var isSubmitting: Bool = false
+    var isCTAEnabled: Bool = false
+    var errorMessage: String = ""
+    var successMessage: String = ""
 
     var selectedConcertCount: Int {
         selectedConcertIDList.count
-    }
-
-    var selectedConcertList: [Concert] {
-        let concertByID = Dictionary(uniqueKeysWithValues: concertList.map { ($0.id, $0) })
-        return selectedConcertIDList.compactMap { concertByID[$0] }
-    }
-
-    var isCTAEnabled: Bool {
-        switch mode {
-        case .initialSetup:
-            return !selectedConcertIDList.isEmpty
-        case .update:
-            return Set(selectedConcertIDList) != Set(initialUserInterestConcertIDList)
-        }
     }
 }
 
@@ -72,15 +65,31 @@ enum InterestConcertSettingIntent {
     case setSearchFocused(Bool)
     case toggleConcertSelection(Int)
     case removeSelectedConcert(Int)
+    case loadNextPage
+    case submit
+    case clearErrorMessage
+    case clearSuccessMessage
+    case _fetchFirstPageResult(Result<ListResult<Concert>, Error>)
+    case _fetchNextPageResult(Result<ListResult<Concert>, Error>)
+    case _submitResult(Result<[Concert], Error>)
 }
 
 // MARK: - Store
 
+@MainActor
 final class InterestConcertSettingStore: ObservableObject {
 
     // MARK: - Property
 
     @Published private(set) var state: InterestConcertSettingState
+
+    @Injected private var concertRepository: ConcertRepository
+    @Injected private var userRepository: UserRepository
+
+    private var concertList: [Concert]
+    private var initialSelectedConcertIDList: [Int]
+    private var selectedConcertByID: [Int: Concert]
+    private var nextToken: (any NextToken)?
 
     // MARK: - Initializer
 
@@ -88,19 +97,22 @@ final class InterestConcertSettingStore: ObservableObject {
         mode: InterestConcertSettingMode,
         userInterestConcertList: [Concert] = []
     ) {
-        // TODO: update 모드 실제 연동 시 외부 userInterestConcertList의 활용 범위를 확장한다.
         let initialUserInterestConcertIDList = userInterestConcertList.map(\.id)
-        let concertList = Self.mockConcertList
+        let selectedConcertByID = Dictionary(uniqueKeysWithValues: userInterestConcertList.map { ($0.id, $0) })
+
+        self.concertList = []
+        self.initialSelectedConcertIDList = initialUserInterestConcertIDList
+        self.selectedConcertByID = selectedConcertByID
+        self.nextToken = nil
 
         self.state = InterestConcertSettingState(
             mode: mode,
-            concertList: concertList,
-            filteredConcertList: concertList,
-            searchText: "",
-            isSearchFocused: false,
-            initialUserInterestConcertIDList: initialUserInterestConcertIDList,
-            selectedConcertIDList: initialUserInterestConcertIDList
+            selectedConcertIDList: initialUserInterestConcertIDList,
+            selectedConcertList: userInterestConcertList
         )
+        syncSelectionState()
+
+        performFetchFirstPage()
     }
 
     // MARK: - Public Interface
@@ -111,13 +123,10 @@ final class InterestConcertSettingStore: ObservableObject {
             let trimmedText = trimmedSearchText(from: text)
 
             state.searchText = trimmedText
-            state.filteredConcertList = filteredConcertList(
-                from: state.concertList,
-                searchText: trimmedText
-            )
+            applySearchFilter()
         case .clearSearchText:
             state.searchText = ""
-            state.filteredConcertList = state.concertList
+            applySearchFilter()
             state.isSearchFocused = true
         case .setSearchFocused(let isFocused):
             state.isSearchFocused = isFocused
@@ -126,11 +135,73 @@ final class InterestConcertSettingStore: ObservableObject {
                 from: state.selectedConcertIDList,
                 concertID: concertID
             )
+            syncSelectionState()
         case .removeSelectedConcert(let concertID):
             state.selectedConcertIDList = removedConcertIDList(
                 from: state.selectedConcertIDList,
                 concertID: concertID
             )
+            syncSelectionState()
+        case .loadNextPage:
+            guard !state.isInitialLoading,
+                  !state.isLoadingMore,
+                  let nextToken
+            else { return }
+
+            state.isLoadingMore = true
+            performFetchNextPage(nextToken: nextToken)
+        case .submit:
+            guard state.isCTAEnabled, !state.isSubmitting else { return }
+
+            state.isSubmitting = true
+            state.errorMessage = ""
+            state.successMessage = ""
+            performSubmit()
+        case .clearErrorMessage:
+            state.errorMessage = ""
+        case .clearSuccessMessage:
+            state.successMessage = ""
+        case ._fetchFirstPageResult(let result):
+            state.isInitialLoading = false
+            switch result {
+            case .success(let listResult):
+                concertList = listResult.items
+                mergeSelectedConcerts(listResult.items)
+                nextToken = listResult.nextToken
+                state.hasMoreConcertList = listResult.nextToken != nil
+                syncSelectionState()
+                applySearchFilter()
+            case .failure(let error):
+                concertList = []
+                state.filteredConcertList = []
+                nextToken = nil
+                state.hasMoreConcertList = false
+                state.errorMessage = error.localizedDescription
+            }
+        case ._fetchNextPageResult(let result):
+            state.isLoadingMore = false
+            switch result {
+            case .success(let listResult):
+                concertList.append(contentsOf: listResult.items)
+                mergeSelectedConcerts(listResult.items)
+                nextToken = listResult.nextToken
+                state.hasMoreConcertList = listResult.nextToken != nil
+                syncSelectionState()
+                applySearchFilter()
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+            }
+        case ._submitResult(let result):
+            state.isSubmitting = false
+            switch result {
+            case .success(let concertList):
+                mergeSelectedConcerts(concertList)
+                initialSelectedConcertIDList = state.selectedConcertIDList
+                syncSelectionState()
+                state.successMessage = state.mode.successMessage
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+            }
         }
     }
 }
@@ -138,6 +209,68 @@ final class InterestConcertSettingStore: ObservableObject {
 // MARK: - Helpers
 
 private extension InterestConcertSettingStore {
+    func performFetchFirstPage() {
+        let repository = concertRepository
+
+        Task {
+            do {
+                let result = try await repository.fetchAllConcertList(after: nil, size: Constants.pageSize)
+                send(._fetchFirstPageResult(.success(result)))
+            } catch {
+                send(._fetchFirstPageResult(.failure(error)))
+            }
+        }
+    }
+
+    func performFetchNextPage(nextToken: any NextToken) {
+        let repository = concertRepository
+
+        Task {
+            do {
+                let result = try await repository.fetchAllConcertList(after: nextToken, size: Constants.pageSize)
+                send(._fetchNextPageResult(.success(result)))
+            } catch {
+                send(._fetchNextPageResult(.failure(error)))
+            }
+        }
+    }
+
+    func performSubmit() {
+        let repository = userRepository
+        let selectedConcertIDList = state.selectedConcertIDList
+
+        Task {
+            do {
+                let concertList = try await repository.updateInterestedConcertList(selectedConcertIDList)
+                send(._submitResult(.success(concertList)))
+            } catch {
+                send(._submitResult(.failure(error)))
+            }
+        }
+    }
+
+    func mergeSelectedConcerts(_ concertList: [Concert]) {
+        for concert in concertList {
+            selectedConcertByID[concert.id] = concert
+        }
+    }
+
+    func syncSelectionState() {
+        state.selectedConcertList = state.selectedConcertIDList.compactMap { selectedConcertByID[$0] }
+        state.isCTAEnabled = Self.isCTAEnabled(
+            mode: state.mode,
+            selectedConcertIDList: state.selectedConcertIDList,
+            initialSelectedConcertIDList: initialSelectedConcertIDList
+        )
+    }
+
+    func applySearchFilter() {
+        state.filteredConcertList = filteredConcertList(
+            from: concertList,
+            searchText: state.searchText
+        )
+    }
+
     func trimmedSearchText(from text: String) -> String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -164,43 +297,31 @@ private extension InterestConcertSettingStore {
 }
 
 private extension InterestConcertSettingStore {
-    static let mockPosterURL = URL(string: "https://fastly.picsum.photos/id/1023/216/316.jpg?hmac=Wunm3hRG7WiE7puCI0_-RyR4Do-XrvPTOd02kuc1ktw")!
-
-    static var mockConcertList: [Concert] {
-        [
-            makeConcert(id: 1, title: "IU 2026 TOUR H.E.R.", artist: "IU", daysLeft: 1),
-            makeConcert(id: 2, title: "World Tour [ LIVE FULL EXPERIENCE ]", artist: "Coldplay", daysLeft: 3),
-            makeConcert(id: 3, title: "NCT DREAM THE FUTURE", artist: "NCT DREAM", daysLeft: 5),
-            makeConcert(id: 4, title: "Kendrick Lamar Live in Seoul", artist: "Kendrick Lamar", daysLeft: 7),
-            makeConcert(id: 5, title: "Oasis Reunion Tour", artist: "Oasis", daysLeft: 10),
-            makeConcert(id: 6, title: "Day6 Special Concert", artist: "DAY6", daysLeft: 14),
-            makeConcert(id: 7, title: "Bruno Mars Live at Seoul", artist: "Bruno Mars", daysLeft: 16),
-            makeConcert(id: 8, title: "Post Malone Big Ass Stadium", artist: "Post Malone", daysLeft: 19),
-            makeConcert(id: 9, title: "SEVENTEEN RIGHT HERE", artist: "SEVENTEEN", daysLeft: 21),
-            makeConcert(id: 10, title: "Taylor Swift Eras Encore", artist: "Taylor Swift", daysLeft: 24),
-            makeConcert(id: 11, title: "The 1975 Live in Korea", artist: "The 1975", daysLeft: 27),
-            makeConcert(id: 12, title: "Zion.T Midnight Groove", artist: "Zion.T", daysLeft: 30),
-            makeConcert(id: 13, title: "NewJeans Supernatural Stage", artist: "NewJeans", daysLeft: 33),
-            makeConcert(id: 14, title: "Crush Summer Night Show", artist: "Crush", daysLeft: 36),
-            makeConcert(id: 15, title: "Silica Gel Planet Tour", artist: "Silica Gel", daysLeft: 40)
-        ]
+    static func isCTAEnabled(
+        mode: InterestConcertSettingMode,
+        selectedConcertIDList: [Int],
+        initialSelectedConcertIDList: [Int]
+    ) -> Bool {
+        switch mode {
+        case .initialSetup:
+            return !selectedConcertIDList.isEmpty
+        case .update:
+            return Set(selectedConcertIDList) != Set(initialSelectedConcertIDList)
+        }
     }
 
-    static func makeConcert(id: Int, title: String, artist: String, daysLeft: Int) -> Concert {
-        Concert(
-            id: id,
-            title: title,
-            artist: artist,
-            status: .upcoming,
-            daysLeft: daysLeft,
-            startDate: Date(),
-            endDate: Date().addingTimeInterval(86_400),
-            posterURL: mockPosterURL,
-            venue: "KSPO DOME",
-            ticketSite: "인터파크",
-            ticketURL: URL(string: "https://example.com/ticket-\(id)"),
-            introduction: "Draft 관심 콘서트 데이터",
-            label: nil
-        )
+    enum Constants {
+        static let pageSize = 12
+    }
+}
+
+private extension InterestConcertSettingMode {
+    var successMessage: String {
+        switch self {
+        case .initialSetup:
+            return "관심 콘서트를 설정했어요"
+        case .update:
+            return "관심 콘서트를 변경했어요"
+        }
     }
 }

@@ -27,15 +27,18 @@
   - 요청 body를 `concertIds` 배열로 변경한다.
   - 응답의 `[Concert]?`를 Domain의 `[Concert]`로 매핑하고 `data: null`은 빈 목록으로 처리한다.
   - 구현 후 계획 대비 구현 내용을 리뷰받고 `통과` 결과를 확인한 뒤 유저에게 알린다.
-- [ ] Repository 인터페이스와 구현체를 다중 관심 콘서트 기준으로 갱신한다.
+- [x] Repository 인터페이스와 구현체를 다중 관심 콘서트 기준으로 갱신한다.
   - 기존 단일 `updateInterestedConcert(_:)` 흐름은 상세 화면 영향 방지를 위해 유지한다.
   - 다중 ID 설정 API용 별도 Repository 메서드를 추가한다.
   - 관련 mock repository와 테스트 더블은 컴파일을 위해 필요한 범위만 갱신한다.
   - 구현 후 계획 대비 구현 내용을 리뷰받고 `통과` 결과를 확인한 뒤 유저에게 알린다.
-- [ ] 새 관심 콘서트 설정 UI Store를 실제 데이터와 연결한다.
+- [x] 새 관심 콘서트 설정 UI Store를 실제 데이터와 연결한다.
   - `InterestConcertSettingStore`의 mock concert list를 제거한다.
   - 초기 콘서트 목록 조회, 다음 페이지 조회, 선택/해제, 검색 포커스, CTA 활성화, 제출 성공/실패 상태를 구현한다.
   - update 모드에서는 기존 관심 콘서트 ID 목록을 초기 선택값으로 사용한다.
+  - `State`에는 View 렌더링과 View 이벤트 판단에 필요한 값만 둔다.
+  - 원본 목록, 초기 선택 기준값, `NextToken` 같은 내부 구현 값은 Store private property로 관리한다.
+  - `@MainActor` Store 내부 비동기 작업에서 `Task { @MainActor in ... }` 중복 지정은 사용하지 않는다.
   - 구현 후 계획 대비 구현 내용을 리뷰받고 `통과` 결과를 확인한 뒤 유저에게 알린다.
 - [ ] 새 관심 콘서트 설정 UI를 실제 화면 흐름에 연결한다.
   - `InterestConcertSettingDraftView`의 뒤로가기와 CTA를 Coordinator 및 Store 액션에 연결한다.
