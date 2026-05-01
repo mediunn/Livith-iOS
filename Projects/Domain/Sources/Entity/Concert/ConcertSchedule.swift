@@ -28,7 +28,8 @@ public struct ConcertSchedule: Hashable, Identifiable {
 }
 
 public enum ScheduleType: String, CaseIterable, Hashable {
-    case ticketing = "TICKETING"
+    case preTicketing = "PRE_TICKETING"
+    case generalTicketing = "GENERAL_TICKETING"
     case concert = "CONCERT"
     case none = "NONE"
 

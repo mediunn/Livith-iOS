@@ -9,9 +9,12 @@
 import Foundation
 
 public enum NotificationType: String {
-    case ticket1D = "TICKET_1D"
-    case ticket7D = "TICKET_7D"
-    case ticketToday = "TICKET_TODAY"
+    case preTicketingOpen = "PRE_TICKETING_OPEN"
+    case generalTicketingOpen = "GENERAL_TICKETING_OPEN"
+    case preTicketing1D = "PRE_TICKETING_1D"
+    case preTicketing30M = "PRE_TICKETING_30M"
+    case generalTicketing1D = "GENERAL_TICKETING_1D"
+    case generalTicketing30M = "GENERAL_TICKETING_30M"
     case interestConcert = "INTEREST_CONCERT"
     case concertInfoUpdateSetlist = "CONCERT_INFO_UPDATE_SETLIST"
     case concertInfoUpdateMD = "CONCERT_INFO_UPDATE_MD"
@@ -23,7 +26,9 @@ public enum NotificationType: String {
 
     public var isTicketType: Bool {
         switch self {
-        case .ticket1D, .ticket7D, .ticketToday:
+        case .preTicketingOpen, .generalTicketingOpen,
+             .preTicketing1D, .preTicketing30M,
+             .generalTicketing1D, .generalTicketing30M:
             return true
         default:
             return false

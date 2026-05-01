@@ -13,7 +13,7 @@ import Domain
 import LivithFoundation
 
 public struct SearchState {
-    public var cursor: (value: String, id: Int)? = nil
+    public var cursor: Int? = nil
 
     public var errorMessage: String = ""
     public var searchMessage: String = ""
@@ -123,17 +123,13 @@ private extension SearchStore {
         }
 
         fetchTask = Task { @MainActor in
-            let cursorText: String? = state.cursor.map { cursor in
-                "{\"value\":\"\(cursor.value)\",\"id\":\(cursor.id)}"
-            }
-
             do {
                 let result = try await repository.fetchFilterSearchResult(
                     genre: state.selectedGenreList,
                     sort: state.sortState,
                     status: state.selectedStatusList,
                     keyword: state.searchMessage,
-                    cursor: cursorText,
+                    cursor: state.cursor,
                     size: 12
                 )
 
