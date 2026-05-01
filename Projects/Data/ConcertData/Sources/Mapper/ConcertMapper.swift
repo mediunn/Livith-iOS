@@ -170,6 +170,28 @@ struct ConcertMapper {
             label: dto.label
         )
     }
+
+    func toDomain(from dto: DTO.Response.FetchFilterSearchResult.FilteredConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: dto.status) else {
+            return nil
+        }
+
+        return Concert(
+            id: dto.id,
+            title: dto.title,
+            artist: dto.artist,
+            status: status,
+            daysLeft: dto.daysLeft,
+            startDate: parseDate(dto.startDate, type: .dotDate),
+            endDate: parseDate(dto.endDate, type: .dotDate),
+            posterURL: parseURL(dto.posterURL),
+            venue: dto.venue,
+            ticketSite: dto.ticketSite,
+            ticketURL: parseURL(dto.ticketURL),
+            introduction: dto.introduction,
+            label: dto.label
+        )
+    }
 }
 
 // MARK: - Helpers
@@ -214,32 +236,6 @@ private extension ConcertMapper {
         )
     }
     
-    func toDomain(from dto: DTO.Response.FetchFilterSearchResult.FilteredConcert) -> Concert? {
-        guard let status = ConcertStatus(rawValue: dto.status),
-              let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
-              let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate),
-              let posterURL = URL(string: dto.posterURL)
-        else {
-            return nil
-        }
-        
-        return Concert(
-            id: dto.id,
-            title: dto.title,
-            artist: dto.artist,
-            status: status,
-            daysLeft: dto.daysLeft,
-            startDate: startDate,
-            endDate: endDate,
-            posterURL: posterURL,
-            venue: dto.venue,
-            ticketSite: dto.ticketSite,
-            ticketURL: dto.ticketURL.flatMap { URL(string: $0) },
-            introduction: dto.introduction,
-            label: dto.label
-        )
-    }
-
     func toDomain(from dto: DTO.Response.FetchConcertList.FilteredConcert) -> Concert? {
         guard let status = ConcertStatus(rawValue: dto.status) else {
             return nil

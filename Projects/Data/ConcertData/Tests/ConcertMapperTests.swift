@@ -158,7 +158,7 @@ final class ConcertMapperTests: XCTestCase {
         // Then
         XCTAssertNil(result)
     }
-    
+
     func test_FetchHomeSectionList가_ConcertSection_List로_변환되어야_한다() throws {
         // Given
         let json = """
