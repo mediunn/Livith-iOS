@@ -2,6 +2,67 @@
 
 ## 기록
 
+### 2026-05-01 18:30 - LivithNetwork 테스트 action 실행 대상 없음
+
+**상황**
+- 네트워크 DTO/endpoint 테스트 보강 후 최종 확인으로 `tuist test LivithNetwork`를 실행했다.
+
+**문제**
+- 명령은 실패하지 않았지만 `The scheme LivithNetwork's test action has no tests to run, finishing early.`를 출력하고 종료되어 실제 테스트가 실행되지 않았다.
+
+**원인**
+- 원인 미파악. Tuist가 생성한 `LivithNetwork` scheme의 test action이 현재 테스트 타깃을 실행 대상으로 포함하지 않는 상태로 보인다.
+
+**해결**
+- 미해결. 네트워크 테스트 파일은 이전 `tuist test LivithNetwork` 실행 중 컴파일과 링크가 통과했고, 실제 실행은 미검증 범위로 최종 보고에 남긴다.
+
+**교훈**
+- `tuist test` 성공 여부와 별개로 scheme test action이 실제 테스트 대상을 포함하는지 출력으로 확인한다.
+
+---
+
+### 2026-05-01 18:23 - HomeFeature 테스트 러너 0개 테스트 문제 재발
+
+**상황**
+- 관심 콘서트 설정 화면 연결과 Store 테스트 보강 후 `tuist test HomeFeature`를 실행했다.
+
+**문제**
+- `HomeFeatureTests` 타깃의 빌드와 링크는 성공했지만 xcodebuild가 `Executed 0 tests`를 출력한 뒤 exit code 65로 종료됐다.
+
+**원인**
+- 원인 미파악. 이전 검증에서 기록된 HomeFeature Swift Testing 테스트 발견/실행 환경 문제와 같은 현상으로 보인다.
+
+**해결**
+- 미해결. `HomeFeature` 컴파일은 `tuist build HomeFeature`로 별도 확인했고, 추가한 테스트 파일도 `tuist test HomeFeature` 과정에서 컴파일과 링크까지 통과했다.
+- 실제 테스트 실행 결과는 미검증 범위로 최종 보고에 남긴다.
+
+**교훈**
+- HomeFeature 테스트는 현재 환경에서 빌드/링크 성공과 테스트 러너 성공을 분리해서 판단한다.
+
+---
+
+### 2026-05-01 18:21 - 파일 이동 후 HomeFeature 빌드 입력 경로 불일치
+
+**상황**
+- `Draft` 네이밍 제거와 기존 단일 검색 흐름 제거 후 `tuist build HomeFeature`와 `tuist test LivithNetwork`를 병렬로 실행했다.
+
+**문제**
+- `tuist build HomeFeature`가 삭제/이동 전 Swift 파일 경로를 build input으로 찾다가 실패했다.
+- 병렬 실행한 `tuist test LivithNetwork`는 Tuist 상태 파일 `recent-paths.json` rename 충돌로 실패했다.
+
+**원인**
+- HomeFeature의 생성된 Xcode project가 파일 이동/삭제 전 경로를 참조하고 있었다.
+- 두 개의 `tuist` 명령을 병렬 실행하면서 동일한 Tuist 로컬 상태 파일을 동시에 갱신했다.
+
+**해결**
+- `tuist generate`로 생성된 project 파일을 갱신한 뒤 검증 명령을 순차 실행한다.
+
+**교훈**
+- Swift 파일 이동/삭제 후에는 빌드 전 `tuist generate`를 실행한다.
+- Tuist 명령은 로컬 상태 파일 충돌을 피하기 위해 병렬이 아니라 순차로 실행한다.
+
+---
+
 ### 2026-05-01 17:47 - HomeFeature 테스트 러너 0개 테스트 후 실패
 
 **상황**
