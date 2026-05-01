@@ -12,6 +12,7 @@ public extension Image {
     enum LivithImage: String {
         case concertCardEmpty = "image_concert_card_empty"
         case instagram = "image_instagram"
+        case twitter = "image_twitter"
         case livithLogo = "image_livith_logo"
         case livithEmpty = "image_livith_empty"
         case notice = "image_notice"
