@@ -298,6 +298,22 @@ struct HomeFeatureDTOTests {
         #expect(endpoint.requiresInterceptor)
     }
 
+    @Test("HomeEndpoint 관심 콘서트 목록 설정 수정 body는 concertIds를 인코딩해야 한다")
+    func homeEndpoint_관심_콘서트_목록_설정_수정_body는_concertIds를_인코딩해야_한다() throws {
+        // Given
+        let request = DTO.Request.UpdateUserInterestConcertList(concertIDList: [8, 1])
+        let endpoint = HomeEndpoint.updateInterestedConcertList(request: request)
+        let body = try #require(endpoint.body as? DTO.Request.UpdateUserInterestConcertList)
+
+        // When
+        let data = try JSONEncoder().encode(body)
+        let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let concertIDList = try #require(jsonObject?["concertIds"] as? [Int])
+
+        // Then
+        #expect(concertIDList == [8, 1])
+    }
+
     @Test("UpdateUserInterestConcertList 응답은 optional 필드가 누락되어도 디코딩되어야 한다")
     func updateUserInterestConcertList_응답은_optional_필드가_누락되어도_디코딩되어야_한다() throws {
         // Given
@@ -322,5 +338,25 @@ struct HomeFeatureDTOTests {
         #expect(concert.startDate == nil)
         #expect(concert.posterURL == nil)
         #expect(concert.artist == "JAKE MILLER (제이크 밀러)")
+    }
+
+    @Test("UpdateUserInterestConcertList BaseResponse data가 null이어도 디코딩되어야 한다")
+    func updateUserInterestConcertList_baseResponse_data가_null이어도_디코딩되어야_한다() throws {
+        // Given
+        let json = """
+        {
+          "statusCode": 200,
+          "message": "요청에 성공하였습니다.",
+          "data": null
+        }
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode(BaseResponse<DTO.Response.UpdateUserInterestConcertList>.self, from: json)
+
+        // Then
+        #expect(result.statusCode == 200)
+        #expect(result.message == "요청에 성공하였습니다.")
+        #expect(result.data == nil)
     }
 }

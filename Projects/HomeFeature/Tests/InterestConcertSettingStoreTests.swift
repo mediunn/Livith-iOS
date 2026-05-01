@@ -97,6 +97,121 @@ struct InterestConcertSettingStoreTests {
         #expect(!sut.state.isCTAEnabled)
     }
 
+    @Test("initialSetup 모드는 선택 변경에 따라 CTA 활성화 상태를 갱신해야 한다")
+    func initialSetup_모드는_선택_변경에_따라_CTA_활성화_상태를_갱신해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.toggleConcertSelection(1))
+
+        // Then
+        #expect(sut.state.selectedConcertIDList == [1])
+        #expect(sut.state.selectedConcertList.map(\.id) == [1])
+        #expect(sut.state.isCTAEnabled)
+
+        // When
+        sut.send(.toggleConcertSelection(1))
+
+        // Then
+        #expect(sut.state.selectedConcertIDList.isEmpty)
+        #expect(sut.state.selectedConcertList.isEmpty)
+        #expect(!sut.state.isCTAEnabled)
+    }
+
+    @Test("update 모드는 초기 선택과 달라질 때만 CTA를 활성화해야 한다")
+    func update_모드는_초기_선택과_달라질_때만_CTA를_활성화해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.userRepository.interestConcertListResultQueue = [
+            .success(ListResult(items: makeInterestConcertList([1, 2]), nextToken: nil))
+        ]
+        let sut = InterestConcertSettingStore(mode: .update)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.toggleConcertSelection(2))
+
+        // Then
+        #expect(sut.state.selectedConcertIDList == [1])
+        #expect(sut.state.isCTAEnabled)
+
+        // When
+        sut.send(.toggleConcertSelection(2))
+
+        // Then
+        #expect(Set(sut.state.selectedConcertIDList) == Set([1, 2]))
+        #expect(!sut.state.isCTAEnabled)
+    }
+
+    @Test("검색어 입력과 초기화는 표시 목록과 포커스 상태를 갱신해야 한다")
+    func 검색어_입력과_초기화는_표시_목록과_포커스_상태를_갱신해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.updateSearchText("2"))
+
+        // Then
+        #expect(sut.state.filteredConcertList.map(\.id) == [2])
+
+        // When
+        sut.send(.clearSearchText)
+
+        // Then
+        #expect(sut.state.searchText.isEmpty)
+        #expect(sut.state.filteredConcertList.map(\.id) == [1, 2])
+        #expect(sut.state.isSearchFocused)
+    }
+
+    @Test("첫 페이지 조회 실패 시 목록을 비우고 errorMessage를 설정해야 한다")
+    func 첫_페이지_조회_실패_시_목록을_비우고_errorMessage를_설정해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .failure(.serverError)
+        ]
+
+        // When
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.filteredConcertList.isEmpty)
+        #expect(!sut.state.hasMoreConcertList)
+        #expect(!sut.state.isInitialLoading)
+        #expect(!sut.state.errorMessage.isEmpty)
+    }
+
+    @Test("다음 페이지 조회 실패 시 기존 목록을 유지하고 로딩을 종료해야 한다")
+    func 다음_페이지_조회_실패_시_기존_목록을_유지하고_로딩을_종료해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: TestNextToken())),
+            .failure(.serverError)
+        ]
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.loadNextPage)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.filteredConcertList.map(\.id) == [1, 2])
+        #expect(!sut.state.isLoadingMore)
+        #expect(!sut.state.errorMessage.isEmpty)
+    }
+
     @Test("제출 시 선택한 콘서트 ID 목록으로 관심 콘서트 설정 API를 호출해야 한다")
     func 제출_시_선택한_콘서트_ID_목록으로_관심_콘서트_설정_API를_호출해야_한다() async throws {
         // Given
@@ -117,6 +232,23 @@ struct InterestConcertSettingStoreTests {
         #expect(container.userRepository.updateInterestedConcertListCallCount == 1)
         #expect(container.userRepository.updateInterestedConcertIDList == [1, 2])
         #expect(sut.state.successMessage == "관심 콘서트를 설정했어요")
+        #expect(!sut.state.isSubmitting)
+    }
+
+    @Test("CTA 비활성 상태에서 제출하면 관심 콘서트 설정 API를 호출하지 않아야 한다")
+    func CTA_비활성_상태에서_제출하면_관심_콘서트_설정_API를_호출하지_않아야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1]), nextToken: nil))
+        ]
+        let sut = InterestConcertSettingStore(mode: .initialSetup)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.submit)
+
+        // Then
+        #expect(container.userRepository.updateInterestedConcertListCallCount == 0)
         #expect(!sut.state.isSubmitting)
     }
 

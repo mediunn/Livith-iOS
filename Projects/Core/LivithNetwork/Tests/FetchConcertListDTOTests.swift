@@ -12,6 +12,21 @@ import Testing
 @testable import LivithNetwork
 
 struct FetchConcertListDTOTests {
+    @Test("콘서트 목록 조회 endpoint는 GET /concerts와 query를 생성해야 한다")
+    func 콘서트_목록_조회_endpoint는_GET_concerts와_query를_생성해야_한다() throws {
+        // Given
+        let endpoint = SearchEndpoint.fetchConcertList(cursor: 20, size: 12)
+        let query = try #require(endpoint.query)
+
+        // Then
+        #expect(endpoint.path == "/concerts")
+        #expect(endpoint.method == .get)
+        #expect(endpoint.body == nil)
+        #expect(!endpoint.requiresInterceptor)
+        #expect(query["cursor"] as? Int == 20)
+        #expect(query["size"] as? Int == 12)
+    }
+
     @Test("콘서트 목록 응답은 optional 필드와 cursor null을 디코딩해야 한다")
     func 콘서트_목록_응답은_optional_필드와_cursor_null을_디코딩해야_한다() throws {
         // Given
