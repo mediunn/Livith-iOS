@@ -31,7 +31,7 @@ struct NotificationRepositoryImpl: NotificationRepository {
             let response: [DTO.Response.FetchNotificationList] = try await notificationService.request(
                 .fetchList(cursor: cursor, size: size)
             )
-            return response.compactMap { mapper.toDomain(from: $0) }
+            return response.map { mapper.toDomain(from: $0) }
         } catch {
             let notificationError: NotificationError = errorMapper.mapToNotificationError(error)
             throw notificationError
