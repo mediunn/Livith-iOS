@@ -32,10 +32,23 @@
   - 다중 ID 설정 API용 별도 Repository 메서드를 추가한다.
   - 관련 mock repository와 테스트 더블은 컴파일을 위해 필요한 범위만 갱신한다.
   - 구현 후 계획 대비 구현 내용을 리뷰받고 `통과` 결과를 확인한 뒤 유저에게 알린다.
+- [x] 관심 콘서트 조회 구조를 `ListResult<InterestConcert>` 기반으로 리팩터링한다.
+  - `InterestConcertPage`와 `InterestConcertPageCursor`를 Domain 노출 구조에서 제거한다.
+  - `InterestConcertListQuery`를 `InterestConcertListFilter`로 교체한다.
+  - `InterestConcertListFilter`는 `sort`, `limit`, `nextToken`을 optional로 가진다.
+  - 전체 조회는 `InterestConcertListFilter.all`로 표현하고, 이 경우 Data 레이어는 query parameter를 모두 생략한다.
+  - 홈 섹션 조회는 `InterestConcertListFilter.homeSection(sort:)`로 표현한다.
+  - 페이지 조회는 `InterestConcertListFilter.page(sort:limit:nextToken:)`로 표현한다.
+  - 관심 콘서트 조회 결과는 `ListResult<InterestConcert>`로 반환한다.
+  - Data 레이어에만 관심 콘서트 cursor 구체 타입을 두고, Domain과 Presentation에는 `NextToken`만 노출한다.
+  - 기존 홈/관심 콘서트 목록/테스트 더블 사용처를 `items`와 private `nextToken` 기반으로 갱신한다.
+  - Repository 테스트는 작성하거나 실행하지 않는다.
+  - 구현 후 계획 대비 구현 내용을 리뷰받고 `통과` 결과를 확인한 뒤 유저에게 알린다.
 - [x] 새 관심 콘서트 설정 UI Store를 실제 데이터와 연결한다.
   - `InterestConcertSettingStore`의 mock concert list를 제거한다.
   - 초기 콘서트 목록 조회, 다음 페이지 조회, 선택/해제, 검색 포커스, CTA 활성화, 제출 성공/실패 상태를 구현한다.
   - update 모드에서는 기존 관심 콘서트 ID 목록을 초기 선택값으로 사용한다.
+  - update 모드에서는 `UserRepository.fetchInterestedConcertList(filter: .all)`로 기존 관심 콘서트 전체 목록을 조회한다.
   - `State`에는 View 렌더링과 View 이벤트 판단에 필요한 값만 둔다.
   - 원본 목록, 초기 선택 기준값, `NextToken` 같은 내부 구현 값은 Store private property로 관리한다.
   - `@MainActor` Store 내부 비동기 작업에서 `Task { @MainActor in ... }` 중복 지정은 사용하지 않는다.
@@ -90,6 +103,8 @@
 | 목록 조회 결과 모델 | 도메인별 page 모델 또는 공통 목록 결과 모델 | `ListResult<Item>` 공통 모델 | 콘서트 외 다른 목록에서도 같은 구조가 반복될 수 있어 공통 모델로 중복과 API 용어 노출을 줄인다. |
 | 다음 페이지 식별값 명칭 | `cursor`, `pageToken`, `nextToken` | `nextToken` | 화면은 값을 해석하지 않고 다음 요청에 그대로 넘기는 토큰으로만 알면 되므로 쉬운 용어를 사용한다. |
 | 다음 페이지 식별값 구체 타입 | Domain에 `Int` 노출 또는 `NextToken` 프로토콜로 은닉 | `NextToken` 프로토콜 | API cursor 구체 타입은 Data 레이어 세부사항이므로 Domain과 Presentation에서 숨긴다. |
+| 관심 콘서트 조회 조건 명칭 | `Query`, `Request`, `Options`, `Filter` | `InterestConcertListFilter` | HTTP query/request 용어를 피하고 도메인 목록 조회 조건이라는 의미를 사용한다. |
+| 관심 콘서트 전체 조회 표현 | nil query 직접 전달 또는 명명된 값 | `InterestConcertListFilter.all` | 설정 변경 화면에서 기존 관심 콘서트 전체 조회 의도를 명확히 표현한다. |
 | 관심 콘서트 설정 API 모델 | 단일 `concertID` 유지 또는 `concertIDList`로 교체 | `concertIDList`로 교체 | 서버 API가 다중 선택 배열을 필수 요청값으로 받도록 변경되었다. |
 | `concertIds` 원소 타입 | `[Int]` 또는 `[String]` | `[Int]` | 유저 확인에 따라 콘서트 ID 정수 배열로 전송한다. |
 | 관심 콘서트 전체 삭제 | 별도 DELETE 유지 또는 `concertIds: []` PUT 사용 | 기존 API와 별도로 작성 | 기존 API는 유지하고, 새 설정/수정 API는 별도 메서드로 추가한다. |
@@ -101,6 +116,8 @@
 - `concertIds` 요청 배열은 유저 확인에 따라 `[Int]`로 전송한다.
 - 목록 조회의 다음 페이지 식별값은 Domain에서 `cursor`라는 이름과 구체 타입을 노출하지 않는다.
 - `NextToken` 구현체는 Data 레이어 내부 타입으로 두고, Presentation은 존재 여부와 그대로 전달하는 역할만 수행한다.
+- 관심 콘서트 조회의 HTTP query parameter는 Domain에 노출하지 않고, Domain은 `InterestConcertListFilter`만 다룬다.
+- `InterestConcertListFilter.all`은 서버에 sort, size, cursor 관련 query parameter를 보내지 않는 전체 조회를 의미한다.
 - `GET /concerts`는 인증이 필요하지 않은 API로 문서화되어 있으므로 기존 `SearchEndpoint.fetchConcertList`의 `requiresInterceptor = false`와 맞는지 유지한다.
 - `PUT /users/interest-concerts`는 인증이 필요한 API이므로 interceptor가 필요하다.
 - 콘서트 응답의 `status`, `artist`, `introduction`, `id`는 필수이고 나머지 표시 필드는 optional일 수 있다.
