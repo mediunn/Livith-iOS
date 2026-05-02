@@ -12,6 +12,7 @@ public enum ConcertError: DomainError {
     case noConnection
     case serverError
     case invalidResponse
+    case invalidRequest
     case unknown
     case invalidID
     case invalidSize
@@ -27,6 +28,8 @@ public enum ConcertError: DomainError {
             return "서버 오류가 발생했어요."
         case .invalidResponse:
             return "데이터를 불러오는데 실패했어요."
+        case .invalidRequest:
+            return "잘못된 요청입니다."
         case .unknown:
             return "알 수 없는 오류가 발생했어요."
         case .invalidID, .invalidSize:

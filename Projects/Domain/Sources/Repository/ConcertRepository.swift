@@ -10,6 +10,7 @@ import Foundation
 
 public protocol ConcertRepository {
     func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert]
+    func fetchAllConcertList(after nextToken: (any NextToken)?, size: Int) async throws(ConcertError) -> ListResult<Concert>
     func fetchConcertArtistInfo(concertID: Int) async throws(ConcertError) -> Artist
     func fetchConcertSetlistList(concertID: Int) async throws(ConcertError) -> [Setlist]
     func fetchConcertMerchandiseList(concertID: Int) async throws(ConcertError) -> [ConcertMerchandise]

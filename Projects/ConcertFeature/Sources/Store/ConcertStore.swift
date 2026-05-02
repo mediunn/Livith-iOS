@@ -224,7 +224,7 @@ private extension ConcertStore {
                     ? currentList.filter { $0 != concertID }
                     : currentList + [concertID]
 
-                try await userRepo.updateInterestedConcerts(ids: nextList)
+                _ = try await userRepo.updateInterestedConcertList(nextList)
 
                 send(._setIsCurrentConcertInterested(!isInterested))
                 send(._setInterestStatus(.success(
@@ -243,15 +243,15 @@ private extension ConcertStore {
 
     func fetchAllInterestedConcertIDs(using repository: UserRepository) async throws(UserError) -> [Int] {
         var ids: [Int] = []
-        var cursor: InterestConcertPageCursor? = nil
+        var nextToken: (any NextToken)? = nil
 
         repeat {
             let page = try await repository.fetchInterestedConcertList(
-                query: InterestConcertListQuery(cursor: cursor)
+                filter: InterestConcertListFilter(nextToken: nextToken)
             )
-            ids.append(contentsOf: page.concertList.map { $0.concert.id })
-            cursor = page.nextCursor
-        } while cursor != nil
+            ids.append(contentsOf: page.items.map { $0.concert.id })
+            nextToken = page.nextToken
+        } while nextToken != nil
 
         return ids
     }

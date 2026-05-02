@@ -129,7 +129,7 @@ private extension HomeView {
             HomeInterestConcertSectionView(
                 interestConcertList: store.state.interestConcertList,
                 selectedSort: store.state.interestConcertSort,
-                onChangeTap: { coordinator?.push(to: .interestConcertSearch) },
+                onChangeTap: { coordinator?.push(to: .interestConcertSetting(mode: .update)) },
                 onTitleTap: { coordinator?.push(to: .interestConcertList) },
                 onSortSelected: { store.send(.interestConcertSortSelected($0)) }
             )
@@ -138,7 +138,7 @@ private extension HomeView {
                 nickname: store.state.user?.nickname ?? "라이빗",
                 onSettingTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
-                    coordinator?.push(to: .interestConcertSearch)
+                    coordinator?.push(to: .interestConcertSetting(mode: .initialSetup))
                 }
             )
         }

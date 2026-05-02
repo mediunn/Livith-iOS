@@ -28,11 +28,7 @@ struct SearchMapper {
 
     func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResult {
         let concerts = response.data.compactMap { dto -> Concert? in
-            guard let posterURL = URL(string: dto.posterURL),
-                  let status = ConcertStatus(rawValue: dto.status),
-                  let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
-                  let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate)
-            else {
+            guard let status = ConcertStatus(rawValue: dto.status) else {
                 return nil
             }
 
@@ -42,12 +38,12 @@ struct SearchMapper {
                 artist: dto.artist,
                 status: status,
                 daysLeft: dto.daysLeft,
-                startDate: startDate,
-                endDate: endDate,
-                posterURL: posterURL,
+                startDate: parseDate(dto.startDate, type: .dotDate),
+                endDate: parseDate(dto.endDate, type: .dotDate),
+                posterURL: parseURL(dto.posterURL),
                 venue: dto.venue,
                 ticketSite: dto.ticketSite,
-                ticketURL: dto.ticketURL.flatMap { URL(string: $0) },
+                ticketURL: parseURL(dto.ticketURL),
                 introduction: dto.introduction,
                 label: dto.label
             )
@@ -62,6 +58,18 @@ struct SearchMapper {
 }
 
 private extension SearchMapper {
+    func parseDate(_ dateString: String?, type: DateFormatType) -> Date? {
+        guard let dateString else { return nil }
+
+        return DateFormatterService.date(from: dateString, type: type)
+    }
+
+    func parseURL(_ urlString: String?) -> URL? {
+        guard let urlString else { return nil }
+
+        return URL(string: urlString)
+    }
+
     func makeBannerLinkURL(from string: String?) -> URL? {
         guard let string,
               let url = URL(string: string),

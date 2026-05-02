@@ -12,14 +12,14 @@ import Foundation
 
 public extension DTO.Request {
     struct FetchInterestConcertList: Encodable {
-        public let sort: Sort
-        public let size: Int
+        public let sort: Sort?
+        public let size: Int?
         public let cursorDate: String?
         public let cursorID: Int?
 
         public init(
-            sort: Sort = .concert,
-            size: Int = 20,
+            sort: Sort? = nil,
+            size: Int? = nil,
             cursorDate: String? = nil,
             cursorID: Int? = nil
         ) {

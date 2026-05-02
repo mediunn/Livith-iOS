@@ -238,8 +238,58 @@ struct SearchMapperTests {
         #expect(result.cursor == 1)
         #expect(result.totalCount == 5)
 
-        let yearStart = Calendar.current.component(.year, from: result.concerts[0].startDate)
+        let startDate = try #require(result.concerts[0].startDate)
+        let yearStart = Calendar.current.component(.year, from: startDate)
         #expect(yearStart == 2025)
+    }
+
+    @Test("FetchFilterSearchResult optional 표시 필드가 nil이어도 Concert를 보존해야 한다")
+    func fetchFilterSearchResult_optional_표시_필드가_nil이어도_Concert를_보존해야_한다() throws {
+        // Given
+        let json = """
+        {
+            "data": [
+                {
+                    "id": 1641,
+                    "code": null,
+                    "title": null,
+                    "startDate": null,
+                    "endDate": null,
+                    "status": "UPCOMING",
+                    "poster": null,
+                    "artist": "Freedom Call (프리덤 콜)",
+                    "daysLeft": null,
+                    "ticketSite": null,
+                    "ticketUrl": null,
+                    "venue": null,
+                    "introduction": "첫 단독 내한 공연",
+                    "label": null
+                }
+            ],
+            "cursor": 1641,
+            "totalCount": 1
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchFilterSearchResult.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+        let concert = try #require(result.concerts.first)
+
+        // Then
+        #expect(result.cursor == 1641)
+        #expect(result.totalCount == 1)
+        #expect(result.concerts.count == 1)
+        #expect(concert.id == 1641)
+        #expect(concert.status == .upcoming)
+        #expect(concert.artist == "Freedom Call (프리덤 콜)")
+        #expect(concert.title == nil)
+        #expect(concert.startDate == nil)
+        #expect(concert.endDate == nil)
+        #expect(concert.posterURL == nil)
+        #expect(concert.daysLeft == nil)
+        #expect(concert.venue == nil)
+        #expect(concert.introduction == "첫 단독 내한 공연")
     }
 }
 

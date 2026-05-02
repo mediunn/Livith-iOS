@@ -37,13 +37,44 @@ struct UserMapper {
         )
     }
 
-    func toDomain(from dto: DTO.Response.FetchUserInterestConcert) -> InterestConcertPage {
-        InterestConcertPage(
-            concertList: dto.data.compactMap(toInterestConcert),
-            nextCursor: dto.cursor.flatMap(toCursor)
+    func toDomain(from dto: DTO.Response.FetchUserInterestConcert) -> ListResult<InterestConcert> {
+        ListResult(
+            items: dto.data.compactMap(toInterestConcert),
+            nextToken: dto.cursor.flatMap(toNextToken)
         )
     }
 
+    func toDomain(from dto: DTO.Response.UpdateUserInterestConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: dto.status),
+              let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
+              let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate),
+              let posterURL = parseURL(dto.posterURL)
+        else {
+            return nil
+        }
+
+        let daysLeft = calculateDaysLeft(from: startDate)
+
+        return Concert(
+            id: dto.id,
+            title: dto.title,
+            artist: dto.artist,
+            status: status,
+            daysLeft: daysLeft,
+            startDate: startDate,
+            endDate: endDate,
+            posterURL: posterURL,
+            venue: dto.venue,
+            ticketSite: dto.ticketSite,
+            ticketURL: parseURL(dto.ticketURL),
+            introduction: dto.introduction,
+            label: dto.label
+        )
+    }
+
+    func toDomain(from dto: DTO.Response.UpdateUserInterestConcertList) -> [Concert] {
+        dto.compactMap(toConcert)
+    }
 }
 
 private extension UserMapper {
@@ -81,15 +112,36 @@ private extension UserMapper {
         return InterestConcert(concert: concert, ticketingSchedule: ticketingSchedule)
     }
 
-    func toCursor(from dto: DTO.Response.FetchUserInterestConcert.Cursor) -> InterestConcertPageCursor? {
-        guard let dateString = dto.date,
-              let id = dto.id,
-              let date = DateFormatterService.date(from: dateString, type: .dotDate)
+    func toConcert(from dto: DTO.Response.UpdatedUserInterestConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: dto.status) else {
+            return nil
+        }
+
+        return Concert(
+            id: dto.id,
+            title: dto.title,
+            artist: dto.artist,
+            status: status,
+            daysLeft: dto.daysLeft,
+            startDate: parseDate(dto.startDate, type: .dotDate),
+            endDate: parseDate(dto.endDate, type: .dotDate),
+            posterURL: parseURL(dto.posterURL),
+            venue: dto.venue,
+            ticketSite: dto.ticketSite,
+            ticketURL: parseURL(dto.ticketURL),
+            introduction: dto.introduction,
+            label: dto.label
+        )
+    }
+
+    func toNextToken(from dto: DTO.Response.FetchUserInterestConcert.Cursor) -> InterestConcertListNextToken? {
+        guard let cursorDate = dto.date,
+              let id = dto.id
         else {
             return nil
         }
 
-        return InterestConcertPageCursor(date: date, id: id)
+        return InterestConcertListNextToken(cursorDate: cursorDate, id: id)
     }
 
     func parseDate(_ dateString: String?, type: DateFormatType) -> Date? {

@@ -35,8 +35,12 @@ final class HomeCoordinator: Coordinator {
         case .home:
             return UIHostingController(rootView: HomeView().environment(\.homeCoordinator, self))
             
-        case .interestConcertSearch:
-            return UIHostingController(rootView: InterestConcertSearchView().environment(\.homeCoordinator, self))
+        case .interestConcertSetting(let mode):
+            let vc = UIHostingController(
+                rootView: InterestConcertSettingView(mode: mode).environment(\.homeCoordinator, self)
+            )
+            vc.hidesBottomBarWhenPushed = true
+            return vc
 
         case .interestConcertList:
             let vc = UIHostingController(
@@ -45,22 +49,12 @@ final class HomeCoordinator: Coordinator {
             vc.hidesBottomBarWhenPushed = true
             return vc
              
-        case .interestConcertComplete(posterURL: let url, title: let title, prefetchedImage: let image):
-            return UIHostingController(
-                rootView: InterestConcertCompleteView(
-                    concertPosterURL: url,
-                    concertTitle: title,
-                    prefetchedImage: image
-                )
-                .environment(\.homeCoordinator, self)
-            )
-            
         case .notice:
             return UIHostingController(
                 rootView: NoticeView(
                     onBack: { [weak self] in self?.pop() },
                     onSettingTap: { [weak self] in self?.push(to: .noticeSetting) },
-                    onInterestTap: { [weak self] in self?.push(to: .interestConcertSearch) },
+                    onInterestTap: { [weak self] in self?.push(to: .interestConcertSetting(mode: .update)) },
                     onConcertTap: { [weak self] concertID, initialTab, initialSection in
                         self?.showConcertDetail(concertID: concertID, initialTab: initialTab, initialSection: initialSection)
                     }

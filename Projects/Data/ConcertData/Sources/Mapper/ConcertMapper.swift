@@ -131,31 +131,14 @@ struct ConcertMapper {
     }
 
     func toDomain(from response: DTO.Response.FetchConcertList) -> [Concert] {
-        response.data.compactMap { concert in
-            guard let status = ConcertStatus(rawValue: concert.status),
-                  let startDate = DateFormatterService.date(from: concert.startDate, type: .dotDate),
-                  let endDate = DateFormatterService.date(from: concert.endDate, type: .dotDate),
-                  let posterURL = URL(string: concert.posterURL)
-            else {
-                return nil
-            }
+        response.data.compactMap { toDomain(from: $0) }
+    }
 
-            return Concert(
-                id: concert.id,
-                title: concert.title,
-                artist: concert.artist,
-                status: status,
-                daysLeft: concert.daysLeft,
-                startDate: startDate,
-                endDate: endDate,
-                posterURL: posterURL,
-                venue: concert.venue,
-                ticketSite: concert.ticketSite,
-                ticketURL: concert.ticketURL.flatMap { URL(string: $0) },
-                introduction: concert.introduction,
-                label: concert.label
-            )
-        }
+    func toConcertListResult(from response: DTO.Response.FetchConcertList) -> ListResult<Concert> {
+        ListResult(
+            items: toDomain(from: response),
+            nextToken: response.cursor.map { ConcertListNextToken(cursor: $0) }
+        )
     }
 
     func toDomain(from response: DTO.Response.FetchRecommendedConcertList) -> [Concert] {
@@ -183,6 +166,28 @@ struct ConcertMapper {
             venue: dto.venue,
             ticketSite: dto.ticketSite,
             ticketURL: dto.ticketURL.flatMap { URL(string: $0) },
+            introduction: dto.introduction,
+            label: dto.label
+        )
+    }
+
+    func toDomain(from dto: DTO.Response.FetchFilterSearchResult.FilteredConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: dto.status) else {
+            return nil
+        }
+
+        return Concert(
+            id: dto.id,
+            title: dto.title,
+            artist: dto.artist,
+            status: status,
+            daysLeft: dto.daysLeft,
+            startDate: parseDate(dto.startDate, type: .dotDate),
+            endDate: parseDate(dto.endDate, type: .dotDate),
+            posterURL: parseURL(dto.posterURL),
+            venue: dto.venue,
+            ticketSite: dto.ticketSite,
+            ticketURL: parseURL(dto.ticketURL),
             introduction: dto.introduction,
             label: dto.label
         )
@@ -231,30 +236,44 @@ private extension ConcertMapper {
         )
     }
     
-    func toDomain(from dto: DTO.Response.FetchFilterSearchResult.FilteredConcert) -> Concert? {
-        guard let status = ConcertStatus(rawValue: dto.status),
-              let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
-              let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate),
-              let posterURL = URL(string: dto.posterURL)
-        else {
+    func toDomain(from dto: DTO.Response.FetchConcertList.FilteredConcert) -> Concert? {
+        guard let status = ConcertStatus(rawValue: dto.status) else {
             return nil
         }
-        
+
         return Concert(
             id: dto.id,
             title: dto.title,
             artist: dto.artist,
             status: status,
             daysLeft: dto.daysLeft,
-            startDate: startDate,
-            endDate: endDate,
-            posterURL: posterURL,
+            startDate: parseDate(dto.startDate, type: .dotDate),
+            endDate: parseDate(dto.endDate, type: .dotDate),
+            posterURL: parseURL(dto.posterURL),
             venue: dto.venue,
             ticketSite: dto.ticketSite,
-            ticketURL: dto.ticketURL.flatMap { URL(string: $0) },
+            ticketURL: parseURL(dto.ticketURL),
             introduction: dto.introduction,
             label: dto.label
         )
+    }
+
+    func parseDate(_ dateString: String?, type: DateFormatType) -> Date? {
+        guard let dateString else { return nil }
+
+        return DateFormatterService.date(from: dateString, type: type)
+    }
+
+    func parseURL(_ urlString: String?) -> URL? {
+        guard let urlString,
+              let url = URL(string: urlString),
+              url.scheme != nil,
+              url.host != nil
+        else {
+            return nil
+        }
+
+        return url
     }
     
     func toDomain(from dto: DTO.Response.ConcertSetlist) -> Setlist? {

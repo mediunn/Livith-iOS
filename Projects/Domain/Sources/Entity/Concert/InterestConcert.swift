@@ -36,48 +36,35 @@ public struct InterestConcertTicketingSchedule: Hashable, Codable {
     }
 }
 
-public struct InterestConcertPage: Hashable, Codable {
-    public let concertList: [InterestConcert]
-    public let nextCursor: InterestConcertPageCursor?
+public struct InterestConcertListFilter {
+    public let sort: InterestConcertSort?
+    public let limit: Int?
+    public let nextToken: (any NextToken)?
 
     public init(
-        concertList: [InterestConcert],
-        nextCursor: InterestConcertPageCursor?
-    ) {
-        self.concertList = concertList
-        self.nextCursor = nextCursor
-    }
-}
-
-public struct InterestConcertPageCursor: Hashable, Codable {
-    public let date: Date
-    public let id: Int
-
-    public init(date: Date, id: Int) {
-        self.date = date
-        self.id = id
-    }
-}
-
-public struct InterestConcertListQuery: Hashable {
-    public let sort: InterestConcertSort
-    public let pageSize: Int
-    public let cursor: InterestConcertPageCursor?
-
-    public init(
-        sort: InterestConcertSort = .concert,
-        pageSize: Int = 20,
-        cursor: InterestConcertPageCursor? = nil
+        sort: InterestConcertSort? = nil,
+        limit: Int? = nil,
+        nextToken: (any NextToken)? = nil
     ) {
         self.sort = sort
-        self.pageSize = pageSize
-        self.cursor = cursor
+        self.limit = limit
+        self.nextToken = nextToken
     }
 }
 
-public extension InterestConcertListQuery {
-    static func homeSection(sort: InterestConcertSort = .concert) -> InterestConcertListQuery {
-        InterestConcertListQuery(sort: sort, pageSize: 5)
+public extension InterestConcertListFilter {
+    static let all = InterestConcertListFilter()
+
+    static func homeSection(sort: InterestConcertSort = .concert) -> InterestConcertListFilter {
+        InterestConcertListFilter(sort: sort, limit: 5)
+    }
+
+    static func page(
+        sort: InterestConcertSort,
+        limit: Int,
+        nextToken: (any NextToken)? = nil
+    ) -> InterestConcertListFilter {
+        InterestConcertListFilter(sort: sort, limit: limit, nextToken: nextToken)
     }
 }
 
