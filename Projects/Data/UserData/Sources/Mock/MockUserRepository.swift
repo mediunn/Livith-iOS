@@ -49,6 +49,10 @@ public struct MockUserRepository: UserRepository {
         )
     }
 
+    public func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
+        Self.interestConcertList.contains(where: { $0.concert.id == id })
+    }
+
     @discardableResult
     public func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         throw UserError.unknown

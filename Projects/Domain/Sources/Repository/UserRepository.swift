@@ -12,6 +12,7 @@ public protocol UserRepository {
     @discardableResult
     func refreshUser() async throws(UserError) -> User
     func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert>
+    func checkInterestedConcert(id: Int) async throws(UserError) -> Bool
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert
     @discardableResult

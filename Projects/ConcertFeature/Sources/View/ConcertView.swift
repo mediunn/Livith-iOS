@@ -26,7 +26,6 @@ public struct ConcertView: View {
 
     @ObservedObject private var store: ConcertStore
     @StateObject private var communityStore: CommunityStore = CommunityStore()
-    @State private var showInterestConfirmDialog: Bool = false
     @State private var isExceedingLineLimit: Bool = false
     @State private var isExceedingCharacterLimit: Bool = false
 
@@ -84,22 +83,6 @@ public struct ConcertView: View {
             type: .failure,
             message: "댓글은 400자를 초과할 수 없어요"
         )
-        .crossDissolve(isPresented: $showInterestConfirmDialog, dismissOnTapOutside: true) {
-            LivithDangerModal(
-                message: "관심 콘서트를 설정하시겠어요?",
-                confirmTitle: "설정할래요",
-                cancelTitle: "취소할래요",
-                type: .confirm(onConfirm: {
-                    AmplitudeService.shared.trackEvent(tag: .confirm(.changeInterest))
-                    showInterestConfirmDialog = false
-                    store.send(.interestButtonTapped)
-                }),
-                onCancel: {
-                    AmplitudeService.shared.trackEvent(tag: .cancel(.changeInterest))
-                    showInterestConfirmDialog = false
-                }
-            )
-        }
         .crossDissolve(isPresented: isDeleteDialogPresented, dismissOnTapOutside: true) {
             LivithDangerModal(
                 message: "댓글을 삭제하시겠어요?",
@@ -253,7 +236,8 @@ private extension ConcertView {
                 actionTitle: "콘서트 설정",
                 onActionTapped: {
                     store.send(.onTicketBannerDismiss)
-                    showInterestConfirmDialog = true
+                    AmplitudeService.shared.trackEvent(tag: .confirm(.changeInterest))
+                    store.send(.interestButtonTapped)
                 },
                 onDismiss: {
                     store.send(.onTicketBannerDismiss)
@@ -347,8 +331,6 @@ private extension ConcertView {
 
 private extension ConcertView {
     var shouldShowInterestButton: Bool {
-        // TODO: 추후 확인 필요
-        guard !(store.state.isCurrentConcertInterested ?? false) else { return false }
         guard let status = store.state.concert?.status else { return true }
         switch status {
         case .canceled, .completed, .past:
@@ -358,15 +340,22 @@ private extension ConcertView {
         }
     }
 
+    var isInterested: Bool {
+        store.state.isCurrentConcertInterested ?? false
+    }
+
     var posterSection: some View {
         ZStack(alignment: .topTrailing) {
             posterImage
                 .frame(height: 337)
 
             if shouldShowInterestButton {
-                LivithActionButton("관심 콘서트 설정하기", type: .plus) {
+                LivithActionButton(
+                    isInterested ? "소식 받는중" : "소식 받기",
+                    type: .notice(isActive: isInterested)
+                ) {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertDetail))
-                    showInterestConfirmDialog = true
+                    store.send(.interestButtonTapped)
                 }
                 .padding(.top, 16)
                 .padding(.trailing, 16)

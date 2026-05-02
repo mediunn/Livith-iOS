@@ -77,6 +77,18 @@ struct UserRepositoryImpl: UserRepository {
         }
     }
 
+    func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
+        do {
+            let response: DTO.Response.CheckInterestedConcert = try await homeService.request(
+                .checkInterestedConcert(concertID: id)
+            )
+            return response.isInterested
+        } catch {
+            let userError: UserError = errorMapper.mapToUserError(error)
+            throw userError
+        }
+    }
+
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         do {

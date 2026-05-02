@@ -13,8 +13,8 @@ import SwiftUI
 public enum LivithActionButtonType {
     /// 텍스트 + 오른쪽 화살표 (더 많은 정보 확인하기)
     case chevron
-    /// 플러스 아이콘 + 텍스트 (관심 콘서트 설정하기)
-    case plus
+    /// 종 아이콘 + 텍스트 (소식 받기 / 소식 받는중)
+    case notice(isActive: Bool)
 }
 
 // MARK: - LivithActionButton
@@ -44,15 +44,15 @@ public struct LivithActionButton: View {
     public var body: some View {
         Button(action: action) {
             HStack(spacing: spacing) {
-                if type == .plus {
+                if isLeadingIcon {
                     iconView
                 }
 
                 Text(title)
                     .notosans(.caption1Semibold)
-                    .foregroundStyle(Color.livithColor(.white100))
+                    .foregroundStyle(textColor)
 
-                if type == .chevron {
+                if isTrailingIcon {
                     iconView
                 }
             }
@@ -69,7 +69,9 @@ private extension LivithActionButton {
     var iconView: some View {
         Image.livithIcon(iconType)
             .resizable()
-            .frame(width: 20, height: 20)
+            .renderingMode(.template)
+            .foregroundStyle(iconColor)
+            .frame(width: 24, height: 24)
     }
 }
 
@@ -79,28 +81,60 @@ private extension LivithActionButton {
     var iconType: Image.LivithIcon {
         switch type {
         case .chevron: return .rightLineDefault
-        case .plus: return .plusLineSmall
+        case .notice: return .noticeVariant2
+        }
+    }
+
+    var isLeadingIcon: Bool {
+        switch type {
+        case .chevron: return false
+        case .notice: return true
+        }
+    }
+
+    var isTrailingIcon: Bool {
+        switch type {
+        case .chevron: return true
+        case .notice: return false
+        }
+    }
+
+    var textColor: Color {
+        switch type {
+        case .chevron:
+            return Color.livithColor(.white100)
+        case .notice(let isActive):
+            return Color.livithColor(isActive ? .white100 : .black50)
+        }
+    }
+
+    var iconColor: Color {
+        switch type {
+        case .chevron:
+            return Color.livithColor(.white100)
+        case .notice(let isActive):
+            return Color.livithColor(isActive ? .yellow30 : .black50)
         }
     }
 
     var spacing: CGFloat {
         switch type {
         case .chevron: return 4
-        case .plus: return 2
+        case .notice: return 4
         }
     }
 
     var verticalPadding: CGFloat {
         switch type {
         case .chevron: return 8
-        case .plus: return 10
+        case .notice: return 8
         }
     }
 
     var horizontalPadding: CGFloat {
         switch type {
         case .chevron: return 12
-        case .plus: return 10
+        case .notice: return 12
         }
     }
 }
@@ -117,7 +151,7 @@ private struct LivithActionButtonStyle: ButtonStyle {
             )
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .shadow(
-                color: .livithColor(.white100).opacity(0.3),
+                color: .livithColor(.black100).opacity(0.3),
                 radius: 6
             )
     }
@@ -129,7 +163,9 @@ private struct LivithActionButtonStyle: ButtonStyle {
     VStack(spacing: 20) {
         LivithActionButton("더 많은 정보 확인하기", type: .chevron) {}
 
-        LivithActionButton("관심 콘서트 설정하기", type: .plus) {}
+        LivithActionButton("소식 받기", type: .notice(isActive: false)) {}
+
+        LivithActionButton("소식 받는중", type: .notice(isActive: true)) {}
     }
     .padding()
     .background(Color.livithColor(.black80))

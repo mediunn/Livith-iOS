@@ -12,6 +12,7 @@ public extension Image {
     enum LivithIcon: String {
         case noticeDefault = "icn_notice_default"
         case noticeEnabled = "icn_notice_enabled"
+        case noticeVariant2 = "icn_notice_variant2"
         case apple = "icn_apple"
         case badge = "icn_badge"
         case backLineDefault = "icn_back_line_default"

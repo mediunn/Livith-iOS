@@ -15,6 +15,7 @@ public enum HomeEndpoint {
     case fetchInterestedConcertList(DTO.Request.FetchInterestConcertList)
     case updateInterestedConcert(id: Int)
     case updateInterestedConcertList(request: DTO.Request.UpdateUserInterestConcertList)
+    case checkInterestedConcert(concertID: Int)
     case deleteInterestedConcert
     case fetchRecommendedConcertList
 }
@@ -24,22 +25,25 @@ extension HomeEndpoint: NetworkEndpoint {
         switch self {
         case .fetchSectionList:
             return "/home/sections"
-        case .fetchInterestedConcertList:
+        case .fetchInterestedConcertList, .updateInterestedConcertList:
             return "/users/interest-concerts"
+        case .checkInterestedConcert(let concertID):
+            return "/users/interest-concerts/\(concertID)/exists"
         case .updateInterestedConcert:
             return "/users/interest-concert"
-        case .updateInterestedConcertList:
-            return "/users/interest-concerts"
         case .deleteInterestedConcert:
             return "/users/interest-concert"
         case .fetchRecommendedConcertList:
             return "/recommendation/concerts"
         }
     }
-    
+
     public var method: HTTPMethod {
         switch self {
-        case .fetchSectionList, .fetchInterestedConcertList:
+        case .fetchSectionList,
+             .fetchInterestedConcertList,
+             .checkInterestedConcert,
+             .fetchRecommendedConcertList:
             return .get
         case .updateInterestedConcert:
             return .post
@@ -47,8 +51,6 @@ extension HomeEndpoint: NetworkEndpoint {
             return .put
         case .deleteInterestedConcert:
             return .delete
-        case .fetchRecommendedConcertList:
-            return .get
         }
     }
 
@@ -66,7 +68,7 @@ extension HomeEndpoint: NetworkEndpoint {
             return nil
         }
     }
-    
+
     public var body: Encodable? {
         switch self {
         case .updateInterestedConcert(let id):
@@ -75,14 +77,15 @@ extension HomeEndpoint: NetworkEndpoint {
             return request
         default:
             return nil
-        }        
+        }
     }
-    
+
     public var requiresInterceptor: Bool {
         switch self {
         case .fetchInterestedConcertList,
              .updateInterestedConcert,
              .updateInterestedConcertList,
+             .checkInterestedConcert,
              .deleteInterestedConcert,
              .fetchRecommendedConcertList:
             return true

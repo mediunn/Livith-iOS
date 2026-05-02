@@ -151,6 +151,7 @@ private extension ConcertStore {
         fetchTask?.cancel()
 
         let repo = repository
+        let userRepo = userRepository
 
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
@@ -163,6 +164,7 @@ private extension ConcertStore {
                 async let concertInfoResult = repo.fetchConcertInfoList(concertID: concertID)
                 async let merchandiseResult = repo.fetchConcertMerchandiseList(concertID: concertID)
                 async let setlistResult = repo.fetchConcertSetlistList(concertID: concertID)
+                async let isInterestedResult = userRepo.checkInterestedConcert(id: concertID)
 
                 let (concert, artist, cultures, schedules, concertInfoList, merchandiseList, setlistList) = try await (
                     concertResult,
@@ -174,8 +176,6 @@ private extension ConcertStore {
                     setlistResult
                 )
 
-                // TODO: 현재 콘서트 관심 여부 확인용 별도 API가 추가되면 이 지점에서 연결한다.
-
                 guard await Task.wait() else { return }
 
                 send(._setConcert(concert, formattedDateRange: formatDateRange(from: concert)))
@@ -185,6 +185,10 @@ private extension ConcertStore {
                 send(._setConcertInfoList(concertInfoList))
                 send(._setMerchandiseList(merchandiseList))
                 send(._setSetlistList(setlistList))
+
+                if let isInterested = try? await isInterestedResult {
+                    send(._setIsCurrentConcertInterested(isInterested))
+                }
             } catch let error as ConcertError {
                 guard !Task.isCancelled else { return }
                 let message = error == .noConnection
@@ -207,16 +211,48 @@ private extension ConcertStore {
     func setInterestConcert() {
         guard state.interestStatus != .inProgress else { return }
 
+        let isInterested = state.isCurrentConcertInterested ?? false
+        let concertID = state.concertID
+        let userRepo = userRepository
+
         Task { @MainActor in
             send(._setInterestStatus(.inProgress))
 
             do {
-                try await userRepository.updateInterestedConcert(state.concertID)
-                send(._setInterestStatus(.success("관심 공연을 변경했어요")))
-                send(._setIsCurrentConcertInterested(true))
+                let currentList = try await fetchAllInterestedConcertIDs(using: userRepo)
+                let nextList = isInterested
+                    ? currentList.filter { $0 != concertID }
+                    : currentList + [concertID]
+
+                _ = try await userRepo.updateInterestedConcertList(nextList)
+
+                send(._setIsCurrentConcertInterested(!isInterested))
+                send(._setInterestStatus(.success(
+                    isInterested
+                        ? "소식을 받을 공연이 해제되었어요"
+                        : "소식을 받을 공연이 추가되었어요"
+                )))
             } catch {
-                send(._setInterestStatus(.failure(error.localizedDescription)))
+                let message = isInterested
+                    ? "소식을 받을 공연 해제에 실패했어요"
+                    : "소식을 받을 공연 추가에 실패했어요"
+                send(._setInterestStatus(.failure(message)))
             }
         }
+    }
+
+    func fetchAllInterestedConcertIDs(using repository: UserRepository) async throws(UserError) -> [Int] {
+        var ids: [Int] = []
+        var nextToken: (any NextToken)? = nil
+
+        repeat {
+            let page = try await repository.fetchInterestedConcertList(
+                filter: InterestConcertListFilter(nextToken: nextToken)
+            )
+            ids.append(contentsOf: page.items.map { $0.concert.id })
+            nextToken = page.nextToken
+        } while nextToken != nil
+
+        return ids
     }
 }
