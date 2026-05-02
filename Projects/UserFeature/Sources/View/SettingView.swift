@@ -152,7 +152,7 @@ private extension SettingView {
 
 private extension SettingView {
     enum Constant {
-        static let versionString: String = "1.0.1"
+        static let versionString: String = "1.1.0"
         static let updateNoteURL = URL(string: "https://youz2me.notion.site/Livith-v-25-04-13-1d402dd0e5fc80eaacd9d3dfdc7d0aa0")!
         static let termsURL = URL(string: "https://youz2me.notion.site/Livith-v-25-11-18-1d402dd0e5fc800dab7fc177f325eade")!
     }
