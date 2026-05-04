@@ -32,6 +32,12 @@ struct HomeStoreTests {
         #expect(sut.state.user == nil)
     }
 
+    @Test("초기 상태에서 관심 콘서트 정렬은 예매일이어야 한다")
+    func testInitialInterestConcertSortIsTicketing() {
+        let sut = HomeStore()
+        #expect(sut.state.interestConcertSort == .ticketing)
+    }
+
     // MARK: - onAppear 테스트
 
     @Test("onAppear 시 유저와 관심 콘서트 목록과 알림 수를 함께 조회한 뒤 홈 콘서트 섹션 데이터를 로드해야 한다")
@@ -51,7 +57,7 @@ struct HomeStoreTests {
         // Then
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .concert)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .ticketing)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 5)
         #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
@@ -199,13 +205,13 @@ struct HomeStoreTests {
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [456])
 
         // When
-        sut.send(.interestConcertSortSelected(.ticketing))
+        sut.send(.interestConcertSortSelected(.concert))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        #expect(sut.state.interestConcertSort == .ticketing)
+        #expect(sut.state.interestConcertSort == .concert)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .concert)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 5)
         #expect(sut.state.interestConcertList.map(\.id) == [456])
         #expect(sut.state.errorMessage.isEmpty)
@@ -219,13 +225,13 @@ struct HomeStoreTests {
         container.userRepository.fetchInterestedConcertListErrorStub = .serverError
 
         // When
-        sut.send(.interestConcertSortSelected(.ticketing))
+        sut.send(.interestConcertSortSelected(.concert))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        #expect(sut.state.interestConcertSort == .ticketing)
+        #expect(sut.state.interestConcertSort == .concert)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .ticketing)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .concert)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 5)
         #expect(sut.state.interestConcertList.map(\.id) == [123])
         #expect(!sut.state.errorMessage.isEmpty)
@@ -237,11 +243,11 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.interestConcertSortSelected(.concert))
+        sut.send(.interestConcertSortSelected(.ticketing))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        #expect(sut.state.interestConcertSort == .concert)
+        #expect(sut.state.interestConcertSort == .ticketing)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
     }
 

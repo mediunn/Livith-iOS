@@ -81,7 +81,7 @@ struct ConcertDomainModelTests {
     @Test("InterestConcertListFilter는 홈 섹션 조회 조건을 제공해야 한다")
     func interestConcertListFilter는_홈_섹션_조회_조건을_제공해야_한다() {
         // When
-        let filter = InterestConcertListFilter.homeSection(sort: .ticketing)
+        let filter = InterestConcertListFilter.homeSection()
 
         // Then
         #expect(filter.sort == .ticketing)
