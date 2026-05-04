@@ -45,7 +45,7 @@ public enum InterestConcertDisplayText {
         let concert = interestConcert.concert
 
         guard concert.status != .ongoing else {
-            return "공연 D-Day"
+            return "공연 D-DAY"
         }
 
         guard concert.status == .upcoming else {
@@ -57,7 +57,7 @@ public enum InterestConcertDisplayText {
         }
 
         guard daysLeft != 0 else {
-            return "공연 D-Day"
+            return "공연 D-DAY"
         }
 
         guard daysLeft > 0 else {
