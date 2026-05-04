@@ -250,8 +250,8 @@ final class InterestConcertSettingStore: ObservableObject {
                 initialSelectedConcertIDList = state.selectedConcertIDList
                 syncSelectionState()
                 state.successMessage = state.mode.successMessage
-            case .failure(let error):
-                state.errorMessage = error.localizedDescription
+            case .failure:
+                state.errorMessage = state.mode.failureMessage
             }
         }
     }
@@ -423,16 +423,11 @@ private extension InterestConcertSettingStore {
 
 private extension InterestConcertSettingStore {
     static func hasUnsavedChanges(
-        mode: InterestConcertSettingMode,
+        mode _: InterestConcertSettingMode,
         selectedConcertIDList: [Int],
         initialSelectedConcertIDList: [Int]
     ) -> Bool {
-        switch mode {
-        case .initialSetup:
-            return !selectedConcertIDList.isEmpty
-        case .update:
-            return Set(selectedConcertIDList) != Set(initialSelectedConcertIDList)
-        }
+        Set(selectedConcertIDList) != Set(initialSelectedConcertIDList)
     }
 
     enum Constants {
@@ -446,9 +441,18 @@ private extension InterestConcertSettingMode {
     var successMessage: String {
         switch self {
         case .initialSetup:
-            return "관심 콘서트를 설정했어요"
+            return "소식을 받을 공연이 설정되었어요"
         case .update:
-            return "관심 콘서트를 변경했어요"
+            return "소식을 받을 공연이 변경되었어요"
+        }
+    }
+
+    var failureMessage: String {
+        switch self {
+        case .initialSetup:
+            return "소식을 받을 공연 추가에 실패했어요"
+        case .update:
+            return "소식을 받을 공연 변경에 실패했어요"
         }
     }
 }

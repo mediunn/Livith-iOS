@@ -12,26 +12,27 @@
 - 관심 콘서트 변경 화면의 변경사항 이탈 확인 모달 동작은 유지한다.
 
 ## 작업 항목
-- [ ] Store 제출 결과 문구 테스트 추가
+- [x] Store 제출 결과 문구 테스트 추가
   - `InterestConcertSettingStoreTests`에 설정 성공, 변경 성공, 설정 실패, 변경 실패 문구 검증을 추가한다.
   - 생산 코드 변경 전에 실패 테스트를 먼저 실행해 기대 동작 부재로 실패하는지 확인한다.
-- [ ] Store 제출 결과 문구 변경
+- [x] Store 제출 결과 문구 변경
   - 설정 성공 시 `소식을 받을 공연이 설정되었어요`를 successMessage에 설정한다.
   - 변경 성공 시 `소식을 받을 공연이 변경되었어요`를 successMessage에 설정한다.
   - 설정 제출 실패 시 `소식을 받을 공연 추가에 실패했어요`를 errorMessage에 설정한다.
   - 변경 제출 실패 시 `소식을 받을 공연 변경에 실패했어요`를 errorMessage에 설정한다.
   - 목록 조회, 검색, 페이지네이션 실패는 기존 에러 메시지 흐름을 유지한다.
-- [ ] 공연 목록 스크롤 하단 여유 공간 추가
+  - 제출 성공 후 현재 선택값을 초기 선택값으로 반영해 `hasUnsavedChanges`와 CTA 활성 상태를 정리한다.
+- [x] 공연 목록 스크롤 하단 여유 공간 추가
   - `HomeConcertContentSectionView`가 사용하는 하단 여유 기준(`Spacer(minLength: 210)`)에 맞춰 `InterestConcertSelectionGridView`의 grid 하단 여백을 210pt로 확정 적용한다.
   - `InterestConcertSettingView`의 하단 CTA/선택 칩 영역은 overlay 구조로 유지하고, 스크롤 콘텐츠 자체에 충분한 bottom padding을 둔다.
   - 선택 칩이 없는 상태와 있는 상태 모두 마지막 카드 접근이 가능하도록 한다.
-- [ ] 설정 화면 뒤로가기 모달 정책 변경
-  - Store의 `hasUnsavedChanges`와 `isCTAEnabled` 계산은 변경하지 않는다.
+- [x] 설정 화면 뒤로가기 모달 정책 변경
+  - 뒤로가기 모달 제거를 위해 Store의 `hasUnsavedChanges`를 강제로 false 처리하지 않는다.
   - `InterestConcertSettingView.handleBackButtonTap()`에서 `InterestConcertSettingMode.initialSetup`이면 선택 여부와 관계없이 즉시 `coordinator?.pop()`한다.
   - `InterestConcertSettingMode.update`에서는 기존처럼 `hasUnsavedChanges`가 있을 때만 이탈 확인 모달을 표시한다.
 - [ ] 검증 및 계획 문서 정리
   - 관련 Store 테스트를 실행해 통과를 확인한다.
-  - 설정/변경 화면에서 스크롤, 토스트, 뒤로가기 동작을 수동 확인한다.
+  - 설정/변경 화면에서 스크롤, 토스트, 뒤로가기 동작을 수동 확인한다. (미완료)
   - 작업 완료 후 이 계획 문서를 `docs/archives/`로 이동한다.
 
 ## 영향 범위
@@ -54,7 +55,7 @@
 - `docs/rules/tdd.md`에 따라 Store 동작 변경은 실패 테스트를 먼저 작성하고 실행한다.
 - 순수 UI 배치와 뒤로가기 View 이벤트는 TDD 예외 대상으로 보고 최종 보고에 이유를 명시한다.
 - 제출 실패 외의 `error.localizedDescription` 기반 에러 메시지 흐름을 불필요하게 바꾸지 않는다.
-- 설정 화면 뒤로가기 모달 제거를 위해 Store의 `hasUnsavedChanges`를 바꾸지 않는다. 해당 값은 설정 CTA 활성화에도 사용된다.
+- 설정 화면 뒤로가기 모달 제거는 View의 뒤로가기 분기로 처리하고, Store 상태를 모달 표시 목적에 맞춰 왜곡하지 않는다.
 - 변경 화면의 미저장 변경 확인 모달을 실수로 제거하지 않는다.
 - 커밋과 푸시는 `docs/rules/git.md`에 따라 사용자에게 명시적으로 승인받은 뒤 수행한다.
 
