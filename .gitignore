@@ -67,24 +67,19 @@ Derived/
 Tuist/.build
 .build/
 
-### Claude ###
+### AI Agents ###
+.agents/
 .claude/
-
-### Codex ###
 .codex/
+.opencode/
+.github/instructions/
+.github/copilot-instructions.md
 
 ### Config ###
 *.xcconfig
 
-### Copilot ###
-.github/instructions/
-.github/copilot-instructions.md
-
 ### VSCode ###
 .vscode/
-
-### OpenCode ###
-.opencode/
 
 ### Module Scripts ###
 .module_backup/
