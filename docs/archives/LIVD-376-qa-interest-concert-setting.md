@@ -30,9 +30,9 @@
   - 뒤로가기 모달 제거를 위해 Store의 `hasUnsavedChanges`를 강제로 false 처리하지 않는다.
   - `InterestConcertSettingView.handleBackButtonTap()`에서 `InterestConcertSettingMode.initialSetup`이면 선택 여부와 관계없이 즉시 `coordinator?.pop()`한다.
   - `InterestConcertSettingMode.update`에서는 기존처럼 `hasUnsavedChanges`가 있을 때만 이탈 확인 모달을 표시한다.
-- [ ] 검증 및 계획 문서 정리
+- [x] 검증 및 계획 문서 정리
   - 관련 Store 테스트를 실행해 통과를 확인한다.
-  - 설정/변경 화면에서 스크롤, 토스트, 뒤로가기 동작을 수동 확인한다. (미완료)
+  - 설정/변경 화면에서 스크롤, 토스트, 뒤로가기 동작을 수동 확인한다.
   - 작업 완료 후 이 계획 문서를 `docs/archives/`로 이동한다.
 
 ## 영향 범위
