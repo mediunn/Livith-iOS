@@ -132,9 +132,11 @@ private extension HomeInterestConcertSectionView {
                     .notosans(.headSemibold)
                     .foregroundStyle(Color.livithColor(.white100))
 
-                Image.livithIcon(showSortOption ? .upLineSmall : .down1_5LineSmall)
+                Image.livithIcon(showSortOption ? .sortUp : .sortDown)
+                    .resizable()
                     .renderingMode(.template)
-                    .foregroundStyle(Color.livithColor(.white100))
+                    .foregroundStyle(Color.livithColor(.black50))
+                    .frame(width: 8, height: 8)
             }
         }
     }
