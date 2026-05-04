@@ -13,12 +13,12 @@
 - 조회 조건과 Store 동작을 테스트로 보호한다.
 
 ## 작업 항목
-- [ ] 관심 콘서트 전체 페이지 조회 조건을 Domain에 추가한다.
+- [x] 관심 콘서트 전체 페이지 조회 조건을 Domain에 추가한다.
   - `InterestConcertListFilter`에 `static func initialSelectionPage(limit: Int, nextToken: (any NextToken)? = nil) -> InterestConcertListFilter`를 추가한다.
   - `initialSelectionPage`는 `sort == nil`, `limit == 전달값`, `nextToken == 전달값`을 가진다.
   - 기존 `InterestConcertListFilter.all` 팩토리는 제거한다.
   - `UserRepository.fetchInterestedConcert()` extension 편의 메서드는 현재 호출처가 없고 `.all`에 의존하므로 제거한다.
-- [ ] 변경 화면 Store의 초기 선택 조회를 페이지 전체 수집 방식으로 수정한다.
+- [x] 변경 화면 Store의 초기 선택 조회를 페이지 전체 수집 방식으로 수정한다.
   - update 모드에서 첫 페이지를 조회한 뒤 `nextToken`이 없을 때까지 다음 페이지를 반복 조회한다.
   - 전체 페이지 수집은 private accumulator에서 수행하고, 모든 페이지가 성공한 뒤 aggregated `ListResult<InterestConcert>`를 한 번만 Store state에 반영한다.
   - 두 번째 이후 페이지에서 실패해도 앞 페이지 결과를 부분 선택값으로 반영하지 않는다.
@@ -26,7 +26,7 @@
   - update 모드에서 유저의 관심 콘서트 전체 조회가 진행 중이면 화면은 기존 `loadingView`를 계속 표시한다.
   - `toggleConcertSelection`, `removeSelectedConcert`, `submit`은 `state.isInitialLoading == true`일 때 무시한다.
   - 조회 실패 시 기존처럼 `errorMessage`를 설정하고, 초기 선택값은 비워 둔다.
-- [ ] 테스트를 먼저 추가하고 실패를 확인한 뒤 구현한다.
+- [x] 테스트를 먼저 추가하고 실패를 확인한 뒤 구현한다.
   - 기존 `InterestConcertListFilter.all` 테스트는 `initialSelectionPage` 테스트로 대체한다.
   - `UserRepository.fetchInterestedConcert()` 제거 후 해당 extension 호출이 남지 않는지 컴파일로 확인한다.
   - update 모드에서 관심 콘서트 첫 페이지에 `nextToken`이 있으면 다음 페이지까지 조회하는지 검증한다.
@@ -35,10 +35,10 @@
   - 두 번째 이후 페이지 실패 시 선택 ID와 선택 콘서트 목록을 부분 반영하지 않는지 검증한다.
   - update 모드에서는 유저의 관심 콘서트 전체 조회 완료 전까지 `state.isInitialLoading == true`이고 grid 대신 로딩 상태가 유지되는지 검증한다.
   - update 모드 초기 로딩 중 선택 변경과 제출 intent가 무시되는지 검증한다.
-- [ ] 변경 범위를 검증한다.
-  - `tuist test HomeFeatureTests`로 Store 테스트를 실행한다.
-  - `tuist test DomainTests`로 조회 조건 테스트를 실행한다.
-  - 필요 시 `tuist test LivithNetworkTests`로 query 생성 회귀를 확인한다.
+- [x] 변경 범위를 검증한다.
+  - `tuist test HomeFeature`로 Store 테스트를 실행한다.
+  - `tuist test Domain`으로 조회 조건 테스트를 실행한다.
+  - 필요 시 `tuist test LivithNetwork`로 query 생성 회귀를 확인한다.
 
 ## 영향 범위
 - `Projects/Domain`
@@ -73,7 +73,7 @@
 - 보안 규칙에 따라 인증 토큰이나 민감한 응답 원문을 로그, 테스트, 문서에 남기지 않는다.
 
 ## 검증 방법
-- `tuist test HomeFeatureTests`
-- `tuist test DomainTests`
-- 필요 시 `tuist test LivithNetworkTests`
+- `tuist test HomeFeature`
+- `tuist test Domain`
+- 필요 시 `tuist test LivithNetwork`
 - 테스트/빌드 실행이 환경 제약으로 실패하면 실패 명령, 오류 요약, 미검증 범위를 최종 보고에 남긴다.

@@ -53,7 +53,12 @@ public struct InterestConcertListFilter {
 }
 
 public extension InterestConcertListFilter {
-    static let all = InterestConcertListFilter()
+    static func initialSelectionPage(
+        limit: Int,
+        nextToken: (any NextToken)? = nil
+    ) -> InterestConcertListFilter {
+        InterestConcertListFilter(limit: limit, nextToken: nextToken)
+    }
 
     static func homeSection(sort: InterestConcertSort = .ticketing) -> InterestConcertListFilter {
         InterestConcertListFilter(sort: sort, limit: 5)

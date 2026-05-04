@@ -94,12 +94,117 @@ struct InterestConcertSettingStoreTests {
         // Then
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == nil)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == nil)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 20)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.nextToken == nil)
         #expect(sut.state.selectedConcertIDList == [2, 4])
         #expect(sut.state.selectedConcertList.map(\.id) == [2, 4])
         #expect(!sut.state.isCTAEnabled)
         #expect(!sut.state.hasUnsavedChanges)
+    }
+
+    @Test("update 모드는 저장된 관심 콘서트 다음 token이 없을 때까지 조회해 초기 선택값으로 사용해야 한다")
+    func update_모드는_저장된_관심_콘서트를_마지막_페이지까지_조회해_초기_선택값으로_사용해야_한다() async throws {
+        // Given
+        let nextToken = InitialSelectionNextToken(id: 2)
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.userRepository.interestConcertListResultQueue = [
+            .success(ListResult(items: makeInterestConcertList([2, 4]), nextToken: nextToken)),
+            .success(ListResult(items: makeInterestConcertList([5]), nextToken: nil))
+        ]
+
+        // When
+        let sut = InterestConcertSettingStore(mode: .update)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
+        let filterList = container.userRepository.fetchInterestedConcertListFilterList
+        #expect(filterList.map(\.sort) == [nil, nil])
+        #expect(filterList.map(\.limit) == [20, 20])
+        #expect(filterList.first?.nextToken == nil)
+        #expect(filterList.dropFirst().first?.nextToken as? InitialSelectionNextToken == nextToken)
+        #expect(sut.state.selectedConcertIDList == [2, 4, 5])
+        #expect(sut.state.selectedConcertList.map(\.id) == [2, 4, 5])
+        #expect(!sut.state.isInitialLoading)
+        #expect(!sut.state.isCTAEnabled)
+        #expect(!sut.state.hasUnsavedChanges)
+    }
+
+    @Test("update 모드는 관심 콘서트 전체 조회가 끝날 때까지 초기 로딩 상태를 유지해야 한다")
+    func update_모드는_관심_콘서트_전체_조회가_끝날_때까지_초기_로딩_상태를_유지해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.userRepository.fetchInterestedConcertListDelayQueue = [300_000_000]
+        container.userRepository.interestConcertListResultQueue = [
+            .success(ListResult(items: makeInterestConcertList([2]), nextToken: nil))
+        ]
+
+        // When
+        let sut = InterestConcertSettingStore(mode: .update)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.isInitialLoading)
+
+        // When
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        // Then
+        #expect(!sut.state.isInitialLoading)
+        #expect(sut.state.selectedConcertIDList == [2])
+    }
+
+    @Test("update 모드는 초기 로딩 중 선택 변경과 제출을 무시해야 한다")
+    func update_모드는_초기_로딩_중_선택_변경과_제출을_무시해야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.userRepository.fetchInterestedConcertListDelayQueue = [300_000_000]
+        container.userRepository.interestConcertListResultQueue = [
+            .success(ListResult(items: makeInterestConcertList([2]), nextToken: nil))
+        ]
+        let sut = InterestConcertSettingStore(mode: .update)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.toggleConcertSelection(1))
+        sut.send(.submit)
+
+        // Then
+        #expect(sut.state.selectedConcertIDList.isEmpty)
+        #expect(!sut.state.isCTAEnabled)
+        #expect(container.userRepository.updateInterestedConcertListCallCount == 0)
+
+        // Cleanup
+        try await Task.sleep(nanoseconds: 300_000_000)
+    }
+
+    @Test("update 모드는 관심 콘서트 다음 페이지 조회 실패 시 부분 선택값을 반영하지 않아야 한다")
+    func update_모드는_관심_콘서트_다음_페이지_조회_실패_시_부분_선택값을_반영하지_않아야_한다() async throws {
+        // Given
+        container.concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+        ]
+        container.userRepository.interestConcertListResultQueue = [
+            .success(ListResult(items: makeInterestConcertList([2]), nextToken: InitialSelectionNextToken(id: 2))),
+            .failure(.serverError)
+        ]
+
+        // When
+        let sut = InterestConcertSettingStore(mode: .update)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
+        #expect(sut.state.selectedConcertIDList.isEmpty)
+        #expect(sut.state.selectedConcertList.isEmpty)
+        #expect(!sut.state.isInitialLoading)
+        #expect(!sut.state.errorMessage.isEmpty)
     }
 
     @Test("initialSetup 모드는 선택 변경에 따라 CTA 활성화 상태를 갱신해야 한다")
@@ -551,3 +656,7 @@ private extension InterestConcertSettingStoreTests {
 }
 
 private struct TestNextToken: NextToken {}
+
+private struct InitialSelectionNextToken: NextToken, Equatable {
+    let id: Int
+}

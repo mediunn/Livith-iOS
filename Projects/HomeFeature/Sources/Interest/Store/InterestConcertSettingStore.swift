@@ -96,6 +96,8 @@ final class InterestConcertSettingStore: ObservableObject {
     private var selectedConcertByID: [Int: Concert]
     private var baseNextToken: (any NextToken)?
     private var searchCursor: Int?
+    private var isBaseConcertListLoading: Bool
+    private var isInitialSelectionLoading: Bool
     private var searchDebounceTask: Task<Void, Never>?
     private var searchFetchTask: Task<Void, Never>?
 
@@ -107,6 +109,8 @@ final class InterestConcertSettingStore: ObservableObject {
         self.selectedConcertByID = [:]
         self.baseNextToken = nil
         self.searchCursor = nil
+        self.isBaseConcertListLoading = true
+        self.isInitialSelectionLoading = mode == .update
 
         self.state = InterestConcertSettingState(
             mode: mode
@@ -132,12 +136,16 @@ final class InterestConcertSettingStore: ObservableObject {
         case .setSearchFocused(let isFocused):
             state.isSearchFocused = isFocused
         case .toggleConcertSelection(let concertID):
+            guard !state.isInitialLoading else { return }
+
             state.selectedConcertIDList = toggledConcertIDList(
                 from: state.selectedConcertIDList,
                 concertID: concertID
             )
             syncSelectionState()
         case .removeSelectedConcert(let concertID):
+            guard !state.isInitialLoading else { return }
+
             state.selectedConcertIDList = removedConcertIDList(
                 from: state.selectedConcertIDList,
                 concertID: concertID
@@ -164,6 +172,7 @@ final class InterestConcertSettingStore: ObservableObject {
             }
         case .submit:
             guard state.isCTAEnabled, !state.isSubmitting else { return }
+            guard !state.isInitialLoading else { return }
 
             state.isSubmitting = true
             state.errorMessage = ""
@@ -184,8 +193,10 @@ final class InterestConcertSettingStore: ObservableObject {
             case .failure(let error):
                 state.errorMessage = error.localizedDescription
             }
+            isInitialSelectionLoading = false
+            updateInitialLoadingState()
         case ._fetchFirstPageResult(let result):
-            state.isInitialLoading = false
+            isBaseConcertListLoading = false
             switch result {
             case .success(let listResult):
                 baseConcertList = listResult.items
@@ -203,6 +214,7 @@ final class InterestConcertSettingStore: ObservableObject {
                 state.hasMoreConcertList = false
                 state.errorMessage = error.localizedDescription
             }
+            updateInitialLoadingState()
         case ._fetchNextPageResult(let result):
             state.isLoadingMore = false
             switch result {
@@ -267,7 +279,7 @@ private extension InterestConcertSettingStore {
 
         Task {
             do {
-                let result = try await repository.fetchInterestedConcertList(filter: .all)
+                let result = try await fetchInitialSelectionPageList(repository: repository)
                 send(._fetchInitialSelectionResult(.success(result)))
             } catch {
                 send(._fetchInitialSelectionResult(.failure(error)))
@@ -347,6 +359,26 @@ private extension InterestConcertSettingStore {
         }
     }
 
+    func fetchInitialSelectionPageList(
+        repository: UserRepository
+    ) async throws(UserError) -> ListResult<InterestConcert> {
+        var interestConcertList: [InterestConcert] = []
+        var nextToken: (any NextToken)?
+
+        repeat {
+            let page = try await repository.fetchInterestedConcertList(
+                filter: .initialSelectionPage(
+                    limit: Constants.initialSelectionPageSize,
+                    nextToken: nextToken
+                )
+            )
+            interestConcertList.append(contentsOf: page.items)
+            nextToken = page.nextToken
+        } while nextToken != nil
+
+        return ListResult(items: interestConcertList, nextToken: nil)
+    }
+
     func mergeSelectedConcerts(_ concertList: [Concert]) {
         for concert in concertList {
             selectedConcertByID[concert.id] = concert
@@ -419,6 +451,10 @@ private extension InterestConcertSettingStore {
     func removedConcertIDList(from selectedConcertIDList: [Int], concertID: Int) -> [Int] {
         selectedConcertIDList.filter { $0 != concertID }
     }
+
+    func updateInitialLoadingState() {
+        state.isInitialLoading = isBaseConcertListLoading || isInitialSelectionLoading
+    }
 }
 
 private extension InterestConcertSettingStore {
@@ -432,6 +468,7 @@ private extension InterestConcertSettingStore {
 
     enum Constants {
         static let pageSize = 12
+        static let initialSelectionPageSize = 20
         static let searchDebounceDuration: Duration = .milliseconds(300)
         static let searchStatusList: [ConcertStatus] = [.ongoing, .upcoming]
     }
