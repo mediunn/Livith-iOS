@@ -96,8 +96,16 @@ final class InterestConcertSettingStore: ObservableObject {
     private var selectedConcertByID: [Int: Concert]
     private var baseNextToken: (any NextToken)?
     private var searchCursor: Int?
-    private var isBaseConcertListLoading: Bool
-    private var isInitialSelectionLoading: Bool
+    private var isBaseConcertListLoading: Bool {
+        didSet {
+            updateInitialLoadingState()
+        }
+    }
+    private var isInitialSelectionLoading: Bool {
+        didSet {
+            updateInitialLoadingState()
+        }
+    }
     private var searchDebounceTask: Task<Void, Never>?
     private var searchFetchTask: Task<Void, Never>?
 
@@ -194,9 +202,7 @@ final class InterestConcertSettingStore: ObservableObject {
                 state.errorMessage = error.localizedDescription
             }
             isInitialSelectionLoading = false
-            updateInitialLoadingState()
         case ._fetchFirstPageResult(let result):
-            isBaseConcertListLoading = false
             switch result {
             case .success(let listResult):
                 baseConcertList = listResult.items
@@ -214,7 +220,7 @@ final class InterestConcertSettingStore: ObservableObject {
                 state.hasMoreConcertList = false
                 state.errorMessage = error.localizedDescription
             }
-            updateInitialLoadingState()
+            isBaseConcertListLoading = false
         case ._fetchNextPageResult(let result):
             state.isLoadingMore = false
             switch result {
@@ -388,7 +394,6 @@ private extension InterestConcertSettingStore {
     func syncSelectionState() {
         state.selectedConcertList = state.selectedConcertIDList.compactMap { selectedConcertByID[$0] }
         state.hasUnsavedChanges = Self.hasUnsavedChanges(
-            mode: state.mode,
             selectedConcertIDList: state.selectedConcertIDList,
             initialSelectedConcertIDList: initialSelectedConcertIDList
         )
@@ -459,7 +464,6 @@ private extension InterestConcertSettingStore {
 
 private extension InterestConcertSettingStore {
     static func hasUnsavedChanges(
-        mode _: InterestConcertSettingMode,
         selectedConcertIDList: [Int],
         initialSelectedConcertIDList: [Int]
     ) -> Bool {
