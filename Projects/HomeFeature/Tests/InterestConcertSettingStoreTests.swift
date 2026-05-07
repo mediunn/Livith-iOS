@@ -94,7 +94,7 @@ struct InterestConcertSettingStoreTests {
         // Then
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == nil)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 20)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 50)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.nextToken == nil)
         #expect(sut.state.selectedConcertIDList == [2, 4])
         #expect(sut.state.selectedConcertList.map(\.id) == [2, 4])
@@ -122,7 +122,7 @@ struct InterestConcertSettingStoreTests {
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
         let filterList = container.userRepository.fetchInterestedConcertListFilterList
         #expect(filterList.map(\.sort) == [nil, nil])
-        #expect(filterList.map(\.limit) == [20, 20])
+        #expect(filterList.map(\.limit) == [50, 50])
         #expect(filterList.first?.nextToken == nil)
         #expect(filterList.dropFirst().first?.nextToken as? InitialSelectionNextToken == nextToken)
         #expect(sut.state.selectedConcertIDList == [2, 4, 5])

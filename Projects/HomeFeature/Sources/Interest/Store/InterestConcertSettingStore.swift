@@ -472,7 +472,7 @@ private extension InterestConcertSettingStore {
 
     enum Constants {
         static let pageSize = 12
-        static let initialSelectionPageSize = 20
+        static let initialSelectionPageSize = 50
         static let searchDebounceDuration: Duration = .milliseconds(300)
         static let searchStatusList: [ConcertStatus] = [.ongoing, .upcoming]
     }
