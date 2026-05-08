@@ -47,7 +47,7 @@
 - Alamofire 패키지 제거는 마이그레이션 완료 후 별도 작업으로 다룬다.
 
 ## 작업 단위 원칙
-- 설계 문서는 하나의 결정 주제만 다룬다.
+- 설계 문서는 하나의 결정 주제나 밀접하게 연결된 결정 묶음만 다룬다.
 - 계획 문서는 하나의 작은 구현 단위만 다룬다.
 - 설계 문서에는 구현 체크박스를 두지 않는다.
 - 구현 체크리스트와 검증 명령은 `docs/plans/`의 계획 문서에만 작성한다.
@@ -61,7 +61,7 @@
 - 모듈 외부에서 자주 쓰는 네트워크 계약 타입은 충돌을 줄이기 위해 `Network` 접두사를 사용할 수 있다.
 
 ## 후속 설계 문서
-- `LIVD-298-livith-networking-basic-request.md`: 기초 통신 API와 요청 생성 경계
+- `LIVD-298-livith-networking-basic-request.md`: 기초 요청 계약과 `URLRequest` 생성 경계
 - `LIVD-298-livith-networking-response.md`: 공통 응답, 빈 응답, 에러 처리 경계
 - `LIVD-298-livith-networking-token.md`: 토큰 삽입, refresh, 401 retry 경계
 - `LIVD-298-livith-networking-etag-cache.md`: ETag 메모리 캐시 정책
