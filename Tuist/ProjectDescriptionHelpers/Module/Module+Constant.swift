@@ -20,6 +20,13 @@ public enum CoreModule: String {
     case amplitude = "Amplitude"
 }
 
+// MARK: - LivithNetworking Module
+
+public enum LivithNetworkingModule: String {
+    case livithNetworking = "LivithNetworking"
+    case livithNetworkingTests = "LivithNetworkingTests"
+}
+
 // MARK: - Login Module
 
 public enum LoginModule: String {

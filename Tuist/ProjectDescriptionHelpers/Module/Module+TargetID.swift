@@ -12,6 +12,7 @@ import ProjectDescription
 public enum TargetID {
     case app
     case core(CoreModule)
+    case livithNetworking(LivithNetworkingModule)
     case login(LoginModule)
     case search(SearchModule)
     case song(SongModule)
@@ -29,6 +30,7 @@ public enum TargetID {
         switch self {
         case .app: return BuildConfiguration.appName
         case .core(let module): return module.rawValue
+        case .livithNetworking(let module): return module.rawValue
         case .login(let module): return module.rawValue
         case .search(let module): return module.rawValue
         case .song(let module): return module.rawValue
@@ -59,6 +61,8 @@ public enum TargetID {
             return ["Sources/**"]
         case .core(let module):
             return coreModuleTestSourcePath(module) ?? ["\(module.rawValue)/Sources/**"]
+        case .livithNetworking(let module):
+            return livithNetworkingSourcePath(module)
         case .login:
             return ["Sources/**"]
         case .search:
@@ -136,6 +140,15 @@ private extension TargetID {
 
         guard let parentModule = testModuleMappings[module] else { return nil }
         return ["\(parentModule)/Tests/**"]
+    }
+
+    func livithNetworkingSourcePath(_ module: LivithNetworkingModule) -> SourceFilesList {
+        switch module {
+        case .livithNetworking:
+            return ["Sources/**"]
+        case .livithNetworkingTests:
+            return ["Tests/**"]
+        }
     }
 
     func sharedSourcePath(_ module: SharedModule) -> SourceFilesList {

@@ -14,6 +14,10 @@ extension TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.core.path)
     }
 
+    public static func livithNetworking(_ module: LivithNetworkingModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.livithNetworking.path)
+    }
+
     public static func login(_ module: LoginModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.login.path)
     }
