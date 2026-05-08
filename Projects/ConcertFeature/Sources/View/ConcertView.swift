@@ -373,7 +373,9 @@ private extension ConcertView {
         .frame(width: UIScreen.main.bounds.width, height: 337)
         .clipped()
         .overlay {
-            Color.black.opacity(0.7)
+            if store.state.concert?.posterURL != nil {
+                Color.black.opacity(0.7)
+            }
         }
     }
 }
