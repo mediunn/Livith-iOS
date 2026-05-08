@@ -21,6 +21,7 @@ struct HomeInterestConcertSectionView: View {
     let onChangeTap: () -> Void
     let onTitleTap: () -> Void
     let onSortSelected: (InterestConcertSort) -> Void
+    let onConcertTap: (InterestConcert) -> Void
 
     @State private var currentPage: Int = 0
     @State private var showSortOption: Bool = false
@@ -29,16 +30,18 @@ struct HomeInterestConcertSectionView: View {
 
     init(
         interestConcertList: [InterestConcert],
-        selectedSort: InterestConcertSort = .concert,
+        selectedSort: InterestConcertSort = .ticketing,
         onChangeTap: @escaping () -> Void = {},
         onTitleTap: @escaping () -> Void = {},
-        onSortSelected: @escaping (InterestConcertSort) -> Void = { _ in }
+        onSortSelected: @escaping (InterestConcertSort) -> Void = { _ in },
+        onConcertTap: @escaping (InterestConcert) -> Void = { _ in }
     ) {
         self.interestConcertList = interestConcertList
         self.selectedSort = selectedSort
         self.onTitleTap = onTitleTap
         self.onChangeTap = onChangeTap
         self.onSortSelected = onSortSelected
+        self.onConcertTap = onConcertTap
     }
 
     // MARK: - Body
@@ -105,7 +108,7 @@ private extension HomeInterestConcertSectionView {
                 sortButton
 
                 Text("이 가까운")
-                    .notosans(.body1Semibold)
+                    .notosans(.headSemibold)
                     .foregroundStyle(Color.livithColor(.white100))
             }
 
@@ -126,12 +129,14 @@ private extension HomeInterestConcertSectionView {
         } label: {
             HStack(spacing: 4) {
                 Text(selectedSort.title)
-                    .notosans(.body1Semibold)
+                    .notosans(.headSemibold)
                     .foregroundStyle(Color.livithColor(.white100))
 
-                Image.livithIcon(showSortOption ? .upLineSmall : .down1_5LineSmall)
+                Image.livithIcon(showSortOption ? .sortUp : .sortDown)
+                    .resizable()
                     .renderingMode(.template)
-                    .foregroundStyle(Color.livithColor(.white100))
+                    .foregroundStyle(Color.livithColor(.black50))
+                    .frame(width: 8, height: 8)
             }
         }
     }
@@ -163,12 +168,11 @@ private extension HomeInterestConcertSectionView {
 
     var titleButton: some View {
         Button {
-            // TODO: 관심 콘서트 목록/상세 뷰 확정 후 이동을 연결한다.
             onTitleTap()
         } label: {
             HStack(spacing: 4) {
                 Text("관심 콘서트")
-                    .notosans(.body1Semibold)
+                    .notosans(.headSemibold)
 
                 Image.livithIcon(.rightLineDefault)
                     .resizable()
@@ -207,6 +211,7 @@ private extension HomeInterestConcertSectionView {
         }
         .contentShape(Rectangle())
         .gesture(dragGesture)
+        .onTapGesture(perform: handleCardTapped)
     }
 
     var pageIndicatorView: some View {
@@ -239,6 +244,12 @@ private extension HomeInterestConcertSectionView {
         withAnimation(.easeInOut(duration: Constants.animationDuration)) {
             currentPage = newIndex
         }
+    }
+
+    func handleCardTapped() {
+        guard interestConcertList.indices.contains(currentPage) else { return }
+
+        onConcertTap(interestConcertList[currentPage])
     }
 
     func calculateNewIndex(from horizontalAmount: CGFloat) -> Int {
@@ -290,7 +301,7 @@ private extension HomeInterestConcertSectionView {
 }
 
 private extension InterestConcertSort {
-    static let homeOptionList: [InterestConcertSort] = [.concert, .ticketing]
+    static let homeOptionList: [InterestConcertSort] = [.ticketing, .concert]
 
     var title: String {
         switch self {

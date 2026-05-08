@@ -63,7 +63,7 @@ struct InterestConcertDisplayTextTests {
         #expect(badge == "공연 예정")
     }
 
-    @Test("D-day가 0이면 배지는 공연 D-Day 문구를 표시해야 한다")
+    @Test("D-day가 0이면 배지는 공연 D-DAY 문구를 표시해야 한다")
     func dday가_0이면_배지는_공연_dday_문구를_표시해야_한다() {
         // Given
         let interestConcert = makeInterestConcert(daysLeft: 0)
@@ -72,7 +72,7 @@ struct InterestConcertDisplayTextTests {
         let badge = InterestConcertDisplayText.badge(for: interestConcert)
 
         // Then
-        #expect(badge == "공연 D-Day")
+        #expect(badge == "공연 D-DAY")
     }
 
     @Test("D-day가 양수이면 배지는 공연 D-day 문구를 표시해야 한다")
@@ -111,6 +111,18 @@ struct InterestConcertDisplayTextTests {
         #expect(badge == "공연취소")
     }
 
+    @Test("진행중 공연이면 배지는 공연 D-DAY 문구를 표시해야 한다")
+    func 진행중_공연이면_배지는_공연_dday_문구를_표시해야_한다() {
+        // Given
+        let interestConcert = makeInterestConcert(status: .ongoing)
+
+        // When
+        let badge = InterestConcertDisplayText.badge(for: interestConcert)
+
+        // Then
+        #expect(badge == "공연 D-DAY")
+    }
+
     @Test("D-day가 0이면 하단 문구는 공연 진행 중을 표시해야 한다")
     func dday가_0이면_하단_문구는_공연_진행_중을_표시해야_한다() {
         // Given
@@ -121,6 +133,30 @@ struct InterestConcertDisplayTextTests {
 
         // Then
         #expect(bottom == "공연 진행 중")
+    }
+
+    @Test("진행중 공연이면 하단 문구는 콘서트 진행중을 표시해야 한다")
+    func 진행중_공연이면_하단_문구는_콘서트_진행중을_표시해야_한다() {
+        // Given
+        let interestConcert = makeInterestConcert(status: .ongoing, daysLeft: nil)
+
+        // When
+        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "콘서트 진행중")
+    }
+
+    @Test("예정 공연의 D-day가 0이면 하단 문구는 콘서트 진행중을 표시하지 않아야 한다")
+    func 예정_공연의_dday가_0이면_하단_문구는_콘서트_진행중을_표시하지_않아야_한다() {
+        // Given
+        let interestConcert = makeInterestConcert(status: .upcoming, daysLeft: 0)
+
+        // When
+        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom != "콘서트 진행중")
     }
 
     @Test("선예매 일정이 있으면 하단 문구는 선예매 오픈 문구를 우선 표시해야 한다")

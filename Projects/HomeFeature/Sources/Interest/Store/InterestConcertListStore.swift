@@ -15,7 +15,7 @@ import Domain
 
 struct InterestConcertListState {
     var interestConcertList: [InterestConcert] = []
-    var selectedSort: InterestConcertSort = .concert
+    var selectedSort: InterestConcertSort = .ticketing
     var hasMorePages: Bool = true
     var isInitialLoading: Bool = false
     var isLoadingMore: Bool = false

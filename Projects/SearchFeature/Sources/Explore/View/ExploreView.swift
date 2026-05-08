@@ -223,7 +223,7 @@ private extension ExploreView {
                         title: ConcertDisplayText.title(for: concert),
                         subtitle: concert.formattedStartDate,
                         secondaryText: concert.artist,
-                        badge: .status(text: concert.status.statusChipText, remainDays: concert.daysLeft),
+                        badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
                         onTap: {
                             AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
                             coordinator?.showConcertDetail(concertID: concert.id)

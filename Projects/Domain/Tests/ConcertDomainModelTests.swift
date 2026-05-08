@@ -67,21 +67,24 @@ struct ConcertDomainModelTests {
         #expect(interestConcert.ticketingSchedule.generalSaleDate == nil)
     }
 
-    @Test("InterestConcertListFilter all은 모든 조회 조건을 생략해야 한다")
-    func interestConcertListFilter_all은_모든_조회_조건을_생략해야_한다() {
+    @Test("InterestConcertListFilter initialSelectionPage는 정렬 없이 페이지 크기와 다음 token을 제공해야 한다")
+    func interestConcertListFilter_initialSelectionPage는_정렬_없이_페이지_크기와_다음_token을_제공해야_한다() {
+        // Given
+        let nextToken = TestNextToken()
+
         // When
-        let filter = InterestConcertListFilter.all
+        let filter = InterestConcertListFilter.initialSelectionPage(limit: 20, nextToken: nextToken)
 
         // Then
         #expect(filter.sort == nil)
-        #expect(filter.limit == nil)
-        #expect(filter.nextToken == nil)
+        #expect(filter.limit == 20)
+        #expect(filter.nextToken != nil)
     }
 
     @Test("InterestConcertListFilter는 홈 섹션 조회 조건을 제공해야 한다")
     func interestConcertListFilter는_홈_섹션_조회_조건을_제공해야_한다() {
         // When
-        let filter = InterestConcertListFilter.homeSection(sort: .ticketing)
+        let filter = InterestConcertListFilter.homeSection()
 
         // Then
         #expect(filter.sort == .ticketing)

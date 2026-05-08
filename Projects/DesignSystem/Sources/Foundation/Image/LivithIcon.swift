@@ -63,6 +63,8 @@ public extension Image {
         case searchLineVariant2 = "icn_search_line_variant2"
         case settingLine = "icn_setting_line"
         case settingFill = "icn_setting_fill"
+        case sortDown = "icn_sort_down"
+        case sortUp = "icn_sort_up"
         case ticketDisabled = "icn_ticket_disabled"
         case ticketEnabled = "icn_ticket_enabled"
         case ticketPressed = "icn_ticket_pressed"

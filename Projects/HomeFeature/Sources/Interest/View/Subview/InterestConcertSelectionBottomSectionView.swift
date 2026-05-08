@@ -50,7 +50,7 @@ struct InterestConcertSelectionBottomSectionView: View {
 private extension InterestConcertSelectionBottomSectionView {
     var selectedConcertChipScrollView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            LazyHStack(spacing: 8) {
                 ForEach(selectedConcertList) { concert in
                     RemovableChip(truncatedTitle(for: ConcertDisplayText.title(for: concert))) {
                         onRemoveSelectedConcert(concert.id)

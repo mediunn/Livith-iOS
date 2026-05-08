@@ -19,9 +19,3 @@ public protocol UserRepository {
     func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert]
     func deleteInterestedConcert() async throws(UserError)
 }
-
-public extension UserRepository {
-    func fetchInterestedConcert() async throws(UserError) -> Concert? {
-        try await fetchInterestedConcertList(filter: .all).items.first?.concert
-    }
-}

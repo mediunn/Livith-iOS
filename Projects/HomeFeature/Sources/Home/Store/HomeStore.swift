@@ -16,7 +16,7 @@ import Domain
 struct HomeState {
     var user: User? = nil
     var interestConcertList: [InterestConcert] = []
-    var interestConcertSort: InterestConcertSort = .concert
+    var interestConcertSort: InterestConcertSort = .ticketing
     var errorMessage: String = ""
     var hasNewNotice: Bool = false
     var concertSectionList: [ConcertSection] = []

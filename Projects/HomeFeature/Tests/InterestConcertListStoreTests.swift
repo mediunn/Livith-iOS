@@ -45,7 +45,7 @@ struct InterestConcertListStoreTests {
 
         // Then
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .concert)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .ticketing)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 12)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.nextToken == nil)
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2])
@@ -143,20 +143,20 @@ struct InterestConcertListStoreTests {
     @Test("정렬 변경 성공 시 목록과 다음 페이지 여부를 새 정렬 결과로 교체해야 한다")
     func 정렬_변경_성공은_목록과_다음_페이지_여부를_새_정렬_결과로_교체해야_한다() async throws {
         // Given
-        let concertToken = makeToken(id: 2)
-        let ticketingToken = makeToken(id: 12)
+        let ticketingToken = makeToken(id: 2)
+        let concertToken = makeToken(id: 12)
         container.userRepository.interestConcertListResultQueue = [
-            .success(makeListResult(concertIDList: [1, 2], nextToken: concertToken)),
-            .success(makeListResult(concertIDList: [11, 12], nextToken: ticketingToken))
+            .success(makeListResult(concertIDList: [1, 2], nextToken: ticketingToken)),
+            .success(makeListResult(concertIDList: [11, 12], nextToken: concertToken))
         ]
         let sut = InterestConcertListStore()
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
         // When
-        sut.send(.sortSelected(.ticketing))
+        sut.send(.sortSelected(.concert))
 
-        #expect(sut.state.selectedSort == .ticketing)
+        #expect(sut.state.selectedSort == .concert)
         #expect(sut.state.interestConcertList.isEmpty)
         #expect(sut.state.hasMorePages)
         #expect(sut.state.isInitialLoading)
@@ -166,9 +166,9 @@ struct InterestConcertListStoreTests {
         // Then
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
         let sortFilter = container.userRepository.fetchInterestedConcertListFilterList.dropFirst().first
-        #expect(sortFilter?.sort == .ticketing)
+        #expect(sortFilter?.sort == .concert)
         #expect(sortFilter?.nextToken == nil)
-        #expect(sut.state.selectedSort == .ticketing)
+        #expect(sut.state.selectedSort == .concert)
         #expect(sut.state.interestConcertList.map(\.id) == [11, 12])
         #expect(sut.state.hasMorePages)
         #expect(sut.state.errorMessage.isEmpty)
@@ -186,11 +186,11 @@ struct InterestConcertListStoreTests {
         try await waitForAsyncTask()
 
         // When
-        sut.send(.sortSelected(.ticketing))
+        sut.send(.sortSelected(.concert))
         try await waitForAsyncTask()
 
         // Then
-        #expect(sut.state.selectedSort == .concert)
+        #expect(sut.state.selectedSort == .ticketing)
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2])
         #expect(sut.state.hasMorePages)
         #expect(!sut.state.errorMessage.isEmpty)
@@ -211,12 +211,12 @@ struct InterestConcertListStoreTests {
 
         // When
         sut.send(.loadNextPage)
-        await Task.yield()
-        sut.send(.sortSelected(.ticketing))
+        try await waitUntilFetchInterestedConcertListCallCount(2)
+        sut.send(.sortSelected(.concert))
         try await Task.sleep(nanoseconds: 300_000_000)
 
         // Then
-        #expect(sut.state.selectedSort == .ticketing)
+        #expect(sut.state.selectedSort == .concert)
         #expect(sut.state.interestConcertList.map(\.id) == [11, 12])
         #expect(!sut.state.hasMorePages)
     }
@@ -288,6 +288,16 @@ struct InterestConcertListStoreTests {
 private extension InterestConcertListStoreTests {
     func waitForAsyncTask() async throws {
         try await Task.sleep(nanoseconds: 100_000_000)
+    }
+
+    func waitUntilFetchInterestedConcertListCallCount(_ expectedCount: Int) async throws {
+        for _ in 0..<10 {
+            guard container.userRepository.fetchInterestedConcertListCallCount < expectedCount else { return }
+
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+
+        #expect(container.userRepository.fetchInterestedConcertListCallCount >= expectedCount)
     }
 
     func makeListResult(

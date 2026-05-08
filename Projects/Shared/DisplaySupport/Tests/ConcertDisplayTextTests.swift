@@ -122,8 +122,8 @@ struct ConcertDisplayTextTests {
         #expect(badge == "종료")
     }
 
-    @Test("D-day가 0 이하이면 공연일 문구를 표시해야 한다")
-    func dday가_0_이하이면_공연일_문구를_표시해야_한다() {
+    @Test("D-day가 0이면 진행중 문구를 표시해야 한다")
+    func dday가_0이면_진행중_문구를_표시해야_한다() {
         // Given
         let concert = makeConcert(daysLeft: 0)
 
@@ -131,7 +131,19 @@ struct ConcertDisplayTextTests {
         let daysLeft = ConcertDisplayText.daysLeft(for: concert)
 
         // Then
-        #expect(daysLeft == "공연일")
+        #expect(daysLeft == "진행중")
+    }
+
+    @Test("카드 배지는 예정 공연의 D-day가 0이면 진행중 문구를 표시해야 한다")
+    func 카드_배지는_예정_공연의_dday가_0이면_진행중_문구를_표시해야_한다() {
+        // Given
+        let concert = makeConcert(status: .upcoming, daysLeft: 0)
+
+        // When
+        let badge = ConcertDisplayText.statusBadge(for: concert)
+
+        // Then
+        #expect(badge == "진행중")
     }
 
     @Test("D-day가 양수이면 D-day 문구를 표시해야 한다")

@@ -44,6 +44,10 @@ public enum InterestConcertDisplayText {
     public static func badge(for interestConcert: InterestConcert) -> String {
         let concert = interestConcert.concert
 
+        guard concert.status != .ongoing else {
+            return "공연 D-DAY"
+        }
+
         guard concert.status == .upcoming else {
             return concert.status.filterText
         }
@@ -53,7 +57,7 @@ public enum InterestConcertDisplayText {
         }
 
         guard daysLeft != 0 else {
-            return "공연 D-Day"
+            return "공연 D-DAY"
         }
 
         guard daysLeft > 0 else {
@@ -64,6 +68,10 @@ public enum InterestConcertDisplayText {
     }
 
     public static func bottom(for interestConcert: InterestConcert) -> String {
+        if interestConcert.concert.status == .ongoing {
+            return "콘서트 진행중"
+        }
+
         if interestConcert.concert.daysLeft == 0 {
             return "공연 진행 중"
         }

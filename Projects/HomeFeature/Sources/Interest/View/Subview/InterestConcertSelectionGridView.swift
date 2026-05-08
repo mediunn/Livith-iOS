@@ -62,7 +62,7 @@ private extension InterestConcertSelectionGridView {
         }
         .padding(.top, 20)
         .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .padding(.bottom, Constants.bottomContentPadding)
     }
 
     func concertCard(for concert: Concert) -> some View {
@@ -96,5 +96,6 @@ private extension InterestConcertSelectionGridView {
     enum Constants {
         static let gridColumns = 3
         static let gridSpacing: CGFloat = 12
+        static let bottomContentPadding: CGFloat = 210
     }
 }

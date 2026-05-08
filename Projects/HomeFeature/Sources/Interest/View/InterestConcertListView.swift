@@ -101,7 +101,7 @@ private extension InterestConcertListView {
         } label: {
             HStack(spacing: 4) {
                 Text(store.state.selectedSort.title)
-                    .notosans(.caption1Bold)
+                    .notosans(.body4Medium)
                     .foregroundStyle(Color.livithColor(.white100))
 
                 Image.livithIcon(showSortOption ? .upLineSmall : .down1_5LineSmall)

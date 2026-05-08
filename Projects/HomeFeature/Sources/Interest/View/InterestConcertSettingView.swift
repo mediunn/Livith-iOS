@@ -211,6 +211,11 @@ private extension InterestConcertSettingView {
     }
 
     func handleBackButtonTap() {
+        guard store.state.mode != .initialSetup else {
+            coordinator?.pop()
+            return
+        }
+
         guard store.state.hasUnsavedChanges else {
             coordinator?.pop()
             return

@@ -47,7 +47,7 @@ public enum ConcertDisplayText {
         }
 
         guard daysLeft != 0 else {
-            return "공연일"
+            return ConcertStatus.ongoing.statusChipText
         }
 
         guard daysLeft > 0 else {
