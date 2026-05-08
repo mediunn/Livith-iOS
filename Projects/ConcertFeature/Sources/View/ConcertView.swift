@@ -254,13 +254,12 @@ private extension ConcertView {
     var headerSection: some View {
         ZStack(alignment: .bottom) {
             posterSection
-                .frame(maxWidth: .infinity)
-                .frame(height: 340)
-                .clipped()
 
             concertInfoSection
                 .padding(.bottom, 30)
         }
+        .frame(width: UIScreen.main.bounds.width)
+        .clipped()
     }
 }
 
@@ -347,7 +346,6 @@ private extension ConcertView {
     var posterSection: some View {
         ZStack(alignment: .topTrailing) {
             posterImage
-                .frame(height: 337)
 
             if shouldShowInterestButton {
                 LivithActionButton(
@@ -372,6 +370,8 @@ private extension ConcertView {
             Image.livithImage(.concertCardEmpty)
                 .resizable()
         }
+        .frame(width: UIScreen.main.bounds.width, height: 337)
+        .clipped()
         .overlay {
             Color.black.opacity(0.7)
         }
