@@ -63,7 +63,13 @@ final class SearchStore: ObservableObject {
         case .loadNextPage:
             loadNextPageIfNeeded()
         case .updateSearchMessage(let message):
+            let wasEmpty = state.searchMessage.isEmpty
             state.searchMessage = message
+            if message.isEmpty && !wasEmpty {
+                state.cursor = nil
+                state.hasMorePages = true
+                fetchFilterSearchResult()
+            }
         case .sortStateChanged(let sort):
             state.cursor = nil
             state.sortState = sort
