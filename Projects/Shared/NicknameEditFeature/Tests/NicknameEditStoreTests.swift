@@ -98,6 +98,10 @@ final class MockUserRepository: UserRepository {
         ListResult(items: [], nextToken: nil)
     }
 
+    func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
+        false
+    }
+
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         Concert(
             id: 1,
@@ -121,6 +125,12 @@ final class MockUserRepository: UserRepository {
     }
 
     func deleteInterestedConcert() async throws(UserError) {}
+
+    func fetchInterestConcertToastNeedsToShow() async throws(UserError) -> Bool {
+        false
+    }
+
+    func markInterestConcertToastShown() async throws(UserError) {}
 }
 
 // MARK: - Tests

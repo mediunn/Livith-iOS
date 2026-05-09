@@ -20,6 +20,7 @@ struct HomeView: View {
     @StateObject private var store: HomeStore = .init()
 
     @State private var showErrorToast = false
+    @State private var showInterestConcertToast = false
     @State private var isPreferenceBannerExpanded: Bool = true
 
     // MARK: - Body
@@ -38,6 +39,12 @@ struct HomeView: View {
         .onChange(of: store.state.errorMessage) { _, newValue in
             if !newValue.isEmpty {
                 showErrorToast = true
+                showInterestConcertToast = false
+            }
+        }
+        .onChange(of: store.state.interestConcertToastMessage) { _, newValue in
+            if !newValue.isEmpty && store.state.errorMessage.isEmpty {
+                showInterestConcertToast = true
             }
         }
         .livithToast(
@@ -47,6 +54,18 @@ struct HomeView: View {
             ),
             type: .failure,
             message: store.state.errorMessage
+        )
+        .livithToast(
+            isPresented: Binding(
+                get: {
+                    showInterestConcertToast
+                    && !store.state.interestConcertToastMessage.isEmpty
+                    && !(showErrorToast && !store.state.errorMessage.isEmpty)
+                },
+                set: { if !$0 { showInterestConcertToast = false; store.send(.onInterestConcertToastDisappear) } }
+            ),
+            type: .success,
+            message: store.state.interestConcertToastMessage
         )
     }
 }

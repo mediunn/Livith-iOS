@@ -18,9 +18,12 @@ final class MockUserRepository: UserRepository {
     var fetchInterestedConcertListDelayQueue: [UInt64] = []
     var updatedConcertStub: Concert?
     var updatedConcertListStub: [Concert] = []
+    var interestConcertToastNeedsToShowStub: Bool = false
     var errorStub: UserError?
     var fetchUserErrorStub: UserError?
     var fetchInterestedConcertListErrorStub: UserError?
+    var fetchInterestConcertToastErrorStub: UserError?
+    var markInterestConcertToastShownErrorStub: UserError?
     
     var fetchUserCallCount: Int = 0
     var fetchInterestedConcertListCallCount: Int = 0
@@ -34,6 +37,8 @@ final class MockUserRepository: UserRepository {
     var updateInterestedConcertIDList: [Int]?
     var deleteInterestedConcertCallCount: Int = 0
     var updateNicknameCallCount: Int = 0
+    var fetchInterestConcertToastNeedsToShowCallCount: Int = 0
+    var markInterestConcertToastShownCallCount: Int = 0
 
     func updateNickname(_ nickname: String) async throws(UserError) {
         updateNicknameCallCount += 1
@@ -159,6 +164,27 @@ final class MockUserRepository: UserRepository {
 
     func deleteInterestedConcert() async throws(UserError) {
         deleteInterestedConcertCallCount += 1
+        if let error = errorStub {
+            throw error
+        }
+    }
+
+    func fetchInterestConcertToastNeedsToShow() async throws(UserError) -> Bool {
+        fetchInterestConcertToastNeedsToShowCallCount += 1
+        if let error = fetchInterestConcertToastErrorStub {
+            throw error
+        }
+        if let error = errorStub {
+            throw error
+        }
+        return interestConcertToastNeedsToShowStub
+    }
+
+    func markInterestConcertToastShown() async throws(UserError) {
+        markInterestConcertToastShownCallCount += 1
+        if let error = markInterestConcertToastShownErrorStub {
+            throw error
+        }
         if let error = errorStub {
             throw error
         }
