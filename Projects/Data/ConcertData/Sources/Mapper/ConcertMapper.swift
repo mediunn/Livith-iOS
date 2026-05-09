@@ -48,23 +48,19 @@ struct ConcertMapper {
     }
     
     func toDomain(from response: DTO.Response.FetchConcertInfo) -> Concert? {
-        guard let status = ConcertStatus(rawValue: response.status),
-              let startDate = DateFormatterService.date(from: response.startDate, type: .dotDate),
-              let endDate = DateFormatterService.date(from: response.endDate, type: .dotDate),
-              let posterURL = URL(string: response.posterURL)
-        else {
+        guard let status = ConcertStatus(rawValue: response.status) else {
             return nil
         }
-        
+
         return Concert(
             id: response.id,
-            title: response.title,
+            title: (response.title?.isEmpty == false) ? response.title : nil,
             artist: response.artist,
             status: status,
             daysLeft: response.daysLeft,
-            startDate: startDate,
-            endDate: endDate,
-            posterURL: posterURL,
+            startDate: response.startDate.flatMap { DateFormatterService.date(from: $0, type: .dotDate) },
+            endDate: response.endDate.flatMap { DateFormatterService.date(from: $0, type: .dotDate) },
+            posterURL: response.posterURL.flatMap { URL(string: $0) },
             venue: response.venue,
             ticketSite: response.ticketSite,
             ticketURL: response.ticketURL.flatMap { URL(string: $0) },

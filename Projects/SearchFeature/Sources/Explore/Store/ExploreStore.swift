@@ -78,12 +78,14 @@ final class ExploreStore: ObservableObject {
         case .selectGenre(let genre):
             guard state.selectedGenre != genre else { return }
             state.selectedGenre = genre
+            state.sortState = .latest
             state.cursor = nil
             state.hasMorePages = true
             performFetchConcertList()
 
         case .statusListChanged(let statusList):
             state.selectedStatusList = statusList
+            state.sortState = .latest
             state.cursor = nil
             state.hasMorePages = true
             performFetchConcertList()

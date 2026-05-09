@@ -127,7 +127,7 @@ private extension FilterBottomSheetView {
     
     var setupButtons: some View {
         HStack(spacing: 12) {
-            LivithButton("초기화", variant: .primary) {
+            LivithButton("초기화", variant: .secondary) {
                 AmplitudeService.shared.trackEvent(tag: .click(.resetFilter))
                 tempGenreList = []
                 tempStatusList = []
@@ -141,6 +141,7 @@ private extension FilterBottomSheetView {
                 selectedStatusList = tempStatusList
                 showFilter = false
             }
+            .disabled(!hasSelection)
         }
     }
 

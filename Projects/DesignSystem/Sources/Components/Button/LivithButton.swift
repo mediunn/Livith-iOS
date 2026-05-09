@@ -38,12 +38,7 @@ public enum LivithButtonVariant {
     }
 
     var disabledBackground: Color {
-        switch self {
-        case .primary, .pink:
-            return .livithColor(.black50)
-        case .secondary:
-            return .livithColor(.black80)
-        }
+        return .livithColor(.black80)
     }
 
     var enabledForeground: Color {
@@ -56,12 +51,7 @@ public enum LivithButtonVariant {
     }
 
     var disabledForeground: Color {
-        switch self {
-        case .primary, .pink:
-            return .livithColor(.black30)
-        case .secondary:
-            return .livithColor(.black50)
-        }
+        return .livithColor(.black50)
     }
 }
 

@@ -146,17 +146,18 @@ final class ConcertMapperTests: XCTestCase {
         XCTAssertNil(result)
     }
     
-    func test_FetchConcertInfo_잘못된_날짜_형식인_경우_nil을_반환해야_한다() throws {
+    func test_FetchConcertInfo_잘못된_날짜_형식인_경우_startDate가_nil로_매핑되어야_한다() throws {
         // Given
         let json = JSONLiterals.concertInfoWithInvalidDate
-        
+
         let dto = try JSONDecoder().decode(DTO.Response.FetchConcertInfo.self, from: json.data(using: .utf8)!)
-        
+
         // When
-        let result = sut.toDomain(from: dto)
-        
+        let result = try XCTUnwrap(sut.toDomain(from: dto))
+
         // Then
-        XCTAssertNil(result)
+        XCTAssertNil(result.startDate)
+        XCTAssertNotNil(result.endDate)
     }
 
     func test_FetchHomeSectionList가_ConcertSection_List로_변환되어야_한다() throws {

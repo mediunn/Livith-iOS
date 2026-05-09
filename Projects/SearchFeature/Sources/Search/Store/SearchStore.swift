@@ -62,8 +62,14 @@ final class SearchStore: ObservableObject {
             fetchFilterSearchResult()
         case .loadNextPage:
             loadNextPageIfNeeded()
-        case .updateSearchMessage(let message):
-            state.searchMessage = message
+        case .updateSearchMessage(let newSearchMessage):
+            let previousSearchMessage = state.searchMessage
+            state.searchMessage = newSearchMessage
+            if newSearchMessage.isEmpty && !previousSearchMessage.isEmpty {
+                state.cursor = nil
+                state.hasMorePages = true
+                fetchFilterSearchResult()
+            }
         case .sortStateChanged(let sort):
             state.cursor = nil
             state.sortState = sort
