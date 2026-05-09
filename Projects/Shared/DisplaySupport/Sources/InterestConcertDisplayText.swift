@@ -77,15 +77,15 @@ public enum InterestConcertDisplayText {
         }
 
         let schedule = interestConcert.ticketingSchedule
-        if let preSaleDate = schedule.preSaleDate {
-            return "선예매 오픈 · \(ticketingDate(preSaleDate))"
+        if let generalSaleDate = schedule.generalSaleDate {
+            return "일반 예매 오픈 · \(ticketingDate(generalSaleDate))"
         }
 
-        guard let generalSaleDate = schedule.generalSaleDate else {
+        guard let preSaleDate = schedule.preSaleDate else {
             return unknownTicketingDate
         }
 
-        return "일반 예매 오픈 · \(ticketingDate(generalSaleDate))"
+        return "선예매 오픈 · \(ticketingDate(preSaleDate))"
     }
 }
 

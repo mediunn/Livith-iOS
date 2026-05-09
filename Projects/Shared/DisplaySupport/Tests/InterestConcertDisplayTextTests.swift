@@ -159,10 +159,22 @@ struct InterestConcertDisplayTextTests {
         #expect(bottom != "콘서트 진행중")
     }
 
-    @Test("선예매 일정이 있으면 하단 문구는 선예매 오픈 문구를 우선 표시해야 한다")
-    func 선예매_일정이_있으면_하단_문구는_선예매_오픈_문구를_우선_표시해야_한다() {
+    @Test("선예매와 일반 예매 일정이 모두 있으면 하단 문구는 일반 예매 오픈 문구를 우선 표시해야 한다")
+    func 선예매와_일반_예매_일정이_모두_있으면_하단_문구는_일반_예매_오픈_문구를_우선_표시해야_한다() {
         // Given
         let interestConcert = makeInterestConcert(preSaleDate: ticketingDate, generalSaleDate: laterTicketingDate)
+
+        // When
+        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "일반 예매 오픈 · 8/11(월) 2:20AM")
+    }
+
+    @Test("선예매 일정만 있으면 하단 문구는 선예매 오픈 문구를 표시해야 한다")
+    func 선예매_일정만_있으면_하단_문구는_선예매_오픈_문구를_표시해야_한다() {
+        // Given
+        let interestConcert = makeInterestConcert(preSaleDate: ticketingDate, generalSaleDate: nil)
 
         // When
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
