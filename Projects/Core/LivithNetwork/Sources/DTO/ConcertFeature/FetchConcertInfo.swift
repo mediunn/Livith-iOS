@@ -13,17 +13,17 @@ import Foundation
 public extension DTO.Response {
     struct FetchConcertInfo: Decodable {
         public let id: Int
-        public let code: String
-        public let title: String
-        public let startDate: String
-        public let endDate: String
+        public let code: String?
+        public let title: String?
+        public let startDate: String?
+        public let endDate: String?
         public let status: String
-        public let posterURL: String
+        public let posterURL: String?
         public let artist: String
-        public let daysLeft: Int
+        public let daysLeft: Int?
         public let ticketSite: String?
         public let ticketURL: String?
-        public let venue: String
+        public let venue: String?
         public let introduction: String
         public let label: String?
 
