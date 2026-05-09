@@ -169,14 +169,14 @@ flowchart TD
     Response[ResponseError]
 
     InvalidURL[invalidURL]
-    Encoding[encodingFailed(Error)]
+    Encoding["encodingFailed(Error)"]
     Cancelled[cancelled]
-    Timeout[timeout(Error)]
-    Connection[noConnection(Error)]
-    Unknown[unknown(Error)]
+    Timeout["timeout(Error)"]
+    Connection["noConnection(Error)"]
+    Unknown["unknown(Error)"]
     InvalidResponse[invalidResponse]
     NoData[noData]
-    Decoding[decodingFailed(Error)]
+    Decoding["decodingFailed(Error)"]
     HTTP[HTTP status mapping]
 
     Build --> InvalidURL
@@ -190,12 +190,12 @@ flowchart TD
     Response --> Decoding
     Response --> HTTP
 
-    HTTP --> BadRequest[badRequest(message)]
-    HTTP --> Unauthorized[unauthorized(message)]
-    HTTP --> Forbidden[forbidden(message)]
-    HTTP --> NotFound[notFound(message)]
-    HTTP --> ClientError[clientError(statusCode, message)]
-    HTTP --> ServerError[serverError(statusCode, message)]
+    HTTP --> BadRequest["badRequest(message)"]
+    HTTP --> Unauthorized["unauthorized(message)"]
+    HTTP --> Forbidden["forbidden(message)"]
+    HTTP --> NotFound["notFound(message)"]
+    HTTP --> ClientError["clientError(statusCode, message)"]
+    HTTP --> ServerError["serverError(statusCode, message)"]
 ```
 
 ## 에러 처리 예시
