@@ -6,16 +6,26 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-public protocol NetworkEndpoint {
-    var path: String { get }
-    var method: HTTPMethod { get }
-    var task: RequestTask { get }
-    var headers: [String: String] { get }
-    var requiresAuthentication: Bool { get }
-}
+import Foundation
 
-public extension NetworkEndpoint {
-    var task: RequestTask { .plain }
-    var headers: [String: String] { [:] }
-    var requiresAuthentication: Bool { true }
+public struct NetworkEndpoint {
+    public let path: String
+    public let method: HTTPMethod
+    public let task: RequestTask
+    public let headers: [String: String]
+    public let requiresAuthentication: Bool
+
+    public init(
+        path: String,
+        method: HTTPMethod,
+        task: RequestTask = .plain,
+        headers: [String: String] = [:],
+        requiresAuthentication: Bool = true
+    ) {
+        self.path = path
+        self.method = method
+        self.task = task
+        self.headers = headers
+        self.requiresAuthentication = requiresAuthentication
+    }
 }

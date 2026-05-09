@@ -60,7 +60,6 @@ classDiagram
     }
 
     class NetworkEndpoint {
-        <<protocol>>
         +path: String
         +method: HTTPMethod
         +task: RequestTask
@@ -69,7 +68,7 @@ classDiagram
     }
 
     class RequestBuilder {
-        +build(any NetworkEndpoint, NetworkConfig) URLRequest
+        +build(NetworkEndpoint, NetworkConfig) URLRequest
     }
 
     class NetworkTransport {

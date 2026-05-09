@@ -4,7 +4,7 @@
 - `LivithNetworking`은 외부 라이브러리 의존 없이 HTTP 요청을 구성해야 한다.
 - 기존 `LivithNetwork`의 `HTTPMethod`는 Alamofire 타입 별칭이므로 신규 모듈에서는 자체 타입이 필요하다.
 - 요청을 만들 때 기준이 되는 base URL은 환경 설정에서 직접 읽지 않고 외부에서 주입받아야 한다.
-- API 요청 하나를 표현하는 endpoint 계약은 base URL과 분리되어 API path와 요청 속성만 표현해야 한다.
+- API 요청 하나를 표현하는 endpoint 명세는 base URL과 분리되어 API path와 요청 속성만 표현해야 한다.
 - query와 body를 각각 optional property로 두면 조합이 모호해질 수 있으므로 요청 payload 형태를 별도 값으로 명확히 표현해야 한다.
 - 요청 계약을 실제 전송 전 단계의 `URLRequest`로 변환하는 책임은 별도 타입으로 분리해야 한다.
 - 요청 생성 실패는 전송 실패나 응답 실패와 구분되는 build 단계의 에러로 표현해야 한다.
@@ -13,7 +13,7 @@
 - `LivithNetworking`에 자체 `HTTPMethod` 타입을 둔다.
 - `NetworkConfig`는 요청 생성에 필요한 base URL을 보관한다.
 - `RequestTask`는 요청 payload 형태만 표현한다.
-- `NetworkEndpoint`는 `path`, `method`, `task`, `headers`, `requiresAuthentication`을 표현한다.
+- `NetworkEndpoint`는 요청 명세를 담는 struct 값 타입으로 `path`, `method`, `task`, `headers`, `requiresAuthentication`을 표현한다.
 - `RequestBuilder`는 `NetworkConfig`와 `NetworkEndpoint`를 조합해 `URLRequest`를 만든다.
 - `RequestBuildError`는 request build 단계에서 발생하는 실패만 표현한다.
 - 자주 쓰는 값에는 기본값을 제공해 endpoint 선언을 단순하게 유지한다.
@@ -89,15 +89,17 @@
 ## NetworkEndpoint 결정
 | 결정 사항 | 결정 | 근거 |
 |-----------|------|------|
-| 타입 이름 | `NetworkEndpoint` | 네트워크 endpoint 계약임이 명확하고 기존 코드와 의미가 이어진다. |
+| 타입 이름 | `NetworkEndpoint` | 네트워크 endpoint 명세임이 명확하고 기존 코드와 의미가 이어진다. |
+| 타입 형태 | `struct` | endpoint를 값 타입 요청 명세로 직접 전달해 별도 채택 타입 보일러플레이트를 줄인다. |
 | path 책임 | endpoint가 API path만 제공 | base URL은 `NetworkConfig` 책임으로 유지해 환경 설정과 endpoint 선언을 분리한다. |
 | method 표현 | `HTTPMethod` | 외부 라이브러리 의존 없는 자체 method 타입을 재사용한다. |
 | payload 표현 | `RequestTask` | query/body optional 조합 대신 요청 payload 형태를 하나의 값으로 표현한다. |
 | header 표현 | `[String: String]` | Foundation 표준 타입만으로 표현 가능하고 추가 타입 없이 단순하다. |
-| 인증 필요 여부 | `requiresAuthentication: Bool` | 토큰 삽입 구현 전에도 endpoint 계약에서 인증 필요 여부를 표현할 수 있다. |
+| 인증 필요 여부 | `requiresAuthentication: Bool` | 토큰 삽입 구현 전에도 endpoint 명세에서 인증 필요 여부를 표현할 수 있다. |
 | task 기본값 | `.plain` | query/body 없는 요청 선언을 간단하게 만든다. |
 | headers 기본값 | `[:]` | 커스텀 header가 없는 endpoint 선언을 간단하게 만든다. |
 | 인증 기본값 | `true` | 기존 `LivithNetwork`의 기본 인증 필요 정책과 맞춘다. |
+| factory method | 이번 단계에서 보류 | 기본값 있는 initializer만으로 현재 보일러플레이트를 줄일 수 있고 service 명세 설계와 함께 후속 결정한다. |
 
 ## RequestBuilder 결정
 | 결정 사항 | 결정 | 근거 |

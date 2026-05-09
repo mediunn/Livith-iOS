@@ -18,7 +18,7 @@ struct RequestBuilderTests {
     func baseURL과_path의_slash를_정규화해_URL을_만들어야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com/api/")))
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         let request = try sut.make(endpoint: endpoint, config: config)
 
@@ -29,7 +29,7 @@ struct RequestBuilderTests {
     func query_task는_URL_query에_반영해야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let endpoint = Endpoint(
+        let endpoint = NetworkEndpoint(
             path: "search/concerts",
             method: .get,
             task: .query([URLQueryItem(name: "keyword", value: "livith")])
@@ -47,7 +47,7 @@ struct RequestBuilderTests {
     func method와_endpoint_header를_요청에_반영해야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let endpoint = Endpoint(
+        let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .post,
             headers: ["X-Client": "iOS"]
@@ -63,7 +63,7 @@ struct RequestBuilderTests {
     func body_task는_JSON_body와_Content_Type_기본값을_반영해야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let endpoint = Endpoint(
+        let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .post,
             task: .body(RequestBody(value: "livith"))
@@ -80,7 +80,7 @@ struct RequestBuilderTests {
     func queryAndBody_task는_URL_query와_JSON_body를_함께_반영해야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let endpoint = Endpoint(
+        let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .post,
             task: .queryAndBody(
@@ -102,7 +102,7 @@ struct RequestBuilderTests {
     func endpoint_Content_Type은_기본값보다_우선해야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let endpoint = Endpoint(
+        let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .post,
             task: .body(RequestBody(value: "livith")),
@@ -120,7 +120,7 @@ struct RequestBuilderTests {
         encoder.keyEncodingStrategy = .convertToSnakeCase
         let sut = RequestBuilder(encoder: encoder)
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let endpoint = Endpoint(
+        let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .post,
             task: .body(StrategyBody(clientName: "livith"))
@@ -138,7 +138,7 @@ struct RequestBuilderTests {
     func HTTP_요청_URL로_유효하지_않으면_invalidURL을_던져야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "/api")))
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
             _ = try sut.make(endpoint: endpoint, config: config)
@@ -154,7 +154,7 @@ struct RequestBuilderTests {
     func body_encoding에_실패하면_encodingFailed를_던져야_한다() throws {
         let sut = RequestBuilder()
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let endpoint = Endpoint(
+        let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .post,
             task: .body(FailingBody())
@@ -172,25 +172,6 @@ struct RequestBuilderTests {
 }
 
 private extension RequestBuilderTests {
-    struct Endpoint: NetworkEndpoint {
-        let path: String
-        let method: HTTPMethod
-        let task: RequestTask
-        let headers: [String: String]
-
-        init(
-            path: String,
-            method: HTTPMethod,
-            task: RequestTask = .plain,
-            headers: [String: String] = [:]
-        ) {
-            self.path = path
-            self.method = method
-            self.task = task
-            self.headers = headers
-        }
-    }
-
     struct RequestBody: Codable, Equatable {
         let value: String
     }

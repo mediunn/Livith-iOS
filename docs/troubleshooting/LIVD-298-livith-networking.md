@@ -2,6 +2,27 @@
 
 ## 기록
 
+### 2026-05-10 01:13 - stale Xcode project가 삭제된 Token 파일을 참조함
+
+**상황**
+- `NetworkEndpoint`를 struct 기반 테스트로 바꾼 뒤 `xcodebuild test -scheme LivithNetworking -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1'`를 실행했다.
+
+**문제**
+- 빌드가 `Projects/LivithNetworking/Sources/Token/*.swift` 파일들을 찾지 못해 테스트 실행 전에 실패했다.
+- 해당 실패는 endpoint struct 전환의 기대 실패가 아니라 Xcode project 참조가 실제 파일 상태와 맞지 않는 문제였다.
+
+**원인**
+- `LivithNetworking.xcodeproj`가 이전에 존재했던 Token 파일들을 build input으로 계속 참조하고 있었다.
+
+**해결**
+- `tuist generate`로 project를 재생성한 뒤 동일한 `xcodebuild test`를 다시 실행했다.
+
+**교훈**
+- 파일 추가/삭제/이동 후에는 `tuist generate`를 먼저 실행해 Xcode project 참조를 실제 파일 상태와 맞춘다.
+- 기대한 red를 확인하기 전에 build input 오류가 나오면 구현 문제가 아니라 project generation 상태를 먼저 의심한다.
+
+---
+
 ### 2026-05-08 19:49 - `#require` 중첩 컴파일 실패 재발
 
 **상황**

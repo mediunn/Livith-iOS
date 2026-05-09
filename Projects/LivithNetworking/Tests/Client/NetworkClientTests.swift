@@ -18,7 +18,7 @@ struct NetworkClientTests {
     func 요청_URL_생성_실패는_invalidURL을_던져야_한다() async throws {
         let config = NetworkConfig(baseURL: try #require(URL(string: "/api")))
         let sut = NetworkClient(config: config, transport: FakeTransport())
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
             let _: ResponseBody = try await sut.request(endpoint)
@@ -103,7 +103,7 @@ struct NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(Data(), URLResponse()))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
             let _: ResponseBody = try await sut.request(endpoint)
@@ -131,7 +131,7 @@ struct NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(data, response))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         let value: ResponseBody = try await sut.request(endpoint)
 
@@ -233,7 +233,7 @@ struct NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(data, response))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .delete)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
 
         do {
             try await sut.request(endpoint)
@@ -262,7 +262,7 @@ struct NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(data, response))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
             let _: ResponseBody = try await sut.request(endpoint)
@@ -283,7 +283,7 @@ struct NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(data, response))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
             let _: ResponseBody = try await sut.request(endpoint)
@@ -303,7 +303,7 @@ struct NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(Data(), response))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .delete)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
 
         try await sut.request(endpoint)
     }
@@ -325,25 +325,6 @@ struct NetworkClientTests {
 }
 
 private extension NetworkClientTests {
-    struct Endpoint: NetworkEndpoint {
-        let path: String
-        let method: HTTPMethod
-        let task: RequestTask
-        let headers: [String: String]
-
-        init(
-            path: String,
-            method: HTTPMethod,
-            task: RequestTask = .plain,
-            headers: [String: String] = [:]
-        ) {
-            self.path = path
-            self.method = method
-            self.task = task
-            self.headers = headers
-        }
-    }
-
     struct ResponseBody: Decodable, Equatable {
         let value: String
     }
@@ -354,7 +335,7 @@ private extension NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .failure(transportError))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
             let _: ResponseBody = try await sut.request(endpoint)
@@ -376,7 +357,7 @@ private extension NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(data, response))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .get)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
             let _: ResponseBody = try await sut.request(endpoint)
@@ -398,7 +379,7 @@ private extension NetworkClientTests {
             config: config,
             transport: FakeTransport(output: .success(data, response))
         )
-        let endpoint = Endpoint(path: "/concerts", method: .delete)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
 
         do {
             try await sut.request(endpoint)

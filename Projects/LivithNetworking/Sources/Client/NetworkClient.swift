@@ -40,7 +40,7 @@ public struct NetworkClient {
     }
 
     public func request<T: Decodable>(
-        _ endpoint: any NetworkEndpoint
+        _ endpoint: NetworkEndpoint
     ) async throws(NetworkError) -> T {
         let (data, response) = try await load(endpoint)
 
@@ -52,7 +52,7 @@ public struct NetworkClient {
     }
 
     public func request(
-        _ endpoint: any NetworkEndpoint
+        _ endpoint: NetworkEndpoint
     ) async throws(NetworkError) {
         let (data, response) = try await load(endpoint)
 
@@ -68,7 +68,7 @@ public struct NetworkClient {
 
 private extension NetworkClient {
     func load(
-        _ endpoint: any NetworkEndpoint
+        _ endpoint: NetworkEndpoint
     ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
         let request: URLRequest
         do {

@@ -21,7 +21,7 @@ public struct RequestBuilder {
     }
 
     public func make(
-        endpoint: any NetworkEndpoint,
+        endpoint: NetworkEndpoint,
         config: NetworkConfig
     ) throws(RequestBuildError) -> URLRequest {
         let url = try makeURL(endpoint: endpoint, config: config)
@@ -37,7 +37,7 @@ public struct RequestBuilder {
 
 private extension RequestBuilder {
     func makeURL(
-        endpoint: any NetworkEndpoint,
+        endpoint: NetworkEndpoint,
         config: NetworkConfig
     ) throws(RequestBuildError) -> URL {
         guard var components = URLComponents(url: config.baseURL, resolvingAgainstBaseURL: false),

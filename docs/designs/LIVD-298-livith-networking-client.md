@@ -115,11 +115,11 @@ public struct NetworkClient {
     )
 
     public func request<T: Decodable>(
-        _ endpoint: any NetworkEndpoint
+        _ endpoint: NetworkEndpoint
     ) async throws(NetworkError) -> T
 
     public func request(
-        _ endpoint: any NetworkEndpoint
+        _ endpoint: NetworkEndpoint
     ) async throws(NetworkError)
 }
 ```
