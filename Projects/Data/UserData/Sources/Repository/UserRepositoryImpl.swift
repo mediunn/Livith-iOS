@@ -131,6 +131,26 @@ struct UserRepositoryImpl: UserRepository {
             throw userError
         }
     }
+
+    func fetchInterestConcertToastNeedsToShow() async throws(UserError) -> Bool {
+//        do {
+//            let response: DTO.Response.FetchInterestConcertToast = try await homeService.request(.fetchInterestConcertToast)
+//            return response.needsToShow
+//        } catch {
+//            let userError: UserError = errorMapper.mapToUserError(error)
+//            throw userError
+//        }
+        return true
+    }
+
+    func markInterestConcertToastShown() async throws(UserError) {
+//        do {
+//            let _: DTO.Response.UpdateInterestConcertToast = try await homeService.request(.updateInterestConcertToast)
+//        } catch {
+//            let userError: UserError = errorMapper.mapToUserError(error)
+//            throw userError
+//        }
+    }
 }
 
 // MARK: - Helpers

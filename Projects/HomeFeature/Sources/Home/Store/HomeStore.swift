@@ -24,6 +24,7 @@ struct HomeState {
     var isConcertSectionInitialLoad: Bool = true
     var shouldShowPreferenceBanner: Bool = false
     var recommendedConcertList: [Concert] = []
+    var interestConcertToastMessage: String = ""
 }
 
 // MARK: - Intent
@@ -32,12 +33,15 @@ enum HomeIntent {
     case onAppear
     case onRefresh
     case onErrorToastDisappear
+    case onInterestConcertToastDisappear
     case checkUnreadNotification
     case interestConcertSortSelected(InterestConcertSort)
     case _fetchInitialHomeDataResult(Result<(user: User, interestConcertList: [InterestConcert], hasNewNotice: Bool), Error>)
     case _fetchUserResult(Result<User, Error>)
     case _fetchInterestConcertListResult(Result<[InterestConcert], Error>)
     case _fetchUnreadNotificationCountResult(Result<Int, Error>)
+    case _fetchInterestConcertToastResult(Result<Bool, Error>)
+    case _markInterestConcertToastShownResult(Result<Void, Error>)
     case _fetchConcertSectionDataResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
 
@@ -59,6 +63,7 @@ final class HomeStore: ObservableObject {
     @Injected private var concertRepository: ConcertRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
+    private var shouldFetchInterestConcertToastAfterSectionLoad = false
 
     // MARK: - Public Interface
     
@@ -72,6 +77,9 @@ final class HomeStore: ObservableObject {
 
         case .onErrorToastDisappear:
             state.errorMessage = ""
+
+        case .onInterestConcertToastDisappear:
+            state.interestConcertToastMessage = ""
 
         case .checkUnreadNotification:
             performFetchUnreadNotificationCount()
@@ -90,7 +98,7 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = data.hasNewNotice
                 executeInitialConcertSectionLoadIfNeeded()
             case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
+                setErrorMessage(from: error)
             }
 
         case ._fetchUserResult(let result):
@@ -99,7 +107,7 @@ final class HomeStore: ObservableObject {
                 state.user = user
                 executeInitialConcertSectionLoadIfNeeded()
             case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
+                setErrorMessage(from: error)
             }
 
         case ._fetchInterestConcertListResult(let result):
@@ -108,7 +116,7 @@ final class HomeStore: ObservableObject {
                 state.interestConcertList = list
                 state.errorMessage = ""
             case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
+                setErrorMessage(from: error)
             }
 
         case ._fetchUnreadNotificationCountResult(let result):
@@ -119,6 +127,23 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = false
             }
 
+        case ._fetchInterestConcertToastResult(let result):
+            switch result {
+            case .success(true):
+                guard state.errorMessage.isEmpty else {
+                    state.interestConcertToastMessage = ""
+                    return
+                }
+
+                state.interestConcertToastMessage = Constants.interestConcertToastMessage
+                performMarkInterestConcertToastShown()
+            case .success(false), .failure:
+                state.interestConcertToastMessage = ""
+            }
+
+        case ._markInterestConcertToastShownResult:
+            break
+
         case ._fetchConcertSectionDataResult(let result):
             state.isConcertSectionLoading = false
 
@@ -128,8 +153,10 @@ final class HomeStore: ObservableObject {
                 state.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
                 state.recommendedConcertList = data.recommendedConcertList ?? []
                 state.errorMessage = ""
+                performFetchInterestConcertToastAfterSectionLoadIfNeeded()
             case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
+                shouldFetchInterestConcertToastAfterSectionLoad = false
+                setErrorMessage(from: error)
             }
         }
     }
@@ -138,13 +165,13 @@ final class HomeStore: ObservableObject {
 // MARK: - Helpers
 
 private extension HomeStore {
-
     func executeInitialConcertSectionLoadIfNeeded() {
         guard state.user != nil else { return }
         guard state.isConcertSectionInitialLoad else { return }
 
         state.isConcertSectionLoading = true
         state.isConcertSectionInitialLoad = false
+        shouldFetchInterestConcertToastAfterSectionLoad = true
         performFetchConcertSectionData()
     }
 
@@ -157,7 +184,11 @@ private extension HomeStore {
             )
             async let hasNewNoticeResult = fetchHasNewNoticeResult()
 
-            let (resolvedUserResult, resolvedInterestConcertListResult, resolvedHasNewNoticeResult) = await (
+            let (
+                resolvedUserResult,
+                resolvedInterestConcertListResult,
+                resolvedHasNewNoticeResult
+            ) = await (
                 userResult,
                 interestConcertListResult,
                 hasNewNoticeResult
@@ -218,6 +249,24 @@ private extension HomeStore {
         }
     }
 
+    func fetchInterestConcertToastResult() async -> Result<Bool, Error> {
+        do {
+            return .success(try await userRepository.fetchInterestConcertToastNeedsToShow())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    func performFetchInterestConcertToastAfterSectionLoadIfNeeded() {
+        guard shouldFetchInterestConcertToastAfterSectionLoad else { return }
+
+        shouldFetchInterestConcertToastAfterSectionLoad = false
+        Task {
+            let result = await fetchInterestConcertToastResult()
+            send(._fetchInterestConcertToastResult(result))
+        }
+    }
+
     func performFetchInterestConcertList(filter: InterestConcertListFilter) {
         cancellables[.fetchInterestConcertList]?.cancel()
         cancellables[.fetchInterestConcertList] = Task {
@@ -234,6 +283,17 @@ private extension HomeStore {
                 send(._fetchUnreadNotificationCountResult(.success(count)))
             } catch {
                 send(._fetchUnreadNotificationCountResult(.failure(error)))
+            }
+        }
+    }
+
+    func performMarkInterestConcertToastShown() {
+        Task {
+            do {
+                try await userRepository.markInterestConcertToastShown()
+                send(._markInterestConcertToastShownResult(.success(())))
+            } catch {
+                send(._markInterestConcertToastShownResult(.failure(error)))
             }
         }
     }
@@ -279,5 +339,17 @@ private extension HomeStore {
         }
         
         return error.localizedDescription
+    }
+
+    func setErrorMessage(from error: Error) {
+        let message = getErrorMessage(from: error)
+        state.errorMessage = message
+
+        guard !message.isEmpty else { return }
+        state.interestConcertToastMessage = ""
+    }
+
+    enum Constants {
+        static let interestConcertToastMessage = "종료된 공연이 자동 정리됐어요"
     }
 }
