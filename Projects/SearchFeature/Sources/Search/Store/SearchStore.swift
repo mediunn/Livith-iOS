@@ -62,10 +62,10 @@ final class SearchStore: ObservableObject {
             fetchFilterSearchResult()
         case .loadNextPage:
             loadNextPageIfNeeded()
-        case .updateSearchMessage(let message):
-            let wasEmpty = state.searchMessage.isEmpty
-            state.searchMessage = message
-            if message.isEmpty && !wasEmpty {
+        case .updateSearchMessage(let newSearchMessage):
+            let previousSearchMessage = state.searchMessage
+            state.searchMessage = newSearchMessage
+            if newSearchMessage.isEmpty && !previousSearchMessage.isEmpty {
                 state.cursor = nil
                 state.hasMorePages = true
                 fetchFilterSearchResult()
