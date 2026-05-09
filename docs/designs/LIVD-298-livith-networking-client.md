@@ -11,7 +11,7 @@
 - `NetworkClient`는 `NetworkEndpoint`를 받아 HTTP 요청을 수행한다.
 - 값이 있는 응답은 generic 반환 타입으로 decode해 반환한다.
 - 값이 없는 응답은 void 오버로드로 처리한다.
-- request build, transport, response 처리 실패를 `NetworkError` 하나로 노출한다.
+- request build, transport, response 처리 실패를 의미 기반 `NetworkError` 하나로 노출한다.
 - 전송 책임은 internal transport protocol과 `URLSessionTransport`로 분리한다.
 
 ## 범위
@@ -29,7 +29,8 @@
 - void 응답의 실패 status에서는 `ResponseHandler<EmptyResponse>` 경로를 사용해 서버 message 추출을 시도한다.
 - void 응답의 실패 body가 비어 있거나 decoding에 실패하면 message는 `nil`로 둔다.
 - `URLResponse`가 `HTTPURLResponse`가 아니면 `NetworkError.invalidResponse`로 처리한다.
-- transport에서 발생한 에러는 `NetworkError.transportFailed`로 감싼다.
+- transport에서 발생한 취소, timeout, 연결 실패, 기타 에러는 `cancelled`, `timeout`, `noConnection`, `unknown`으로 매핑한다.
+- request build 실패와 response 처리 실패는 public wrapper로 감싸지 않고 호출부가 분기 가능한 `NetworkError` case로 변환한다.
 
 ## 비목표
 - 이번 설계에서 인증 토큰 삽입을 구현하지 않는다.
@@ -53,28 +54,49 @@
 | 전송 경계 | internal transport protocol | 테스트 대체는 가능하게 하되 외부 API 표면과 확장 계약은 작게 유지한다. |
 | 기본 전송 구현 | `URLSessionTransport` | `URLSession`을 감싸되 client가 세션 구체 타입에 직접 묶이지 않게 한다. |
 | transport 책임 | `URLRequest` 실행만 담당 | endpoint, base URL, response decoding 책임이 transport로 새지 않게 한다. |
-| 에러 노출 | `NetworkError` | 호출부가 네트워크 요청 실패를 한 타입으로 처리하면서 원인 에러를 보존할 수 있다. |
-| build 실패 | `.requestBuildFailed(RequestBuildError)` | request 생성 실패를 transport/response 실패와 구분한다. |
-| 전송 실패 | `.transportFailed(Error)` | URL loading 단계의 원본 에러를 보존한다. |
+| 에러 노출 | 의미 기반 `NetworkError` | 호출부가 `unauthorized`, `noConnection`, `serverError` 같은 처리 기준으로 직접 분기할 수 있다. |
+| build 실패 | `.invalidURL`, `.encodingFailed(Error)` | request 생성 단계는 숨기되 호출부에 유의미한 원인과 원본 에러를 보존한다. |
+| 전송 실패 | `.cancelled`, `.timeout(Error)`, `.noConnection(Error)`, `.unknown(Error)` | transport wrapper보다 실제 대응 방식 기준으로 분기한다. |
 | HTTP 응답 아님 | `.invalidResponse` | `URLResponse`가 HTTP 응답이 아닌 경우를 명확히 분리한다. |
-| 응답 처리 실패 | `.responseFailed(ResponseError)` | status code와 decoding 실패는 기존 응답 처리 계약을 재사용한다. |
+| 응답 처리 실패 | `.noData`, `.decodingFailed(Error)`, HTTP status별 case | status code, data 누락, decoding 실패를 호출부가 직접 처리할 수 있다. |
+| HTTP status 매핑 | 400/401/403/404 전용 case, 기타 4xx/5xx fallback | 자주 분기할 status는 명확히 노출하고 나머지는 status code와 message를 보존한다. |
+| 에러 설명 | `LocalizedError` | 기본 한글 설명을 제공하고 HTTP 에러에는 서버 `message`를 포함한다. |
 | void 성공 기준 | HTTP `200..<300` | body가 없거나 wrapper가 없는 성공 응답도 최소 클라이언트 단계에서 처리할 수 있다. |
 | void 실패 처리 | `ResponseHandler<EmptyResponse>` 실패 경로 재사용 | 실패 status에서는 서버 message를 가능한 한 보존한다. |
 
 ## 에러 경계
 ```swift
-public enum NetworkError: Error {
-    case requestBuildFailed(RequestBuildError)
-    case transportFailed(Error)
+public enum NetworkError: LocalizedError {
+    case invalidURL
+    case invalidRequest
+    case encodingFailed(Error)
+    case noConnection(Error)
+    case timeout(Error)
+    case cancelled
     case invalidResponse
-    case responseFailed(ResponseError)
+    case noData
+    case decodingFailed(Error)
+    case badRequest(message: String?)
+    case unauthorized(message: String?)
+    case forbidden(message: String?)
+    case notFound(message: String?)
+    case clientError(statusCode: Int, message: String?)
+    case serverError(statusCode: Int, message: String?)
+    case unknown(Error)
 }
 ```
 
-- `RequestBuilder.make(endpoint:config:)`에서 던진 에러는 `.requestBuildFailed`로 감싼다.
-- transport의 `data(for:)`에서 던진 에러는 `.transportFailed`로 감싼다.
+- `RequestBuilder.make(endpoint:config:)`에서 던진 `invalidURL`은 `.invalidURL`로 매핑한다.
+- `RequestBuilder.make(endpoint:config:)`에서 던진 `encodingFailed(Error)`는 `.encodingFailed(Error)`로 원본을 보존한다.
+- transport의 `CancellationError`와 `URLError.cancelled`는 `.cancelled`로 매핑한다.
+- transport의 `URLError.timedOut`은 `.timeout(Error)`로 매핑한다.
+- transport의 `URLError.notConnectedToInternet`, `networkConnectionLost`, `cannotConnectToHost`, `cannotFindHost`, `dnsLookupFailed`는 `.noConnection(Error)`로 매핑한다.
+- 그 외 transport error는 `.unknown(Error)`으로 원본을 보존한다.
 - transport가 반환한 response가 `HTTPURLResponse`가 아니면 `.invalidResponse`를 던진다.
-- `ResponseHandler`에서 던진 에러는 `.responseFailed`로 감싼다.
+- `ResponseHandler`의 `noData`와 `decodingFailed(Error)`는 동일한 `NetworkError` case로 매핑한다.
+- non-2xx status는 `badRequest`, `unauthorized`, `forbidden`, `notFound`, `clientError`, `serverError`로 매핑하고 서버 `message`를 보존한다.
+- `NetworkError.errorDescription`은 기본 한글 설명을 제공하며, HTTP 에러는 서버 `message`를 포함한다.
+- response body 원문은 logging하거나 `errorDescription`에 포함하지 않는다.
 
 ## API 형태
 ```swift

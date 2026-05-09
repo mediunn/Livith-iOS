@@ -47,7 +47,7 @@ public struct NetworkClient {
         do {
             return try responseHandler.handle(T.self, data: data, response: response)
         } catch {
-            throw .responseFailed(error)
+            throw map(error)
         }
     }
 
@@ -61,7 +61,7 @@ public struct NetworkClient {
         do {
             _ = try responseHandler.handle(EmptyResponse.self, data: data, response: response)
         } catch {
-            throw .responseFailed(error)
+            throw map(error)
         }
     }
 }
@@ -74,7 +74,7 @@ private extension NetworkClient {
         do {
             request = try requestBuilder.make(endpoint: endpoint, config: config)
         } catch {
-            throw .requestBuildFailed(error)
+            throw map(error)
         }
 
         let data: Data
@@ -82,7 +82,7 @@ private extension NetworkClient {
         do {
             (data, response) = try await transport.data(for: request)
         } catch {
-            throw .transportFailed(error)
+            throw mapTransportError(error)
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -90,5 +90,50 @@ private extension NetworkClient {
         }
 
         return (data, httpResponse)
+    }
+
+    func map(_ error: RequestBuildError) -> NetworkError {
+        switch error {
+        case .invalidURL:
+            return .invalidURL
+        case .encodingFailed(let error):
+            return .encodingFailed(error)
+        }
+    }
+
+    func map(_ error: ResponseError) -> NetworkError {
+        switch error {
+        case .invalidStatusCode(let statusCode, let message):
+            return .from(statusCode: statusCode, message: message)
+        case .noData:
+            return .noData
+        case .decodingFailed(let error):
+            return .decodingFailed(error)
+        }
+    }
+
+    func mapTransportError(_ error: Error) -> NetworkError {
+        if error is CancellationError {
+            return .cancelled
+        }
+
+        guard let urlError = error as? URLError else {
+            return .unknown(error)
+        }
+
+        switch urlError.code {
+        case .cancelled:
+            return .cancelled
+        case .timedOut:
+            return .timeout(urlError)
+        case .notConnectedToInternet,
+             .networkConnectionLost,
+             .cannotConnectToHost,
+             .cannotFindHost,
+             .dnsLookupFailed:
+            return .noConnection(urlError)
+        default:
+            return .unknown(urlError)
+        }
     }
 }

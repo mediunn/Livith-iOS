@@ -143,8 +143,10 @@ struct RequestBuilderTests {
         do {
             _ = try sut.make(endpoint: endpoint, config: config)
             #expect(Bool(false))
+        } catch .invalidURL {
+            #expect(Bool(true))
         } catch {
-            #expect(error == .invalidURL)
+            #expect(Bool(false))
         }
     }
 
@@ -161,8 +163,10 @@ struct RequestBuilderTests {
         do {
             _ = try sut.make(endpoint: endpoint, config: config)
             #expect(Bool(false))
+        } catch .encodingFailed(let error) {
+            #expect(error is EncodingError)
         } catch {
-            #expect(error == .encodingFailed)
+            #expect(Bool(false))
         }
     }
 }

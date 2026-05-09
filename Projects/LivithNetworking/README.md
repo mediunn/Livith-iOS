@@ -85,6 +85,15 @@ classDiagram
         +handle(data, response) T
     }
 
+    class NetworkError {
+        <<LocalizedError>>
+        +invalidURL
+        +noConnection
+        +badRequest
+        +unauthorized
+        +serverError
+    }
+
     class ServerResponse {
         +statusCode: Int
         +message: String?
@@ -95,6 +104,7 @@ classDiagram
     NetworkClient --> RequestBuilder
     NetworkClient --> NetworkTransport
     NetworkClient --> ResponseHandler
+    NetworkClient --> NetworkError
     URLSessionTransport ..|> NetworkTransport
     RequestBuilder --> NetworkEndpoint
     ResponseHandler --> ServerResponse
@@ -152,26 +162,56 @@ flowchart TD
 ## 에러 경계
 
 ```mermaid
-flowchart LR
-    RequestBuildError[RequestBuildError]
-    TransportError[transport Error]
+flowchart TD
+    Build[RequestBuildError]
+    Transport[transport Error]
     NonHTTP[Non-HTTP URLResponse]
-    ResponseError[ResponseError]
+    Response[ResponseError]
 
-    RequestBuildFailed[NetworkError.requestBuildFailed]
-    TransportFailed[NetworkError.transportFailed]
-    InvalidResponse[NetworkError.invalidResponse]
-    ResponseFailed[NetworkError.responseFailed]
+    InvalidURL[invalidURL]
+    Encoding[encodingFailed(Error)]
+    Cancelled[cancelled]
+    Timeout[timeout(Error)]
+    Connection[noConnection(Error)]
+    Unknown[unknown(Error)]
+    InvalidResponse[invalidResponse]
+    NoData[noData]
+    Decoding[decodingFailed(Error)]
+    HTTP[HTTP status mapping]
 
-    RequestBuildError --> RequestBuildFailed
-    TransportError --> TransportFailed
+    Build --> InvalidURL
+    Build --> Encoding
+    Transport --> Cancelled
+    Transport --> Timeout
+    Transport --> Connection
+    Transport --> Unknown
     NonHTTP --> InvalidResponse
-    ResponseError --> ResponseFailed
+    Response --> NoData
+    Response --> Decoding
+    Response --> HTTP
 
-    RequestBuildFailed --> Caller[Caller]
-    TransportFailed --> Caller
-    InvalidResponse --> Caller
-    ResponseFailed --> Caller
+    HTTP --> BadRequest[badRequest(message)]
+    HTTP --> Unauthorized[unauthorized(message)]
+    HTTP --> Forbidden[forbidden(message)]
+    HTTP --> NotFound[notFound(message)]
+    HTTP --> ClientError[clientError(statusCode, message)]
+    HTTP --> ServerError[serverError(statusCode, message)]
+```
+
+## 에러 처리 예시
+
+```swift
+do {
+    let value: SomeResponse = try await client.request(endpoint)
+} catch .unauthorized(let message) {
+    // 401 refresh/retry는 후속 설계에서 다룬다.
+} catch .noConnection {
+    // 네트워크 연결 안내
+} catch .serverError(let statusCode, let message) {
+    // 서버 장애 또는 점검 안내
+} catch {
+    // errorDescription은 기본 한글 설명을 제공한다.
+}
 ```
 
 ## 파일 구조
@@ -234,11 +274,20 @@ flowchart TD
     E[void 성공은 2xx만 확인]
     F["void 실패는 ResponseHandler<EmptyResponse> 실패 경로 재사용"]
     G[민감한 body 원문 logging 금지]
+    H[NetworkError는 의미 기반 case로 노출]
+    I[HTTP 에러는 서버 message 보존]
 
     A --> B --> C
     D --> E --> F
     G --> Next[후속 logging 설계에서 유지]
+    H --> I
 ```
+
+## LocalizedError 정책
+
+- `NetworkError`는 `LocalizedError`를 채택한다.
+- HTTP 에러의 `errorDescription`은 서버 `message`가 있으면 포함한다.
+- response body 원문은 logging하거나 설명 문구에 포함하지 않는다.
 
 ## 검증
 
@@ -255,4 +304,5 @@ git diff --check
 - `docs/designs/LIVD-298-livith-networking-response.md`
 - `docs/designs/LIVD-298-livith-networking-client.md`
 - `docs/plans/LIVD-298-livith-networking-client.md`
+- `docs/plans/LIVD-298-livith-networking-error.md`
 - `docs/troubleshooting/LIVD-298-livith-networking.md`

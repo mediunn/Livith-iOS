@@ -8,9 +8,9 @@
 
 import Foundation
 
-public enum RequestBuildError: Error, Equatable {
+public enum RequestBuildError: Error {
     case invalidURL
-    case encodingFailed
+    case encodingFailed(Error)
 }
 
 public struct RequestBuilder {
@@ -107,7 +107,7 @@ private extension RequestBuilder {
             request.httpBody = try encoder.encode(EncodableBody(body))
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         } catch {
-            throw .encodingFailed
+            throw .encodingFailed(error)
         }
     }
 
