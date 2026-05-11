@@ -315,6 +315,81 @@ struct NetworkClientTests {
         #expect(error.errorDescription?.contains("bad request") == true)
     }
 
+    @Test("인증 endpoint는 interceptor가 적용된 요청을 전송해야 한다")
+    func 인증_endpoint는_interceptor가_적용된_요청을_전송해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let capture = RequestCapture()
+        let interceptor = SpyRequestInterceptor()
+        let sut = NetworkClient(
+            config: config,
+            transport: CapturingTransport(
+                capture: capture,
+                output: .success(Data(), try makeResponse(statusCode: 204))
+            ),
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await capture.request())
+        #expect(request.value(forHTTPHeaderField: "X-Intercepted") == "true")
+        #expect(await interceptor.adaptCallCount() == 1)
+    }
+
+    @Test("비인증 endpoint는 interceptor를 호출하지 않고 원본 요청을 전송해야 한다")
+    func 비인증_endpoint는_interceptor를_호출하지_않고_원본_요청을_전송해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let capture = RequestCapture()
+        let interceptor = SpyRequestInterceptor()
+        let sut = NetworkClient(
+            config: config,
+            transport: CapturingTransport(
+                capture: capture,
+                output: .success(Data(), try makeResponse(statusCode: 204))
+            ),
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            requiresAuthentication: false
+        )
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await capture.request())
+        #expect(request.value(forHTTPHeaderField: "X-Intercepted") == nil)
+        #expect(await interceptor.adaptCallCount() == 0)
+    }
+
+    @Test("인증 endpoint의 adapt 실패는 NetworkError로 전달해야 한다")
+    func 인증_endpoint의_adapt_실패는_NetworkError로_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let capture = RequestCapture()
+        let interceptor = SpyRequestInterceptor(error: .unauthorized(message: nil))
+        let sut = NetworkClient(
+            config: config,
+            transport: CapturingTransport(
+                capture: capture,
+                output: .success(Data(), try makeResponse(statusCode: 204))
+            ),
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == nil)
+            #expect(await interceptor.adaptCallCount() == 1)
+            #expect(await capture.request() == nil)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
     @Test("서버 message가 없어도 HTTP 에러 설명은 비어 있지 않아야 한다")
     func 서버_message가_없어도_HTTP_에러_설명은_비어_있지_않아야_한다() throws {
         let error = NetworkError.serverError(statusCode: 500, message: nil)
@@ -444,6 +519,71 @@ private extension NetworkClientTests {
             case .failure(let error):
                 throw error
             }
+        }
+    }
+
+    struct CapturingTransport: NetworkTransport {
+        let capture: RequestCapture
+        let output: FakeTransport.Output
+
+        func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+            await capture.record(request)
+
+            switch output {
+            case .success(let data, let response):
+                return (data, response)
+            case .failure(let error):
+                throw error
+            }
+        }
+    }
+
+    actor RequestCapture {
+        private var capturedRequest: URLRequest?
+
+        func record(_ request: URLRequest) {
+            capturedRequest = request
+        }
+
+        func request() -> URLRequest? {
+            capturedRequest
+        }
+    }
+
+    actor SpyRequestInterceptor: RequestInterceptor {
+        private var callCount = 0
+        private let error: NetworkError?
+
+        init(error: NetworkError? = nil) {
+            self.error = error
+        }
+
+        func adapt(
+            _ request: URLRequest
+        ) async throws(NetworkError) -> URLRequest {
+            callCount += 1
+
+            if let error {
+                throw error
+            }
+
+            var adaptedRequest = request
+            adaptedRequest.setValue("true", forHTTPHeaderField: "X-Intercepted")
+
+            return adaptedRequest
+        }
+
+        func retry(
+            _ request: URLRequest,
+            dueTo error: NetworkError,
+            response: HTTPURLResponse?,
+            retryCount: Int
+        ) async -> RetryResult {
+            .doNotRetry
+        }
+
+        func adaptCallCount() -> Int {
+            callCount
         }
     }
 }
