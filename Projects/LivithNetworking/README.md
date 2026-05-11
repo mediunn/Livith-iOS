@@ -1,6 +1,6 @@
 # LivithNetworking
 
-`LivithNetworking`은 기존 `LivithNetwork`를 바로 대체하지 않는 신규 네트워킹 모듈이다. 현재 단계의 목표는 외부 라이브러리 없이 `RequestBuilder`, transport, `ResponseHandler`를 연결하는 최소 클라이언트 경계를 고정하는 것이다.
+`LivithNetworking`은 기존 `LivithNetwork`를 바로 대체하지 않는 신규 네트워킹 모듈이다. 현재 단계의 목표는 외부 라이브러리 없이 `RequestBuilder`, transport, `ResponseHandler`를 연결하는 최소 클라이언트 경계와 Keychain 기반 토큰 저장소 경계를 고정하는 것이다.
 
 ## 현재 범위
 
@@ -14,6 +14,7 @@ flowchart LR
     Done --> Response[ResponseHandler]
     Done --> Client[NetworkClient]
     Done --> Transport[URLSessionTransport]
+    Done --> TokenStore[Keychain 기반 TokenStore]
 
     Out --> Auth[인증 토큰 삽입]
     Out --> Refresh[401 refresh / retry]
@@ -99,6 +100,27 @@ classDiagram
         +data: T?
     }
 
+    class TokenStore {
+        <<protocol>>
+        +save(Token)
+        +fetch() Token
+        +remove()
+        +isRefreshTokenExpired() Bool
+    }
+
+    class KeychainTokenStore {
+        +save(Token)
+        +fetch() Token
+        +remove()
+        +isRefreshTokenExpired() Bool
+    }
+
+    class Token {
+        +accessToken: String
+        +refreshToken: String
+        +refreshTokenIssuedAt: Date
+    }
+
     NetworkClient --> NetworkConfig
     NetworkClient --> RequestBuilder
     NetworkClient --> NetworkTransport
@@ -107,6 +129,8 @@ classDiagram
     URLSessionTransport ..|> NetworkTransport
     RequestBuilder --> NetworkEndpoint
     ResponseHandler --> ServerResponse
+    KeychainTokenStore ..|> TokenStore
+    KeychainTokenStore --> Token
 ```
 
 ## 요청 흐름
@@ -223,14 +247,18 @@ flowchart TD
     Request[Sources/Request]
     Response[Sources/Response]
     Client[Sources/Client]
+    Token[Sources/Token]
     ClientTests[Tests/Client]
+    TokenTests[Tests/Token]
 
     Root --> Sources
     Root --> Tests
     Sources --> Request
     Sources --> Response
     Sources --> Client
+    Sources --> Token
     Tests --> ClientTests
+    Tests --> TokenTests
 
     Request --> HTTPMethod[HTTPMethod.swift]
     Request --> Config[NetworkConfig.swift]
@@ -248,7 +276,16 @@ flowchart TD
     Client --> Transport[NetworkTransport.swift]
     Client --> URLSession[URLSessionTransport.swift]
 
+    Token --> TokenModel[Token.swift]
+    Token --> TokenError[TokenError.swift]
+    Token --> Expiration[TokenExpirationPolicy.swift]
+    Token --> KeychainStore[TokenStore.swift]
+    Token --> KeychainStorage[KeychainStorage.swift]
+
     ClientTests --> NetworkClientTests[NetworkClientTests.swift]
+    TokenTests --> TokenModelTests[TokenTests.swift]
+    TokenTests --> ExpirationTests[TokenExpirationPolicyTests.swift]
+    TokenTests --> KeychainStoreTests[KeychainTokenStoreTests.swift]
 ```
 
 ## 사용 형태
@@ -260,6 +297,16 @@ let client = NetworkClient(
 
 let value: SomeResponse = try await client.request(endpoint)
 try await client.request(voidEndpoint)
+
+let tokenStore: any TokenStore = KeychainTokenStore()
+try await tokenStore.save(
+    Token(
+        accessToken: "<access-token>",
+        refreshToken: "<refresh-token>",
+        refreshTokenIssuedAt: .now
+    )
+)
+let token = try await tokenStore.fetch()
 ```
 
 ## 확정된 결정
@@ -275,18 +322,23 @@ flowchart TD
     G[민감한 body 원문 logging 금지]
     H[NetworkError는 의미 기반 case로 노출]
     I[HTTP 에러는 서버 message 보존]
+    J[TokenStore는 Keychain payload item 1개 사용]
+    K[토큰 원문 logging 금지]
 
     A --> B --> C
     D --> E --> F
     G --> Next[후속 logging 설계에서 유지]
     H --> I
+    J --> K
 ```
 
 ## LocalizedError 정책
 
 - `NetworkError`는 `LocalizedError`를 채택한다.
+- `TokenError`는 `LocalizedError`를 채택한다.
 - HTTP 에러의 `errorDescription`은 서버 `message`가 있으면 포함한다.
 - response body 원문은 logging하거나 설명 문구에 포함하지 않는다.
+- 토큰 원문과 Keychain payload 원문은 logging하거나 설명 문구에 포함하지 않는다.
 
 ## 검증
 
@@ -302,6 +354,9 @@ git diff --check
 - `docs/designs/LIVD-298-livith-networking-basic-request.md`
 - `docs/designs/LIVD-298-livith-networking-response.md`
 - `docs/designs/LIVD-298-livith-networking-client.md`
+- `docs/designs/LIVD-395-livith-networking-token-store.md`
 - `docs/plans/LIVD-298-livith-networking-client.md`
 - `docs/plans/LIVD-298-livith-networking-error.md`
+- `docs/archives/LIVD-395-livith-networking-token-store.md`
 - `docs/troubleshooting/LIVD-298-livith-networking.md`
+- `docs/archives/LIVD-395-livith-networking-token-store-troubleshooting.md`
