@@ -85,6 +85,7 @@ private extension StatusFilterBottomSheetView {
                 selectedStatusList = tempStatusList
                 showFilter = false
             }
+            .disabled(!hasSelection)
         }
     }
 

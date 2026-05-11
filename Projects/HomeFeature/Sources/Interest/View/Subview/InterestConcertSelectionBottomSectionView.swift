@@ -58,6 +58,7 @@ private extension InterestConcertSelectionBottomSectionView {
                 }
             }
             .padding(.horizontal, Constants.horizontalPadding)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

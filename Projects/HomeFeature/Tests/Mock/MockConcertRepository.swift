@@ -25,6 +25,7 @@ final class MockConcertRepository: ConcertRepository {
     var recommendedConcertListStub: [Concert] = []
     var concertListResultStub: ListResult<Concert>?
     var concertListResultQueue: [Result<ListResult<Concert>, ConcertError>] = []
+    var fetchHomeConcertSectionListDelay: UInt64 = 0
     var errorStub: ConcertError?
     
     var fetchAllConcertListCallCount: Int = 0
@@ -130,6 +131,9 @@ final class MockConcertRepository: ConcertRepository {
     
     func fetchHomeConcertSectionList() async throws(ConcertError) -> [ConcertSection] {
         fetchHomeConcertSectionListCallCount += 1
+        if fetchHomeConcertSectionListDelay > 0 {
+            try? await Task.sleep(nanoseconds: fetchHomeConcertSectionListDelay)
+        }
         if let error = errorStub {
             throw error
         }

@@ -18,6 +18,8 @@ public enum HomeEndpoint {
     case checkInterestedConcert(concertID: Int)
     case deleteInterestedConcert
     case fetchRecommendedConcertList
+    case fetchInterestConcertToast
+    case updateInterestConcertToast
 }
 
 extension HomeEndpoint: NetworkEndpoint {
@@ -35,6 +37,8 @@ extension HomeEndpoint: NetworkEndpoint {
             return "/users/interest-concert"
         case .fetchRecommendedConcertList:
             return "/recommendation/concerts"
+        case .fetchInterestConcertToast, .updateInterestConcertToast:
+            return "/users/interest-concerts/toast"
         }
     }
 
@@ -43,12 +47,15 @@ extension HomeEndpoint: NetworkEndpoint {
         case .fetchSectionList,
              .fetchInterestedConcertList,
              .checkInterestedConcert,
-             .fetchRecommendedConcertList:
+             .fetchRecommendedConcertList,
+             .fetchInterestConcertToast:
             return .get
         case .updateInterestedConcert:
             return .post
         case .updateInterestedConcertList:
             return .put
+        case .updateInterestConcertToast:
+            return .patch
         case .deleteInterestedConcert:
             return .delete
         }
@@ -87,7 +94,9 @@ extension HomeEndpoint: NetworkEndpoint {
              .updateInterestedConcertList,
              .checkInterestedConcert,
              .deleteInterestedConcert,
-             .fetchRecommendedConcertList:
+             .fetchRecommendedConcertList,
+             .fetchInterestConcertToast,
+             .updateInterestConcertToast:
             return true
         case .fetchSectionList:
             return false

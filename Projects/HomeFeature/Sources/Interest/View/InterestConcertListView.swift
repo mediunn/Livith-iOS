@@ -77,12 +77,12 @@ private extension InterestConcertListView {
         } label: {
             Text("변경하기")
                 .notosans(.body4Medium)
-                .foregroundStyle(Color.livithColor(.black80))
+                .foregroundStyle(Color.livithColor(.black50))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 4)
                 .background {
                     Capsule()
-                        .strokeBorder(Color.livithColor(.black80), lineWidth: 1)
+                        .strokeBorder(Color.livithColor(.black50), lineWidth: 1)
                 }
         }
     }

@@ -177,6 +177,48 @@ struct HomeFeatureDTOTests {
         #expect(result.data == nil)
     }
 
+    @Test("FetchInterestConcertToast BaseResponse 디코딩이 정상적으로 되어야 한다")
+    func fetchInterestConcertToast_baseResponse_디코딩이_정상적으로_되어야_한다() throws {
+        // Given
+        let json = """
+        {
+          "statusCode": 200,
+          "message": "요청에 성공하였습니다.",
+          "data": {
+            "needsToShow": true
+          }
+        }
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode(BaseResponse<DTO.Response.FetchInterestConcertToast>.self, from: json)
+
+        // Then
+        #expect(result.statusCode == 200)
+        #expect(result.data?.needsToShow == true)
+    }
+
+    @Test("UpdateInterestConcertToast BaseResponse 디코딩이 정상적으로 되어야 한다")
+    func updateInterestConcertToast_baseResponse_디코딩이_정상적으로_되어야_한다() throws {
+        // Given
+        let json = """
+        {
+          "statusCode": 200,
+          "message": "요청에 성공하였습니다.",
+          "data": {
+            "success": true
+          }
+        }
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode(BaseResponse<DTO.Response.UpdateInterestConcertToast>.self, from: json)
+
+        // Then
+        #expect(result.statusCode == 200)
+        #expect(result.data?.success == true)
+    }
+
     @Test("HomeEndpoint 관심 콘서트 목록 기본 요청은 query를 비워야 한다")
     func homeEndpoint_관심_콘서트_목록_기본_요청은_query를_비워야_한다() throws {
         // Given
@@ -215,6 +257,32 @@ struct HomeFeatureDTOTests {
         #expect(query["size"] as? Int == 10)
         #expect(query["cursorDate"] as? String == "2025.08.10")
         #expect(query["cursorId"] as? Int == 1)
+    }
+
+    @Test("HomeEndpoint 관심 콘서트 토스트 조회 endpoint를 생성해야 한다")
+    func homeEndpoint_관심_콘서트_토스트_조회_endpoint를_생성해야_한다() {
+        // Given
+        let endpoint = HomeEndpoint.fetchInterestConcertToast
+
+        // Then
+        #expect(endpoint.path == "/users/interest-concerts/toast")
+        #expect(endpoint.method == .get)
+        #expect(endpoint.requiresInterceptor)
+        #expect(endpoint.query == nil)
+        #expect(endpoint.body == nil)
+    }
+
+    @Test("HomeEndpoint 관심 콘서트 토스트 노출 처리 endpoint를 생성해야 한다")
+    func homeEndpoint_관심_콘서트_토스트_노출_처리_endpoint를_생성해야_한다() {
+        // Given
+        let endpoint = HomeEndpoint.updateInterestConcertToast
+
+        // Then
+        #expect(endpoint.path == "/users/interest-concerts/toast")
+        #expect(endpoint.method == .patch)
+        #expect(endpoint.requiresInterceptor)
+        #expect(endpoint.query == nil)
+        #expect(endpoint.body == nil)
     }
 
     @Test("FetchRecommendedConcertList 디코딩이 정상적으로 되어야 한다")
