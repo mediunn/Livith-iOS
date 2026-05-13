@@ -1,6 +1,6 @@
 # LivithNetworking
 
-`LivithNetworking`은 기존 `LivithNetwork`를 바로 대체하지 않는 신규 네트워킹 모듈이다. 현재 단계에서는 외부 라이브러리 없이 `RequestBuilder`, transport, `ResponseHandler`, Keychain 기반 토큰 저장소, 인증 헤더 삽입, refresh token 기반 재발급, 401 refresh/retry, plugin 기반 요청/응답 생명주기 확장 흐름까지 연결한다.
+`LivithNetworking`은 기존 `LivithNetwork`를 바로 대체하지 않는 신규 네트워킹 모듈이다. 현재 단계에서는 외부 라이브러리 없이 `RequestBuilder`, transport, `ResponseHandler`, Keychain 기반 토큰 저장소, 인증 헤더 삽입, refresh token 기반 재발급, 401 refresh/retry, plugin 기반 요청/응답 생명주기 확장, ETag 기반 메모리 캐시 흐름까지 연결한다.
 
 ## 현재 범위
 
@@ -21,15 +21,14 @@ flowchart LR
     Done --> Retry[401 refresh / retry]
     Done --> Plugin[NetworkPlugin]
     Done --> DebugPlugin[DebugNetworkPlugin]
+    Done --> Cache[ETag 메모리 캐시]
 
-    Out --> Cache[cache / ETag]
     Out --> Logout[refresh 실패 시 로그아웃/토큰 삭제]
     Out --> DI[앱/데이터 레이어 DI 등록]
     Out --> Migration[기존 LivithNetwork 대체]
 
     Next --> DI
     Next --> Logout
-    Next --> Cache
     DI --> Migration
     Logout --> Migration
 ```
@@ -67,6 +66,7 @@ classDiagram
         +task: RequestTask
         +headers: [String: String]
         +requiresAuthentication: Bool
+        +etagCacheEnabled: Bool
     }
 
     class RequestInterceptor {
@@ -133,9 +133,33 @@ classDiagram
         +refreshTokenIssuedAt: Date
     }
 
+    class ETagCacheHandler {
+        +key(request, endpoint)
+        +apply(request, key, skipsETag)
+        +handle(data, response, request, key)
+        +removeAll()
+    }
+
+    class ETagCacheStore {
+        <<protocol>>
+        +value(key) ETagCacheEntry
+        +save(entry, key)
+        +remove(key)
+        +removeAll()
+    }
+
+    class MemoryETagCacheStore {
+        +value(key) ETagCacheEntry
+        +save(entry, key)
+        +remove(key)
+        +removeAll()
+    }
+
     NetworkClient --> NetworkEndpoint
     NetworkClient --> RequestInterceptor
     NetworkClient --> NetworkPlugin
+    NetworkClient --> ETagCacheHandler
+    ETagCacheHandler --> ETagCacheStore
     AuthInterceptor ..|> RequestInterceptor
     DebugNetworkPlugin ..|> NetworkPlugin
     AuthInterceptor --> TokenManager
@@ -144,6 +168,7 @@ classDiagram
     TokenManagerImpl --> TokenRefreshService
     TokenRefreshServiceImpl ..|> TokenRefreshService
     TokenRefreshServiceImpl --> NetworkClient
+    MemoryETagCacheStore ..|> ETagCacheStore
     KeychainTokenStore ..|> TokenStore
     KeychainTokenStore --> Token
 ```
@@ -172,10 +197,22 @@ sequenceDiagram
         Manager-->>Interceptor: access token
         Interceptor-->>Client: Authorization 적용 request
     end
+    alt etagCacheEnabled && GET && cache hit
+        Client->>Client: If-None-Match 적용
+    end
     Client->>Plugin: willSend(request, endpoint)
     Client->>Transport: data(for: request)
     Transport-->>Client: Data + HTTPURLResponse
     Client->>Plugin: didReceive(success, request, endpoint)
+    alt 304 && cache hit
+        Client->>Handler: handle(cached data, cached 2xx response)
+    else 304 && cache miss
+        Client->>Transport: If-None-Match 없이 1회 fallback
+    else 200 && ETag exists
+        Client->>Client: ETag와 body 저장
+    else 200 && ETag missing
+        Client->>Client: 기존 cache 삭제
+    end
     alt 401 && requiresAuthentication && retryCount == 0
         Client->>Interceptor: retry(...)
         Interceptor->>Manager: refresh()
@@ -225,6 +262,19 @@ flowchart TD
 - refresh 실패 시 원 요청을 재전송하지 않고 `NetworkError`를 전달한다.
 - 비인증 endpoint는 `adapt`와 `retry` hook을 모두 호출하지 않는다.
 - plugin hook은 인증 여부와 무관하게 호출한다.
+
+## ETag 캐시 정책
+
+- `etagCacheEnabled == true`인 GET 요청에만 적용한다.
+- 캐시는 `NetworkClient` 인스턴스가 소유하는 메모리 저장소를 사용하며, `URLCache`나 디스크 저장소를 사용하지 않는다.
+- 캐시 키는 실제 전송 URL 기준의 `HTTP method + absolute URL`이다.
+- 200 응답에 `ETag` 헤더가 있으면 ETag와 response body를 저장한다.
+- 200 응답에 `ETag` 헤더가 없으면 해당 key의 기존 캐시를 삭제한다.
+- 같은 key의 캐시가 있으면 다음 요청에 `If-None-Match`를 추가한다.
+- 304 응답이 오면 캐시된 body와 저장된 2xx status metadata를 사용해 기존 decoding 경로로 반환한다.
+- 304 응답인데 캐시가 없으면 `If-None-Match` 없이 1회 fallback 요청한다.
+- 네트워크 실패 시 기존 캐시를 반환하는 offline fallback은 제공하지 않는다.
+- 로그아웃 또는 사용자 전환 시 `await client.removeAllETagCache()`를 호출해 현재 클라이언트의 캐시를 비울 수 있다.
 
 ## 에러 경계
 
@@ -296,6 +346,7 @@ flowchart TD
     Client[Sources/Client]
     Interceptor[Sources/Interceptor]
     Plugin[Sources/Plugin]
+    Cache[Sources/Cache]
     Token[Sources/Token]
     Service[Sources/Service]
     DTO[Sources/DTO]
@@ -311,6 +362,7 @@ flowchart TD
     Sources --> Client
     Sources --> Interceptor
     Sources --> Plugin
+    Sources --> Cache
     Sources --> Token
     Sources --> Service
     Sources --> DTO
@@ -322,12 +374,18 @@ flowchart TD
     Client --> NetworkClient[NetworkClient.swift]
     Client --> NetworkError[NetworkError.swift]
     Client --> Transport[NetworkTransport.swift]
+    Client --> Attempt[RequestAttempt.swift]
 
     Interceptor --> RequestInterceptor[RequestInterceptor.swift]
     Interceptor --> AuthInterceptor[AuthInterceptor.swift]
 
     Plugin --> NetworkPlugin[NetworkPlugin.swift]
     Plugin --> DebugNetworkPlugin[DebugNetworkPlugin.swift]
+
+    Cache --> ETagHandler[ETagCacheHandler.swift]
+    Cache --> ETagEntry[ETagCacheEntry.swift]
+    Cache --> ETagStore[ETagCacheStore.swift]
+    Cache --> MemoryETagStore[MemoryETagCacheStore.swift]
 
     Token --> TokenModel[Token.swift]
     Token --> TokenError[TokenError.swift]
@@ -409,6 +467,23 @@ let client = NetworkClient(
 
 `DebugNetworkPlugin`은 기본적으로 구분선과 모듈명을 포함한 로그 블록에 method, userinfo/query/fragment를 제거한 URL의 scheme/host/path, status code, 전송 실패 요약만 출력한다. query string, request/response body, request/response header 값은 출력하지 않는다.
 
+### ETag 캐시 opt-in
+
+```swift
+let endpoint = NetworkEndpoint(
+    path: "/concerts",
+    method: .get,
+    etagCacheEnabled: true
+)
+
+let value: SomeResponse = try await client.request(endpoint)
+
+// 로그아웃 또는 사용자 전환 시
+await client.removeAllETagCache()
+```
+
+ETag 캐시는 GET 요청에만 적용되며, 캐시는 `NetworkClient` 인스턴스의 메모리에만 유지된다. 앱 재실행 후 유지되지 않고, `URLCache`를 사용하지 않는다.
+
 ## 플러그인과 인터셉터 책임
 
 | 타입 | 책임 | 요청 수정 | 재시도 정책 |
@@ -436,6 +511,9 @@ flowchart TD
     N[retry 시 원 요청 재-prepare/re-adapt]
     O[NetworkPlugin은 prepare/willSend/didReceive만 제공]
     P[DebugNetworkPlugin은 query/body/header 미출력]
+    Q[ETag 캐시는 endpoint Bool opt-in]
+    R[ETag 캐시는 GET과 메모리 store만 사용]
+    S[304 cache miss는 조건 없이 1회 fallback]
 
     A --> B --> C
     D --> E --> F
@@ -444,6 +522,7 @@ flowchart TD
     J --> K
     L --> M --> N
     O --> P
+    Q --> R --> S
 ```
 
 ## LocalizedError 및 보안 정책
@@ -455,6 +534,7 @@ flowchart TD
 - request body 원문은 logging하지 않는다.
 - 토큰 원문, refresh token, Authorization 헤더 전체 값, Cookie, Set-Cookie, API key, Keychain payload 원문은 logging하거나 설명 문구에 포함하지 않는다.
 - `DebugNetworkPlugin`은 URL userinfo, query string, fragment, request/response header 값을 기본 출력하지 않는다.
+- `ETag`와 `If-None-Match` 원문 값은 불필요하게 logging하지 않는다.
 - 토큰과 비밀값은 `UserDefaults` 계열 저장소에 저장하지 않는다.
 
 ## 검증

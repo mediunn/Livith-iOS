@@ -47,14 +47,22 @@ struct NetworkEndpointTests {
         #expect(sut.requiresAuthentication)
     }
 
-    @Test("task와 headers와 requiresAuthentication을 재정의할 수 있어야 한다")
-    func task와_headers와_requiresAuthentication을_재정의할_수_있어야_한다() {
+    @Test("etagCacheEnabled 기본값은 false여야 한다")
+    func etagCacheEnabled_기본값은_false여야_한다() {
+        let sut = NetworkEndpoint(path: "/concerts", method: .get)
+
+        #expect(!sut.etagCacheEnabled)
+    }
+
+    @Test("task와 headers와 requiresAuthentication과 etagCacheEnabled를 재정의할 수 있어야 한다")
+    func task와_headers와_requiresAuthentication과_etagCacheEnabled를_재정의할_수_있어야_한다() {
         let sut = NetworkEndpoint(
             path: "/search/concerts",
             method: .get,
             task: .query([URLQueryItem(name: "keyword", value: "livith")]),
             headers: ["X-Client": "iOS"],
-            requiresAuthentication: false
+            requiresAuthentication: false,
+            etagCacheEnabled: true
         )
 
         if case .query(let queryItems) = sut.task {
@@ -65,5 +73,6 @@ struct NetworkEndpointTests {
 
         #expect(sut.headers == ["X-Client": "iOS"])
         #expect(!sut.requiresAuthentication)
+        #expect(sut.etagCacheEnabled)
     }
 }

@@ -39,13 +39,14 @@ struct HTTPTestResponseFactory {
 
     func response(
         statusCode: Int,
-        url: URL? = nil
+        url: URL? = nil,
+        headerFields: [String: String]? = nil
     ) throws -> HTTPURLResponse {
         try #require(HTTPURLResponse(
             url: url ?? baseURL,
             statusCode: statusCode,
             httpVersion: nil,
-            headerFields: nil
+            headerFields: headerFields
         ))
     }
 }
