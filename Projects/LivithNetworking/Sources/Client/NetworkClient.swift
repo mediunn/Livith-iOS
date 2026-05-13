@@ -82,6 +82,18 @@ private extension NetworkClient {
             throw map(error)
         }
 
+        return try await load(
+            request,
+            for: endpoint,
+            retryCount: 0
+        )
+    }
+
+    func load(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint,
+        retryCount: Int
+    ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
         let adaptedRequest = try await adapt(request, for: endpoint)
 
         let data: Data
@@ -94,6 +106,19 @@ private extension NetworkClient {
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw .invalidResponse
+        }
+
+        if try await shouldRetry(
+            adaptedRequest,
+            for: endpoint,
+            response: httpResponse,
+            retryCount: retryCount
+        ) {
+            return try await load(
+                request,
+                for: endpoint,
+                retryCount: retryCount + 1
+            )
         }
 
         return (data, httpResponse)
@@ -110,6 +135,35 @@ private extension NetworkClient {
         }
 
         return try await interceptor.adapt(request)
+    }
+
+    func shouldRetry(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint,
+        response: HTTPURLResponse,
+        retryCount: Int
+    ) async throws(NetworkError) -> Bool {
+        guard endpoint.requiresAuthentication,
+              retryCount == 0,
+              response.statusCode == 401,
+              let interceptor
+        else {
+            return false
+        }
+
+        let result = try await interceptor.retry(
+            request,
+            dueTo: .unauthorized(message: nil),
+            response: response,
+            retryCount: retryCount
+        )
+
+        switch result {
+        case .retry:
+            return true
+        case .doNotRetry:
+            return false
+        }
     }
 
     func map(_ error: RequestBuildError) -> NetworkError {

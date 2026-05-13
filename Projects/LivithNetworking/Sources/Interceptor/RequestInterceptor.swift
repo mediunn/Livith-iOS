@@ -18,7 +18,7 @@ public protocol RequestInterceptor: Sendable {
         dueTo error: NetworkError,
         response: HTTPURLResponse?,
         retryCount: Int
-    ) async -> RetryResult
+    ) async throws(NetworkError) -> RetryResult
 }
 
 public enum RetryResult: Sendable {

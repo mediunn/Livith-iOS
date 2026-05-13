@@ -14,9 +14,9 @@ import Testing
 
 @Suite("AuthInterceptor")
 struct AuthInterceptorTests {
-    @Test("adapt는 Authorization Bearer 헤더를 삽입해야 한다")
-    func adapt는_Authorization_Bearer_헤더를_삽입해야_한다() async throws {
-        let sut = AuthInterceptor(tokenStore: StubTokenStore(token: makeToken()))
+    @Test("adapt는 TokenManager의 access token으로 Authorization Bearer 헤더를 삽입해야 한다")
+    func adapt는_TokenManager의_access_token으로_Authorization_Bearer_헤더를_삽입해야_한다() async throws {
+        let sut = AuthInterceptor(tokenManager: SpyTokenManager(accessToken: "test-access-token"))
         let request = try makeRequest()
 
         let adaptedRequest = try await sut.adapt(request)
@@ -26,7 +26,7 @@ struct AuthInterceptorTests {
 
     @Test("adapt는 기존 Authorization 헤더를 Bearer token으로 대체해야 한다")
     func adapt는_기존_Authorization_헤더를_Bearer_token으로_대체해야_한다() async throws {
-        let sut = AuthInterceptor(tokenStore: StubTokenStore(token: makeToken()))
+        let sut = AuthInterceptor(tokenManager: SpyTokenManager(accessToken: "test-access-token"))
         var request = try makeRequest()
         request.setValue("Bearer stale-token", forHTTPHeaderField: "Authorization")
 
@@ -35,9 +35,9 @@ struct AuthInterceptorTests {
         #expect(adaptedRequest.value(forHTTPHeaderField: "Authorization") == "Bearer test-access-token")
     }
 
-    @Test("token 조회 실패는 unauthorized로 매핑해야 한다")
-    func token_조회_실패는_unauthorized로_매핑해야_한다() async throws {
-        let sut = AuthInterceptor(tokenStore: StubTokenStore(error: .noToken))
+    @Test("access token 조회 실패는 NetworkError로 전달해야 한다")
+    func access_token_조회_실패는_NetworkError로_전달해야_한다() async throws {
+        let sut = AuthInterceptor(tokenManager: SpyTokenManager(accessTokenError: .unauthorized(message: nil)))
         let request = try makeRequest()
 
         do {
@@ -50,22 +50,95 @@ struct AuthInterceptorTests {
         }
     }
 
-    @Test("retry는 현재 재시도하지 않아야 한다")
-    func retry는_현재_재시도하지_않아야_한다() async throws {
-        let sut = AuthInterceptor(tokenStore: StubTokenStore(token: makeToken()))
+    @Test("retry는 첫 401 응답에서 refresh 후 재시도를 반환해야 한다")
+    func retry는_첫_401_응답에서_refresh_후_재시도를_반환해야_한다() async throws {
+        let tokenManager = SpyTokenManager(accessToken: "test-access-token")
+        let sut = AuthInterceptor(tokenManager: tokenManager)
         let request = try makeRequest()
 
-        let result = await sut.retry(
+        let result = try await sut.retry(
             request,
             dueTo: .unauthorized(message: nil),
-            response: nil,
+            response: try HTTPTestResponseFactory().response(statusCode: 401),
+            retryCount: 0
+        )
+
+        switch result {
+        case .retry:
+            #expect(await tokenManager.refreshCallCount() == 1)
+        case .doNotRetry:
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("retry는 401이 아니면 refresh하지 않아야 한다")
+    func retry는_401이_아니면_refresh하지_않아야_한다() async throws {
+        let tokenManager = SpyTokenManager(accessToken: "test-access-token")
+        let sut = AuthInterceptor(tokenManager: tokenManager)
+        let request = try makeRequest()
+
+        let result = try await sut.retry(
+            request,
+            dueTo: .forbidden(message: nil),
+            response: try HTTPTestResponseFactory().response(statusCode: 403),
             retryCount: 0
         )
 
         switch result {
         case .doNotRetry:
-            #expect(Bool(true))
+            #expect(await tokenManager.refreshCallCount() == 0)
         case .retry:
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("retry는 두 번째 401부터 refresh하지 않아야 한다")
+    func retry는_두_번째_401부터_refresh하지_않아야_한다() async throws {
+        let tokenManager = SpyTokenManager(accessToken: "test-access-token")
+        let sut = AuthInterceptor(tokenManager: tokenManager)
+        let request = try makeRequest()
+
+        let result = try await sut.retry(
+            request,
+            dueTo: .unauthorized(message: nil),
+            response: try HTTPTestResponseFactory().response(statusCode: 401),
+            retryCount: 1
+        )
+
+        switch result {
+        case .doNotRetry:
+            #expect(await tokenManager.refreshCallCount() == 0)
+        case .retry:
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("retry의 refresh 실패는 NetworkError로 전달해야 한다")
+    func retry의_refresh_실패는_NetworkError로_전달해야_한다() async throws {
+        let tokenManager = SpyTokenManager(
+            accessToken: "test-access-token",
+            refreshError: .unauthorized(message: nil)
+        )
+        let sut = AuthInterceptor(tokenManager: tokenManager)
+        let request = try makeRequest()
+
+        do {
+            _ = try await sut.retry(
+                request,
+                dueTo: .unauthorized(message: nil),
+                response: try HTTPTestResponseFactory().response(statusCode: 401),
+                retryCount: 0
+            )
+            #expect(Bool(false))
+        } catch let error as NetworkError {
+            guard case .unauthorized(let message) = error else {
+                #expect(Bool(false))
+                return
+            }
+
+            #expect(message == nil)
+            #expect(await tokenManager.refreshCallCount() == 1)
+        } catch {
             #expect(Bool(false))
         }
     }
@@ -78,44 +151,40 @@ private extension AuthInterceptorTests {
         return URLRequest(url: url)
     }
 
-    func makeToken() -> Token {
-        Token(
-            accessToken: "test-access-token",
-            refreshToken: "test-refresh-token",
-            refreshTokenIssuedAt: Date(timeIntervalSince1970: 1_700_000_000)
-        )
-    }
-
-    struct StubTokenStore: TokenStore {
-        let token: Token?
-        let error: TokenError?
+    actor SpyTokenManager: TokenManager {
+        private let accessTokenValue: String
+        private let accessTokenError: NetworkError?
+        private let refreshError: NetworkError?
+        private var refreshCount = 0
 
         init(
-            token: Token? = nil,
-            error: TokenError? = nil
+            accessToken: String = "test-access-token",
+            accessTokenError: NetworkError? = nil,
+            refreshError: NetworkError? = nil
         ) {
-            self.token = token
-            self.error = error
+            accessTokenValue = accessToken
+            self.accessTokenError = accessTokenError
+            self.refreshError = refreshError
         }
 
-        func save(_ token: Token) async throws(TokenError) {}
-
-        func fetch() async throws(TokenError) -> Token {
-            if let error {
-                throw error
+        func accessToken() async throws(NetworkError) -> String {
+            if let accessTokenError {
+                throw accessTokenError
             }
 
-            guard let token else {
-                throw .noToken
-            }
-
-            return token
+            return accessTokenValue
         }
 
-        func remove() async throws(TokenError) {}
+        func refresh() async throws(NetworkError) {
+            refreshCount += 1
 
-        func isRefreshTokenExpired() async -> Bool {
-            false
+            if let refreshError {
+                throw refreshError
+            }
+        }
+
+        func refreshCallCount() -> Int {
+            refreshCount
         }
     }
 }

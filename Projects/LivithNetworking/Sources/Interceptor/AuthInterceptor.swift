@@ -9,25 +9,32 @@
 import Foundation
 
 public struct AuthInterceptor: RequestInterceptor {
-    private let tokenStore: any TokenStore
+    private let tokenManager: any TokenManager
 
-    public init(tokenStore: any TokenStore = KeychainTokenStore()) {
-        self.tokenStore = tokenStore
+    public init(tokenManager: any TokenManager) {
+        self.tokenManager = tokenManager
+    }
+
+    public init(
+        config: NetworkConfig,
+        tokenStore: any TokenStore = KeychainTokenStore()
+    ) {
+        self.init(
+            tokenManager: TokenManagerImpl(
+                tokenStore: tokenStore,
+                tokenRefreshService: TokenRefreshServiceImpl(config: config)
+            )
+        )
     }
 
     public func adapt(
         _ request: URLRequest
     ) async throws(NetworkError) -> URLRequest {
-        let token: Token
-        do {
-            token = try await tokenStore.fetch()
-        } catch {
-            throw .unauthorized(message: nil)
-        }
+        let accessToken = try await tokenManager.accessToken()
 
         var adaptedRequest = request
         adaptedRequest.setValue(
-            "Bearer \(token.accessToken)",
+            "Bearer \(accessToken)",
             forHTTPHeaderField: "Authorization"
         )
 
@@ -39,7 +46,14 @@ public struct AuthInterceptor: RequestInterceptor {
         dueTo error: NetworkError,
         response: HTTPURLResponse?,
         retryCount: Int
-    ) async -> RetryResult {
-        .doNotRetry
+    ) async throws(NetworkError) -> RetryResult {
+        guard retryCount == 0,
+              response?.statusCode == 401
+        else {
+            return .doNotRetry
+        }
+
+        try await tokenManager.refresh()
+        return .retry
     }
 }

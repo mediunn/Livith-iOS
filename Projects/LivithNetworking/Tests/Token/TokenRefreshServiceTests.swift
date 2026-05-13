@@ -16,7 +16,8 @@ import Testing
 struct TokenRefreshServiceTests {
     @Test("refresh 성공 응답은 Token으로 변환해야 한다")
     func refresh_성공_응답은_Token으로_변환해야_한다() async throws {
-        let transport = CapturingTransport(output: .success(makeSuccessData(), try makeResponse(statusCode: 200)))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)))
         let sut = makeSUT(transport: transport)
 
         let startedAt = Date()
@@ -31,7 +32,8 @@ struct TokenRefreshServiceTests {
 
     @Test("refresh 요청은 인증 없이 POST auth refresh endpoint로 전송해야 한다")
     func refresh_요청은_인증_없이_POST_auth_refresh_endpoint로_전송해야_한다() async throws {
-        let transport = CapturingTransport(output: .success(makeSuccessData(), try makeResponse(statusCode: 200)))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)))
         let sut = makeSUT(transport: transport)
 
         _ = try await sut.refresh(with: "test-refresh-token")
@@ -51,7 +53,13 @@ struct TokenRefreshServiceTests {
 
     @Test("refresh 실패 응답은 NetworkError로 전달해야 한다")
     func refresh_실패_응답은_NetworkError로_전달해야_한다() async throws {
-        let transport = CapturingTransport(output: .success(makeErrorData(statusCode: 401, message: "unauthorized"), try makeResponse(statusCode: 401)))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            output: .success(
+                fixture.errorData(statusCode: 401, message: "unauthorized"),
+                try fixture.response(statusCode: 401)
+            )
+        )
         let sut = makeSUT(transport: transport)
 
         do {
@@ -66,8 +74,9 @@ struct TokenRefreshServiceTests {
 
     @Test("동시 refresh 호출은 하나의 네트워크 요청을 공유해야 한다")
     func 동시_refresh_호출은_하나의_네트워크_요청을_공유해야_한다() async throws {
-        let transport = CapturingTransport(
-            output: .success(makeSuccessData(), try makeResponse(statusCode: 200)),
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)),
             delayNanoseconds: 100_000_000
         )
         let sut = makeSUT(transport: transport)
@@ -99,8 +108,8 @@ private extension TokenRefreshServiceTests {
         )
     }
 
-    func makeSuccessData() -> Data {
-        makeData("""
+    func makeSuccessData() throws -> Data {
+        try HTTPTestResponseFactory().data("""
         {
             "statusCode": 200,
             "error": null,
@@ -111,74 +120,5 @@ private extension TokenRefreshServiceTests {
             }
         }
         """)
-    }
-
-    func makeErrorData(
-        statusCode: Int,
-        message: String?
-    ) -> Data {
-        let messageValue = message.map { "\"\($0)\"" } ?? "null"
-
-        return makeData("""
-        {
-            "statusCode": \(statusCode),
-            "error": "ERROR",
-            "message": \(messageValue),
-            "data": null
-        }
-        """)
-    }
-
-    func makeData(_ string: String) -> Data {
-        Data(string.utf8)
-    }
-
-    func makeResponse(statusCode: Int) throws -> HTTPURLResponse {
-        let url = try #require(URL(string: "https://api.example.com"))
-
-        return try #require(HTTPURLResponse(
-            url: url,
-            statusCode: statusCode,
-            httpVersion: nil,
-            headerFields: nil
-        ))
-    }
-
-    actor CapturingTransport: NetworkTransport {
-        enum Output {
-            case success(Data, URLResponse)
-            case failure(Error)
-        }
-
-        private var requestList: [URLRequest] = []
-        private let output: Output
-        private let delayNanoseconds: UInt64
-
-        init(
-            output: Output,
-            delayNanoseconds: UInt64 = 0
-        ) {
-            self.output = output
-            self.delayNanoseconds = delayNanoseconds
-        }
-
-        func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-            requestList.append(request)
-
-            if delayNanoseconds > 0 {
-                try await Task.sleep(nanoseconds: delayNanoseconds)
-            }
-
-            switch output {
-            case .success(let data, let response):
-                return (data, response)
-            case .failure(let error):
-                throw error
-            }
-        }
-
-        func requests() -> [URLRequest] {
-            requestList
-        }
     }
 }

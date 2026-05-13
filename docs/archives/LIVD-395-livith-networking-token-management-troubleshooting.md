@@ -2,6 +2,26 @@
 
 ## 기록
 
+### 2026-05-13 12:51 - typed throws 호출의 catch pattern 컴파일 실패
+
+**상황**
+- `AuthInterceptor.retry`를 `async throws(NetworkError) -> RetryResult`로 변경하고, refresh 실패 전달 테스트를 작성했다.
+
+**문제**
+- 테스트에서 `catch .unauthorized(let message)` 패턴을 사용했을 때 컴파일러가 에러 타입을 `_ErrorCodeProtocol`로 추론해 `unauthorized` 멤버를 찾지 못했다.
+
+**원인**
+- 해당 `do` 블록 안의 호출/매크로 조합에서 typed throws 정보가 catch pattern까지 안정적으로 전파되지 않았다.
+
+**해결**
+- `catch let error as NetworkError`로 받은 뒤 `guard case .unauthorized(let message) = error` 형태로 패턴 매칭했다.
+- 이후 `AuthInterceptorTests`가 컴파일되고 통과했다.
+
+**교훈**
+- typed throws 함수 테스트에서도 catch pattern 추론이 흔들릴 수 있다. 컴파일러가 에러 타입을 잘못 추론하면 `catch let error as NetworkError` 후 명시적으로 switch/guard pattern matching을 사용한다.
+
+---
+
 ### 2026-05-13 12:21 - TokenManagerTests 기본 파라미터 컴파일 실패
 
 **상황**
