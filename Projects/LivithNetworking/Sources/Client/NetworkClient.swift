@@ -14,19 +14,22 @@ public struct NetworkClient {
     private let responseHandler: ResponseHandler
     private let transport: any NetworkTransport
     private let interceptor: (any RequestInterceptor)?
+    private let plugins: [any NetworkPlugin]
 
     public init(
         config: NetworkConfig,
         requestBuilder: RequestBuilder = RequestBuilder(),
         responseHandler: ResponseHandler = ResponseHandler(),
-        interceptor: (any RequestInterceptor)? = nil
+        interceptor: (any RequestInterceptor)? = nil,
+        plugins: [any NetworkPlugin] = []
     ) {
         self.init(
             config: config,
             requestBuilder: requestBuilder,
             responseHandler: responseHandler,
             transport: URLSessionTransport(),
-            interceptor: interceptor
+            interceptor: interceptor,
+            plugins: plugins
         )
     }
 
@@ -35,13 +38,15 @@ public struct NetworkClient {
         requestBuilder: RequestBuilder = RequestBuilder(),
         responseHandler: ResponseHandler = ResponseHandler(),
         transport: any NetworkTransport,
-        interceptor: (any RequestInterceptor)? = nil
+        interceptor: (any RequestInterceptor)? = nil,
+        plugins: [any NetworkPlugin] = []
     ) {
         self.config = config
         self.requestBuilder = requestBuilder
         self.responseHandler = responseHandler
         self.transport = transport
         self.interceptor = interceptor
+        self.plugins = plugins
     }
 
     public func request<T: Decodable>(
@@ -94,19 +99,31 @@ private extension NetworkClient {
         for endpoint: NetworkEndpoint,
         retryCount: Int
     ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
-        let adaptedRequest = try await adapt(request, for: endpoint)
+        let preparedRequest = try await prepare(request, for: endpoint)
+        let adaptedRequest = try await adapt(preparedRequest, for: endpoint)
+
+        await notifyWillSend(adaptedRequest, for: endpoint)
 
         let data: Data
         let response: URLResponse
         do {
             (data, response) = try await transport.data(for: adaptedRequest)
         } catch {
-            throw mapTransportError(error)
+            let networkError = mapTransportError(error)
+            await notifyDidReceive(.failure(networkError), request: adaptedRequest, for: endpoint)
+            throw networkError
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
+            await notifyDidReceive(.failure(.invalidResponse), request: adaptedRequest, for: endpoint)
             throw .invalidResponse
         }
+
+        await notifyDidReceive(
+            .success(NetworkPluginResponse(data: data, response: httpResponse)),
+            request: adaptedRequest,
+            for: endpoint
+        )
 
         if try await shouldRetry(
             adaptedRequest,
@@ -122,6 +139,38 @@ private extension NetworkClient {
         }
 
         return (data, httpResponse)
+    }
+
+    func prepare(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint
+    ) async throws(NetworkError) -> URLRequest {
+        var preparedRequest = request
+
+        for plugin in plugins {
+            preparedRequest = try await plugin.prepare(preparedRequest, endpoint: endpoint)
+        }
+
+        return preparedRequest
+    }
+
+    func notifyWillSend(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint
+    ) async {
+        for plugin in plugins {
+            await plugin.willSend(request, endpoint: endpoint)
+        }
+    }
+
+    func notifyDidReceive(
+        _ result: Result<NetworkPluginResponse, NetworkError>,
+        request: URLRequest,
+        for endpoint: NetworkEndpoint
+    ) async {
+        for plugin in plugins {
+            await plugin.didReceive(result, request: request, endpoint: endpoint)
+        }
     }
 
     func adapt(

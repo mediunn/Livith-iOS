@@ -525,6 +525,194 @@ struct NetworkClientTests {
         }
     }
 
+    @Test("plugin prepare가 수정한 요청을 전송해야 한다")
+    func plugin_prepare가_수정한_요청을_전송해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let plugin = HeaderAppendingPlugin(suffix: "prepared")
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await transport.request())
+        #expect(request.value(forHTTPHeaderField: "X-Plugin-Order") == "prepared")
+    }
+
+    @Test("여러 plugin prepare는 배열 순서대로 적용해야 한다")
+    func 여러_plugin_prepare는_배열_순서대로_적용해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [
+                HeaderAppendingPlugin(suffix: "1"),
+                HeaderAppendingPlugin(suffix: "2")
+            ]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await transport.request())
+        #expect(request.value(forHTTPHeaderField: "X-Plugin-Order") == "12")
+    }
+
+    @Test("plugin은 성공 응답의 willSend와 didReceive를 호출해야 한다")
+    func plugin은_성공_응답의_willSend와_didReceive를_호출해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        #expect(await plugin.willSendCallCount() == 1)
+        #expect(await plugin.successStatusCodeList() == [204])
+    }
+
+    @Test("transport 실패는 plugin didReceive failure로 전달해야 한다")
+    func transport_실패는_plugin_didReceive_failure로_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(output: .failure(URLError(.timedOut)))
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .timeout {
+            #expect(await plugin.failureCallCount() == 1)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("HTTP 응답이 아니면 plugin didReceive failure로 invalidResponse를 전달해야 한다")
+    func HTTP_응답이_아니면_plugin_didReceive_failure로_invalidResponse를_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(output: .success(Data(), URLResponse()))
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .invalidResponse {
+            #expect(await plugin.didReceiveInvalidResponse())
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("plugin prepare 실패는 전송하지 않고 에러를 전달해야 한다")
+    func plugin_prepare_실패는_전송하지_않고_에러를_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let plugin = FailingPreparePlugin(error: .invalidURL)
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        do {
+            try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .invalidURL {
+            #expect(await transport.request() == nil)
+            #expect(await plugin.didReceiveCallCount() == 0)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("interceptor adapt 실패는 plugin didReceive를 호출하지 않아야 한다")
+    func interceptor_adapt_실패는_plugin_didReceive를_호출하지_않아야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let interceptor = SpyRequestInterceptor(error: .unauthorized(message: nil))
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        do {
+            try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == nil)
+            #expect(await plugin.prepareCallCount() == 1)
+            #expect(await plugin.willSendCallCount() == 0)
+            #expect(await plugin.didReceiveCallCount() == 0)
+            #expect(await transport.request() == nil)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("401 retry는 첫 요청과 재시도 요청 모두 plugin hook을 호출해야 한다")
+    func 사백일_retry는_첫_요청과_재시도_요청_모두_plugin_hook을_호출해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            outputList: [
+                .success(fixture.errorData(statusCode: 401, message: "expired"), try fixture.response(statusCode: 401)),
+                .success(Data(), try fixture.response(statusCode: 204))
+            ]
+        )
+        let interceptor = SpyRequestInterceptor(retryResult: .retry)
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        #expect(await plugin.prepareCallCount() == 2)
+        #expect(await plugin.willSendCallCount() == 2)
+        #expect(await plugin.successStatusCodeList() == [401, 204])
+    }
+
     @Test("서버 message가 없어도 HTTP 에러 설명은 비어 있지 않아야 한다")
     func 서버_message가_없어도_HTTP_에러_설명은_비어_있지_않아야_한다() throws {
         let error = NetworkError.serverError(statusCode: 500, message: nil)
@@ -602,6 +790,114 @@ private extension NetworkClientTests {
 
     enum TestError: Error, Equatable {
         case expected
+    }
+
+    actor HeaderAppendingPlugin: NetworkPlugin {
+        private let suffix: String
+
+        init(suffix: String) {
+            self.suffix = suffix
+        }
+
+        func prepare(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async throws(NetworkError) -> URLRequest {
+            var preparedRequest = request
+            let currentValue = preparedRequest.value(forHTTPHeaderField: "X-Plugin-Order") ?? ""
+            preparedRequest.setValue(currentValue + suffix, forHTTPHeaderField: "X-Plugin-Order")
+            return preparedRequest
+        }
+    }
+
+    actor FailingPreparePlugin: NetworkPlugin {
+        private let error: NetworkError
+        private var didReceiveCount = 0
+
+        init(error: NetworkError) {
+            self.error = error
+        }
+
+        func prepare(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async throws(NetworkError) -> URLRequest {
+            throw error
+        }
+
+        func didReceive(
+            _ result: Result<NetworkPluginResponse, NetworkError>,
+            request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async {
+            didReceiveCount += 1
+        }
+
+        func didReceiveCallCount() -> Int {
+            didReceiveCount
+        }
+    }
+
+    actor LifecyclePlugin: NetworkPlugin {
+        private var prepareCount = 0
+        private var willSendCount = 0
+        private var successStatusCodeListValue: [Int] = []
+        private var failureList: [NetworkError] = []
+
+        func prepare(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async throws(NetworkError) -> URLRequest {
+            prepareCount += 1
+            return request
+        }
+
+        func willSend(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async {
+            willSendCount += 1
+        }
+
+        func didReceive(
+            _ result: Result<NetworkPluginResponse, NetworkError>,
+            request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async {
+            switch result {
+            case .success(let response):
+                successStatusCodeListValue.append(response.response.statusCode)
+            case .failure(let error):
+                failureList.append(error)
+            }
+        }
+
+        func prepareCallCount() -> Int {
+            prepareCount
+        }
+
+        func willSendCallCount() -> Int {
+            willSendCount
+        }
+
+        func successStatusCodeList() -> [Int] {
+            successStatusCodeListValue
+        }
+
+        func failureCallCount() -> Int {
+            failureList.count
+        }
+
+        func didReceiveCallCount() -> Int {
+            successStatusCodeListValue.count + failureList.count
+        }
+
+        func didReceiveInvalidResponse() -> Bool {
+            failureList.contains { error in
+                guard case .invalidResponse = error else { return false }
+                return true
+            }
+        }
     }
 
     actor SpyRequestInterceptor: RequestInterceptor {
