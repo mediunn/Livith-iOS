@@ -17,7 +17,7 @@ struct ResponseHandlerTests {
     @Test("성공 응답은 wrapper data를 decode해야 한다")
     func 성공_응답은_wrapper_data를_decode해야_한다() throws {
         let sut = ResponseHandler()
-        let data = makeData("""
+        let data = try HTTPTestResponseFactory().data("""
         {
             "statusCode": 200,
             "error": null,
@@ -25,7 +25,7 @@ struct ResponseHandlerTests {
             "data": { "value": "livith" }
         }
         """)
-        let response = try makeResponse(statusCode: 200)
+        let response = try HTTPTestResponseFactory().response(statusCode: 200)
 
         let value = try sut.handle(ResponseBody.self, data: data, response: response)
 
@@ -35,7 +35,7 @@ struct ResponseHandlerTests {
     @Test("성공 응답에서 EmptyResponse는 data가 없어도 성공해야 한다")
     func 성공_응답에서_EmptyResponse는_data가_없어도_성공해야_한다() throws {
         let sut = ResponseHandler()
-        let data = makeData("""
+        let data = try HTTPTestResponseFactory().data("""
         {
             "statusCode": 200,
             "error": null,
@@ -43,7 +43,7 @@ struct ResponseHandlerTests {
             "data": null
         }
         """)
-        let response = try makeResponse(statusCode: 204)
+        let response = try HTTPTestResponseFactory().response(statusCode: 204)
 
         let value = try sut.handle(EmptyResponse.self, data: data, response: response)
 
@@ -53,7 +53,7 @@ struct ResponseHandlerTests {
     @Test("성공 응답에서 일반 타입의 data가 없으면 noData를 던져야 한다")
     func 성공_응답에서_일반_타입의_data가_없으면_noData를_던져야_한다() throws {
         let sut = ResponseHandler()
-        let data = makeData("""
+        let data = try HTTPTestResponseFactory().data("""
         {
             "statusCode": 200,
             "error": null,
@@ -61,7 +61,7 @@ struct ResponseHandlerTests {
             "data": null
         }
         """)
-        let response = try makeResponse(statusCode: 200)
+        let response = try HTTPTestResponseFactory().response(statusCode: 200)
 
         do {
             _ = try sut.handle(ResponseBody.self, data: data, response: response)
@@ -76,7 +76,7 @@ struct ResponseHandlerTests {
     @Test("실패 status code는 서버 message와 함께 invalidStatusCode를 던져야 한다")
     func 실패_status_code는_서버_message와_함께_invalidStatusCode를_던져야_한다() throws {
         let sut = ResponseHandler()
-        let data = makeData("""
+        let data = try HTTPTestResponseFactory().data("""
         {
             "statusCode": 404,
             "error": "NOT_FOUND",
@@ -84,7 +84,7 @@ struct ResponseHandlerTests {
             "data": null
         }
         """)
-        let response = try makeResponse(statusCode: 404)
+        let response = try HTTPTestResponseFactory().response(statusCode: 404)
 
         do {
             _ = try sut.handle(ResponseBody.self, data: data, response: response)
@@ -100,8 +100,8 @@ struct ResponseHandlerTests {
     @Test("실패 status code의 body decode에 실패하면 message는 nil이어야 한다")
     func 실패_status_code의_body_decode에_실패하면_message는_nil이어야_한다() throws {
         let sut = ResponseHandler()
-        let data = makeData("not-json")
-        let response = try makeResponse(statusCode: 500)
+        let data = try HTTPTestResponseFactory().data("not-json")
+        let response = try HTTPTestResponseFactory().response(statusCode: 500)
 
         do {
             _ = try sut.handle(ResponseBody.self, data: data, response: response)
@@ -117,8 +117,8 @@ struct ResponseHandlerTests {
     @Test("성공 응답 body decode에 실패하면 decodingFailed를 던져야 한다")
     func 성공_응답_body_decode에_실패하면_decodingFailed를_던져야_한다() throws {
         let sut = ResponseHandler()
-        let data = makeData("not-json")
-        let response = try makeResponse(statusCode: 200)
+        let data = try HTTPTestResponseFactory().data("not-json")
+        let response = try HTTPTestResponseFactory().response(statusCode: 200)
 
         do {
             _ = try sut.handle(ResponseBody.self, data: data, response: response)
@@ -135,7 +135,7 @@ struct ResponseHandlerTests {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let sut = ResponseHandler(decoder: decoder)
-        let data = makeData("""
+        let data = try HTTPTestResponseFactory().data("""
         {
             "statusCode": 200,
             "error": null,
@@ -143,7 +143,7 @@ struct ResponseHandlerTests {
             "data": { "client_name": "livith" }
         }
         """)
-        let response = try makeResponse(statusCode: 200)
+        let response = try HTTPTestResponseFactory().response(statusCode: 200)
 
         let value = try sut.handle(StrategyBody.self, data: data, response: response)
 
@@ -158,20 +158,5 @@ private extension ResponseHandlerTests {
 
     struct StrategyBody: Decodable, Equatable {
         let clientName: String
-    }
-
-    func makeData(_ string: String) -> Data {
-        Data(string.utf8)
-    }
-
-    func makeResponse(statusCode: Int) throws -> HTTPURLResponse {
-        let url = try #require(URL(string: "https://api.example.com"))
-
-        return try #require(HTTPURLResponse(
-            url: url,
-            statusCode: statusCode,
-            httpVersion: nil,
-            headerFields: nil
-        ))
     }
 }

@@ -13,17 +13,20 @@ public struct NetworkClient {
     private let requestBuilder: RequestBuilder
     private let responseHandler: ResponseHandler
     private let transport: any NetworkTransport
+    private let interceptor: (any RequestInterceptor)?
 
     public init(
         config: NetworkConfig,
         requestBuilder: RequestBuilder = RequestBuilder(),
-        responseHandler: ResponseHandler = ResponseHandler()
+        responseHandler: ResponseHandler = ResponseHandler(),
+        interceptor: (any RequestInterceptor)? = nil
     ) {
         self.init(
             config: config,
             requestBuilder: requestBuilder,
             responseHandler: responseHandler,
-            transport: URLSessionTransport()
+            transport: URLSessionTransport(),
+            interceptor: interceptor
         )
     }
 
@@ -31,12 +34,14 @@ public struct NetworkClient {
         config: NetworkConfig,
         requestBuilder: RequestBuilder = RequestBuilder(),
         responseHandler: ResponseHandler = ResponseHandler(),
-        transport: any NetworkTransport
+        transport: any NetworkTransport,
+        interceptor: (any RequestInterceptor)? = nil
     ) {
         self.config = config
         self.requestBuilder = requestBuilder
         self.responseHandler = responseHandler
         self.transport = transport
+        self.interceptor = interceptor
     }
 
     public func request<T: Decodable>(
@@ -77,10 +82,24 @@ private extension NetworkClient {
             throw map(error)
         }
 
+        return try await load(
+            request,
+            for: endpoint,
+            retryCount: 0
+        )
+    }
+
+    func load(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint,
+        retryCount: Int
+    ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
+        let adaptedRequest = try await adapt(request, for: endpoint)
+
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await transport.data(for: request)
+            (data, response) = try await transport.data(for: adaptedRequest)
         } catch {
             throw mapTransportError(error)
         }
@@ -89,7 +108,62 @@ private extension NetworkClient {
             throw .invalidResponse
         }
 
+        if try await shouldRetry(
+            adaptedRequest,
+            for: endpoint,
+            response: httpResponse,
+            retryCount: retryCount
+        ) {
+            return try await load(
+                request,
+                for: endpoint,
+                retryCount: retryCount + 1
+            )
+        }
+
         return (data, httpResponse)
+    }
+
+    func adapt(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint
+    ) async throws(NetworkError) -> URLRequest {
+        guard endpoint.requiresAuthentication,
+              let interceptor
+        else {
+            return request
+        }
+
+        return try await interceptor.adapt(request)
+    }
+
+    func shouldRetry(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint,
+        response: HTTPURLResponse,
+        retryCount: Int
+    ) async throws(NetworkError) -> Bool {
+        guard endpoint.requiresAuthentication,
+              retryCount == 0,
+              response.statusCode == 401,
+              let interceptor
+        else {
+            return false
+        }
+
+        let result = try await interceptor.retry(
+            request,
+            dueTo: .unauthorized(message: nil),
+            response: response,
+            retryCount: retryCount
+        )
+
+        switch result {
+        case .retry:
+            return true
+        case .doNotRetry:
+            return false
+        }
     }
 
     func map(_ error: RequestBuildError) -> NetworkError {

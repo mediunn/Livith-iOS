@@ -17,7 +17,7 @@ struct NetworkClientTests {
     @Test("요청 URL 생성 실패는 invalidURL을 던져야 한다")
     func 요청_URL_생성_실패는_invalidURL을_던져야_한다() async throws {
         let config = NetworkConfig(baseURL: try #require(URL(string: "/api")))
-        let sut = NetworkClient(config: config, transport: FakeTransport())
+        let sut = NetworkClient(config: config, transport: TestNetworkTransport())
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         do {
@@ -101,7 +101,7 @@ struct NetworkClientTests {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(Data(), URLResponse()))
+            transport: TestNetworkTransport(output: .success(Data(), URLResponse()))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
@@ -118,7 +118,7 @@ struct NetworkClientTests {
     @Test("값 응답 성공 시 decoded value를 반환해야 한다")
     func 값_응답_성공_시_decoded_value를_반환해야_한다() async throws {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let data = makeData("""
+        let data = try HTTPTestResponseFactory().data("""
         {
             "statusCode": 200,
             "error": null,
@@ -126,10 +126,10 @@ struct NetworkClientTests {
             "data": { "value": "livith" }
         }
         """)
-        let response = try makeResponse(statusCode: 200)
+        let response = try HTTPTestResponseFactory().response(statusCode: 200)
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(data, response))
+            transport: TestNetworkTransport(output: .success(data, response))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
@@ -227,11 +227,11 @@ struct NetworkClientTests {
     @Test("void 응답 실패 body decode에 실패하면 message는 nil이어야 한다")
     func void_응답_실패_body_decode에_실패하면_message는_nil이어야_한다() async throws {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let data = makeData("not-json")
-        let response = try makeResponse(statusCode: 500)
+        let data = try HTTPTestResponseFactory().data("not-json")
+        let response = try HTTPTestResponseFactory().response(statusCode: 500)
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(data, response))
+            transport: TestNetworkTransport(output: .success(data, response))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
 
@@ -249,7 +249,7 @@ struct NetworkClientTests {
     @Test("값 응답 성공 status에서 wrapper data가 없으면 noData를 던져야 한다")
     func 값_응답_성공_status에서_wrapper_data가_없으면_noData를_던져야_한다() async throws {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let data = makeData("""
+        let data = try HTTPTestResponseFactory().data("""
         {
             "statusCode": 200,
             "error": null,
@@ -257,10 +257,10 @@ struct NetworkClientTests {
             "data": null
         }
         """)
-        let response = try makeResponse(statusCode: 200)
+        let response = try HTTPTestResponseFactory().response(statusCode: 200)
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(data, response))
+            transport: TestNetworkTransport(output: .success(data, response))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
@@ -277,11 +277,11 @@ struct NetworkClientTests {
     @Test("값 응답 성공 status에서 decoding에 실패하면 decodingFailed를 던져야 한다")
     func 값_응답_성공_status에서_decoding에_실패하면_decodingFailed를_던져야_한다() async throws {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let data = makeData("not-json")
-        let response = try makeResponse(statusCode: 200)
+        let data = try HTTPTestResponseFactory().data("not-json")
+        let response = try HTTPTestResponseFactory().response(statusCode: 200)
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(data, response))
+            transport: TestNetworkTransport(output: .success(data, response))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
@@ -298,10 +298,10 @@ struct NetworkClientTests {
     @Test("void 응답 성공은 2xx status만으로 성공해야 한다")
     func void_응답_성공은_2xx_status만으로_성공해야_한다() async throws {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let response = try makeResponse(statusCode: 204)
+        let response = try HTTPTestResponseFactory().response(statusCode: 204)
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(Data(), response))
+            transport: TestNetworkTransport(output: .success(Data(), response))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
 
@@ -313,6 +313,216 @@ struct NetworkClientTests {
         let error = NetworkError.badRequest(message: "bad request")
 
         #expect(error.errorDescription?.contains("bad request") == true)
+    }
+
+    @Test("인증 endpoint는 interceptor가 적용된 요청을 전송해야 한다")
+    func 인증_endpoint는_interceptor가_적용된_요청을_전송해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let interceptor = SpyRequestInterceptor()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await transport.request())
+        #expect(request.value(forHTTPHeaderField: "X-Intercepted") == "true")
+        #expect(await interceptor.adaptCallCount() == 1)
+    }
+
+    @Test("비인증 endpoint는 interceptor를 호출하지 않고 원본 요청을 전송해야 한다")
+    func 비인증_endpoint는_interceptor를_호출하지_않고_원본_요청을_전송해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let interceptor = SpyRequestInterceptor()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            requiresAuthentication: false
+        )
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await transport.request())
+        #expect(request.value(forHTTPHeaderField: "X-Intercepted") == nil)
+        #expect(await interceptor.adaptCallCount() == 0)
+    }
+
+    @Test("인증 endpoint의 adapt 실패는 NetworkError로 전달해야 한다")
+    func 인증_endpoint의_adapt_실패는_NetworkError로_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let interceptor = SpyRequestInterceptor(error: .unauthorized(message: nil))
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == nil)
+            #expect(await interceptor.adaptCallCount() == 1)
+            #expect(await transport.request() == nil)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("인증 endpoint는 401 후 retry 요청을 새로 adapt해 재전송해야 한다")
+    func 인증_endpoint는_401_후_retry_요청을_새로_adapt해_재전송해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            outputList: [
+                .success(fixture.errorData(statusCode: 401, message: "expired"), try fixture.response(statusCode: 401)),
+                .success(fixture.data("""
+                {
+                    "statusCode": 200,
+                    "error": null,
+                    "message": "success",
+                    "data": { "value": "livith" }
+                }
+                """), try fixture.response(statusCode: 200))
+            ]
+        )
+        let interceptor = SpyRequestInterceptor(
+            authorizationValueList: ["Bearer old-access-token", "Bearer new-access-token"],
+            retryResult: .retry
+        )
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        let value: ResponseBody = try await sut.request(endpoint)
+
+        let requestList = await transport.requests()
+        #expect(value == ResponseBody(value: "livith"))
+        #expect(requestList.count == 2)
+        #expect(requestList.first?.value(forHTTPHeaderField: "Authorization") == "Bearer old-access-token")
+        #expect(requestList.last?.value(forHTTPHeaderField: "Authorization") == "Bearer new-access-token")
+        #expect(await interceptor.adaptCallCount() == 2)
+        #expect(await interceptor.retryCallCount() == 1)
+    }
+
+    @Test("인증 endpoint의 refresh 실패는 재전송하지 않고 NetworkError로 전달해야 한다")
+    func 인증_endpoint의_refresh_실패는_재전송하지_않고_NetworkError로_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            outputList: [
+                .success(fixture.errorData(statusCode: 401, message: "expired"), try fixture.response(statusCode: 401))
+            ]
+        )
+        let interceptor = SpyRequestInterceptor(
+            authorizationValueList: ["Bearer old-access-token"],
+            retryError: .unauthorized(message: nil)
+        )
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == nil)
+            #expect(await transport.requests().count == 1)
+            #expect(await interceptor.retryCallCount() == 1)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("인증 endpoint는 두 번째 401에서 무한 재시도하지 않아야 한다")
+    func 인증_endpoint는_두_번째_401에서_무한_재시도하지_않아야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            outputList: [
+                .success(fixture.errorData(statusCode: 401, message: "first"), try fixture.response(statusCode: 401)),
+                .success(fixture.errorData(statusCode: 401, message: "second"), try fixture.response(statusCode: 401))
+            ]
+        )
+        let interceptor = SpyRequestInterceptor(
+            authorizationValueList: ["Bearer old-access-token", "Bearer new-access-token"],
+            retryResult: .retry
+        )
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == "second")
+            #expect(await transport.requests().count == 2)
+            #expect(await interceptor.retryCallCount() == 1)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("비인증 endpoint는 401이어도 retry hook을 호출하지 않아야 한다")
+    func 비인증_endpoint는_401이어도_retry_hook을_호출하지_않아야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            outputList: [
+                .success(fixture.errorData(statusCode: 401, message: "unauthorized"), try fixture.response(statusCode: 401))
+            ]
+        )
+        let interceptor = SpyRequestInterceptor(retryResult: .retry)
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor
+        )
+        let endpoint = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            requiresAuthentication: false
+        )
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == "unauthorized")
+            #expect(await transport.requests().count == 1)
+            #expect(await interceptor.adaptCallCount() == 0)
+            #expect(await interceptor.retryCallCount() == 0)
+        } catch {
+            #expect(Bool(false))
+        }
     }
 
     @Test("서버 message가 없어도 HTTP 에러 설명은 비어 있지 않아야 한다")
@@ -333,7 +543,7 @@ private extension NetworkClientTests {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .failure(transportError))
+            transport: TestNetworkTransport(output: .failure(transportError))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
@@ -351,11 +561,11 @@ private extension NetworkClientTests {
         message: String?
     ) async throws -> NetworkError {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let data = makeErrorData(statusCode: statusCode, message: message)
-        let response = try makeResponse(statusCode: statusCode)
+        let data = try HTTPTestResponseFactory().errorData(statusCode: statusCode, message: message)
+        let response = try HTTPTestResponseFactory().response(statusCode: statusCode)
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(data, response))
+            transport: TestNetworkTransport(output: .success(data, response))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
@@ -373,11 +583,11 @@ private extension NetworkClientTests {
         message: String?
     ) async throws -> NetworkError {
         let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
-        let data = makeErrorData(statusCode: statusCode, message: message)
-        let response = try makeResponse(statusCode: statusCode)
+        let data = try HTTPTestResponseFactory().errorData(statusCode: statusCode, message: message)
+        let response = try HTTPTestResponseFactory().response(statusCode: statusCode)
         let sut = NetworkClient(
             config: config,
-            transport: FakeTransport(output: .success(data, response))
+            transport: TestNetworkTransport(output: .success(data, response))
         )
         let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
 
@@ -390,60 +600,74 @@ private extension NetworkClientTests {
         }
     }
 
-    func makeData(_ string: String) -> Data {
-        Data(string.utf8)
-    }
-
-    func makeErrorData(
-        statusCode: Int,
-        message: String?
-    ) -> Data {
-        let messageValue = message.map { "\"\($0)\"" } ?? "null"
-
-        return makeData("""
-        {
-            "statusCode": \(statusCode),
-            "error": "ERROR",
-            "message": \(messageValue),
-            "data": null
-        }
-        """)
-    }
-
-    func makeResponse(statusCode: Int) throws -> HTTPURLResponse {
-        let url = try #require(URL(string: "https://api.example.com"))
-
-        return try #require(HTTPURLResponse(
-            url: url,
-            statusCode: statusCode,
-            httpVersion: nil,
-            headerFields: nil
-        ))
-    }
-
     enum TestError: Error, Equatable {
         case expected
     }
 
-    struct FakeTransport: NetworkTransport {
-        enum Output {
-            case success(Data, URLResponse)
-            case failure(Error)
+    actor SpyRequestInterceptor: RequestInterceptor {
+        private let error: NetworkError?
+        private let authorizationValueList: [String]
+        private let retryResult: RetryResult
+        private let retryError: NetworkError?
+        private var adaptCount = 0
+        private var retryCount = 0
+
+        init(
+            error: NetworkError? = nil,
+            authorizationValueList: [String] = [],
+            retryResult: RetryResult = .doNotRetry,
+            retryError: NetworkError? = nil
+        ) {
+            self.error = error
+            self.authorizationValueList = authorizationValueList
+            self.retryResult = retryResult
+            self.retryError = retryError
         }
 
-        let output: Output
+        func adapt(
+            _ request: URLRequest
+        ) async throws(NetworkError) -> URLRequest {
+            adaptCount += 1
 
-        init(output: Output = .success(Data(), URLResponse())) {
-            self.output = output
-        }
-
-        func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-            switch output {
-            case .success(let data, let response):
-                return (data, response)
-            case .failure(let error):
+            if let error {
                 throw error
             }
+
+            var adaptedRequest = request
+            adaptedRequest.setValue("true", forHTTPHeaderField: "X-Intercepted")
+
+            if !authorizationValueList.isEmpty {
+                let index = min(adaptCount - 1, authorizationValueList.count - 1)
+                adaptedRequest.setValue(
+                    authorizationValueList[index],
+                    forHTTPHeaderField: "Authorization"
+                )
+            }
+
+            return adaptedRequest
+        }
+
+        func retry(
+            _ request: URLRequest,
+            dueTo error: NetworkError,
+            response: HTTPURLResponse?,
+            retryCount: Int
+        ) async throws(NetworkError) -> RetryResult {
+            self.retryCount += 1
+
+            if let retryError {
+                throw retryError
+            }
+
+            return retryResult
+        }
+
+        func adaptCallCount() -> Int {
+            adaptCount
+        }
+
+        func retryCallCount() -> Int {
+            retryCount
         }
     }
 }
