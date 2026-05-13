@@ -126,8 +126,8 @@ final class MockUserRepository: UserRepository {
 
     func deleteInterestedConcert() async throws(UserError) {}
 
-    func fetchInterestConcertToastNeedsToShow() async throws(UserError) -> Bool {
-        false
+    func fetchInterestConcertCleanupPolicy() async throws(UserError) -> InterestConcertCleanupPolicy {
+        .none
     }
 
     func markInterestConcertToastShown() async throws(UserError) {}

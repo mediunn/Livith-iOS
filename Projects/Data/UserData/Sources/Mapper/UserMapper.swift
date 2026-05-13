@@ -75,6 +75,20 @@ struct UserMapper {
     func toDomain(from dto: DTO.Response.UpdateUserInterestConcertList) -> [Concert] {
         dto.compactMap(toConcert)
     }
+
+    func toDomain(from dto: DTO.Response.FetchInterestConcertToast) -> InterestConcertCleanupPolicy? {
+        guard dto.needsToShow else { return InterestConcertCleanupPolicy.none }
+        guard let type = dto.type else { return nil }
+
+        switch type {
+        case .canceled:
+            return .canceled
+        case .completed:
+            return .completed
+        case .both:
+            return .both
+        }
+    }
 }
 
 private extension UserMapper {
