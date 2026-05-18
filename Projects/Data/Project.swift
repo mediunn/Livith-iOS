@@ -22,7 +22,10 @@ let project = Project.make(
                 .core(.persistence),
                 .core(.diContainer),
                 .external(.firebaseMessaging)
-            ]
+            ],
+            settings: .settings(
+                base: ["OTHER_LDFLAGS": ["$(inherited)", "-ObjC"]]
+            )
         ),
         .make(
             target: .data(.authDataTests),
