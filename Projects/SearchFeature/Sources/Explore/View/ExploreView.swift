@@ -119,6 +119,7 @@ private extension ExploreView {
     func genreTabButton(genre: ConcertGenre) -> some View {
         let isSelected = store.state.selectedGenre == genre
         return Button {
+            AmplitudeService.shared.trackEvent(tag: .click(genre.amplitudeClickEvent))
             store.send(.selectGenre(genre))
         } label: {
             VStack(spacing: 0) {
@@ -288,5 +289,26 @@ private extension ExploreView {
     enum Constants {
         static let bannerHeight: CGFloat = 470
         static let genreTabHeight: CGFloat = 54
+    }
+}
+
+// MARK: - ConcertGenre + Amplitude
+
+fileprivate extension ConcertGenre {
+    var amplitudeClickEvent: AmplitudeService.ClickEvent {
+        switch self {
+        case .all:
+            return .genreAll
+        case .jpop:
+            return .genreJpop
+        case .rockMetal:
+            return .genreRockMetal
+        case .rapHiphop:
+            return .genreRapHiphop
+        case .pop:
+            return .genrePop
+        case .indie:
+            return .genreIndie
+        }
     }
 }
