@@ -185,7 +185,8 @@ struct HomeFeatureDTOTests {
           "statusCode": 200,
           "message": "요청에 성공하였습니다.",
           "data": {
-            "needsToShow": true
+            "needsToShow": true,
+            "type": "COMPLETED"
           }
         }
         """.data(using: .utf8)!
@@ -196,6 +197,42 @@ struct HomeFeatureDTOTests {
         // Then
         #expect(result.statusCode == 200)
         #expect(result.data?.needsToShow == true)
+        #expect(result.data?.type == .completed)
+    }
+
+    @Test("FetchInterestConcertToast type은 취소, 완료, 혼합 값을 디코딩해야 한다")
+    func fetchInterestConcertToast_type은_취소_완료_혼합_값을_디코딩해야_한다() throws {
+        // Given
+        let json = """
+        [
+          { "needsToShow": true, "type": "CANCELED" },
+          { "needsToShow": true, "type": "COMPLETED" },
+          { "needsToShow": true, "type": "BOTH" }
+        ]
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode([DTO.Response.FetchInterestConcertToast].self, from: json)
+
+        // Then
+        #expect(result.map(\.type) == [.canceled, .completed, .both])
+    }
+
+    @Test("FetchInterestConcertToast는 type이 없어도 디코딩되어야 한다")
+    func fetchInterestConcertToast는_type이_없어도_디코딩되어야_한다() throws {
+        // Given
+        let json = """
+        {
+          "needsToShow": false
+        }
+        """.data(using: .utf8)!
+
+        // When
+        let result = try JSONDecoder().decode(DTO.Response.FetchInterestConcertToast.self, from: json)
+
+        // Then
+        #expect(!result.needsToShow)
+        #expect(result.type == nil)
     }
 
     @Test("UpdateInterestConcertToast BaseResponse 디코딩이 정상적으로 되어야 한다")
