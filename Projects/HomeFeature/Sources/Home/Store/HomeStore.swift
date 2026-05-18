@@ -40,7 +40,7 @@ enum HomeIntent {
     case _fetchUserResult(Result<User, Error>)
     case _fetchInterestConcertListResult(Result<[InterestConcert], Error>)
     case _fetchUnreadNotificationCountResult(Result<Int, Error>)
-    case _fetchInterestConcertToastResult(Result<Bool, Error>)
+    case _fetchInterestConcertToastResult(Result<InterestConcertCleanupPolicy, Error>)
     case _markInterestConcertToastShownResult(Result<Void, Error>)
     case _fetchConcertSectionDataResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
@@ -129,15 +129,19 @@ final class HomeStore: ObservableObject {
 
         case ._fetchInterestConcertToastResult(let result):
             switch result {
-            case .success(true):
+            case .success(let policy):
+                guard let message = interestConcertCleanupMessage(for: policy) else {
+                    state.interestConcertToastMessage = ""
+                    return
+                }
                 guard state.errorMessage.isEmpty else {
                     state.interestConcertToastMessage = ""
                     return
                 }
 
-                state.interestConcertToastMessage = Constants.interestConcertToastMessage
+                state.interestConcertToastMessage = message
                 performMarkInterestConcertToastShown()
-            case .success(false), .failure:
+            case .failure:
                 state.interestConcertToastMessage = ""
             }
 
@@ -249,9 +253,9 @@ private extension HomeStore {
         }
     }
 
-    func fetchInterestConcertToastResult() async -> Result<Bool, Error> {
+    func fetchInterestConcertToastResult() async -> Result<InterestConcertCleanupPolicy, Error> {
         do {
-            return .success(try await userRepository.fetchInterestConcertToastNeedsToShow())
+            return .success(try await userRepository.fetchInterestConcertCleanupPolicy())
         } catch {
             return .failure(error)
         }
@@ -349,7 +353,22 @@ private extension HomeStore {
         state.interestConcertToastMessage = ""
     }
 
+    func interestConcertCleanupMessage(for policy: InterestConcertCleanupPolicy) -> String? {
+        switch policy {
+        case .none:
+            return nil
+        case .canceled:
+            return Constants.canceledInterestConcertToastMessage
+        case .completed:
+            return Constants.completedInterestConcertToastMessage
+        case .both:
+            return Constants.bothInterestConcertToastMessage
+        }
+    }
+
     enum Constants {
-        static let interestConcertToastMessage = "종료된 공연이 자동 정리됐어요"
+        static let canceledInterestConcertToastMessage = "취소된 공연이 자동 정리됐어요"
+        static let completedInterestConcertToastMessage = "종료된 공연이 자동 정리됐어요"
+        static let bothInterestConcertToastMessage = "종료·취소된 공연이 자동 정리됐어요"
     }
 }

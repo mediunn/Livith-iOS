@@ -13,6 +13,13 @@ import Foundation
 public extension DTO.Response {
     struct FetchInterestConcertToast: Decodable {
         public let needsToShow: Bool
+        public let type: ToastType?
+
+        public enum ToastType: String, Decodable {
+            case canceled = "CANCELED"
+            case completed = "COMPLETED"
+            case both = "BOTH"
+        }
     }
 
     struct UpdateInterestConcertToast: Decodable {

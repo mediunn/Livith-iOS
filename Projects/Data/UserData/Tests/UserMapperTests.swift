@@ -599,6 +599,62 @@ struct UserErrorMapperTests {
         }
     }
 
+    @Test("FetchInterestConcertToast는 needsToShow가 false이면 none 정책으로 변환해야 한다")
+    func fetchInterestConcertToast는_needsToShow가_false이면_none_정책으로_변환해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "needsToShow": false
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchInterestConcertToast.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+
+        // Then
+        #expect(result == InterestConcertCleanupPolicy.none)
+    }
+
+    @Test("FetchInterestConcertToast는 type을 관심 콘서트 정리 정책으로 변환해야 한다")
+    func fetchInterestConcertToast는_type을_관심_콘서트_정리_정책으로_변환해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        [
+            { "needsToShow": true, "type": "CANCELED" },
+            { "needsToShow": true, "type": "COMPLETED" },
+            { "needsToShow": true, "type": "BOTH" }
+        ]
+        """.data(using: .utf8)!
+        let dtoList = try JSONDecoder().decode([DTO.Response.FetchInterestConcertToast].self, from: json)
+
+        // When
+        let resultList = dtoList.map { sut.toDomain(from: $0) }
+
+        // Then
+        #expect(resultList == [.canceled, .completed, .both].map(Optional.some))
+    }
+
+    @Test("FetchInterestConcertToast는 needsToShow가 true인데 type이 없으면 변환하지 않아야 한다")
+    func fetchInterestConcertToast는_needsToShow가_true인데_type이_없으면_변환하지_않아야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "needsToShow": true
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchInterestConcertToast.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+
+        // Then
+        #expect(result == nil)
+    }
+
     @Test("인증 토큰 없음 에러를 unknown으로 변환해야 한다")
     func 인증_토큰_없음_에러를_unknown으로_변환해야_한다() {
         // Given

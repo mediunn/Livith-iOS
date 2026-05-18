@@ -92,6 +92,15 @@ struct ConcertDomainModelTests {
         #expect(filter.nextToken == nil)
     }
 
+    @Test("InterestConcertCleanupPolicy는 없음, 취소, 완료, 혼합 정책을 표현해야 한다")
+    func interestConcertCleanupPolicy는_없음_취소_완료_혼합_정책을_표현해야_한다() {
+        // When
+        let policyList = InterestConcertCleanupPolicy.allCases
+
+        // Then
+        #expect(policyList == [.none, .canceled, .completed, .both])
+    }
+
     @Test("ListResult는 관심 콘서트 목록과 다음 token을 보관해야 한다")
     func listResult는_관심_콘서트_목록과_다음_token을_보관해야_한다() {
         // Given
