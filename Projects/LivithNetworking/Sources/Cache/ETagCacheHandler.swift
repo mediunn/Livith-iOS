@@ -87,7 +87,7 @@ private extension ETagCacheHandler {
         response: HTTPURLResponse,
         key: String
     ) async {
-        guard let etag = response.etag else {
+        guard let etag = response.value(forHTTPHeaderField: "ETag") else {
             await store.remove(for: key)
             return
         }
@@ -117,23 +117,4 @@ private extension ETagCacheHandler {
 enum ETagCacheResult {
     case response(Data, HTTPURLResponse)
     case fallback
-}
-
-private extension HTTPURLResponse {
-    var etag: String? {
-        for (key, value) in allHeaderFields {
-            guard String(describing: key).caseInsensitiveCompare("ETag") == .orderedSame else {
-                continue
-            }
-
-            if let value = value as? String, !value.isEmpty {
-                return value
-            }
-
-            let string = String(describing: value)
-            return string.isEmpty ? nil : string
-        }
-
-        return nil
-    }
 }
