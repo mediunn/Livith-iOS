@@ -14,19 +14,23 @@ public struct NetworkClient {
     private let responseHandler: ResponseHandler
     private let transport: any NetworkTransport
     private let interceptor: (any RequestInterceptor)?
+    private let plugins: [any NetworkPlugin]
+    private let etagCache: ETagCacheHandler
 
     public init(
         config: NetworkConfig,
         requestBuilder: RequestBuilder = RequestBuilder(),
         responseHandler: ResponseHandler = ResponseHandler(),
-        interceptor: (any RequestInterceptor)? = nil
+        interceptor: (any RequestInterceptor)? = nil,
+        plugins: [any NetworkPlugin] = []
     ) {
         self.init(
             config: config,
             requestBuilder: requestBuilder,
             responseHandler: responseHandler,
             transport: URLSessionTransport(),
-            interceptor: interceptor
+            interceptor: interceptor,
+            plugins: plugins
         )
     }
 
@@ -35,13 +39,17 @@ public struct NetworkClient {
         requestBuilder: RequestBuilder = RequestBuilder(),
         responseHandler: ResponseHandler = ResponseHandler(),
         transport: any NetworkTransport,
-        interceptor: (any RequestInterceptor)? = nil
+        interceptor: (any RequestInterceptor)? = nil,
+        plugins: [any NetworkPlugin] = [],
+        etagStore: any ETagCacheStore = MemoryETagCacheStore()
     ) {
         self.config = config
         self.requestBuilder = requestBuilder
         self.responseHandler = responseHandler
         self.transport = transport
         self.interceptor = interceptor
+        self.plugins = plugins
+        self.etagCache = ETagCacheHandler(store: etagStore)
     }
 
     public func request<T: Decodable>(
@@ -69,6 +77,10 @@ public struct NetworkClient {
             throw map(error)
         }
     }
+
+    public func removeAllETagCache() async {
+        await etagCache.removeAll()
+    }
 }
 
 private extension NetworkClient {
@@ -85,43 +97,89 @@ private extension NetworkClient {
         return try await load(
             request,
             for: endpoint,
-            retryCount: 0
+            attempt: RequestAttempt()
         )
     }
 
     func load(
         _ request: URLRequest,
         for endpoint: NetworkEndpoint,
-        retryCount: Int
+        attempt: RequestAttempt
     ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
-        let adaptedRequest = try await adapt(request, for: endpoint)
+        let preparedRequest = try await prepare(request, for: endpoint)
+        let adaptedRequest = try await adapt(preparedRequest, for: endpoint)
+        let key = etagCache.key(for: adaptedRequest, endpoint: endpoint)
+        var sendRequest = adaptedRequest
+        await etagCache.apply(to: &sendRequest, key: key, skipsETag: attempt.skipsETag)
+
+        await notifyWillSend(sendRequest, for: endpoint)
 
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await transport.data(for: adaptedRequest)
+            (data, response) = try await transport.data(for: sendRequest)
         } catch {
-            throw mapTransportError(error)
+            let networkError = mapTransportError(error)
+            await notifyDidReceive(.failure(networkError), request: sendRequest, for: endpoint)
+            throw networkError
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
+            await notifyDidReceive(.failure(.invalidResponse), request: sendRequest, for: endpoint)
             throw .invalidResponse
         }
 
-        if try await shouldRetry(
-            adaptedRequest,
-            for: endpoint,
-            response: httpResponse,
-            retryCount: retryCount
-        ) {
-            return try await load(
-                request,
-                for: endpoint,
-                retryCount: retryCount + 1
-            )
+        await notifyDidReceive(
+            .success(NetworkPluginResponse(data: data, response: httpResponse)),
+            request: sendRequest,
+            for: endpoint
+        )
+
+        if try await shouldRetry(sendRequest, for: endpoint, response: httpResponse, attempt: attempt) {
+            return try await load(request, for: endpoint, attempt: attempt.retrying())
         }
 
-        return (data, httpResponse)
+        return try await handleETag(
+            data: data,
+            response: httpResponse,
+            request: request,
+            sentRequest: sendRequest,
+            key: key,
+            endpoint: endpoint,
+            attempt: attempt
+        )
+    }
+
+    func prepare(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint
+    ) async throws(NetworkError) -> URLRequest {
+        var preparedRequest = request
+
+        for plugin in plugins {
+            preparedRequest = try await plugin.prepare(preparedRequest, endpoint: endpoint)
+        }
+
+        return preparedRequest
+    }
+
+    func notifyWillSend(
+        _ request: URLRequest,
+        for endpoint: NetworkEndpoint
+    ) async {
+        for plugin in plugins {
+            await plugin.willSend(request, endpoint: endpoint)
+        }
+    }
+
+    func notifyDidReceive(
+        _ result: Result<NetworkPluginResponse, NetworkError>,
+        request: URLRequest,
+        for endpoint: NetworkEndpoint
+    ) async {
+        for plugin in plugins {
+            await plugin.didReceive(result, request: request, endpoint: endpoint)
+        }
     }
 
     func adapt(
@@ -141,10 +199,10 @@ private extension NetworkClient {
         _ request: URLRequest,
         for endpoint: NetworkEndpoint,
         response: HTTPURLResponse,
-        retryCount: Int
+        attempt: RequestAttempt
     ) async throws(NetworkError) -> Bool {
         guard endpoint.requiresAuthentication,
-              retryCount == 0,
+              attempt.canRetry,
               response.statusCode == 401,
               let interceptor
         else {
@@ -155,7 +213,7 @@ private extension NetworkClient {
             request,
             dueTo: .unauthorized(message: nil),
             response: response,
-            retryCount: retryCount
+            retryCount: attempt.retryCount
         )
 
         switch result {
@@ -163,6 +221,34 @@ private extension NetworkClient {
             return true
         case .doNotRetry:
             return false
+        }
+    }
+
+    func handleETag(
+        data: Data,
+        response: HTTPURLResponse,
+        request: URLRequest,
+        sentRequest: URLRequest,
+        key: String?,
+        endpoint: NetworkEndpoint,
+        attempt: RequestAttempt
+    ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
+        let result = await etagCache.handle(
+            data: data,
+            response: response,
+            request: sentRequest,
+            key: key
+        )
+
+        switch result {
+        case .response(let data, let response):
+            return (data, response)
+        case .fallback:
+            guard attempt.canFallback else {
+                return (data, response)
+            }
+
+            return try await load(request, for: endpoint, attempt: attempt.fallingBack())
         }
     }
 

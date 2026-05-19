@@ -525,6 +525,460 @@ struct NetworkClientTests {
         }
     }
 
+    @Test("plugin prepare가 수정한 요청을 전송해야 한다")
+    func plugin_prepare가_수정한_요청을_전송해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let plugin = HeaderAppendingPlugin(suffix: "prepared")
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await transport.request())
+        #expect(request.value(forHTTPHeaderField: "X-Plugin-Order") == "prepared")
+    }
+
+    @Test("여러 plugin prepare는 배열 순서대로 적용해야 한다")
+    func 여러_plugin_prepare는_배열_순서대로_적용해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [
+                HeaderAppendingPlugin(suffix: "1"),
+                HeaderAppendingPlugin(suffix: "2")
+            ]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        let request = try #require(await transport.request())
+        #expect(request.value(forHTTPHeaderField: "X-Plugin-Order") == "12")
+    }
+
+    @Test("plugin은 성공 응답의 willSend와 didReceive를 호출해야 한다")
+    func plugin은_성공_응답의_willSend와_didReceive를_호출해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        #expect(await plugin.willSendCallCount() == 1)
+        #expect(await plugin.successStatusCodeList() == [204])
+    }
+
+    @Test("transport 실패는 plugin didReceive failure로 전달해야 한다")
+    func transport_실패는_plugin_didReceive_failure로_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(output: .failure(URLError(.timedOut)))
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .timeout {
+            #expect(await plugin.failureCallCount() == 1)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("HTTP 응답이 아니면 plugin didReceive failure로 invalidResponse를 전달해야 한다")
+    func HTTP_응답이_아니면_plugin_didReceive_failure로_invalidResponse를_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(output: .success(Data(), URLResponse()))
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .invalidResponse {
+            #expect(await plugin.didReceiveInvalidResponse())
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("plugin prepare 실패는 전송하지 않고 에러를 전달해야 한다")
+    func plugin_prepare_실패는_전송하지_않고_에러를_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let plugin = FailingPreparePlugin(error: .invalidURL)
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        do {
+            try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .invalidURL {
+            #expect(await transport.request() == nil)
+            #expect(await plugin.didReceiveCallCount() == 0)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("interceptor adapt 실패는 plugin didReceive를 호출하지 않아야 한다")
+    func interceptor_adapt_실패는_plugin_didReceive를_호출하지_않아야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let transport = TestNetworkTransport(
+            output: .success(Data(), try HTTPTestResponseFactory().response(statusCode: 204))
+        )
+        let interceptor = SpyRequestInterceptor(error: .unauthorized(message: nil))
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        do {
+            try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == nil)
+            #expect(await plugin.prepareCallCount() == 1)
+            #expect(await plugin.willSendCallCount() == 0)
+            #expect(await plugin.didReceiveCallCount() == 0)
+            #expect(await transport.request() == nil)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("401 retry는 첫 요청과 재시도 요청 모두 plugin hook을 호출해야 한다")
+    func 사백일_retry는_첫_요청과_재시도_요청_모두_plugin_hook을_호출해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(
+            outputList: [
+                .success(fixture.errorData(statusCode: 401, message: "expired"), try fixture.response(statusCode: 401)),
+                .success(Data(), try fixture.response(statusCode: 204))
+            ]
+        )
+        let interceptor = SpyRequestInterceptor(retryResult: .retry)
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: interceptor,
+            plugins: [plugin]
+        )
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .delete)
+
+        try await sut.request(endpoint)
+
+        #expect(await plugin.prepareCallCount() == 2)
+        #expect(await plugin.willSendCallCount() == 2)
+        #expect(await plugin.successStatusCodeList() == [401, 204])
+    }
+
+    @Test("ETag 캐시가 비활성화된 요청은 If-None-Match를 추가하지 않아야 한다")
+    func ETag_캐시가_비활성화된_요청은_If_None_Match를_추가하지_않아야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("fresh"), try fixture.response(statusCode: 200, headerFields: ["etag": "\"first\""])),
+            .success(valueData("second"), try fixture.response(statusCode: 200, headerFields: ["etag": "\"second\""]))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
+
+        let firstValue: ResponseBody = try await sut.request(endpoint)
+        let secondValue: ResponseBody = try await sut.request(endpoint)
+
+        let requestList = await transport.requests()
+        #expect(firstValue == ResponseBody(value: "fresh"))
+        #expect(secondValue == ResponseBody(value: "second"))
+        #expect(requestList.count == 2)
+        #expect(requestList.last?.value(forHTTPHeaderField: "If-None-Match") == nil)
+    }
+
+    @Test("ETag 캐시가 활성화된 GET 요청은 두 번째 요청에 If-None-Match를 추가해야 한다")
+    func ETag_캐시가_활성화된_GET_요청은_두_번째_요청에_If_None_Match를_추가해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("fresh"), try fixture.response(statusCode: 200, headerFields: ["etag": "\"first\""])),
+            .success(Data(), try fixture.response(statusCode: 304))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+
+        let firstValue: ResponseBody = try await sut.request(endpoint)
+        let cachedValue: ResponseBody = try await sut.request(endpoint)
+
+        let requestList = await transport.requests()
+        #expect(firstValue == ResponseBody(value: "fresh"))
+        #expect(cachedValue == ResponseBody(value: "fresh"))
+        #expect(requestList.count == 2)
+        #expect(requestList.last?.value(forHTTPHeaderField: "If-None-Match") == "\"first\"")
+    }
+
+    @Test("ETag 캐시 키는 adapted URL 기준이어야 한다")
+    func ETag_캐시_키는_adapted_URL_기준이어야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("adapted"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"adapted\""])),
+            .success(Data(), try fixture.response(statusCode: 304))
+        ])
+        let sut = NetworkClient(
+            config: config,
+            transport: transport,
+            interceptor: URLNormalizingInterceptor(path: "/normalized")
+        )
+        let firstEndpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+        let secondEndpoint = NetworkEndpoint(path: "/songs", method: .get, etagCacheEnabled: true)
+
+        let firstValue: ResponseBody = try await sut.request(firstEndpoint)
+        let cachedValue: ResponseBody = try await sut.request(secondEndpoint)
+
+        let requestList = await transport.requests()
+        #expect(firstValue == ResponseBody(value: "adapted"))
+        #expect(cachedValue == ResponseBody(value: "adapted"))
+        #expect(requestList.map(\.url?.path) == ["/normalized", "/normalized"])
+        #expect(requestList.last?.value(forHTTPHeaderField: "If-None-Match") == "\"adapted\"")
+    }
+
+    @Test("304 캐시 hit는 plugin에 실제 304를 전달해야 한다")
+    func 삼공사_캐시_hit는_plugin에_실제_삼공사를_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("fresh"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"first\""])),
+            .success(Data(), try fixture.response(statusCode: 304))
+        ])
+        let plugin = LifecyclePlugin()
+        let sut = NetworkClient(config: config, transport: transport, plugins: [plugin])
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+
+        let _: ResponseBody = try await sut.request(endpoint)
+        let cachedValue: ResponseBody = try await sut.request(endpoint)
+
+        #expect(cachedValue == ResponseBody(value: "fresh"))
+        #expect(await plugin.successStatusCodeList() == [200, 304])
+    }
+
+    @Test("304 캐시 miss는 If-None-Match 없이 한 번 fallback 요청해야 한다")
+    func 삼공사_캐시_miss는_If_None_Match_없이_한_번_fallback_요청해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(Data(), try fixture.response(statusCode: 304)),
+            .success(valueData("fallback"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"fallback\""]))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            headers: ["If-None-Match": "\"external\""],
+            etagCacheEnabled: true
+        )
+
+        let value: ResponseBody = try await sut.request(endpoint)
+
+        let requestList = await transport.requests()
+        #expect(value == ResponseBody(value: "fallback"))
+        #expect(requestList.count == 2)
+        #expect(requestList.first?.value(forHTTPHeaderField: "If-None-Match") == "\"external\"")
+        #expect(requestList.last?.value(forHTTPHeaderField: "If-None-Match") == nil)
+    }
+
+    @Test("304 fallback 전송 실패는 NetworkError로 전달해야 한다")
+    func 삼공사_fallback_전송_실패는_NetworkError로_전달해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(Data(), try fixture.response(statusCode: 304)),
+            .failure(URLError(.timedOut))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            headers: ["If-None-Match": "\"external\""],
+            etagCacheEnabled: true
+        )
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .timeout {
+            #expect(await transport.requests().count == 2)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("304 fallback이 다시 304이면 invalidResponse를 던져야 한다")
+    func 삼공사_fallback이_다시_삼공사이면_invalidResponse를_던져야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(Data(), try fixture.response(statusCode: 304)),
+            .success(Data(), try fixture.response(statusCode: 304))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            headers: ["If-None-Match": "\"external\""],
+            etagCacheEnabled: true
+        )
+
+        do {
+            let _: ResponseBody = try await sut.request(endpoint)
+            #expect(Bool(false))
+        } catch .invalidResponse {
+            #expect(await transport.requests().count == 2)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("200 응답에 ETag가 없으면 기존 캐시를 삭제해야 한다")
+    func 이백_응답에_ETag가_없으면_기존_캐시를_삭제해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("cached"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"cached\""])),
+            .success(valueData("uncached"), try fixture.response(statusCode: 200)),
+            .success(valueData("again"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"again\""]))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+
+        let _: ResponseBody = try await sut.request(endpoint)
+        let _: ResponseBody = try await sut.request(endpoint)
+        let value: ResponseBody = try await sut.request(endpoint)
+
+        let requestList = await transport.requests()
+        #expect(value == ResponseBody(value: "again"))
+        #expect(requestList.count == 3)
+        #expect(requestList[1].value(forHTTPHeaderField: "If-None-Match") == "\"cached\"")
+        #expect(requestList[2].value(forHTTPHeaderField: "If-None-Match") == nil)
+    }
+
+    @Test("removeAllETagCache 호출 후 If-None-Match를 추가하지 않아야 한다")
+    func removeAllETagCache_호출_후_If_None_Match를_추가하지_않아야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("cached"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"cached\""])),
+            .success(valueData("fresh"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"fresh\""]))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+
+        let _: ResponseBody = try await sut.request(endpoint)
+        await sut.removeAllETagCache()
+        let value: ResponseBody = try await sut.request(endpoint)
+
+        let requestList = await transport.requests()
+        #expect(value == ResponseBody(value: "fresh"))
+        #expect(requestList.count == 2)
+        #expect(requestList.last?.value(forHTTPHeaderField: "If-None-Match") == nil)
+    }
+
+    @Test("GET이 아닌 요청은 ETag 캐시를 적용하지 않아야 한다")
+    func GET이_아닌_요청은_ETag_캐시를_적용하지_않아야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("first"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"first\""])),
+            .success(valueData("second"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"second\""]))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .post, etagCacheEnabled: true)
+
+        let _: ResponseBody = try await sut.request(endpoint)
+        let value: ResponseBody = try await sut.request(endpoint)
+
+        let requestList = await transport.requests()
+        #expect(value == ResponseBody(value: "second"))
+        #expect(requestList.count == 2)
+        #expect(requestList.last?.value(forHTTPHeaderField: "If-None-Match") == nil)
+    }
+
+    @Test("query가 다른 요청은 서로 다른 ETag 캐시를 사용해야 한다")
+    func query가_다른_요청은_서로_다른_ETag_캐시를_사용해야_한다() async throws {
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com")))
+        let fixture = try HTTPTestResponseFactory()
+        let transport = TestNetworkTransport(outputList: [
+            .success(valueData("a"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"a\""])),
+            .success(valueData("b"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"b\""])),
+            .success(Data(), try fixture.response(statusCode: 304)),
+            .success(Data(), try fixture.response(statusCode: 304))
+        ])
+        let sut = NetworkClient(config: config, transport: transport)
+        let endpointA = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            task: .query([URLQueryItem(name: "keyword", value: "a")]),
+            etagCacheEnabled: true
+        )
+        let endpointB = NetworkEndpoint(
+            path: "/concerts",
+            method: .get,
+            task: .query([URLQueryItem(name: "keyword", value: "b")]),
+            etagCacheEnabled: true
+        )
+
+        let firstValue: ResponseBody = try await sut.request(endpointA)
+        let secondValue: ResponseBody = try await sut.request(endpointB)
+        let cachedFirstValue: ResponseBody = try await sut.request(endpointA)
+        let cachedSecondValue: ResponseBody = try await sut.request(endpointB)
+
+        let requestList = await transport.requests()
+        #expect(firstValue == ResponseBody(value: "a"))
+        #expect(secondValue == ResponseBody(value: "b"))
+        #expect(cachedFirstValue == ResponseBody(value: "a"))
+        #expect(cachedSecondValue == ResponseBody(value: "b"))
+        #expect(requestList[2].value(forHTTPHeaderField: "If-None-Match") == "\"a\"")
+        #expect(requestList[3].value(forHTTPHeaderField: "If-None-Match") == "\"b\"")
+    }
+
     @Test("서버 message가 없어도 HTTP 에러 설명은 비어 있지 않아야 한다")
     func 서버_message가_없어도_HTTP_에러_설명은_비어_있지_않아야_한다() throws {
         let error = NetworkError.serverError(statusCode: 500, message: nil)
@@ -537,6 +991,17 @@ struct NetworkClientTests {
 private extension NetworkClientTests {
     struct ResponseBody: Decodable, Equatable {
         let value: String
+    }
+
+    func valueData(_ value: String) -> Data {
+        Data("""
+        {
+            "statusCode": 200,
+            "error": null,
+            "message": "success",
+            "data": { "value": "\(value)" }
+        }
+        """.utf8)
     }
 
     func catchValueError(transportError: Error) async throws -> NetworkError {
@@ -602,6 +1067,152 @@ private extension NetworkClientTests {
 
     enum TestError: Error, Equatable {
         case expected
+    }
+
+    actor HeaderAppendingPlugin: NetworkPlugin {
+        private let suffix: String
+
+        init(suffix: String) {
+            self.suffix = suffix
+        }
+
+        func prepare(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async throws(NetworkError) -> URLRequest {
+            var preparedRequest = request
+            let currentValue = preparedRequest.value(forHTTPHeaderField: "X-Plugin-Order") ?? ""
+            preparedRequest.setValue(currentValue + suffix, forHTTPHeaderField: "X-Plugin-Order")
+            return preparedRequest
+        }
+    }
+
+    actor FailingPreparePlugin: NetworkPlugin {
+        private let error: NetworkError
+        private var didReceiveCount = 0
+
+        init(error: NetworkError) {
+            self.error = error
+        }
+
+        func prepare(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async throws(NetworkError) -> URLRequest {
+            throw error
+        }
+
+        func didReceive(
+            _ result: Result<NetworkPluginResponse, NetworkError>,
+            request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async {
+            didReceiveCount += 1
+        }
+
+        func didReceiveCallCount() -> Int {
+            didReceiveCount
+        }
+    }
+
+    actor LifecyclePlugin: NetworkPlugin {
+        private var prepareCount = 0
+        private var willSendCount = 0
+        private var successStatusCodeListValue: [Int] = []
+        private var failureList: [NetworkError] = []
+
+        func prepare(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async throws(NetworkError) -> URLRequest {
+            prepareCount += 1
+            return request
+        }
+
+        func willSend(
+            _ request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async {
+            willSendCount += 1
+        }
+
+        func didReceive(
+            _ result: Result<NetworkPluginResponse, NetworkError>,
+            request: URLRequest,
+            endpoint: NetworkEndpoint
+        ) async {
+            switch result {
+            case .success(let response):
+                successStatusCodeListValue.append(response.response.statusCode)
+            case .failure(let error):
+                failureList.append(error)
+            }
+        }
+
+        func prepareCallCount() -> Int {
+            prepareCount
+        }
+
+        func willSendCallCount() -> Int {
+            willSendCount
+        }
+
+        func successStatusCodeList() -> [Int] {
+            successStatusCodeListValue
+        }
+
+        func failureCallCount() -> Int {
+            failureList.count
+        }
+
+        func didReceiveCallCount() -> Int {
+            successStatusCodeListValue.count + failureList.count
+        }
+
+        func didReceiveInvalidResponse() -> Bool {
+            failureList.contains { error in
+                guard case .invalidResponse = error else { return false }
+                return true
+            }
+        }
+    }
+
+    actor URLNormalizingInterceptor: RequestInterceptor {
+        private let path: String
+
+        init(path: String) {
+            self.path = path
+        }
+
+        func adapt(
+            _ request: URLRequest
+        ) async throws(NetworkError) -> URLRequest {
+            guard var components = request.url.flatMap({ URLComponents(url: $0, resolvingAgainstBaseURL: false) }),
+                  let url = request.url,
+                  let normalizedURL = URL(string: path, relativeTo: url)
+            else {
+                return request
+            }
+
+            components.path = normalizedURL.path
+
+            guard let rewrittenURL = components.url else {
+                return request
+            }
+
+            var adaptedRequest = request
+            adaptedRequest.url = rewrittenURL
+            return adaptedRequest
+        }
+
+        func retry(
+            _ request: URLRequest,
+            dueTo error: NetworkError,
+            response: HTTPURLResponse?,
+            retryCount: Int
+        ) async throws(NetworkError) -> RetryResult {
+            .doNotRetry
+        }
     }
 
     actor SpyRequestInterceptor: RequestInterceptor {
