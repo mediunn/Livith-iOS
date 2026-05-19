@@ -11,6 +11,7 @@
 - Simplicity First: Prefer the smallest implementation that satisfies the current requirement; do not add speculative abstraction, configuration, or features.
 - Surgical Changes: Every changed line should trace directly to the request; match the surrounding style and clean up only artifacts introduced by the current change.
 - Goal-Driven Execution: For bug fixes and behavior changes, define or reproduce the expected behavior first, then verify with focused tests or an equivalent check.
+- Conciseness: User-facing responses only. Drop filler (just/really/basically), pleasantries (sure/certainly/of course), and hedging. Be direct. Technical accuracy over verbosity. Analysis and planning remain thorough.
 
 ## Rule Documents
 - Planning multi-step or cross-module changes before starting work, and documenting troubleshooting when failures or feedback occur: `docs/rules/plan.md`
