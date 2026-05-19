@@ -18,6 +18,6 @@ public protocol UserRepository {
     @discardableResult
     func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert]
     func deleteInterestedConcert() async throws(UserError)
-    func fetchInterestConcertToastNeedsToShow() async throws(UserError) -> Bool
+    func fetchInterestConcertCleanupPolicy() async throws(UserError) -> InterestConcertCleanupPolicy
     func markInterestConcertToastShown() async throws(UserError)
 }

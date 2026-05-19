@@ -76,7 +76,7 @@ private extension TokenRefreshServiceImpl {
     }
 
     enum Literals {
-        static let path = "auth/refresh"
+        static let path = "/auth/refresh"
         static let clientQueryKey = "client"
         static let clientQueryValue = "mobile"
     }

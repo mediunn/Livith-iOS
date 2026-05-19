@@ -133,9 +133,9 @@ private extension DeepLinkService {
         switch type {
         case .interestConcert:
             AmplitudeService.shared.trackEvent(tag: .click(.pushInterestConcert))
-        case .preTicketingOpen, .generalTicketingOpen,
-             .preTicketing1D, .preTicketing30M,
-             .generalTicketing1D, .generalTicketing30M:
+        case .preTicketingOpen, .preTicketing1D, .preTicketing30M:
+            AmplitudeService.shared.trackEvent(tag: .click(.pushPreBookingSchedule))
+        case .generalTicketingOpen, .generalTicketing1D, .generalTicketing30M:
             AmplitudeService.shared.trackEvent(tag: .click(.pushBookingSchedule))
         case .concertInfoUpdateSetlist:
             AmplitudeService.shared.trackEvent(tag: .click(.pushConcertUpdateSetlist))

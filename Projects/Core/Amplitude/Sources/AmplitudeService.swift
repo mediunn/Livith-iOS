@@ -73,6 +73,14 @@ public extension AmplitudeService {
         // 탐색 메인
         case searchBar = "click_search_bar"
 
+        // 탐색 장르 탭
+        case genreAll = "click_genre_all"
+        case genreJpop = "click_genre_jpop"
+        case genreRockMetal = "click_genre_rock_metal"
+        case genreRapHiphop = "click_genre_rap_hiphop"
+        case genrePop = "click_genre_pop"
+        case genreIndie = "click_genre_indie"
+
         // 네비게이션
         case navHome = "click_nav_home"
         case navExplore = "click_nav_explore"
@@ -126,6 +134,7 @@ public extension AmplitudeService {
         // 알림 목록
         case interestConcertNotification = "click_interest_concert_notification"
         case bookingScheduleNotification = "click_booking_schedule_notification"
+        case preBookingScheduleNotification = "click_pre_booking_schedule_notification"
         case concertUpdateSetlistNotification = "click_concert_update_setlist_notification"
         case concertUpdateMdNotification = "click_concert_update_md_notification"
         case concertUpdateDetailNotification = "click_concert_update_detail_notification"
@@ -137,6 +146,7 @@ public extension AmplitudeService {
         // iOS 푸시 알림
         case pushInterestConcert = "click_push_interest_concert"
         case pushBookingSchedule = "click_push_booking_schedule"
+        case pushPreBookingSchedule = "click_push_pre_booking_schedule"
         case pushConcertUpdateSetlist = "click_push_concert_update_setlist"
         case pushConcertUpdateMd = "click_push_concert_update_md"
         case pushConcertUpdateDetail = "click_push_concert_update_detail"
