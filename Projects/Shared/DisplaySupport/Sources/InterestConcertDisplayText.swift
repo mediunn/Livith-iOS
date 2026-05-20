@@ -20,7 +20,7 @@ public enum InterestConcertDisplayText {
     public static func title(for interestConcert: InterestConcert) -> String {
         let concert = interestConcert.concert
 
-        guard let title = concert.title.nonEmpty else {
+        guard let title = concert.title, !title.isEmpty else {
             return "\(concert.artist) 내한 예정"
         }
 
@@ -28,7 +28,10 @@ public enum InterestConcertDisplayText {
     }
 
     public static func venue(for interestConcert: InterestConcert) -> String {
-        return interestConcert.concert.venue.nonEmpty ?? unknownVenue
+        guard let venue = interestConcert.concert.venue, !venue.isEmpty else {
+            return unknownVenue
+        }
+        return venue
     }
 
     public static func dateRange(for interestConcert: InterestConcert) -> String {
@@ -72,14 +75,8 @@ public enum InterestConcertDisplayText {
             return "콘서트 진행중"
         }
 
-        let today = Calendar.current.startOfDay(for: Date())
-        if let startDate = interestConcert.concert.startDate,
-           let endDate = interestConcert.concert.endDate {
-            let startDay = Calendar.current.startOfDay(for: startDate)
-            let endDay = Calendar.current.startOfDay(for: endDate)
-            if startDay <= today && today <= endDay {
-                return "콘서트 진행중"
-            }
+        if isCurrentlyOngoing(interestConcert.concert) {
+            return "콘서트 진행중"
         }
 
         let schedule = interestConcert.ticketingSchedule
@@ -109,17 +106,20 @@ public enum InterestConcertDisplayText {
 }
 
 private extension InterestConcertDisplayText {
+    static var today: Date {
+        Calendar.current.startOfDay(for: Date())
+    }
+
+    static func isCurrentlyOngoing(_ concert: Concert) -> Bool {
+        guard let startDate = concert.startDate, let endDate = concert.endDate else {
+            return false
+        }
+        let startDay = Calendar.current.startOfDay(for: startDate)
+        let endDay = Calendar.current.startOfDay(for: endDate)
+        return startDay <= today && today <= endDay
+    }
+
     static func ticketingDate(_ date: Date) -> String {
         return DateFormatterService.string(from: date, type: .koreanDateTime)
-    }
-}
-
-private extension Optional where Wrapped == String {
-    var nonEmpty: String? {
-        guard let value = self?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
-            return nil
-        }
-
-        return value
     }
 }
