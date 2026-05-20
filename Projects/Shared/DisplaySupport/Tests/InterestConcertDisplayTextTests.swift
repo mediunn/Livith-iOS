@@ -123,16 +123,19 @@ struct InterestConcertDisplayTextTests {
         #expect(badge == "공연 D-DAY")
     }
 
-    @Test("D-day가 0이면 하단 문구는 공연 진행 중을 표시해야 한다")
-    func dday가_0이면_하단_문구는_공연_진행_중을_표시해야_한다() {
+    @Test("공연 기간이 오늘을 포함하면 하단 문구는 콘서트 진행중을 표시해야 한다")
+    func 공연_기간이_오늘을_포함하면_하단_문구는_콘서트_진행중을_표시해야_한다() {
         // Given
-        let interestConcert = makeInterestConcert(daysLeft: 0, preSaleDate: ticketingDate, generalSaleDate: ticketingDate)
+        let today = Calendar.current.startOfDay(for: Date())
+        let yesterDay = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+        let interestConcert = makeInterestConcert(status: .upcoming, startDate: yesterDay, endDate: tomorrow, preSaleDate: pastTicketingDate, generalSaleDate: pastTicketingDate)
 
         // When
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
 
         // Then
-        #expect(bottom == "공연 진행 중")
+        #expect(bottom == "콘서트 진행중")
     }
 
     @Test("진행중 공연이면 하단 문구는 콘서트 진행중을 표시해야 한다")
@@ -147,10 +150,13 @@ struct InterestConcertDisplayTextTests {
         #expect(bottom == "콘서트 진행중")
     }
 
-    @Test("예정 공연의 D-day가 0이면 하단 문구는 콘서트 진행중을 표시하지 않아야 한다")
-    func 예정_공연의_dday가_0이면_하단_문구는_콘서트_진행중을_표시하지_않아야_한다() {
+    @Test("공연 기간이 미래이면 하단 문구는 콘서트 진행중을 표시하지 않아야 한다")
+    func 공연_기간이_미래이면_하단_문구는_콘서트_진행중을_표시하지_않아야_한다() {
         // Given
-        let interestConcert = makeInterestConcert(status: .upcoming, daysLeft: 0)
+        let today = Calendar.current.startOfDay(for: Date())
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+        let nextDay = Calendar.current.date(byAdding: .day, value: 2, to: today)!
+        let interestConcert = makeInterestConcert(status: .upcoming, startDate: tomorrow, endDate: nextDay, preSaleDate: nil, generalSaleDate: nil)
 
         // When
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
@@ -159,8 +165,8 @@ struct InterestConcertDisplayTextTests {
         #expect(bottom != "콘서트 진행중")
     }
 
-    @Test("선예매와 일반 예매 일정이 모두 있으면 하단 문구는 일반 예매 오픈 문구를 우선 표시해야 한다")
-    func 선예매와_일반_예매_일정이_모두_있으면_하단_문구는_일반_예매_오픈_문구를_우선_표시해야_한다() {
+    @Test("선예매와 일반 예매 일정이 모두 있으면 하단 문구는 더 이른 날짜를 우선 표시해야 한다")
+    func 선예매와_일반_예매_일정이_모두_있으면_하단_문구는_더_이른_날짜를_우선_표시해야_한다() {
         // Given
         let interestConcert = makeInterestConcert(preSaleDate: ticketingDate, generalSaleDate: laterTicketingDate)
 
@@ -168,7 +174,7 @@ struct InterestConcertDisplayTextTests {
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
 
         // Then
-        #expect(bottom == "일반 예매 오픈 · 8/11(월) 2:20AM")
+        #expect(bottom == "선예매 오픈 · 8/22(토) 5:30PM")
     }
 
     @Test("선예매 일정만 있으면 하단 문구는 선예매 오픈 문구를 표시해야 한다")
@@ -180,7 +186,7 @@ struct InterestConcertDisplayTextTests {
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
 
         // Then
-        #expect(bottom == "선예매 오픈 · 8/10(일) 2:20AM")
+        #expect(bottom == "선예매 오픈 · 8/22(토) 5:30PM")
     }
 
     @Test("선예매 일정이 없고 일반 예매 일정이 있으면 하단 문구는 일반 예매 오픈 문구를 표시해야 한다")
@@ -192,7 +198,7 @@ struct InterestConcertDisplayTextTests {
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
 
         // Then
-        #expect(bottom == "일반 예매 오픈 · 8/10(일) 2:20AM")
+        #expect(bottom == "일반 예매 오픈 · 8/22(토) 5:30PM")
     }
 
     @Test("예매 일정이 없으면 하단 문구는 예매 오픈 예정 문구를 표시해야 한다")
@@ -218,15 +224,43 @@ struct InterestConcertDisplayTextTests {
         // Then
         #expect(bottom == "예매 오픈 예정")
     }
+
+    @Test("선예매 날짜가 지났고 일반 예매 날짜만 남아있으면 일반 예매 오픈 문구를 표시해야 한다")
+    func 선예매_날짜가_지났고_일반_예매_날짜만_남아있으면_일반_예매_오픈_문구를_표시해야_한다() {
+        // Given
+        let interestConcert = makeInterestConcert(preSaleDate: pastTicketingDate, generalSaleDate: ticketingDate)
+
+        // When
+        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "일반 예매 오픈 · 8/22(토) 5:30PM")
+    }
+
+    @Test("두 예매 날짜가 모두 지났으면 하단 문구는 일반 예매 오픈 문구를 표시해야 한다")
+    func 두_예매_날짜가_모두_지났으면_하단_문구는_일반_예매_오픈_문구를_표시해야_한다() {
+        // Given
+        let interestConcert = makeInterestConcert(preSaleDate: pastTicketingDate, generalSaleDate: pastTicketingDate)
+
+        // When
+        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "일반 예매 오픈 · 1/1(목) 9:00AM")
+    }
 }
 
 private extension InterestConcertDisplayTextTests {
+    var pastTicketingDate: Date {
+        Date(timeIntervalSince1970: 0)
+    }
+
     var ticketingDate: Date {
-        Date(timeIntervalSince1970: 1_754_760_000)
+        Date(timeIntervalSince1970: 1_787_387_400)
     }
 
     var laterTicketingDate: Date {
-        Date(timeIntervalSince1970: 1_754_846_400)
+        Date(timeIntervalSince1970: 1_787_473_800)
     }
 
     func makeInterestConcert(

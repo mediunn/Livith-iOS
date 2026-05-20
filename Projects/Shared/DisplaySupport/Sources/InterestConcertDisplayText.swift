@@ -20,7 +20,7 @@ public enum InterestConcertDisplayText {
     public static func title(for interestConcert: InterestConcert) -> String {
         let concert = interestConcert.concert
 
-        guard let title = concert.title.nonEmpty else {
+        guard let title = concert.title, !title.isEmpty else {
             return "\(concert.artist) 내한 예정"
         }
 
@@ -28,7 +28,10 @@ public enum InterestConcertDisplayText {
     }
 
     public static func venue(for interestConcert: InterestConcert) -> String {
-        return interestConcert.concert.venue.nonEmpty ?? unknownVenue
+        guard let venue = interestConcert.concert.venue, !venue.isEmpty else {
+            return unknownVenue
+        }
+        return venue
     }
 
     public static func dateRange(for interestConcert: InterestConcert) -> String {
@@ -72,35 +75,51 @@ public enum InterestConcertDisplayText {
             return "콘서트 진행중"
         }
 
-        if interestConcert.concert.daysLeft == 0 {
-            return "공연 진행 중"
+        if isCurrentlyOngoing(interestConcert.concert) {
+            return "콘서트 진행중"
         }
 
         let schedule = interestConcert.ticketingSchedule
+
+        let upcomingDates = [
+            schedule.preSaleDate.map { (date: $0, isPreSale: true) },
+            schedule.generalSaleDate.map { (date: $0, isPreSale: false) }
+        ]
+        .compactMap { $0 }
+        .filter { $0.date >= today }
+
+        if let earliest = upcomingDates.min(by: { $0.date < $1.date }) {
+            let label = earliest.isPreSale ? "선예매 오픈" : "일반 예매 오픈"
+            return "\(label) · \(ticketingDate(earliest.date))"
+        }
+
         if let generalSaleDate = schedule.generalSaleDate {
             return "일반 예매 오픈 · \(ticketingDate(generalSaleDate))"
         }
 
-        guard let preSaleDate = schedule.preSaleDate else {
-            return unknownTicketingDate
+        if let preSaleDate = schedule.preSaleDate {
+            return "선예매 오픈 · \(ticketingDate(preSaleDate))"
         }
 
-        return "선예매 오픈 · \(ticketingDate(preSaleDate))"
+        return unknownTicketingDate
     }
 }
 
 private extension InterestConcertDisplayText {
+    static var today: Date {
+        Calendar.current.startOfDay(for: Date())
+    }
+
+    static func isCurrentlyOngoing(_ concert: Concert) -> Bool {
+        guard let startDate = concert.startDate, let endDate = concert.endDate else {
+            return false
+        }
+        let startDay = Calendar.current.startOfDay(for: startDate)
+        let endDay = Calendar.current.startOfDay(for: endDate)
+        return startDay <= today && today <= endDay
+    }
+
     static func ticketingDate(_ date: Date) -> String {
         return DateFormatterService.string(from: date, type: .koreanDateTime)
-    }
-}
-
-private extension Optional where Wrapped == String {
-    var nonEmpty: String? {
-        guard let value = self?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
-            return nil
-        }
-
-        return value
     }
 }
