@@ -123,13 +123,13 @@ struct InterestConcertDisplayTextTests {
         #expect(badge == "공연 D-DAY")
     }
 
-    @Test("공연 기간이 오늘을 포함하면 하단 문구는 콘서트 진행중을 표시해야 한다")
-    func 공연_기간이_오늘을_포함하면_하단_문구는_콘서트_진행중을_표시해야_한다() {
+    @Test("공연 기간이 현재 시각을 포함하면 하단 문구는 콘서트 진행중을 표시해야 한다")
+    func 공연_기간이_현재_시각을_포함하면_하단_문구는_콘서트_진행중을_표시해야_한다() {
         // Given
-        let today = Calendar.current.startOfDay(for: Date())
-        let yesterDay = Calendar.current.date(byAdding: .day, value: -1, to: today)!
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
-        let interestConcert = makeInterestConcert(status: .upcoming, startDate: yesterDay, endDate: tomorrow, preSaleDate: pastTicketingDate, generalSaleDate: pastTicketingDate)
+        let now = Date()
+        let startDate = now.addingTimeInterval(-86400)
+        let endDate = now.addingTimeInterval(86400)
+        let interestConcert = makeInterestConcert(status: .upcoming, startDate: startDate, endDate: endDate, preSaleDate: pastTicketingDate, generalSaleDate: pastTicketingDate)
 
         // When
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
@@ -153,10 +153,10 @@ struct InterestConcertDisplayTextTests {
     @Test("공연 기간이 미래이면 하단 문구는 콘서트 진행중을 표시하지 않아야 한다")
     func 공연_기간이_미래이면_하단_문구는_콘서트_진행중을_표시하지_않아야_한다() {
         // Given
-        let today = Calendar.current.startOfDay(for: Date())
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
-        let nextDay = Calendar.current.date(byAdding: .day, value: 2, to: today)!
-        let interestConcert = makeInterestConcert(status: .upcoming, startDate: tomorrow, endDate: nextDay, preSaleDate: nil, generalSaleDate: nil)
+        let now = Date()
+        let startDate = now.addingTimeInterval(86400)
+        let endDate = now.addingTimeInterval(172800)
+        let interestConcert = makeInterestConcert(status: .upcoming, startDate: startDate, endDate: endDate, preSaleDate: nil, generalSaleDate: nil)
 
         // When
         let bottom = InterestConcertDisplayText.bottom(for: interestConcert)

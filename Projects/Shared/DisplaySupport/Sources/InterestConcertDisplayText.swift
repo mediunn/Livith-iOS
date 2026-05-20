@@ -86,7 +86,7 @@ public enum InterestConcertDisplayText {
             schedule.generalSaleDate.map { (date: $0, isPreSale: false) }
         ]
         .compactMap { $0 }
-        .filter { $0.date >= today }
+        .filter { $0.date >= .now }
 
         if let earliest = upcomingDates.min(by: { $0.date < $1.date }) {
             let label = earliest.isPreSale ? "선예매 오픈" : "일반 예매 오픈"
@@ -106,17 +106,11 @@ public enum InterestConcertDisplayText {
 }
 
 private extension InterestConcertDisplayText {
-    static var today: Date {
-        Calendar.current.startOfDay(for: Date())
-    }
-
     static func isCurrentlyOngoing(_ concert: Concert) -> Bool {
         guard let startDate = concert.startDate, let endDate = concert.endDate else {
             return false
         }
-        let startDay = Calendar.current.startOfDay(for: startDate)
-        let endDay = Calendar.current.startOfDay(for: endDate)
-        return startDay <= today && today <= endDay
+        return startDate <= .now && .now <= endDate
     }
 
     static func ticketingDate(_ date: Date) -> String {
