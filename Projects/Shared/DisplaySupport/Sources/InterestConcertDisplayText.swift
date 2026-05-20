@@ -72,20 +72,39 @@ public enum InterestConcertDisplayText {
             return "콘서트 진행중"
         }
 
-        if interestConcert.concert.daysLeft == 0 {
-            return "공연 진행 중"
+        let today = Calendar.current.startOfDay(for: Date())
+        if let startDate = interestConcert.concert.startDate,
+           let endDate = interestConcert.concert.endDate {
+            let startDay = Calendar.current.startOfDay(for: startDate)
+            let endDay = Calendar.current.startOfDay(for: endDate)
+            if startDay <= today && today <= endDay {
+                return "콘서트 진행중"
+            }
         }
 
         let schedule = interestConcert.ticketingSchedule
+
+        let upcomingDates = [
+            schedule.preSaleDate.map { (date: $0, isPreSale: true) },
+            schedule.generalSaleDate.map { (date: $0, isPreSale: false) }
+        ]
+        .compactMap { $0 }
+        .filter { $0.date >= today }
+
+        if let earliest = upcomingDates.min(by: { $0.date < $1.date }) {
+            let label = earliest.isPreSale ? "선예매 오픈" : "일반 예매 오픈"
+            return "\(label) · \(ticketingDate(earliest.date))"
+        }
+
         if let generalSaleDate = schedule.generalSaleDate {
             return "일반 예매 오픈 · \(ticketingDate(generalSaleDate))"
         }
 
-        guard let preSaleDate = schedule.preSaleDate else {
-            return unknownTicketingDate
+        if let preSaleDate = schedule.preSaleDate {
+            return "선예매 오픈 · \(ticketingDate(preSaleDate))"
         }
 
-        return "선예매 오픈 · \(ticketingDate(preSaleDate))"
+        return unknownTicketingDate
     }
 }
 
