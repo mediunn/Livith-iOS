@@ -8,14 +8,14 @@
 
 import Foundation
 
-public struct ResponseHandler: Sendable {
+struct ResponseHandler: Sendable {
     private let decoder: JSONDecoder
 
-    public init(decoder: JSONDecoder = JSONDecoder()) {
+    init(decoder: JSONDecoder = JSONDecoder()) {
         self.decoder = decoder
     }
 
-    public func handle<T: Decodable>(
+    func handle<T: Decodable>(
         _ type: T.Type,
         data: Data,
         response: HTTPURLResponse

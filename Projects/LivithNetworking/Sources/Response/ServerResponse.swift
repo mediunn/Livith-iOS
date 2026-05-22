@@ -6,7 +6,7 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-public struct ServerResponse<T: Decodable>: Decodable {
+struct ServerResponse<T: Decodable>: Decodable {
     public let statusCode: Int
     public let error: String?
     public let message: String

@@ -31,7 +31,7 @@ struct NetworkingFactoryTests {
     func factory_초기화_시_onAuthenticationExpired_클로저를_그대로_보관해야_한다() async throws {
         // Given
         let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
-        var callbackExecuted = false
+        nonisolated(unsafe) var callbackExecuted = false
 
         // When
         let sut = NetworkingFactoryImpl(

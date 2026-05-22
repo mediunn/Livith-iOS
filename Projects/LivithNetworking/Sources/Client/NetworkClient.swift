@@ -19,15 +19,13 @@ public struct NetworkClient: Sendable {
 
     public init(
         config: NetworkConfig,
-        requestBuilder: RequestBuilder = RequestBuilder(),
-        responseHandler: ResponseHandler = ResponseHandler(),
         interceptor: (any RequestInterceptor)? = nil,
         plugins: [any NetworkPlugin] = []
     ) {
         self.init(
             config: config,
-            requestBuilder: requestBuilder,
-            responseHandler: responseHandler,
+            requestBuilder: RequestBuilder(),
+            responseHandler: ResponseHandler(),
             transport: URLSessionTransport(),
             interceptor: interceptor,
             plugins: plugins

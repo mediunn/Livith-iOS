@@ -6,7 +6,7 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-public enum ResponseError: Error {
+enum ResponseError: Error {
     case invalidStatusCode(Int, message: String?)
     case noData
     case decodingFailed(Error)

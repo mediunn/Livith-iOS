@@ -110,7 +110,7 @@ struct TokenManagerTests {
         // Given
         let tokenStore = SpyTokenStore(token: makeStoredToken())
         let tokenRefreshService = SpyTokenRefreshService(error: .unauthorized(message: "expired"))
-        var expiredCalled = false
+        nonisolated(unsafe) var expiredCalled = false
         let sut = makeSUT(
             tokenStore: tokenStore,
             tokenRefreshService: tokenRefreshService,
@@ -133,7 +133,7 @@ struct TokenManagerTests {
         // Given
         let tokenStore = SpyTokenStore(token: makeStoredToken())
         let tokenRefreshService = SpyTokenRefreshService(token: makeRefreshedToken())
-        var expiredCalled = false
+        nonisolated(unsafe) var expiredCalled = false
         let sut = makeSUT(
             tokenStore: tokenStore,
             tokenRefreshService: tokenRefreshService,
