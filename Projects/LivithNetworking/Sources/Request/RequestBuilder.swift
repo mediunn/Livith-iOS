@@ -8,19 +8,19 @@
 
 import Foundation
 
-public enum RequestBuildError: Error {
+enum RequestBuildError: Error {
     case invalidURL
     case encodingFailed(Error)
 }
 
-public struct RequestBuilder {
+struct RequestBuilder: Sendable {
     private let encoder: JSONEncoder
 
-    public init(encoder: JSONEncoder = JSONEncoder()) {
+    init(encoder: JSONEncoder = JSONEncoder()) {
         self.encoder = encoder
     }
 
-    public func make(
+    func make(
         endpoint: NetworkEndpoint,
         config: NetworkConfig
     ) throws(RequestBuildError) -> URLRequest {

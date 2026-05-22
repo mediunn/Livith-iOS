@@ -8,26 +8,28 @@
 
 import Foundation
 
-public struct AuthInterceptor: RequestInterceptor {
+struct AuthInterceptor: RequestInterceptor {
     private let tokenManager: any TokenManager
 
-    public init(tokenManager: any TokenManager) {
+    init(tokenManager: any TokenManager) {
         self.tokenManager = tokenManager
     }
 
-    public init(
+    init(
         config: NetworkConfig,
         tokenStore: any TokenStore = KeychainTokenStore()
     ) {
         self.init(
             tokenManager: TokenManagerImpl(
                 tokenStore: tokenStore,
-                tokenRefreshService: TokenRefreshServiceImpl(config: config)
+                tokenRefreshService: TokenRefreshServiceImpl(
+                    networkClient: NetworkClient(config: config)
+                )
             )
         )
     }
 
-    public func adapt(
+    func adapt(
         _ request: URLRequest
     ) async throws(NetworkError) -> URLRequest {
         let accessToken = try await tokenManager.accessToken()
@@ -41,7 +43,7 @@ public struct AuthInterceptor: RequestInterceptor {
         return adaptedRequest
     }
 
-    public func retry(
+    func retry(
         _ request: URLRequest,
         dueTo error: NetworkError,
         response: HTTPURLResponse?,

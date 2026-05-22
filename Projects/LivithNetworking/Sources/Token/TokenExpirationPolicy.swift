@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct TokenExpirationPolicy: Sendable {
+struct TokenExpirationPolicy: Sendable {
     public static let `default` = TokenExpirationPolicy(
         refreshTokenLifetime: 3 * 24 * 60 * 60
     )

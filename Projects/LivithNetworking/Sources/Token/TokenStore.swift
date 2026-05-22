@@ -32,21 +32,20 @@ public actor KeychainTokenStore: TokenStore {
 
     public init(
         service: String = KeychainTokenStore.defaultService,
-        account: String = KeychainTokenStore.defaultAccount,
-        expirationPolicy: TokenExpirationPolicy = .default
+        account: String = KeychainTokenStore.defaultAccount
     ) {
-        self.init(
-            service: service,
-            account: account,
-            expirationPolicy: expirationPolicy,
-            keychainStorage: KeychainStorageImpl()
-        )
+        self.service = service
+        self.account = account
+        self.expirationPolicy = .default
+        self.keychainStorage = KeychainStorageImpl()
+        self.encoder = Self.makeEncoder()
+        self.decoder = Self.makeDecoder()
     }
 
     init(
         service: String,
         account: String,
-        expirationPolicy: TokenExpirationPolicy = .default,
+        expirationPolicy: TokenExpirationPolicy,
         keychainStorage: any KeychainStorage
     ) {
         self.service = service

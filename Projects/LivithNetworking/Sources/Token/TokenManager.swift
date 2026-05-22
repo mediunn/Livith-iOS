@@ -10,37 +10,38 @@ import Foundation
 
 // MARK: - TokenManager
 
-public protocol TokenManager: Sendable {
+protocol TokenManager: Sendable {
     func accessToken() async throws(NetworkError) -> String
     func refresh() async throws(NetworkError)
 }
 
 // MARK: - TokenManagerImpl
 
-public actor TokenManagerImpl: TokenManager {
+actor TokenManagerImpl: TokenManager {
     private let tokenStore: any TokenStore
     private let tokenRefreshService: any TokenRefreshService
+    private let onRefreshTokenExpired: (@Sendable () -> Void)?
     private var refreshTask: Task<Void, any Error>?
 
-    public init(
+    init(
         tokenStore: any TokenStore,
-        tokenRefreshService: any TokenRefreshService
+        tokenRefreshService: any TokenRefreshService,
+        onRefreshTokenExpired: (@Sendable () -> Void)? = nil
     ) {
         self.tokenStore = tokenStore
         self.tokenRefreshService = tokenRefreshService
+        self.onRefreshTokenExpired = onRefreshTokenExpired
     }
 
-    public func accessToken() async throws(NetworkError) -> String {
+    func accessToken() async throws(NetworkError) -> String {
         do {
             return try await tokenStore.fetch().accessToken
-        } catch let error as TokenError {
+        } catch let error {
             throw mapFetchError(error)
-        } catch {
-            throw .unknown(error)
         }
     }
 
-    public func refresh() async throws(NetworkError) {
+    func refresh() async throws(NetworkError) {
         if let refreshTask {
             return try await value(from: refreshTask)
         }
@@ -61,22 +62,26 @@ private extension TokenManagerImpl {
         let storedToken: Token
         do {
             storedToken = try await tokenStore.fetch()
-        } catch let error as TokenError {
-            throw mapFetchError(error)
         } catch {
-            throw .unknown(error)
+            throw mapFetchError(error)
         }
 
-        let refreshedToken = try await tokenRefreshService.refresh(
-            with: storedToken.refreshToken
-        )
+        let refreshedToken: Token
+        do {
+            refreshedToken = try await tokenRefreshService.refresh(
+                with: storedToken.refreshToken
+            )
+        } catch {
+            if case .unauthorized = error {
+                onRefreshTokenExpired?()
+            }
+            throw error
+        }
 
         do {
             try await tokenStore.save(refreshedToken)
-        } catch let error as TokenError {
-            throw mapSaveError(error)
         } catch {
-            throw .unknown(error)
+            throw mapSaveError(error)
         }
     }
 

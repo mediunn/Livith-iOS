@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct NetworkClient {
+public struct NetworkClient: Sendable {
     private let config: NetworkConfig
     private let requestBuilder: RequestBuilder
     private let responseHandler: ResponseHandler
@@ -19,15 +19,13 @@ public struct NetworkClient {
 
     public init(
         config: NetworkConfig,
-        requestBuilder: RequestBuilder = RequestBuilder(),
-        responseHandler: ResponseHandler = ResponseHandler(),
         interceptor: (any RequestInterceptor)? = nil,
         plugins: [any NetworkPlugin] = []
     ) {
         self.init(
             config: config,
-            requestBuilder: requestBuilder,
-            responseHandler: responseHandler,
+            requestBuilder: RequestBuilder(),
+            responseHandler: ResponseHandler(),
             transport: URLSessionTransport(),
             interceptor: interceptor,
             plugins: plugins
