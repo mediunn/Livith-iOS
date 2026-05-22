@@ -22,15 +22,15 @@ flowchart LR
     Done --> Plugin[NetworkPlugin]
     Done --> DebugPlugin[DebugNetworkPlugin]
     Done --> Cache[ETag 메모리 캐시]
+    Done --> Factory[NetworkingFactory]
+    Done --> Logout[refresh 만료 시 앱 이벤트 전파]
 
-    Out --> Logout[refresh 실패 시 로그아웃/토큰 삭제]
     Out --> DI[앱/데이터 레이어 DI 등록]
     Out --> Migration[기존 LivithNetwork 대체]
 
     Next --> DI
-    Next --> Logout
+    Next --> Migration
     DI --> Migration
-    Logout --> Migration
 ```
 
 ## 모듈 경계
@@ -55,6 +55,17 @@ flowchart LR
 
 ```mermaid
 classDiagram
+    class NetworkingFactory {
+        <<protocol>>
+        +config: NetworkConfig
+        +onAuthenticationExpired: () -&gt; Void
+    }
+
+    class NetworkingFactoryImpl {
+        +config: NetworkConfig
+        +onAuthenticationExpired: () -&gt; Void
+    }
+
     class NetworkClient {
         +requestValue(endpoint) T
         +requestVoid(endpoint) Void
@@ -171,6 +182,10 @@ classDiagram
     MemoryETagCacheStore ..|> ETagCacheStore
     KeychainTokenStore ..|> TokenStore
     KeychainTokenStore --> Token
+    NetworkingFactoryImpl ..|> NetworkingFactory
+    NetworkingFactoryImpl --> NetworkClient
+    NetworkingFactoryImpl --> AuthInterceptor
+    NetworkingFactoryImpl --> TokenManagerImpl
 ```
 
 ## 요청 흐름
@@ -260,6 +275,7 @@ flowchart TD
 - retry 횟수는 최대 1회로 고정한다.
 - 재시도 시 실패한 adapted request를 재사용하지 않고 원 요청에 plugin `prepare`와 interceptor `adapt`를 다시 적용한다.
 - refresh 실패 시 원 요청을 재전송하지 않고 `NetworkError`를 전달한다.
+- refresh 토큰까지 만료된 경우(401) `onAuthenticationExpired` 클로저를 통해 앱으로 이벤트를 전파한다.
 - 비인증 endpoint는 `adapt`와 `retry` hook을 모두 호출하지 않는다.
 - plugin hook은 인증 여부와 무관하게 호출한다.
 
@@ -349,11 +365,13 @@ flowchart TD
     Cache[Sources/Cache]
     Token[Sources/Token]
     Service[Sources/Service]
+    Factory[Sources/Factory]
     DTO[Sources/DTO]
     ClientTests[Tests/Client]
     InterceptorTests[Tests/Interceptor]
     PluginTests[Tests/Plugin]
     TokenTests[Tests/Token]
+    FactoryTests[Tests/Factory]
 
     Root --> Sources
     Root --> Tests
@@ -365,15 +383,18 @@ flowchart TD
     Sources --> Cache
     Sources --> Token
     Sources --> Service
+    Sources --> Factory
     Sources --> DTO
     Tests --> ClientTests
     Tests --> InterceptorTests
     Tests --> PluginTests
     Tests --> TokenTests
+    Tests --> FactoryTests
 
     Client --> NetworkClient[NetworkClient.swift]
     Client --> NetworkError[NetworkError.swift]
     Client --> Transport[NetworkTransport.swift]
+    Client --> Config[NetworkConfig.swift]
     Client --> Attempt[RequestAttempt.swift]
 
     Interceptor --> RequestInterceptor[RequestInterceptor.swift]
@@ -395,6 +416,9 @@ flowchart TD
     Token --> TokenManagerFile[TokenManager.swift]
 
     Service --> TokenRefresh[TokenRefreshService.swift]
+
+    Factory --> NetworkingFactoryFile[NetworkingFactory.swift]
+
     DTO --> DTOFile[DTO.swift]
     DTO --> AuthToken[Auth/AuthToken.swift]
 
@@ -407,6 +431,8 @@ flowchart TD
     TokenTests --> KeychainStoreTests[KeychainTokenStoreTests.swift]
     TokenTests --> TokenRefreshTests[TokenRefreshServiceTests.swift]
     TokenTests --> TokenManagerTests[TokenManagerTests.swift]
+
+    FactoryTests --> NetworkingFactoryTestsFile[NetworkingFactoryTests.swift]
 ```
 
 ## 사용 형태
@@ -435,17 +461,34 @@ let client = NetworkClient(
 let value: SomeResponse = try await client.request(authenticatedEndpoint)
 ```
 
-### 직접 조립
+### 직접 조립 → 팩토리 사용 (권장)
 
 ```swift
-let tokenStore: any TokenStore = KeychainTokenStore()
-let tokenRefreshService: any TokenRefreshService = TokenRefreshServiceImpl(config: config)
-let tokenManager: any TokenManager = TokenManagerImpl(
-    tokenStore: tokenStore,
-    tokenRefreshService: tokenRefreshService
+// 앱 초기화 시점에 팩토리 생성
+let factory = NetworkingFactoryImpl(
+    config: NetworkConfig(baseURL: baseURL),
+    onAuthenticationExpired: {
+        // refresh 토큰까지 만료된 경우 앱으로 이벤트 전파
+        // 로그아웃 또는 재로그인 처리
+    }
 )
-let authInterceptor = AuthInterceptor(tokenManager: tokenManager)
-let client = NetworkClient(config: config, interceptor: authInterceptor)
+
+// DI 컨테이너에 등록
+container.register(NetworkingFactory.self) { factory }
+
+// Repository에서 사용 (추후 도메인 서비스 구현 시)
+// let userService = factory.makeUserService()
+```
+
+### 직접 조립 (팩토리 사용 전)
+
+```swift
+// 팩토리 도입 전 직접 조립 방식 (내부 타입은 이제 암시적 internal)
+// let tokenStore: any TokenStore = KeychainTokenStore()
+// let tokenRefreshService = TokenRefreshServiceImpl(networkClient: refreshClient)
+// let tokenManager = TokenManagerImpl(tokenStore: tokenStore, tokenRefreshService: tokenRefreshService)
+// let authInterceptor = AuthInterceptor(tokenManager: tokenManager)
+// let client = NetworkClient(config: config, interceptor: authInterceptor)
 ```
 
 ### 디버그 플러그인
@@ -514,6 +557,14 @@ flowchart TD
     Q[ETag 캐시는 endpoint Bool opt-in]
     R[ETag 캐시는 GET과 메모리 store만 사용]
     S[304 cache miss는 조건 없이 1회 fallback]
+    T["NetworkingFactory가 공유자원 초기화/소유"]
+    U["TokenManager가 refresh 만료 이벤트 핸들러 소유"]
+    V["TokenRefreshService는 순수 API 호출만 담당"]
+    W["순환 의존성 방지: 별도 NetworkClient 사용"]
+    X["TokenManager / TokenRefreshService / AuthInterceptor는 암시적 internal"]
+    Y["Factory는 struct로 구현 (불변 상태)"]
+    Z["onAuthenticationExpired는 @Sendable 클로저로 전파"]
+    a1["NetworkTransport / NetworkClient / RequestBuilder / ResponseHandler는 Sendable 준수"]
 
     A --> B --> C
     D --> E --> F
@@ -523,6 +574,8 @@ flowchart TD
     L --> M --> N
     O --> P
     Q --> R --> S
+    T --> U --> V
+    W --> X --> Y --> Z --> a1
 ```
 
 ## LocalizedError 및 보안 정책
