@@ -68,7 +68,6 @@ Tuist/.build
 .build/
 
 ### AI Agents ###
-.agents/
 .claude/
 .codex/
 .opencode/
