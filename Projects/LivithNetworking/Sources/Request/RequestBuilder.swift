@@ -13,7 +13,7 @@ public enum RequestBuildError: Error {
     case encodingFailed(Error)
 }
 
-public struct RequestBuilder {
+public struct RequestBuilder: Sendable {
     private let encoder: JSONEncoder
 
     public init(encoder: JSONEncoder = JSONEncoder()) {

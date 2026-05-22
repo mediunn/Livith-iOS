@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct NetworkClient {
+public struct NetworkClient: Sendable {
     private let config: NetworkConfig
     private let requestBuilder: RequestBuilder
     private let responseHandler: ResponseHandler

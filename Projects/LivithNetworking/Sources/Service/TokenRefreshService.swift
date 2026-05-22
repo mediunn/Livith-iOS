@@ -10,25 +10,21 @@ import Foundation
 
 // MARK: - TokenRefreshService
 
-public protocol TokenRefreshService: Sendable {
+protocol TokenRefreshService: Sendable {
     func refresh(with refreshToken: String) async throws(NetworkError) -> Token
 }
 
 // MARK: - TokenRefreshServiceImpl
 
-public actor TokenRefreshServiceImpl: TokenRefreshService {
+actor TokenRefreshServiceImpl: TokenRefreshService {
     private let networkClient: NetworkClient
     private var refreshTask: Task<Token, any Error>?
 
-    public init(config: NetworkConfig) {
-        self.init(networkClient: NetworkClient(config: config))
-    }
-
-    public init(networkClient: NetworkClient) {
+    init(networkClient: NetworkClient) {
         self.networkClient = networkClient
     }
 
-    public func refresh(with refreshToken: String) async throws(NetworkError) -> Token {
+    func refresh(with refreshToken: String) async throws(NetworkError) -> Token {
         if let refreshTask {
             return try await value(from: refreshTask)
         }

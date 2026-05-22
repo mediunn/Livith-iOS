@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ResponseHandler {
+public struct ResponseHandler: Sendable {
     private let decoder: JSONDecoder
 
     public init(decoder: JSONDecoder = JSONDecoder()) {

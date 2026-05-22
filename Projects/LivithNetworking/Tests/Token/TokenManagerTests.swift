@@ -105,6 +105,48 @@ struct TokenManagerTests {
         }
     }
 
+    @Test("refresh 실패(unauthorized) 시 onRefreshTokenExpired 클로저를 호출해야 한다")
+    func refresh_실패_unauthorized_시_onRefreshTokenExpired_클로저를_호출해야_한다() async throws {
+        // Given
+        let tokenStore = SpyTokenStore(token: makeStoredToken())
+        let tokenRefreshService = SpyTokenRefreshService(error: .unauthorized(message: "expired"))
+        var expiredCalled = false
+        let sut = makeSUT(
+            tokenStore: tokenStore,
+            tokenRefreshService: tokenRefreshService,
+            onRefreshTokenExpired: { expiredCalled = true }
+        )
+
+        // When
+        do {
+            try await sut.refresh()
+        } catch {
+            // Expected: NetworkError 발생
+        }
+
+        // Then
+        #expect(expiredCalled == true)
+    }
+
+    @Test("refresh 성공 시 onRefreshTokenExpired 클로저를 호출하지 않아야 한다")
+    func refresh_성공_시_onRefreshTokenExpired_클로저를_호출하지_않아야_한다() async throws {
+        // Given
+        let tokenStore = SpyTokenStore(token: makeStoredToken())
+        let tokenRefreshService = SpyTokenRefreshService(token: makeRefreshedToken())
+        var expiredCalled = false
+        let sut = makeSUT(
+            tokenStore: tokenStore,
+            tokenRefreshService: tokenRefreshService,
+            onRefreshTokenExpired: { expiredCalled = true }
+        )
+
+        // When
+        try await sut.refresh()
+
+        // Then
+        #expect(expiredCalled == false)
+    }
+
     @Test("동시 refresh 호출은 하나의 전체 refresh 흐름을 공유해야 한다")
     func 동시_refresh_호출은_하나의_전체_refresh_흐름을_공유해야_한다() async throws {
         let tokenStore = SpyTokenStore(token: makeStoredToken())
@@ -127,11 +169,13 @@ struct TokenManagerTests {
 private extension TokenManagerTests {
     func makeSUT(
         tokenStore: SpyTokenStore,
-        tokenRefreshService: SpyTokenRefreshService? = nil
+        tokenRefreshService: SpyTokenRefreshService? = nil,
+        onRefreshTokenExpired: (@Sendable () -> Void)? = nil
     ) -> TokenManagerImpl {
         TokenManagerImpl(
             tokenStore: tokenStore,
-            tokenRefreshService: tokenRefreshService ?? SpyTokenRefreshService(token: makeRefreshedToken())
+            tokenRefreshService: tokenRefreshService ?? SpyTokenRefreshService(token: makeRefreshedToken()),
+            onRefreshTokenExpired: onRefreshTokenExpired
         )
     }
 
