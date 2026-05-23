@@ -63,10 +63,11 @@ struct InterestConcertDisplayHelperTests {
         #expect(badge == "공연 예정")
     }
 
-    @Test("D-day가 0이면 배지는 공연 D-DAY 문구를 표시해야 한다")
-    func dday가_0이면_배지는_공연_dday_문구를_표시해야_한다() {
+    @Test("D-day가 0이고 공연 기간이면 배지는 공연 D-DAY 문구를 표시해야 한다")
+    func dday가_0이고_공연_기간이면_배지는_공연_dday_문구를_표시해야_한다() {
         // Given
-        let interestConcert = makeInterestConcert(daysLeft: 0)
+        let now = Date()
+        let interestConcert = makeInterestConcert(daysLeft: 0, startDate: now, endDate: now)
 
         // When
         let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
@@ -114,7 +115,8 @@ struct InterestConcertDisplayHelperTests {
     @Test("진행중 공연이면 배지는 공연 D-DAY 문구를 표시해야 한다")
     func 진행중_공연이면_배지는_공연_dday_문구를_표시해야_한다() {
         // Given
-        let interestConcert = makeInterestConcert(status: .ongoing)
+        let now = Date()
+        let interestConcert = makeInterestConcert(status: .ongoing, startDate: now, endDate: now)
 
         // When
         let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
@@ -141,7 +143,8 @@ struct InterestConcertDisplayHelperTests {
     @Test("진행중 공연이면 하단 문구는 콘서트 진행중을 표시해야 한다")
     func 진행중_공연이면_하단_문구는_콘서트_진행중을_표시해야_한다() {
         // Given
-        let interestConcert = makeInterestConcert(status: .ongoing, daysLeft: nil)
+        let now = Date()
+        let interestConcert = makeInterestConcert(status: .ongoing, daysLeft: nil, startDate: now, endDate: now)
 
         // When
         let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
@@ -273,6 +276,34 @@ struct InterestConcertDisplayHelperTests {
         // Then
         #expect(bottom == "일반 예매 오픈 · 1/1(목) 9:00AM")
     }
+
+    @Test("종료된 공연이면 배지는 종료 문구를 표시해야 한다")
+    func 종료된_공연이면_배지는_종료_문구를_표시해야_한다() {
+        // Given
+        let now = Date()
+        let yesterday = now.addingTimeInterval(-86400)
+        let interestConcert = makeInterestConcert(startDate: yesterday, endDate: yesterday, preSaleDate: nil, generalSaleDate: nil)
+
+        // When
+        let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
+
+        // Then
+        #expect(badge == "종료")
+    }
+
+    @Test("종료된 공연이면 하단 문구는 콘서트 종료를 표시해야 한다")
+    func 종료된_공연이면_하단_문구는_콘서트_종료를_표시해야_한다() {
+        // Given
+        let now = Date()
+        let yesterday = now.addingTimeInterval(-86400)
+        let interestConcert = makeInterestConcert(startDate: yesterday, endDate: yesterday, preSaleDate: nil, generalSaleDate: nil)
+
+        // When
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "콘서트 종료")
+    }
 }
 
 private extension InterestConcertDisplayHelperTests {
@@ -292,8 +323,8 @@ private extension InterestConcertDisplayHelperTests {
         title: String? = "Taylor Swift | The Eras Tour",
         status: ConcertStatus = .upcoming,
         daysLeft: Int? = 10,
-        startDate: Date? = Date(timeIntervalSince1970: 1_754_760_000),
-        endDate: Date? = Date(timeIntervalSince1970: 1_754_760_000),
+        startDate: Date? = Date(timeIntervalSinceNow: 86400 * 30),
+        endDate: Date? = Date(timeIntervalSinceNow: 86400 * 30),
         venue: String? = "고척스카이돔",
         preSaleDate: Date? = nil,
         generalSaleDate: Date? = nil

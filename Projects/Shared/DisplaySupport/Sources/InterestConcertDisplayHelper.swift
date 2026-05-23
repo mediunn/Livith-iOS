@@ -48,20 +48,20 @@ public enum InterestConcertDisplayHelper {
     public static func badge(for interestConcert: InterestConcert) -> String {
         let concert = interestConcert.concert
 
-        guard concert.status != .ongoing else {
+        guard concert.status == .upcoming || concert.status == .ongoing else {
+            return concert.status.filterText
+        }
+
+        if isCurrentlyOngoing(concert) {
             return "공연 D-DAY"
         }
 
-        guard concert.status == .upcoming else {
-            return concert.status.filterText
+        if isEnded(concert) {
+            return "종료"
         }
 
         guard let daysLeft = concert.daysLeft else {
             return unknownDaysLeft
-        }
-
-        guard daysLeft != 0 else {
-            return "공연 D-DAY"
         }
 
         guard daysLeft > 0 else {
@@ -72,16 +72,16 @@ public enum InterestConcertDisplayHelper {
     }
 
     public static func bottom(for interestConcert: InterestConcert) -> String {
-        if interestConcert.concert.status == .ongoing {
-            return ongoingConcert
-        }
-
         if isCurrentlyOngoing(interestConcert.concert) {
             return ongoingConcert
         }
 
         if interestConcert.concert.daysLeft == 0 {
             return ongoingConcert
+        }
+
+        if isEnded(interestConcert.concert) {
+            return "콘서트 종료"
         }
 
         let schedule = interestConcert.ticketingSchedule
@@ -120,6 +120,16 @@ private extension InterestConcertDisplayHelper {
         let startDay = calendar.startOfDay(for: startDate)
         let endDay = calendar.startOfDay(for: endDate)
         return startDay <= today && today <= endDay
+    }
+
+    static func isEnded(_ concert: Concert) -> Bool {
+        guard let endDate = concert.endDate else {
+            return false
+        }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let endDay = calendar.startOfDay(for: endDate)
+        return endDay < today
     }
 
     static func ticketingDate(_ date: Date) -> String {
