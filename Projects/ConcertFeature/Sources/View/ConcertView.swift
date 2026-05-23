@@ -435,14 +435,14 @@ private extension ConcertView {
                 .resizable()
                 .frame(width: 24, height: 24)
 
-            Text(store.state.concert.map { ConcertDisplayText.venue(for: $0) } ?? "")
+            Text(store.state.concert.map { ConcertDisplayHelper.venue(for: $0) } ?? "")
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black30))
         }
     }
 
     var navigationTitle: String {
-        store.state.concert.map { ConcertDisplayText.title(for: $0) } ?? ""
+        store.state.concert.map { ConcertDisplayHelper.title(for: $0) } ?? ""
     }
 }
 

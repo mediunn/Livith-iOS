@@ -64,10 +64,10 @@ private extension RecommendedConcertSectionView {
                 ForEach(concertList.prefix(Constants.maxVisibleConcertCount)) { concert in
                     LivithCard(
                         imageURL: concert.posterURL,
-                        title: ConcertDisplayText.title(for: concert),
-                        subtitle: ConcertDisplayText.dateRange(for: concert),
+                        title: ConcertDisplayHelper.title(for: concert),
+                        subtitle: ConcertDisplayHelper.dateRange(for: concert),
                         secondaryText: concert.artist,
-                        badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
+                        badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
                         onTap: { onConcertTap(concert) }
                     )
                 }
@@ -169,7 +169,7 @@ private extension RecommendedConcertSectionView {
         title: "유지미님의\n취향이 담긴 콘서트",
         concertList: Concert.mockConcerts
     ) { concert in
-        print("\(ConcertDisplayText.title(for: concert)) 탭")
+        print("\(ConcertDisplayHelper.title(for: concert)) 탭")
     } onSeeAllTap: {
         print("전체보기 탭")
     }

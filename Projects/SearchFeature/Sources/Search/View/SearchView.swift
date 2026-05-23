@@ -236,10 +236,10 @@ private extension SearchView {
         ForEach(store.state.searchedConcertList, id: \.id) { concert in
             LivithCard(
                 imageURL: concert.posterURL,
-                title: ConcertDisplayText.title(for: concert),
+                title: ConcertDisplayHelper.title(for: concert),
                 subtitle: concert.formattedStartDate,
                 secondaryText: concert.artist,
-                badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
+                badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
                 onTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
                     hideKeyboard()

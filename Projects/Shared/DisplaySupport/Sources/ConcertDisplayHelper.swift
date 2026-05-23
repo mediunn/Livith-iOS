@@ -1,5 +1,5 @@
 //
-//  ConcertDisplayText.swift
+//  ConcertDisplayHelper.swift
 //  DisplaySupport
 //
 //  Created by 김진웅 on 4/29/26.
@@ -11,7 +11,7 @@ import Foundation
 import Domain
 import LivithFoundation
 
-public enum ConcertDisplayText {
+public enum ConcertDisplayHelper {
     public static let unknownVenue = "장소 공개 예정"
     public static let unknownDateRange = "추후 발표"
     public static let unknownDaysLeft = "공연 예정"
