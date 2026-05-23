@@ -1,5 +1,5 @@
 //
-//  InterestConcertDisplayText.swift
+//  InterestConcertDisplayHelper.swift
 //  DisplaySupport
 //
 //  Created by 김진웅 on 4/30/26.
@@ -11,11 +11,12 @@ import Foundation
 import Domain
 import LivithFoundation
 
-public enum InterestConcertDisplayText {
+public enum InterestConcertDisplayHelper {
     public static let unknownVenue = "장소 공개 예정"
     public static let unknownDateRange = "추후 발표"
     public static let unknownDaysLeft = "공연 예정"
     public static let unknownTicketingDate = "예매 오픈 예정"
+    public static let ongoingConcert = "콘서트 진행중"
 
     public static func title(for interestConcert: InterestConcert) -> String {
         let concert = interestConcert.concert
@@ -72,11 +73,15 @@ public enum InterestConcertDisplayText {
 
     public static func bottom(for interestConcert: InterestConcert) -> String {
         if interestConcert.concert.status == .ongoing {
-            return "콘서트 진행중"
+            return ongoingConcert
         }
 
         if isCurrentlyOngoing(interestConcert.concert) {
-            return "콘서트 진행중"
+            return ongoingConcert
+        }
+
+        if interestConcert.concert.daysLeft == 0 {
+            return ongoingConcert
         }
 
         let schedule = interestConcert.ticketingSchedule
@@ -105,12 +110,16 @@ public enum InterestConcertDisplayText {
     }
 }
 
-private extension InterestConcertDisplayText {
+private extension InterestConcertDisplayHelper {
     static func isCurrentlyOngoing(_ concert: Concert) -> Bool {
         guard let startDate = concert.startDate, let endDate = concert.endDate else {
             return false
         }
-        return startDate <= .now && .now <= endDate
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let startDay = calendar.startOfDay(for: startDate)
+        let endDay = calendar.startOfDay(for: endDate)
+        return startDay <= today && today <= endDay
     }
 
     static func ticketingDate(_ date: Date) -> String {

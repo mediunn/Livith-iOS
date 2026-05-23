@@ -1,5 +1,5 @@
 //
-//  InterestConcertDisplayTextTests.swift
+//  InterestConcertDisplayHelperTests.swift
 //  DisplaySupportTests
 //
 //  Created by 김진웅 on 4/30/26.
@@ -14,14 +14,14 @@ import Domain
 import Testing
 
 @Suite("관심 콘서트 표시 문구")
-struct InterestConcertDisplayTextTests {
+struct InterestConcertDisplayHelperTests {
     @Test("공연명이 없으면 아티스트 내한 예정 문구를 표시해야 한다")
     func 공연명이_없으면_아티스트_내한_예정_문구를_표시해야_한다() {
         // Given
         let interestConcert = makeInterestConcert(title: nil)
 
         // When
-        let title = InterestConcertDisplayText.title(for: interestConcert)
+        let title = InterestConcertDisplayHelper.title(for: interestConcert)
 
         // Then
         #expect(title == "Taylor Swift 내한 예정")
@@ -33,7 +33,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(venue: nil)
 
         // When
-        let venue = InterestConcertDisplayText.venue(for: interestConcert)
+        let venue = InterestConcertDisplayHelper.venue(for: interestConcert)
 
         // Then
         #expect(venue == "장소 공개 예정")
@@ -45,7 +45,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(startDate: nil)
 
         // When
-        let dateRange = InterestConcertDisplayText.dateRange(for: interestConcert)
+        let dateRange = InterestConcertDisplayHelper.dateRange(for: interestConcert)
 
         // Then
         #expect(dateRange == "추후 발표")
@@ -57,7 +57,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(daysLeft: nil)
 
         // When
-        let badge = InterestConcertDisplayText.badge(for: interestConcert)
+        let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
 
         // Then
         #expect(badge == "공연 예정")
@@ -69,7 +69,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(daysLeft: 0)
 
         // When
-        let badge = InterestConcertDisplayText.badge(for: interestConcert)
+        let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
 
         // Then
         #expect(badge == "공연 D-DAY")
@@ -81,7 +81,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(daysLeft: 7)
 
         // When
-        let badge = InterestConcertDisplayText.badge(for: interestConcert)
+        let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
 
         // Then
         #expect(badge == "공연 D-7")
@@ -93,7 +93,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(daysLeft: -1)
 
         // When
-        let badge = InterestConcertDisplayText.badge(for: interestConcert)
+        let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
 
         // Then
         #expect(badge == "공연 예정")
@@ -105,7 +105,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(status: .canceled)
 
         // When
-        let badge = InterestConcertDisplayText.badge(for: interestConcert)
+        let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
 
         // Then
         #expect(badge == "공연취소")
@@ -117,7 +117,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(status: .ongoing)
 
         // When
-        let badge = InterestConcertDisplayText.badge(for: interestConcert)
+        let badge = InterestConcertDisplayHelper.badge(for: interestConcert)
 
         // Then
         #expect(badge == "공연 D-DAY")
@@ -132,7 +132,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(status: .upcoming, startDate: startDate, endDate: endDate, preSaleDate: pastTicketingDate, generalSaleDate: pastTicketingDate)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "콘서트 진행중")
@@ -144,7 +144,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(status: .ongoing, daysLeft: nil)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "콘서트 진행중")
@@ -159,7 +159,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(status: .upcoming, startDate: startDate, endDate: endDate, preSaleDate: nil, generalSaleDate: nil)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom != "콘서트 진행중")
@@ -171,7 +171,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(preSaleDate: ticketingDate, generalSaleDate: laterTicketingDate)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "선예매 오픈 · 8/22(토) 5:30PM")
@@ -183,7 +183,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(preSaleDate: ticketingDate, generalSaleDate: nil)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "선예매 오픈 · 8/22(토) 5:30PM")
@@ -195,7 +195,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(preSaleDate: nil, generalSaleDate: ticketingDate)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "일반 예매 오픈 · 8/22(토) 5:30PM")
@@ -207,7 +207,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(preSaleDate: nil, generalSaleDate: nil)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "예매 오픈 예정")
@@ -219,10 +219,35 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(daysLeft: nil, preSaleDate: nil, generalSaleDate: nil)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "예매 오픈 예정")
+    }
+
+    @Test("startDate/endDate가 없고 D-DAY이면 하단 문구는 콘서트 진행중을 표시해야 한다")
+    func startDate_endDate_없고_dday이면_하단_콘서트_진행중() {
+        // Given
+        let interestConcert = makeInterestConcert(daysLeft: 0, startDate: nil, endDate: nil, preSaleDate: nil, generalSaleDate: nil)
+
+        // When
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "콘서트 진행중")
+    }
+
+    @Test("당일 0시 공연이면 하단 문구는 콘서트 진행중을 표시해야 한다")
+    func 당일_0시_공연이면_하단_콘서트_진행중() {
+        // Given
+        let now = Date()
+        let interestConcert = makeInterestConcert(daysLeft: 0, startDate: now, endDate: now, preSaleDate: nil, generalSaleDate: nil)
+
+        // When
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
+
+        // Then
+        #expect(bottom == "콘서트 진행중")
     }
 
     @Test("선예매 날짜가 지났고 일반 예매 날짜만 남아있으면 일반 예매 오픈 문구를 표시해야 한다")
@@ -231,7 +256,7 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(preSaleDate: pastTicketingDate, generalSaleDate: ticketingDate)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "일반 예매 오픈 · 8/22(토) 5:30PM")
@@ -243,14 +268,14 @@ struct InterestConcertDisplayTextTests {
         let interestConcert = makeInterestConcert(preSaleDate: pastTicketingDate, generalSaleDate: pastTicketingDate)
 
         // When
-        let bottom = InterestConcertDisplayText.bottom(for: interestConcert)
+        let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
         #expect(bottom == "일반 예매 오픈 · 1/1(목) 9:00AM")
     }
 }
 
-private extension InterestConcertDisplayTextTests {
+private extension InterestConcertDisplayHelperTests {
     var pastTicketingDate: Date {
         Date(timeIntervalSince1970: 0)
     }
