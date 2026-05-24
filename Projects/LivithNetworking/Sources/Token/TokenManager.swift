@@ -74,6 +74,7 @@ private extension TokenManagerImpl {
         } catch {
             if case .unauthorized = error {
                 onRefreshTokenExpired?()
+                try? await tokenStore.remove()
             }
             throw error
         }

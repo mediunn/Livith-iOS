@@ -35,6 +35,7 @@ let project = Project.make(
                 .data(.userData),
                 .user(.userFeature),
                 .data(.preferenceData),
+                .livithNetworking(.livithNetworking),
                 .core(.amplitude)
             ],
             settings: .settings(
