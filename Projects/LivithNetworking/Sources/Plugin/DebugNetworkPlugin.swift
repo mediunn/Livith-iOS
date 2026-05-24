@@ -21,7 +21,8 @@ public struct DebugNetworkPlugin: NetworkPlugin {
         _ request: URLRequest,
         endpoint: NetworkEndpoint
     ) async {
-        output(formattedLog("➡️ \(request.httpMethod ?? "-") \(sanitizedURLString(from: request.url))"))
+        let etagLabel = request.value(forHTTPHeaderField: "If-None-Match").map { _ in " 🔖" } ?? ""
+        output("[요청] \(request.httpMethod ?? "-") \(sanitizedURLString(from: request.url))\(etagLabel)")
     }
 
     public func didReceive(
@@ -31,36 +32,21 @@ public struct DebugNetworkPlugin: NetworkPlugin {
     ) async {
         switch result {
         case .success(let response):
-            output(formattedLog("⬅️ \(response.response.statusCode) \(sanitizedURLString(from: request.url))"))
+            let status = response.response.statusCode
+            let emoji = (200..<300).contains(status) ? "✅" : "⚠️"
+            output("[\(emoji) \(status)] \(request.httpMethod ?? "-") \(sanitizedURLString(from: request.url))")
         case .failure(let error):
-            output(formattedLog("❌ \(errorSummary(error)) \(sanitizedURLString(from: request.url))"))
+            output("[❌ \(errorSummary(error))] \(request.httpMethod ?? "-") \(sanitizedURLString(from: request.url))")
         }
     }
 }
 
 private extension DebugNetworkPlugin {
-    func formattedLog(_ message: String) -> String {
-        """
-        ──── LivithNetworking ────
-        \(message)
-        ──────────────────────────
-        """
-    }
-
     func sanitizedURLString(from url: URL?) -> String {
-        guard let url,
-              let sourceComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        else {
+        guard let url else {
             return "-"
         }
-
-        var components = URLComponents()
-        components.scheme = sourceComponents.scheme
-        components.host = sourceComponents.host
-        components.port = sourceComponents.port
-        components.path = sourceComponents.path
-
-        return components.string ?? "-"
+        return url.path
     }
 
     func errorSummary(_ error: NetworkError) -> String {

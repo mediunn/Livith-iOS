@@ -14,17 +14,17 @@ import Testing
 
 @Suite("NetworkingFactory")
 struct NetworkingFactoryTests {
-    @Test("factory 초기화 시 주입된 config를 그대로 반환해야 한다")
-    func factory_초기화_시_주입된_config를_그대로_반환해야_한다() async throws {
+    @Test("factory 초기화 시 config에 /api/v6 prefix가 자동으로 추가되어야 한다")
+    func factory_초기화_시_config에_api_version_prefix가_자동_추가되어야_한다() async throws {
         // Given
-        let expectedURL = URL(string: "https://test.example.com")!
-        let config = NetworkConfig(baseURL: expectedURL)
+        let rawURL = URL(string: "https://test.example.com")!
+        let config = NetworkConfig(baseURL: rawURL)
 
         // When
         let sut = NetworkingFactoryImpl(config: config)
 
         // Then
-        #expect(sut.config.baseURL == expectedURL)
+        #expect(sut.config.baseURL == URL(string: "https://test.example.com/api/v6")!)
     }
 
     @Test("factory 초기화 시 onAuthenticationExpired 클로저를 그대로 보관해야 한다")
@@ -53,6 +53,19 @@ struct NetworkingFactoryTests {
         let sut = NetworkingFactoryImpl(config: config)
 
         // Then
-        #expect(sut.config.baseURL == config.baseURL)
+        #expect(sut.config.baseURL == URL(string: "https://api.example.com/api/v6")!)
+    }
+
+    @Test("makeSongService는 SongService 타입의 인스턴스를 반환해야 한다")
+    func makeSongService는_SongService_타입을_반환해야한다() async throws {
+        // Given
+        let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
+
+        // When
+        let sut = NetworkingFactoryImpl(config: config)
+        let service = sut.makeSongService()
+
+        // Then
+        #expect(service is SongService)
     }
 }

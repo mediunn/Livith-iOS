@@ -10,7 +10,7 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 public struct SongDataAssembler: DependencyAssembler {
     public init() {}
@@ -36,6 +36,8 @@ private extension SongDataAssembler {
 
 private extension SongDataAssembler {
     func registerNetwork(to container: any DependencyContainer) {
-        container.register(SongService(), for: SongService.self)
+        let factory = container.resolve(NetworkingFactory.self)
+        let service = factory.makeSongService()
+        container.register(service, for: SongService.self)
     }
 }

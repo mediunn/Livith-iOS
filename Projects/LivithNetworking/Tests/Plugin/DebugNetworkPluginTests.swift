@@ -14,43 +14,39 @@ import Testing
 
 @Suite("DebugNetworkPlugin")
 struct DebugNetworkPluginTests {
-    @Test("요청 로그는 query와 fragment를 제거한 URL을 출력해야 한다")
-    func 요청_로그는_query와_fragment를_제거한_URL을_출력해야_한다() async throws {
+    @Test("요청 로그는 path만 출력해야 한다")
+    func 요청_로그는_path만_출력해야_한다() async throws {
         let recorder = OutputRecorder()
         let sut = DebugNetworkPlugin { message in
             recorder.append(message)
         }
-        let request = URLRequest(url: try #require(URL(string: "https://api.example.com/concerts?token=secret&q=livith#access-token")))
+        let request = URLRequest(url: try #require(URL(string: "https://api.example.com/concerts?token=secret")))
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         await sut.willSend(request, endpoint: endpoint)
 
         let message = try #require(recorder.messages().first)
-        #expect(message.contains("GET"))
-        #expect(message.contains("https://api.example.com/concerts"))
-        #expect(!message.contains("token=secret"))
-        #expect(!message.contains("q=livith"))
-        #expect(!message.contains("access-token"))
+        #expect(message == "[요청] GET /concerts")
     }
 
-    @Test("로그는 모듈명과 구분선을 포함해야 한다")
-    func 로그는_모듈명과_구분선을_포함해야_한다() async throws {
+    @Test("요청 로그는 If-None-Match 헤더가 있으면 🔖를 표시해야 한다")
+    func 요청_로그는_If_None_Match_헤더가_있으면_etag_표시를_해야_한다() async throws {
         let recorder = OutputRecorder()
         let sut = DebugNetworkPlugin { message in
             recorder.append(message)
         }
-        let request = URLRequest(url: try #require(URL(string: "https://api.example.com/concerts")))
+        var request = URLRequest(url: try #require(URL(string: "https://api.example.com/concerts")))
+        request.setValue("abc123", forHTTPHeaderField: "If-None-Match")
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         await sut.willSend(request, endpoint: endpoint)
 
         let message = try #require(recorder.messages().first)
-        #expect(message.contains("LivithNetworking"))
-        #expect(message.contains("────"))
+        #expect(message.contains("🔖"))
     }
 
-    @Test("응답 로그는 status code를 출력해야 한다")
-    func 응답_로그는_status_code를_출력해야_한다() async throws {
+    @Test("응답 로그는 status code와 path를 출력해야 한다")
+    func 응답_로그는_status_code와_path를_출력해야_한다() async throws {
         let recorder = OutputRecorder()
         let sut = DebugNetworkPlugin { message in
             recorder.append(message)
@@ -67,28 +63,31 @@ struct DebugNetworkPluginTests {
 
         let message = try #require(recorder.messages().first)
         #expect(message.contains("204"))
-        #expect(message.contains("https://api.example.com/concerts"))
+        #expect(message.contains("/concerts"))
     }
 
-    @Test("요청 로그는 userinfo를 제거한 URL을 출력해야 한다")
-    func 요청_로그는_userinfo를_제거한_URL을_출력해야_한다() async throws {
+    @Test("400번대 응답은 ⚠️로 출력해야 한다")
+    func client_error_응답은_경고_이모지로_출력해야_한다() async throws {
         let recorder = OutputRecorder()
         let sut = DebugNetworkPlugin { message in
             recorder.append(message)
         }
-        let request = URLRequest(url: try #require(URL(string: "https://user:password@api.example.com/concerts")))
+        let request = URLRequest(url: try #require(URL(string: "https://api.example.com/concerts")))
+        let response = try HTTPTestResponseFactory().response(statusCode: 400)
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
-        await sut.willSend(request, endpoint: endpoint)
+        await sut.didReceive(
+            .success(NetworkPluginResponse(data: Data(), response: response)),
+            request: request,
+            endpoint: endpoint
+        )
 
         let message = try #require(recorder.messages().first)
-        #expect(message.contains("https://api.example.com/concerts"))
-        #expect(!message.contains("user"))
-        #expect(!message.contains("password"))
+        #expect(message.contains("⚠️"))
     }
 
-    @Test("실패 로그는 underlying error description을 출력하지 않아야 한다")
-    func 실패_로그는_underlying_error_description을_출력하지_않아야_한다() async throws {
+    @Test("실패 로그는 에러 요약을 출력해야 한다")
+    func 실패_로그는_에러_요약을_출력해야_한다() async throws {
         let recorder = OutputRecorder()
         let sut = DebugNetworkPlugin { message in
             recorder.append(message)
@@ -103,8 +102,7 @@ struct DebugNetworkPluginTests {
         )
 
         let message = try #require(recorder.messages().first)
-        #expect(message.contains("unknown"))
-        #expect(!message.contains("secret-underlying-error"))
+        #expect(message == "[❌ unknown] GET /concerts")
     }
 
     @Test("디버그 로그는 header와 body 원문을 출력하지 않아야 한다")
@@ -123,9 +121,7 @@ struct DebugNetworkPluginTests {
         await sut.willSend(request, endpoint: endpoint)
 
         let message = try #require(recorder.messages().first)
-        #expect(!message.contains("secret-token"))
-        #expect(!message.contains("secret-cookie"))
-        #expect(!message.contains("secret-body"))
+        #expect(message == "[요청] POST /concerts")
     }
 }
 

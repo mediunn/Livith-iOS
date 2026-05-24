@@ -13,6 +13,7 @@ import Foundation
 public protocol NetworkingFactory: Sendable {
     var config: NetworkConfig { get }
     var onAuthenticationExpired: @Sendable () -> Void { get }
+    func makeSongService() -> any SongService
 }
 
 // MARK: - NetworkingFactoryImpl
@@ -48,7 +49,14 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
         // 4. 도메인 서비스용 NetworkClient (AuthInterceptor 탑재)
         self.networkClient = NetworkClient(
             config: config,
-            interceptor: AuthInterceptor(tokenManager: tokenManager)
+            interceptor: AuthInterceptor(tokenManager: tokenManager),
+            plugins: [DebugNetworkPlugin()]
         )
+    }
+
+    // MARK: - Service Factory
+
+    public func makeSongService() -> any SongService {
+        return SongServiceImpl(networkClient: networkClient)
     }
 }

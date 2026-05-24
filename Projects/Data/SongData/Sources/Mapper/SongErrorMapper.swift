@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 
 struct SongErrorMapper {
@@ -35,6 +35,12 @@ struct SongErrorMapper {
             return .noConnection
         case .serverError:
             return .serverError
+        case .timeout:
+            return .noConnection
+        case .cancelled:
+            return .cancelled
+        case .encodingFailed:
+            return .invalidResponse
         case .noData, .notFound:
             return .notFound
         case .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
@@ -46,12 +52,12 @@ struct SongErrorMapper {
     
     private func extractMessage(from networkError: NetworkError) -> String? {
         switch networkError {
-        case .badRequest(let msg),
-             .unauthorized(let msg),
-             .forbidden(let msg),
-             .notFound(let msg),
-             .serverError(let msg),
-             .clientError(_, let msg):
+           case .badRequest(let msg),
+               .unauthorized(let msg),
+               .forbidden(let msg),
+               .notFound(let msg),
+               .serverError(_, let msg),
+               .clientError(_, let msg):
             return msg
         default:
             return nil
