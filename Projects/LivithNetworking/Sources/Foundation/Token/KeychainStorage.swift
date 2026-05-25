@@ -13,9 +13,7 @@ import Security
 
 protocol KeychainStorage: Sendable {
     func save(_ data: Data, service: String, account: String) throws(KeychainStorageError)
-
     func load(service: String, account: String) throws(KeychainStorageError) -> Data
-
     func delete(service: String, account: String) throws(KeychainStorageError)
 }
 

@@ -8,20 +8,6 @@
 
 import Foundation
 
-// MARK: - AuthenticationPolicy
-
-public enum AuthenticationPolicy: Sendable {
-    case required
-    case none
-}
-
-// MARK: - CachePolicy
-
-public enum CachePolicy: Sendable {
-    case disabled
-    case enabled
-}
-
 // MARK: - NetworkEndpoint
 
 public struct NetworkEndpoint {
@@ -47,4 +33,37 @@ public struct NetworkEndpoint {
         self.authentication = authentication
         self.cache = cache
     }
+}
+
+// MARK: - HTTPMethod
+
+public enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case patch = "PATCH"
+    case delete = "DELETE"
+}
+
+// MARK: - RequestTask
+
+public enum RequestTask {
+    case plain
+    case query([URLQueryItem])
+    case body(any Encodable)
+    case queryAndBody(queryItems: [URLQueryItem], body: any Encodable)
+}
+
+// MARK: - AuthenticationPolicy
+
+public enum AuthenticationPolicy: Sendable {
+    case required
+    case none
+}
+
+// MARK: - CachePolicy
+
+public enum CachePolicy: Sendable {
+    case disabled
+    case enabled
 }
