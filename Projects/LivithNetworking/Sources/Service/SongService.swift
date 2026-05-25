@@ -30,8 +30,7 @@ struct SongServiceImpl: SongService {
                 path: "/songs/\(songID)",
                 method: .get,
                 task: .plain,
-                authentication: .none,
-                cache: .enabled
+                authentication: .none
             )
         )
     }
