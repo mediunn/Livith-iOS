@@ -22,11 +22,14 @@ public struct NetworkClient: Sendable {
         interceptor: (any RequestInterceptor)? = nil,
         plugins: [any NetworkPlugin] = []
     ) {
+        let urlsessionConfiguration = URLSessionConfiguration.ephemeral
+        urlsessionConfiguration.urlCache = nil
+        
         self.init(
             config: config,
             requestBuilder: RequestBuilder(),
             responseHandler: ResponseHandler(),
-            transport: URLSessionTransport(),
+            transport: URLSessionTransport(configuration: urlsessionConfiguration),
             interceptor: interceptor,
             plugins: plugins
         )
