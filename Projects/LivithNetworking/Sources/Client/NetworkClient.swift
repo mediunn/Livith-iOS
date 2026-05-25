@@ -187,7 +187,7 @@ private extension NetworkClient {
         _ request: URLRequest,
         for endpoint: NetworkEndpoint
     ) async throws(NetworkError) -> URLRequest {
-        guard endpoint.requiresAuthentication,
+        guard endpoint.authentication == .required,
               let interceptor
         else {
             return request
@@ -202,7 +202,7 @@ private extension NetworkClient {
         response: HTTPURLResponse,
         attempt: RequestAttempt
     ) async throws(NetworkError) -> Bool {
-        guard endpoint.requiresAuthentication,
+        guard endpoint.authentication == .required,
               attempt.canRetry,
               response.statusCode == 401,
               let interceptor

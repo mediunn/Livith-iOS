@@ -351,7 +351,7 @@ struct NetworkClientTests {
         let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .get,
-            requiresAuthentication: false
+            authentication: .none
         )
 
         try await sut.request(endpoint)
@@ -509,7 +509,7 @@ struct NetworkClientTests {
         let endpoint = NetworkEndpoint(
             path: "/concerts",
             method: .get,
-            requiresAuthentication: false
+            authentication: .none
         )
 
         do {
@@ -743,7 +743,7 @@ struct NetworkClientTests {
             .success(Data(), try fixture.response(statusCode: 304))
         ])
         let sut = NetworkClient(config: config, transport: transport)
-        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, cache: .enabled)
 
         let firstValue: ResponseBody = try await sut.request(endpoint)
         let cachedValue: ResponseBody = try await sut.request(endpoint)
@@ -768,8 +768,8 @@ struct NetworkClientTests {
             transport: transport,
             interceptor: URLNormalizingInterceptor(path: "/normalized")
         )
-        let firstEndpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
-        let secondEndpoint = NetworkEndpoint(path: "/songs", method: .get, etagCacheEnabled: true)
+        let firstEndpoint = NetworkEndpoint(path: "/concerts", method: .get, cache: .enabled)
+        let secondEndpoint = NetworkEndpoint(path: "/songs", method: .get, cache: .enabled)
 
         let firstValue: ResponseBody = try await sut.request(firstEndpoint)
         let cachedValue: ResponseBody = try await sut.request(secondEndpoint)
@@ -791,7 +791,7 @@ struct NetworkClientTests {
         ])
         let plugin = LifecyclePlugin()
         let sut = NetworkClient(config: config, transport: transport, plugins: [plugin])
-        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, cache: .enabled)
 
         let _: ResponseBody = try await sut.request(endpoint)
         let cachedValue: ResponseBody = try await sut.request(endpoint)
@@ -813,7 +813,7 @@ struct NetworkClientTests {
             path: "/concerts",
             method: .get,
             headers: ["If-None-Match": "\"external\""],
-            etagCacheEnabled: true
+            cache: .enabled
         )
 
         let value: ResponseBody = try await sut.request(endpoint)
@@ -838,7 +838,7 @@ struct NetworkClientTests {
             path: "/concerts",
             method: .get,
             headers: ["If-None-Match": "\"external\""],
-            etagCacheEnabled: true
+            cache: .enabled
         )
 
         do {
@@ -864,7 +864,7 @@ struct NetworkClientTests {
             path: "/concerts",
             method: .get,
             headers: ["If-None-Match": "\"external\""],
-            etagCacheEnabled: true
+            cache: .enabled
         )
 
         do {
@@ -887,7 +887,7 @@ struct NetworkClientTests {
             .success(valueData("again"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"again\""]))
         ])
         let sut = NetworkClient(config: config, transport: transport)
-        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, cache: .enabled)
 
         let _: ResponseBody = try await sut.request(endpoint)
         let _: ResponseBody = try await sut.request(endpoint)
@@ -909,7 +909,7 @@ struct NetworkClientTests {
             .success(valueData("fresh"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"fresh\""]))
         ])
         let sut = NetworkClient(config: config, transport: transport)
-        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, etagCacheEnabled: true)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .get, cache: .enabled)
 
         let _: ResponseBody = try await sut.request(endpoint)
         await sut.removeAllETagCache()
@@ -930,7 +930,7 @@ struct NetworkClientTests {
             .success(valueData("second"), try fixture.response(statusCode: 200, headerFields: ["ETag": "\"second\""]))
         ])
         let sut = NetworkClient(config: config, transport: transport)
-        let endpoint = NetworkEndpoint(path: "/concerts", method: .post, etagCacheEnabled: true)
+        let endpoint = NetworkEndpoint(path: "/concerts", method: .post, cache: .enabled)
 
         let _: ResponseBody = try await sut.request(endpoint)
         let value: ResponseBody = try await sut.request(endpoint)
@@ -956,13 +956,13 @@ struct NetworkClientTests {
             path: "/concerts",
             method: .get,
             task: .query([URLQueryItem(name: "keyword", value: "a")]),
-            etagCacheEnabled: true
+            cache: .enabled
         )
         let endpointB = NetworkEndpoint(
             path: "/concerts",
             method: .get,
             task: .query([URLQueryItem(name: "keyword", value: "b")]),
-            etagCacheEnabled: true
+            cache: .enabled
         )
 
         let firstValue: ResponseBody = try await sut.request(endpointA)

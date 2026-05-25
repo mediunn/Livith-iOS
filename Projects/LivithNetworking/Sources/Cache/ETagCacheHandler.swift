@@ -23,7 +23,7 @@ struct ETagCacheHandler: Sendable {
         for request: URLRequest,
         endpoint: NetworkEndpoint
     ) -> String? {
-        guard endpoint.etagCacheEnabled,
+        guard endpoint.cache == .enabled,
               endpoint.method == .get,
               let method = request.httpMethod,
               let url = request.url?.absoluteString

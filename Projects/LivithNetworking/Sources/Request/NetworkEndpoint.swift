@@ -8,27 +8,43 @@
 
 import Foundation
 
+// MARK: - AuthenticationPolicy
+
+public enum AuthenticationPolicy: Sendable {
+    case required
+    case none
+}
+
+// MARK: - CachePolicy
+
+public enum CachePolicy: Sendable {
+    case disabled
+    case enabled
+}
+
+// MARK: - NetworkEndpoint
+
 public struct NetworkEndpoint {
     public let path: String
     public let method: HTTPMethod
     public let task: RequestTask
     public let headers: [String: String]
-    public let requiresAuthentication: Bool
-    public let etagCacheEnabled: Bool
+    public let authentication: AuthenticationPolicy
+    public let cache: CachePolicy
 
     public init(
         path: String,
         method: HTTPMethod,
         task: RequestTask = .plain,
         headers: [String: String] = [:],
-        requiresAuthentication: Bool = true,
-        etagCacheEnabled: Bool = false
+        authentication: AuthenticationPolicy = .required,
+        cache: CachePolicy = .disabled
     ) {
         self.path = path
         self.method = method
         self.task = task
         self.headers = headers
-        self.requiresAuthentication = requiresAuthentication
-        self.etagCacheEnabled = etagCacheEnabled
+        self.authentication = authentication
+        self.cache = cache
     }
 }

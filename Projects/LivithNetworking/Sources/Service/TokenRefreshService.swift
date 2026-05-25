@@ -50,7 +50,7 @@ private extension TokenRefreshServiceImpl {
                     queryItems: [URLQueryItem(name: Literals.clientQueryKey, value: Literals.clientQueryValue)],
                     body: DTO.Request.Token(refreshToken: refreshToken)
                 ),
-                requiresAuthentication: false
+                authentication: .none
             )
         )
 

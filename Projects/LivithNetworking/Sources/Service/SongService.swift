@@ -30,8 +30,8 @@ struct SongServiceImpl: SongService {
                 path: "/songs/\(songID)",
                 method: .get,
                 task: .plain,
-                requiresAuthentication: false,
-                etagCacheEnabled: true
+                authentication: .none,
+                cache: .enabled
             )
         )
     }
@@ -42,7 +42,7 @@ struct SongServiceImpl: SongService {
                 path: "/setlists/\(setlistID)/songs/\(songID)/fanchant",
                 method: .get,
                 task: .plain,
-                requiresAuthentication: false
+                authentication: .none
             )
         )
     }
