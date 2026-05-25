@@ -25,7 +25,10 @@ struct RequestBuilder: Sendable {
         config: NetworkConfig
     ) throws(RequestBuildError) -> URLRequest {
         let url = try makeURL(endpoint: endpoint, config: config)
-        var request = URLRequest(url: url)
+        var request = URLRequest(
+            url: url,
+            cachePolicy: endpoint.cache == .enabled ? .useProtocolCachePolicy : .reloadIgnoringLocalCacheData
+        )
         request.httpMethod = endpoint.method.rawValue
 
         try applyBody(from: endpoint.task, to: &request)

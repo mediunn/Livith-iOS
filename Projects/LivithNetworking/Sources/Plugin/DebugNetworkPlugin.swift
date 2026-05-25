@@ -21,8 +21,7 @@ public struct DebugNetworkPlugin: NetworkPlugin {
         _ request: URLRequest,
         endpoint: NetworkEndpoint
     ) async {
-        let etagLabel = request.value(forHTTPHeaderField: "If-None-Match").map { _ in " 🔖" } ?? ""
-        output("[요청] \(request.httpMethod ?? "-") \(sanitizedURLString(from: request.url))\(etagLabel)")
+        output("[요청] \(request.httpMethod ?? "-") \(sanitizedURLString(from: request.url))")
     }
 
     public func didReceive(

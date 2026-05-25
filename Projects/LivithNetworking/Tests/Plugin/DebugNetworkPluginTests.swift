@@ -29,22 +29,6 @@ struct DebugNetworkPluginTests {
         #expect(message == "[요청] GET /concerts")
     }
 
-    @Test("요청 로그는 If-None-Match 헤더가 있으면 🔖를 표시해야 한다")
-    func 요청_로그는_If_None_Match_헤더가_있으면_etag_표시를_해야_한다() async throws {
-        let recorder = OutputRecorder()
-        let sut = DebugNetworkPlugin { message in
-            recorder.append(message)
-        }
-        var request = URLRequest(url: try #require(URL(string: "https://api.example.com/concerts")))
-        request.setValue("abc123", forHTTPHeaderField: "If-None-Match")
-        let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
-
-        await sut.willSend(request, endpoint: endpoint)
-
-        let message = try #require(recorder.messages().first)
-        #expect(message.contains("🔖"))
-    }
-
     @Test("응답 로그는 status code와 path를 출력해야 한다")
     func 응답_로그는_status_code와_path를_출력해야_한다() async throws {
         let recorder = OutputRecorder()

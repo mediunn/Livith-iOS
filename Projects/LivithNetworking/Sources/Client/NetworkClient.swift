@@ -15,21 +15,17 @@ public struct NetworkClient: Sendable {
     private let transport: any NetworkTransport
     private let interceptor: (any RequestInterceptor)?
     private let plugins: [any NetworkPlugin]
-    private let etagCache: ETagCacheHandler
 
     public init(
         config: NetworkConfig,
         interceptor: (any RequestInterceptor)? = nil,
         plugins: [any NetworkPlugin] = []
     ) {
-        let urlsessionConfiguration = URLSessionConfiguration.ephemeral
-        urlsessionConfiguration.urlCache = nil
-        
         self.init(
             config: config,
             requestBuilder: RequestBuilder(),
             responseHandler: ResponseHandler(),
-            transport: URLSessionTransport(configuration: urlsessionConfiguration),
+            transport: URLSessionTransport(configuration: .default),
             interceptor: interceptor,
             plugins: plugins
         )
@@ -41,8 +37,7 @@ public struct NetworkClient: Sendable {
         responseHandler: ResponseHandler = ResponseHandler(),
         transport: any NetworkTransport,
         interceptor: (any RequestInterceptor)? = nil,
-        plugins: [any NetworkPlugin] = [],
-        etagStore: any ETagCacheStore = MemoryETagCacheStore()
+        plugins: [any NetworkPlugin] = []
     ) {
         self.config = config
         self.requestBuilder = requestBuilder
@@ -50,7 +45,6 @@ public struct NetworkClient: Sendable {
         self.transport = transport
         self.interceptor = interceptor
         self.plugins = plugins
-        self.etagCache = ETagCacheHandler(store: etagStore)
     }
 
     public func request<T: Decodable>(
@@ -77,10 +71,6 @@ public struct NetworkClient: Sendable {
         } catch {
             throw map(error)
         }
-    }
-
-    public func removeAllETagCache() async {
-        await etagCache.removeAll()
     }
 }
 
@@ -109,9 +99,7 @@ private extension NetworkClient {
     ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
         let preparedRequest = try await prepare(request, for: endpoint)
         let adaptedRequest = try await adapt(preparedRequest, for: endpoint)
-        let key = etagCache.key(for: adaptedRequest, endpoint: endpoint)
-        var sendRequest = adaptedRequest
-        await etagCache.apply(to: &sendRequest, key: key, skipsETag: attempt.skipsETag)
+        let sendRequest = adaptedRequest
 
         await notifyWillSend(sendRequest, for: endpoint)
 
@@ -140,15 +128,7 @@ private extension NetworkClient {
             return try await load(request, for: endpoint, attempt: attempt.retrying())
         }
 
-        return try await handleETag(
-            data: data,
-            response: httpResponse,
-            request: request,
-            sentRequest: sendRequest,
-            key: key,
-            endpoint: endpoint,
-            attempt: attempt
-        )
+        return (data, httpResponse)
     }
 
     func prepare(
@@ -222,34 +202,6 @@ private extension NetworkClient {
             return true
         case .doNotRetry:
             return false
-        }
-    }
-
-    func handleETag(
-        data: Data,
-        response: HTTPURLResponse,
-        request: URLRequest,
-        sentRequest: URLRequest,
-        key: String?,
-        endpoint: NetworkEndpoint,
-        attempt: RequestAttempt
-    ) async throws(NetworkError) -> (Data, HTTPURLResponse) {
-        let result = await etagCache.handle(
-            data: data,
-            response: response,
-            request: sentRequest,
-            key: key
-        )
-
-        switch result {
-        case .response(let data, let response):
-            return (data, response)
-        case .fallback:
-            guard attempt.canFallback else {
-                return (data, response)
-            }
-
-            return try await load(request, for: endpoint, attempt: attempt.fallingBack())
         }
     }
 
