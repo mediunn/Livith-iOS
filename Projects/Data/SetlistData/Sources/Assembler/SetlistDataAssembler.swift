@@ -16,7 +16,6 @@ public struct SetlistDataAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: any DependencyContainer) {
-        registerNetwork(to: container)
         registerSetlistRepository(to: container)
     }
 }
@@ -25,19 +24,10 @@ public struct SetlistDataAssembler: DependencyAssembler {
 
 private extension SetlistDataAssembler {
     func registerSetlistRepository(to container: any DependencyContainer) {
+        let factory = container.resolve(NetworkingFactory.self)
         let setlistRepo = SetlistRepositoryImpl(
-            setlistService: container.resolve(SetlistService.self)
+            setlistService: factory.makeSetlistService()
         )
         container.register(setlistRepo, for: SetlistRepository.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension SetlistDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
-        let service = factory.makeSetlistService()
-        container.register(service, for: SetlistService.self)
     }
 }

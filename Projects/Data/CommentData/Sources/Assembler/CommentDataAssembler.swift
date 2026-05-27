@@ -10,13 +10,12 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 public struct CommentDataAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: any DependencyContainer) {
-        registerNetwork(to: container)
         registerCommentRepository(to: container)
     }
 }
@@ -25,17 +24,10 @@ public struct CommentDataAssembler: DependencyAssembler {
 
 private extension CommentDataAssembler {
     func registerCommentRepository(to container: any DependencyContainer) {
+        let factory = container.resolve(NetworkingFactory.self)
         let commentRepo = CommentRepositoryImpl(
-            commentService: container.resolve(CommentService.self)
+            commentService: factory.makeCommentService()
         )
         container.register(commentRepo, for: CommentRepository.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension CommentDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(CommentService(), for: CommentService.self)
     }
 }

@@ -8,7 +8,7 @@
 
 import XCTest
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 @testable import CommentData
 
@@ -135,7 +135,7 @@ final class CommentErrorMapperTests: XCTestCase {
     }
     
     func test_서버_에러는_serverError로_변환되어야_한다() {
-        let error = NetworkError.serverError(message: nil)
+        let error = NetworkError.serverError(statusCode: 500, message: nil)
         XCTAssertEqual(sut.mapToCommentError(error), .serverError)
     }
     
@@ -178,5 +178,16 @@ final class CommentErrorMapperTests: XCTestCase {
          XCTAssertEqual(sut.mapToCommentError(CancellationError()), .cancelled)
          XCTAssertEqual(sut.mapToCommentError(URLError(.cancelled)), .cancelled)
          XCTAssertEqual(sut.mapToCommentError(NetworkError.unknown(URLError(.cancelled))), .cancelled)
+         XCTAssertEqual(sut.mapToCommentError(NetworkError.noConnection(URLError(.cancelled))), .cancelled)
+    }
+
+    func test_타임아웃_에러는_noConnection으로_변환되어야_한다() {
+        let error = NetworkError.timeout(NSError(domain: "", code: -1))
+        XCTAssertEqual(sut.mapToCommentError(error), .noConnection)
+    }
+
+    func test_인코딩_실패_에러는_invalidResponse로_변환되어야_한다() {
+        let error = NetworkError.encodingFailed(NSError(domain: "", code: -1))
+        XCTAssertEqual(sut.mapToCommentError(error), .invalidResponse)
     }
 }
