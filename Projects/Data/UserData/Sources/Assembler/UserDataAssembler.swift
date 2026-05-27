@@ -26,11 +26,9 @@ public struct UserDataAssembler: DependencyAssembler {
 
 private extension UserDataAssembler {
     func registerUserRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
         let userRepo = UserRepositoryImpl(
-            onboardingService: factory.makeOnboardingService(),
-            homeService: factory.makeHomeService(),
-            userService: factory.makeUserService(),
+            networkClient: client,
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self)
         )
         

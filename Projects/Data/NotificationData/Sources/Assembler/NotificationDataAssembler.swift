@@ -34,9 +34,9 @@ private extension NotificationDataAssembler {
 
 private extension NotificationDataAssembler {
     func registerNotificationRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
         let notificationRepo = NotificationRepositoryImpl(
-            notificationService: factory.makeNotificationService(),
+            networkClient: client,
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self)
         )
 

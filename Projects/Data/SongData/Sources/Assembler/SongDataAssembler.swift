@@ -24,9 +24,9 @@ public struct SongDataAssembler: DependencyAssembler {
 
 private extension SongDataAssembler {
     func registerSongRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
         let songRepo = SongRepositoryImpl(
-            songService: factory.makeSongService()
+            networkClient: client
         )
         container.register(songRepo, for: SongRepository.self)
     }

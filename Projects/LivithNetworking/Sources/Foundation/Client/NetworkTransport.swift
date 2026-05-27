@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - NetworkTransport
 
-protocol NetworkTransport: Sendable {
+public protocol NetworkTransport: Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 

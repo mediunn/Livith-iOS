@@ -16,8 +16,7 @@ import FirebaseMessaging
 
 struct AuthRepositoryImpl: AuthRepository {
     private let socialAuthService: SocialAuthService
-    private let onboardingService: any OnboardingService
-    private let userService: any UserService
+    private let networkClient: NetworkClient
     private let notificationRepository: NotificationRepository
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenStore: any TokenStore
@@ -26,15 +25,13 @@ struct AuthRepositoryImpl: AuthRepository {
 
     init(
         socialAuthService: SocialAuthService,
-        onboardingService: any OnboardingService,
-        userService: any UserService,
+        networkClient: NetworkClient,
         notificationRepository: NotificationRepository,
         userdefaultsStorage: UserDefaultsStorage,
         tokenStore: any TokenStore
     ) {
         self.socialAuthService = socialAuthService
-        self.onboardingService = onboardingService
-        self.userService = userService
+        self.networkClient = networkClient
         self.notificationRepository = notificationRepository
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenStore = tokenStore
@@ -42,7 +39,9 @@ struct AuthRepositoryImpl: AuthRepository {
     
     func withdraw(reason: String) async throws(AuthError) {
         do {
-            let _ = try await userService.withdraw(reason: reason)
+            let _: DTO.Response.DeleteUser = try await networkClient.request(
+                UserAPI.withdraw(reason: reason)
+            )
         } catch {
             throw errorMapper.mapToAuthError(error)
         }
@@ -53,8 +52,9 @@ struct AuthRepositoryImpl: AuthRepository {
     func logout() async throws(AuthError) {
         do {
             let refreshToken = try await tokenStore.fetch().refreshToken
-            let request = DTO.Request.RequestLogout(refreshToken: refreshToken)
-            let _ = try await userService.logout(refreshToken: refreshToken)
+            let _: DTO.Response.RequestLogout = try await networkClient.request(
+                UserAPI.logout(refreshToken: refreshToken)
+            )
         } catch {
             throw errorMapper.mapToAuthError(error)
         }
@@ -64,7 +64,9 @@ struct AuthRepositoryImpl: AuthRepository {
     
     func checkNicknameDuplicate(nickname: String) async throws(AuthError) -> Bool {
         do {
-            let response: DTO.Response.CheckNicknameDuplicate = try await userService.checkNicknameDuplicate(nickname: nickname)
+            let response: DTO.Response.CheckNicknameDuplicate = try await networkClient.request(
+                UserAPI.checkNicknameDuplicate(nickname: nickname)
+            )
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToAuthError(error)
@@ -82,7 +84,9 @@ struct AuthRepositoryImpl: AuthRepository {
                 providerID: signup.providerID,
                 marketingConsent: signup.isMarketingAgreed
             )
-            let response: DTO.Response.Signup = try await onboardingService.signup(request)
+            let response: DTO.Response.Signup = try await networkClient.request(
+                OnboardingAPI.signup(request)
+            )
             
             let tempUser = TempUser(
                 provider: signup.provider,
@@ -99,7 +103,9 @@ struct AuthRepositoryImpl: AuthRepository {
     func kakaoLogin() async throws(AuthError) -> LoginStatus {
         do {
             let credential = try await getCredential(for: .kakao)
-            let response: DTO.Response.KakaoLogin = try await onboardingService.kakaoLogin(accessToken: credential.token)
+            let response: DTO.Response.KakaoLogin = try await networkClient.request(
+                OnboardingAPI.kakaoLogin(accessToken: credential.token)
+            )
             return try await handleLoginResponse(response, provider: .kakao)
         } catch {
             throw mapLoginError(error)
@@ -109,7 +115,9 @@ struct AuthRepositoryImpl: AuthRepository {
     func appleLogin() async throws(AuthError) -> LoginStatus {
         do {
             let credential = try await getCredential(for: .apple)
-            let response: DTO.Response.AppleLogin = try await onboardingService.appleLogin(identityToken: credential.token)
+            let response: DTO.Response.AppleLogin = try await networkClient.request(
+                OnboardingAPI.appleLogin(identityToken: credential.token)
+            )
             return try await handleLoginResponse(response, provider: .apple)
         } catch {
             throw mapLoginError(error)
@@ -204,7 +212,9 @@ private extension AuthRepositoryImpl {
 
             try? userdefaultsStorage.save(provider.description, for: .lastLoginPlatform)
 
-            let userInfoResponse: DTO.Response.FetchUserInfo = try await onboardingService.fetchUserInfo()
+            let userInfoResponse: DTO.Response.FetchUserInfo = try await networkClient.request(
+                OnboardingAPI.fetchUserInfo()
+            )
             let user = mapper.toDomain(from: userInfoResponse)
             try? userdefaultsStorage.save(user, for: .currentUser)
 

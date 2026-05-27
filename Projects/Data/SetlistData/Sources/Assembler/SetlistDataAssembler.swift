@@ -24,9 +24,9 @@ public struct SetlistDataAssembler: DependencyAssembler {
 
 private extension SetlistDataAssembler {
     func registerSetlistRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
         let setlistRepo = SetlistRepositoryImpl(
-            setlistService: factory.makeSetlistService()
+            networkClient: client
         )
         container.register(setlistRepo, for: SetlistRepository.self)
     }

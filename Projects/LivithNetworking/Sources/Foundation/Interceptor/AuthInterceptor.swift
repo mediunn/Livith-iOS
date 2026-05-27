@@ -15,20 +15,6 @@ struct AuthInterceptor: RequestInterceptor {
         self.tokenManager = tokenManager
     }
 
-    init(
-        config: NetworkConfig,
-        tokenStore: any TokenStore = KeychainTokenStore()
-    ) {
-        self.init(
-            tokenManager: TokenManagerImpl(
-                tokenStore: tokenStore,
-                tokenRefreshService: TokenRefreshServiceImpl(
-                    networkClient: NetworkClient(config: config)
-                )
-            )
-        )
-    }
-
     func adapt(
         _ request: URLRequest
     ) async throws(NetworkError) -> URLRequest {

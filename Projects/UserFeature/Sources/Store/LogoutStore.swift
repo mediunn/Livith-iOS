@@ -10,7 +10,6 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
 
 enum LogoutResult: Equatable {
     case idle

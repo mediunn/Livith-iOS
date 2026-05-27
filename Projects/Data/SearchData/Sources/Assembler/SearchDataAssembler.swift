@@ -24,9 +24,9 @@ public struct SearchDataAssembler: DependencyAssembler {
 
 private extension SearchDataAssembler {
     func registerSearchRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
         let searchRepo = SearchRepositoryImpl(
-            searchService: factory.makeSearchService()
+            networkClient: client
         )
         container.register(searchRepo, for: SearchRepository.self)
     }

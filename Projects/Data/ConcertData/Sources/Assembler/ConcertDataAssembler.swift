@@ -24,12 +24,9 @@ public struct ConcertDataAssembler: DependencyAssembler {
 
 private extension ConcertDataAssembler {
     func registerConcertRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
         let concertRepo = ConcertRepositoryImpl(
-            homeService: factory.makeHomeService(),
-            searchService: factory.makeSearchService(),
-            concertService: factory.makeConcertService(),
-            setlistService: factory.makeSetlistService()
+            networkClient: client
         )
         container.register(concertRepo, for: ConcertRepository.self)
     }

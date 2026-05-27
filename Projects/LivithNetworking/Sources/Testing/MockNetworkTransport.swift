@@ -1,19 +1,19 @@
 //
-//  TestNetworkTransport.swift
-//  LivithNetworkingTests
+//  MockNetworkTransport.swift
+//  LivithNetworking
 //
-//  Created by 김진웅 on 5/13/26.
+//  Created by 김진웅 on 5/27/26.
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
 import Foundation
 
-@testable import LivithNetworking
+// MARK: - MockNetworkTransport
 
-actor TestNetworkTransport: NetworkTransport {
-    enum Output {
+public actor MockNetworkTransport: NetworkTransport {
+    public enum Output {
         case success(Data, URLResponse)
-        case failure(Error)
+        case failure(any Error)
     }
 
     private var requestList: [URLRequest] = []
@@ -21,7 +21,7 @@ actor TestNetworkTransport: NetworkTransport {
     private let delayNanoseconds: UInt64
     private var index = 0
 
-    init(
+    public init(
         output: Output = .success(Data(), URLResponse()),
         delayNanoseconds: UInt64 = 0
     ) {
@@ -29,7 +29,7 @@ actor TestNetworkTransport: NetworkTransport {
         self.delayNanoseconds = delayNanoseconds
     }
 
-    init(
+    public init(
         outputList: [Output],
         delayNanoseconds: UInt64 = 0
     ) {
@@ -37,7 +37,7 @@ actor TestNetworkTransport: NetworkTransport {
         self.delayNanoseconds = delayNanoseconds
     }
 
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         requestList.append(request)
 
         if delayNanoseconds > 0 {
@@ -55,11 +55,11 @@ actor TestNetworkTransport: NetworkTransport {
         }
     }
 
-    func request() -> URLRequest? {
+    public func request() -> URLRequest? {
         requestList.last
     }
 
-    func requests() -> [URLRequest] {
+    public func requests() -> [URLRequest] {
         requestList
     }
 }

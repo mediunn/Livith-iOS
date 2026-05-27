@@ -119,7 +119,7 @@ private extension SettingView {
         case .idle:
             break
         case .success:
-            NotificationCenter.default.post(name: .reloginRequired, object: nil)
+            NotificationCenter.default.post(name: Notification.Name("reloginRequired"), object: nil)
         case .failure:
             break
         }

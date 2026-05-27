@@ -24,9 +24,9 @@ public struct CommentDataAssembler: DependencyAssembler {
 
 private extension CommentDataAssembler {
     func registerCommentRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
         let commentRepo = CommentRepositoryImpl(
-            commentService: factory.makeCommentService()
+            networkClient: client
         )
         container.register(commentRepo, for: CommentRepository.self)
     }

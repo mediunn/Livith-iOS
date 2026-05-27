@@ -22,7 +22,7 @@ import PreferenceData
 
 extension LivithApp {
     func registerDependency() {
-        registerNetworkingFactory()
+        registerNetworkingClient()
 
         DIContainer.shared.register(
             assemblers: [
@@ -40,10 +40,10 @@ extension LivithApp {
     }
 }
 
-// MARK: - Networking Factory Registration
+// MARK: - Networking Client Registration
 
 private extension LivithApp {
-    func registerNetworkingFactory() {
+    func registerNetworkingClient() {
         guard let baseURLString = Bundle.main.infoDictionary?["BASE_URL"] as? String,
               let baseURL = URL(string: baseURLString)
         else {
@@ -60,10 +60,11 @@ private extension LivithApp {
         }
 
         let config = NetworkConfig(baseURL: baseURL)
-        let factory = NetworkingFactoryImpl(
+        let (client, tokenStore) = NetworkClientBuilder.build(
             config: config,
             onAuthenticationExpired: onAuthenticationExpired
         )
-        DIContainer.shared.register(factory, for: NetworkingFactory.self)
+        DIContainer.shared.register(client, for: NetworkClient.self)
+        DIContainer.shared.register(tokenStore, for: TokenStore.self)
     }
 }

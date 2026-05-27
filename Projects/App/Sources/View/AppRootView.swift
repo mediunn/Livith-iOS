@@ -29,7 +29,7 @@ struct AppRootView: View {
                     onConfirm: { showWelcomeSheet = false }
                 )
             }
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name.reloginRequired)) { notification in
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("reloginRequired"))) { notification in
                 transition(to: .login)
             }
             .onAppear {

@@ -28,14 +28,14 @@ public struct AuthDataAssembler: DependencyAssembler {
 
 private extension AuthDataAssembler {
     func registerAuthRepository(to container: any DependencyContainer) {
-        let factory = container.resolve(NetworkingFactory.self)
+        let client = container.resolve(NetworkClient.self)
+        let tokenStore = container.resolve(TokenStore.self)
         let authRepo = AuthRepositoryImpl(
             socialAuthService: container.resolve(SocialAuthService.self),
-            onboardingService: factory.makeOnboardingService(),
-            userService: factory.makeUserService(),
+            networkClient: client,
             notificationRepository: container.resolve(NotificationRepository.self),
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
-            tokenStore: factory.makeTokenStore()
+            tokenStore: tokenStore
         )
         container.register(authRepo, for: AuthRepository.self)
     }

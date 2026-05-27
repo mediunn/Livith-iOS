@@ -12,17 +12,19 @@ import Domain
 import LivithNetworking
 
 struct SetlistRepositoryImpl: SetlistRepository {
-    private let setlistService: any SetlistService
+    private let networkClient: NetworkClient
     private let mapper: SetlistMapper = .init()
     private let errorMapper: SetlistErrorMapper = .init()
     
-    init(setlistService: any SetlistService) {
-        self.setlistService = setlistService
+    init(networkClient: NetworkClient) {
+        self.networkClient = networkClient
     }
     
     func fetchSetlist(concertID: Int, setlistID: Int) async throws(SetlistError) -> Setlist {
         do {
-            let response = try await setlistService.fetchSetlistDetail(concertID: concertID, setlistID: setlistID)
+            let response: DTO.Response.FetchConcertSetlist = try await networkClient.request(
+                SetlistAPI.fetchSetlistDetail(concertID: concertID, setlistID: setlistID)
+            )
             guard let setlist = mapper.toDomain(from: response) else {
                 throw SetlistError.invalidResponse
             }
@@ -34,7 +36,9 @@ struct SetlistRepositoryImpl: SetlistRepository {
 
     func fetchSetlistSongs(setlistID: Int) async throws(SetlistError) -> [SetlistSong] {
         do {
-            let response = try await setlistService.fetchSetlistSongList(setlistID: setlistID)
+            let response: DTO.Response.FetchSetlistSongList = try await networkClient.request(
+                SetlistAPI.fetchSetlistSongList(setlistID: setlistID)
+            )
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToSetlistError(error)

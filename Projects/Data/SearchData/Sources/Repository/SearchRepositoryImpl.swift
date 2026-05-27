@@ -12,17 +12,19 @@ import Domain
 import LivithNetworking
 
 struct SearchRepositoryImpl: SearchRepository {
-    private let searchService: any SearchService
+    private let networkClient: NetworkClient
     private let mapper: SearchMapper = .init()
     private let errorMapper: SearchErrorMapper = .init()
     
-    init(searchService: any SearchService) {
-        self.searchService = searchService
+    init(networkClient: NetworkClient) {
+        self.networkClient = networkClient
     }
     
     func fetchBanners() async throws(SearchError) -> [Banner] {
         do {
-            let response: DTO.Response.FetchBannerList = try await searchService.fetchBanners()
+            let response: DTO.Response.FetchBannerList = try await networkClient.request(
+                SearchAPI.fetchBanners()
+            )
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToSearchError(error)
@@ -38,15 +40,16 @@ struct SearchRepositoryImpl: SearchRepository {
         size: Int?
     ) async throws(SearchError) -> SearchResult {
         do {
-            let response: DTO.Response.FetchFilterSearchResult = try await searchService.fetchFilterSearchResult(
-                genre: genre.map(\.rawValue),
-                sort: sort.map(\.rawValue),
-                status: status.map(\.rawValue),
-                keyword: keyword,
-                cursor: cursor,
-                size: size
+            let response: DTO.Response.FetchFilterSearchResult = try await networkClient.request(
+                SearchAPI.fetchFilterSearchResult(
+                    genre: genre.map(\.rawValue),
+                    sort: sort.map(\.rawValue),
+                    status: status.map(\.rawValue),
+                    keyword: keyword,
+                    cursor: cursor,
+                    size: size
+                )
             )
-
             return mapper.toDomain(from: response)
         } catch let error {
             throw errorMapper.mapToSearchError(error)
@@ -55,7 +58,9 @@ struct SearchRepositoryImpl: SearchRepository {
 
     func fetchRecommendedSearchResult(keyword: String) async throws(SearchError) -> [String] {
         do {
-            let response: DTO.Response.FetchRecommendKeywordList = try await searchService.fetchRecommendedSearchResult(letter: keyword)
+            let response: DTO.Response.FetchRecommendKeywordList = try await networkClient.request(
+                SearchAPI.fetchRecommendedSearchResult(letter: keyword)
+            )
             return response
         } catch let error {
             throw errorMapper.mapToSearchError(error)

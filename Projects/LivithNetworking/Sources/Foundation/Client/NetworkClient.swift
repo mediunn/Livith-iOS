@@ -18,31 +18,14 @@ public struct NetworkClient: Sendable {
 
     public init(
         config: NetworkConfig,
-        interceptor: (any RequestInterceptor)? = nil,
-        plugins: [any NetworkPlugin] = []
-    ) {
-        self.init(
-            config: config,
-            requestBuilder: RequestBuilder(),
-            responseHandler: ResponseHandler(),
-            transport: URLSessionTransport(configuration: .default),
-            interceptor: interceptor,
-            plugins: plugins
-        )
-    }
-
-    init(
-        config: NetworkConfig,
-        requestBuilder: RequestBuilder = RequestBuilder(),
-        responseHandler: ResponseHandler = ResponseHandler(),
-        transport: any NetworkTransport,
+        transport: (any NetworkTransport)? = nil,
         interceptor: (any RequestInterceptor)? = nil,
         plugins: [any NetworkPlugin] = []
     ) {
         self.config = config
-        self.requestBuilder = requestBuilder
-        self.responseHandler = responseHandler
-        self.transport = transport
+        self.requestBuilder = RequestBuilder()
+        self.responseHandler = ResponseHandler()
+        self.transport = transport ?? URLSessionTransport(configuration: .default)
         self.interceptor = interceptor
         self.plugins = plugins
     }

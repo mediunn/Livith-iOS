@@ -14,28 +14,24 @@ import LivithNetworking
 import Persistence
 
 struct UserRepositoryImpl: UserRepository {
-    private let onboardingService: any OnboardingService
-    private let homeService: any HomeService
-    private let userService: any UserService
+    private let networkClient: NetworkClient
     private let userCache: UserDiskCache
     private let mapper: UserMapper = .init()
     private let errorMapper: UserErrorMapper = .init()
 
     init(
-        onboardingService: any OnboardingService,
-        homeService: any HomeService,
-        userService: any UserService,
+        networkClient: NetworkClient,
         userdefaultsStorage: UserDefaultsStorage
     ) {
-        self.onboardingService = onboardingService
-        self.homeService = homeService
-        self.userService = userService
+        self.networkClient = networkClient
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
     }
 
     func updateNickname(_ nickname: String) async throws(UserError) {
         do {
-            let response: DTO.Response.UpdateUserNickname = try await userService.updateNickname(nickname)
+            let response: DTO.Response.UpdateUserNickname = try await networkClient.request(
+                UserAPI.updateNickname(nickname)
+            )
             await userCache.updateUser { user in
                 user.nickname = response.nickname
             }
@@ -60,11 +56,13 @@ struct UserRepositoryImpl: UserRepository {
     func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
         do {
             let request = try makeFetchInterestConcertListRequest(from: filter)
-            let response: DTO.Response.FetchUserInterestConcert = try await homeService.fetchInterestedConcertList(
-                sort: request.sort?.rawValue,
-                size: request.size,
-                cursorDate: request.cursorDate,
-                cursorID: request.cursorID
+            let response: DTO.Response.FetchUserInterestConcert = try await networkClient.request(
+                HomeAPI.fetchInterestedConcertList(
+                    sort: request.sort?.rawValue,
+                    size: request.size,
+                    cursorDate: request.cursorDate,
+                    cursorID: request.cursorID
+                )
             )
             return mapper.toDomain(from: response)
         } catch NetworkError.noData {
@@ -79,7 +77,9 @@ struct UserRepositoryImpl: UserRepository {
 
     func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
         do {
-            let response: DTO.Response.CheckInterestedConcert = try await homeService.checkInterestedConcert(concertID: id)
+            let response: DTO.Response.CheckInterestedConcert = try await networkClient.request(
+                HomeAPI.checkInterestedConcert(concertID: id)
+            )
             return response.isInterested
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
@@ -90,7 +90,9 @@ struct UserRepositoryImpl: UserRepository {
     @discardableResult
     func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert {
         do {
-            let response: DTO.Response.UpdateUserInterestConcert = try await homeService.updateInterestedConcert(concertID: concertID)
+            let response: DTO.Response.UpdateUserInterestConcert = try await networkClient.request(
+                HomeAPI.updateInterestedConcert(concertID: concertID)
+            )
             guard let concert = mapper.toDomain(from: response) else {
                 throw UserError.invalidResponse
             }
@@ -106,8 +108,9 @@ struct UserRepositoryImpl: UserRepository {
     @discardableResult
     func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert] {
         do {
-            let request = DTO.Request.UpdateUserInterestConcertList(concertIDList: concertIDList)
-            let response: DTO.Response.UpdateUserInterestConcertList = try await homeService.updateInterestedConcertList(concertIDList: concertIDList)
+            let response: DTO.Response.UpdateUserInterestConcertList = try await networkClient.request(
+                HomeAPI.updateInterestedConcertList(concertIDList: concertIDList)
+            )
             return mapper.toDomain(from: response)
         } catch NetworkError.noData {
             return []
@@ -119,7 +122,9 @@ struct UserRepositoryImpl: UserRepository {
 
     func deleteInterestedConcert() async throws(UserError) {
         do {
-            try await homeService.deleteInterestedConcert()
+            try await networkClient.request(
+                HomeAPI.deleteInterestedConcert()
+            )
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -128,7 +133,9 @@ struct UserRepositoryImpl: UserRepository {
 
     func fetchInterestConcertCleanupPolicy() async throws(UserError) -> InterestConcertCleanupPolicy {
         do {
-            let response: DTO.Response.FetchInterestConcertToast = try await homeService.fetchInterestConcertToast()
+            let response: DTO.Response.FetchInterestConcertToast = try await networkClient.request(
+                HomeAPI.fetchInterestConcertToast()
+            )
             guard let policy = mapper.toDomain(from: response) else {
                 throw UserError.invalidResponse
             }
@@ -144,7 +151,9 @@ struct UserRepositoryImpl: UserRepository {
 
     func markInterestConcertToastShown() async throws(UserError) {
         do {
-            let _ = try await homeService.markInterestConcertToastShown()
+            let _: DTO.Response.UpdateInterestConcertToast = try await networkClient.request(
+                HomeAPI.markInterestConcertToastShown()
+            )
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -192,7 +201,9 @@ private extension UserRepositoryImpl {
 
     func fetchUserFromNetwork() async throws(UserError) -> User {
         do {
-            let response: DTO.Response.FetchUserInfo = try await onboardingService.fetchUserInfo()
+            let response: DTO.Response.FetchUserInfo = try await networkClient.request(
+                OnboardingAPI.fetchUserInfo()
+            )
             let user: User = mapper.toDomain(from: response)
             await userCache.saveUser(user)
             return user

@@ -12,17 +12,19 @@ import Domain
 import LivithNetworking
 
 struct SongRepositoryImpl: SongRepository {
-    private let songService: any SongService
+    private let networkClient: NetworkClient
     private let mapper: SongMapper = .init()
     private let errorMapper: SongErrorMapper = .init()
     
-    init(songService: any SongService) {
-        self.songService = songService
+    init(networkClient: NetworkClient) {
+        self.networkClient = networkClient
     }
     
     func fetchSongLyrics(songID: Int) async throws(SongError) -> SongLyrics {
         do {
-            let response = try await songService.fetchSongLyrics(songID: songID)
+            let response: DTO.Response.FetchSongLyrics = try await networkClient.request(
+                SongAPI.fetchSongLyrics(songID: songID)
+            )
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToSongError(error)
@@ -31,7 +33,9 @@ struct SongRepositoryImpl: SongRepository {
 
     func fetchSongFanchant(setlistID: Int, songID: Int) async throws(SongError) -> SongFanchant {
         do {
-            let response = try await songService.fetchSongFanchant(setlistID: setlistID, songID: songID)
+            let response: DTO.Response.FetchSongFanchant = try await networkClient.request(
+                SongAPI.fetchSongFanchant(setlistID: setlistID, songID: songID)
+            )
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToSongError(error)
