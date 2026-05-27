@@ -68,4 +68,17 @@ struct NetworkingFactoryTests {
         // Then
         #expect(service is SongService)
     }
+
+    @Test("makeSetlistService는 SetlistService 타입의 인스턴스를 반환해야 한다")
+    func makeSetlistService는_SetlistService_타입을_반환해야한다() async throws {
+        // Given
+        let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
+
+        // When
+        let sut = NetworkingFactoryImpl(config: config)
+        let service = sut.makeSetlistService()
+
+        // Then
+        #expect(service is SetlistService)
+    }
 }

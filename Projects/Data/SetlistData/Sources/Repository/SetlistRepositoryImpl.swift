@@ -9,22 +9,20 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 struct SetlistRepositoryImpl: SetlistRepository {
-    private let setlistService: SetlistService
+    private let setlistService: any SetlistService
     private let mapper: SetlistMapper = .init()
     private let errorMapper: SetlistErrorMapper = .init()
     
-    init(setlistService: SetlistService) {
+    init(setlistService: any SetlistService) {
         self.setlistService = setlistService
     }
     
     func fetchSetlist(concertID: Int, setlistID: Int) async throws(SetlistError) -> Setlist {
         do {
-            let response: DTO.Response.FetchConcertSetlist = try await setlistService.request(
-                .fetchSetlistDetail(concertID: concertID, setlistID: setlistID)
-            )
+            let response = try await setlistService.fetchSetlistDetail(concertID: concertID, setlistID: setlistID)
             guard let setlist = mapper.toDomain(from: response) else {
                 throw SetlistError.invalidResponse
             }
@@ -36,9 +34,7 @@ struct SetlistRepositoryImpl: SetlistRepository {
 
     func fetchSetlistSongs(setlistID: Int) async throws(SetlistError) -> [SetlistSong] {
         do {
-            let response: DTO.Response.FetchSetlistSongList = try await setlistService.request(
-                .fetchSetlistSongList(setlistID: setlistID)
-            )
+            let response = try await setlistService.fetchSetlistSongList(setlistID: setlistID)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToSetlistError(error)

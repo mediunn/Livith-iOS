@@ -8,7 +8,7 @@
 
 import XCTest
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 @testable import SetlistData
 
@@ -121,7 +121,7 @@ final class SetlistErrorMapperTests: XCTestCase {
     }
     
     func test_서버_에러는_serverError로_변환되어야_한다() {
-        let error = NetworkError.serverError(message: nil)
+        let error = NetworkError.serverError(statusCode: 500, message: nil)
         XCTAssertEqual(sut.mapToSetlistError(error), .serverError)
     }
     
@@ -133,6 +133,7 @@ final class SetlistErrorMapperTests: XCTestCase {
     func test_잘못된_요청_관련_에러들은_invalidResponse로_변환되어야_한다() {
         let errors: [NetworkError] = [
             .decodingFailed(NSError(domain: "", code: -1)),
+            .encodingFailed(NSError(domain: "", code: -1)),
             .invalidURL,
             .invalidRequest,
             .invalidResponse,
@@ -149,6 +150,11 @@ final class SetlistErrorMapperTests: XCTestCase {
             .unknown(NSError(domain: "", code: -1))
         ]
         errors.forEach { XCTAssertEqual(sut.mapToSetlistError($0), .unknown) }
+    }
+
+    func test_타임아웃_에러는_noConnection으로_변환되어야_한다() {
+        let error = NetworkError.timeout(NSError(domain: "", code: -1))
+        XCTAssertEqual(sut.mapToSetlistError(error), .noConnection)
     }
     
     func test_메시지가_있는_에러는_해당_메시지에_매핑되는_에러로_변환되어야_한다() {
@@ -168,5 +174,6 @@ final class SetlistErrorMapperTests: XCTestCase {
         XCTAssertEqual(sut.mapToSetlistError(CancellationError()), .cancelled)
         XCTAssertEqual(sut.mapToSetlistError(URLError(.cancelled)), .cancelled)
         XCTAssertEqual(sut.mapToSetlistError(NetworkError.unknown(URLError(.cancelled))), .cancelled)
+        XCTAssertEqual(sut.mapToSetlistError(NetworkError.noConnection(URLError(.cancelled))), .cancelled)
     }
 }

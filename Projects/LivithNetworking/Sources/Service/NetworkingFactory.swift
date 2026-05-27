@@ -14,6 +14,7 @@ public protocol NetworkingFactory: Sendable {
     var config: NetworkConfig { get }
     var onAuthenticationExpired: @Sendable () -> Void { get }
     func makeSongService() -> any SongService
+    func makeSetlistService() -> any SetlistService
 }
 
 // MARK: - NetworkingFactoryImpl
@@ -58,5 +59,9 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
 
     public func makeSongService() -> any SongService {
         return SongServiceImpl(networkClient: networkClient)
+    }
+
+    public func makeSetlistService() -> any SetlistService {
+        return SetlistServiceImpl(networkClient: networkClient)
     }
 }
