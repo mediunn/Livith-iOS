@@ -130,7 +130,6 @@ public enum DesignSystemModule: String {
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {
-    case alamofire = "Alamofire"
     case kingfisher = "Kingfisher"
     case kakaoSDKCommon = "KakaoSDKCommon"
     case kakaoSDKAuth = "KakaoSDKAuth"
