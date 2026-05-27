@@ -9,22 +9,22 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 import LivithFoundation
 
 struct ConcertRepositoryImpl: ConcertRepository {
-    private let homeService: HomeService
-    private let searchService: SearchService
-    private let concertService: ConcertService
-    private let setlistService: SetlistService
+    private let homeService: any HomeService
+    private let searchService: any SearchService
+    private let concertService: any ConcertService
+    private let setlistService: any SetlistService
     private let mapper: ConcertMapper = .init()
     private let errorMapper: ConcertErrorMapper = .init()
     
     init(
-        homeService: HomeService,
-        searchService: SearchService,
-        concertService: ConcertService,
-        setlistService: SetlistService
+        homeService: any HomeService,
+        searchService: any SearchService,
+        concertService: any ConcertService,
+        setlistService: any SetlistService
     ) {
         self.homeService = homeService
         self.searchService = searchService
@@ -41,9 +41,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
         let cursor = try makeCursor(from: nextToken)
 
         do {
-            let response: DTO.Response.FetchConcertList = try await searchService.request(
-                .fetchConcertList(cursor: cursor, size: size)
-            )
+            let response: DTO.Response.FetchConcertList = try await searchService.fetchConcertList(cursor: cursor, size: size)
             return mapper.toConcertListResult(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -52,9 +50,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchConcertArtistInfo(concertID: Int) async throws(ConcertError) -> Artist {
         do {
-            let response: DTO.Response.FetchConcertArtistInfo = try await concertService.request(
-                .fetchConcertArtistInfo(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertArtistInfo = try await concertService.fetchConcertArtistInfo(concertID: concertID)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -63,9 +59,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchConcertSetlistList(concertID: Int) async throws(ConcertError) -> [Setlist] {
         do {
-            let response: DTO.Response.FetchConcertSetlistList = try await concertService.request(
-                .fetchConcertSetlistList(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertSetlistList = try await concertService.fetchConcertSetlistList(concertID: concertID)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -74,9 +68,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchConcertMerchandiseList(concertID: Int) async throws(ConcertError) -> [ConcertMerchandise] {
         do {
-            let response: DTO.Response.FetchConcertMerchandiseList = try await concertService.request(
-                .fetchConcertMerchandiseList(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertMerchandiseList = try await concertService.fetchConcertMerchandiseList(concertID: concertID)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -85,9 +77,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchConcertInfoList(concertID: Int) async throws(ConcertError) -> [ConcertInfo] {
         do {
-            let response: DTO.Response.FetchConcertInfoList = try await concertService.request(
-                .fetchConcertInfoList(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertInfoList = try await concertService.fetchConcertInfoList(concertID: concertID)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -96,9 +86,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchConcertCultureList(concertID: Int) async throws(ConcertError) -> [ConcertCulture] {
         do {
-            let response: DTO.Response.FetchConcertCultureList = try await concertService.request(
-                .fetchConcertCultureList(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertCultureList = try await concertService.fetchConcertCultureList(concertID: concertID)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -107,9 +95,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchConcertScheduleList(concertID: Int) async throws(ConcertError) -> [ConcertSchedule] {
         do {
-            let response: DTO.Response.FetchConcertSchedule = try await concertService.request(
-                .fetchConcertSchedule(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertSchedule = try await concertService.fetchConcertSchedule(concertID: concertID)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -118,9 +104,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchConcert(concertID: Int) async throws(ConcertError) -> Concert {
         do {
-            let response: DTO.Response.FetchConcertInfo = try await concertService.request(
-                .fetchConcertInfo(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertInfo = try await concertService.fetchConcertInfo(concertID: concertID)
             
             guard let concert = mapper.toDomain(from: response) else {
                 throw ConcertError.invalidResponse
@@ -134,7 +118,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchSearchConcertSectionList() async throws(ConcertError) -> [ConcertSection] {
         do {
-            let response: DTO.Response.FetchSectionList = try await searchService.request(.fetchSections)
+            let response: DTO.Response.FetchSectionList = try await searchService.fetchSections()
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -143,7 +127,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchHomeConcertSectionList() async throws(ConcertError) -> [ConcertSection] {
         do {
-            let response: DTO.Response.FetchHomeSectionList = try await homeService.request(.fetchSectionList)
+            let response: DTO.Response.FetchHomeSectionList = try await homeService.fetchSectionList()
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)
@@ -152,9 +136,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     
     func fetchMainSetlist(concertID: Int) async throws(ConcertError) -> Setlist? {
         do {
-            let response: DTO.Response.FetchConcertSetlist? = try await setlistService.request(
-                .fetchConcertMainSetlist(concertID: concertID)
-            )
+            let response: DTO.Response.FetchConcertSetlist? = try await setlistService.fetchConcertMainSetlist(concertID: concertID)
             guard let response = response else { return nil }
             let setlist: Setlist? = mapper.toDomain(from: response)
             return setlist
@@ -167,7 +149,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
 
     func fetchRecommendedConcertList() async throws(ConcertError) -> [Concert] {
         do {
-            let response: DTO.Response.FetchRecommendedConcertList = try await homeService.request(.fetchRecommendedConcertList)
+            let response: DTO.Response.FetchRecommendedConcertList = try await homeService.fetchRecommendedConcertList()
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToConcertError(error)

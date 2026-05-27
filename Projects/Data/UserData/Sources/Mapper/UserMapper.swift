@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 import LivithFoundation
-import LivithNetwork
+import LivithNetworking
 
 struct UserMapper {
     func toDomain(from dto: DTO.Response.UpdateUserNickname) -> User {

@@ -133,4 +133,25 @@ struct NetworkingFactoryTests {
         // Then
         #expect(service is NotificationService)
     }
+
+    @Test("makeTokenStore는 TokenStore 타입의 인스턴스를 반환해야 한다")
+    func makeTokenStore는_TokenStore_타입을_반환해야한다() async throws {
+        let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
+        let sut = NetworkingFactoryImpl(config: config)
+        #expect(sut.makeTokenStore() is TokenStore)
+    }
+
+    @Test("makeHomeService는 HomeService 타입의 인스턴스를 반환해야 한다")
+    func makeHomeService는_HomeService_타입을_반환해야한다() async throws {
+        let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
+        let sut = NetworkingFactoryImpl(config: config)
+        #expect(sut.makeHomeService() is HomeService)
+    }
+
+    @Test("makeConcertService는 ConcertService 타입의 인스턴스를 반환해야 한다")
+    func makeConcertService는_ConcertService_타입을_반환해야한다() async throws {
+        let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
+        let sut = NetworkingFactoryImpl(config: config)
+        #expect(sut.makeConcertService() is ConcertService)
+    }
 }

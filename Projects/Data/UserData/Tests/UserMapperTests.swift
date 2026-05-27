@@ -9,7 +9,7 @@
 import Foundation
 import Testing
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 @testable import UserData
 
@@ -531,7 +531,7 @@ struct UserErrorMapperTests {
     func 서버_에러를_serverError로_변환해야_한다() {
         // Given
         let sut = UserErrorMapper()
-        let networkError = NetworkError.serverError(message: nil)
+        let networkError = NetworkError.serverError(statusCode: 500, message: nil)
 
         // When
         let result = sut.mapToUserError(networkError)

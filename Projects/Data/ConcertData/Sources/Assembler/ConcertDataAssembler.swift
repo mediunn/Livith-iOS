@@ -10,13 +10,12 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 public struct ConcertDataAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: any DependencyContainer) {
-        registerNetwork(to: container)
         registerConcertRepository(to: container)
     }
 }
@@ -25,23 +24,13 @@ public struct ConcertDataAssembler: DependencyAssembler {
 
 private extension ConcertDataAssembler {
     func registerConcertRepository(to container: any DependencyContainer) {
+        let factory = container.resolve(NetworkingFactory.self)
         let concertRepo = ConcertRepositoryImpl(
-            homeService: container.resolve(HomeService.self),
-            searchService: container.resolve(SearchService.self),
-            concertService: container.resolve(ConcertService.self),
-            setlistService: container.resolve(SetlistService.self)
+            homeService: factory.makeHomeService(),
+            searchService: factory.makeSearchService(),
+            concertService: factory.makeConcertService(),
+            setlistService: factory.makeSetlistService()
         )
         container.register(concertRepo, for: ConcertRepository.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension ConcertDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(HomeService(), for: HomeService.self)
-        container.register(SearchService(), for: SearchService.self)
-        container.register(ConcertService(), for: ConcertService.self)
-        container.register(SetlistService(), for: SetlistService.self)
     }
 }

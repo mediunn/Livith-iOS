@@ -22,6 +22,8 @@ public protocol NetworkingFactory: Sendable {
     func makeUserService() -> any UserService
     func makeOnboardingService() -> any OnboardingService
     func makeTokenStore() -> any TokenStore
+    func makeHomeService() -> any HomeService
+    func makeConcertService() -> any ConcertService
 }
 
 // MARK: - NetworkingFactoryImpl
@@ -100,5 +102,13 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
 
     public func makeTokenStore() -> any TokenStore {
         return tokenStore
+    }
+
+    public func makeHomeService() -> any HomeService {
+        return HomeServiceImpl(networkClient: networkClient)
+    }
+
+    public func makeConcertService() -> any ConcertService {
+        return ConcertServiceImpl(networkClient: networkClient)
     }
 }

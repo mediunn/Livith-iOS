@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 
 struct ConcertErrorMapper {
@@ -35,12 +35,16 @@ struct ConcertErrorMapper {
             return .noConnection
         case .serverError:
             return .serverError
+        case .timeout:
+            return .noConnection
+        case .cancelled:
+            return .cancelled
         case .noData, .notFound:
             return .concertNotFound
         case .invalidURL, .invalidRequest:
             return .invalidRequest
 
-        case .decodingFailed, .invalidResponse, .badRequest, .clientError:
+        case .decodingFailed, .encodingFailed, .invalidResponse, .badRequest, .clientError:
             return .invalidResponse
         case .unauthorized, .forbidden, .unknown:
             return .unknown
@@ -53,7 +57,7 @@ struct ConcertErrorMapper {
              .unauthorized(let msg),
              .forbidden(let msg),
              .notFound(let msg),
-             .serverError(let msg),
+             .serverError(_, let msg),
              .clientError(_, let msg):
             return msg
         default:
