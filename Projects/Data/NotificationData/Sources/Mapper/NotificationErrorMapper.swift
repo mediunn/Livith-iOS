@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 struct NotificationErrorMapper {
     func mapToNotificationError(_ error: Error) -> NotificationError {
@@ -39,7 +39,13 @@ struct NotificationErrorMapper {
         case .serverError:
             return .serverError
 
-        case .noData, .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse:
+        case .timeout:
+            return .noConnection
+
+        case .cancelled:
+            return .cancelled
+
+        case .noData, .decodingFailed, .encodingFailed, .invalidURL, .invalidRequest, .invalidResponse:
             return .invalidResponse
 
         case .badRequest(let message):

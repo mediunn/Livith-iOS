@@ -18,6 +18,7 @@ public protocol NetworkingFactory: Sendable {
     func makeCommentService() -> any CommentService
     func makeSearchService() -> any SearchService
     func makePreferenceService() -> any PreferenceService
+    func makeNotificationService() -> any NotificationService
 }
 
 // MARK: - NetworkingFactoryImpl
@@ -78,5 +79,9 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
 
     public func makePreferenceService() -> any PreferenceService {
         return PreferenceServiceImpl(networkClient: networkClient)
+    }
+
+    public func makeNotificationService() -> any NotificationService {
+        return NotificationServiceImpl(networkClient: networkClient)
     }
 }

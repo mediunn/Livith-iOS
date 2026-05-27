@@ -120,4 +120,17 @@ struct NetworkingFactoryTests {
         // Then
         #expect(service is PreferenceService)
     }
+
+    @Test("makeNotificationService는 NotificationService 타입의 인스턴스를 반환해야 한다")
+    func makeNotificationService는_NotificationService_타입을_반환해야한다() async throws {
+        // Given
+        let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
+
+        // When
+        let sut = NetworkingFactoryImpl(config: config)
+        let service = sut.makeNotificationService()
+
+        // Then
+        #expect(service is NotificationService)
+    }
 }
