@@ -17,6 +17,7 @@ public protocol NetworkingFactory: Sendable {
     func makeSetlistService() -> any SetlistService
     func makeCommentService() -> any CommentService
     func makeSearchService() -> any SearchService
+    func makePreferenceService() -> any PreferenceService
 }
 
 // MARK: - NetworkingFactoryImpl
@@ -73,5 +74,9 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
 
     public func makeSearchService() -> any SearchService {
         return SearchServiceImpl(networkClient: networkClient)
+    }
+
+    public func makePreferenceService() -> any PreferenceService {
+        return PreferenceServiceImpl(networkClient: networkClient)
     }
 }

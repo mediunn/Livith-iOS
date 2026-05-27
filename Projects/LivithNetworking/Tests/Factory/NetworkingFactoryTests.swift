@@ -107,4 +107,17 @@ struct NetworkingFactoryTests {
         // Then
         #expect(service is SearchService)
     }
+
+    @Test("makePreferenceService는 PreferenceService 타입의 인스턴스를 반환해야 한다")
+    func makePreferenceService는_PreferenceService_타입을_반환해야한다() async throws {
+        // Given
+        let config = NetworkConfig(baseURL: URL(string: "https://api.example.com")!)
+
+        // When
+        let sut = NetworkingFactoryImpl(config: config)
+        let service = sut.makePreferenceService()
+
+        // Then
+        #expect(service is PreferenceService)
+    }
 }

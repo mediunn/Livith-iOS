@@ -9,20 +9,20 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 struct PreferenceRepositoryImpl: PreferenceRepository {
-    private let preferenceService: PreferenceService
+    private let preferenceService: any PreferenceService
     private let mapper: PreferenceMapper = .init()
     private let errorMapper: PreferenceErrorMapper = .init()
     
-    init(preferenceService: PreferenceService) {
+    init(preferenceService: any PreferenceService) {
         self.preferenceService = preferenceService
     }
     
     func fetchGenreList() async throws(PreferenceError) -> [PreferredGenre] {
         do {
-            let response: DTO.Response.FetchGenreList = try await preferenceService.request(.fetchGenreList)
+            let response: DTO.Response.FetchGenreList = try await preferenceService.fetchGenreList()
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToPreferenceError(error)
@@ -35,9 +35,7 @@ struct PreferenceRepositoryImpl: PreferenceRepository {
         cursor: String?
     ) async throws(PreferenceError) -> ArtistSearchResult {
         do {
-            let response: DTO.Response.SearchArtistList = try await preferenceService.request(
-                .searchArtistList(keyword: keyword, size: size, cursor: cursor)
-            )
+            let response: DTO.Response.SearchArtistList = try await preferenceService.searchArtistList(keyword: keyword, size: size, cursor: cursor)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToPreferenceError(error)
@@ -46,9 +44,7 @@ struct PreferenceRepositoryImpl: PreferenceRepository {
     
     func fetchUserPreferredGenreList() async throws(PreferenceError) -> [PreferredGenre] {
         do {
-            let response: DTO.Response.FetchUserPreferredGenreList = try await preferenceService.request(
-                .fetchUserPreferredGenreList
-            )
+            let response: DTO.Response.FetchUserPreferredGenreList = try await preferenceService.fetchUserPreferredGenreList()
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToPreferenceError(error)
@@ -57,9 +53,7 @@ struct PreferenceRepositoryImpl: PreferenceRepository {
     
     func fetchUserPreferredArtistList() async throws(PreferenceError) -> [PreferredArtist] {
         do {
-            let response: DTO.Response.FetchUserPreferredArtistList = try await preferenceService.request(
-                .fetchUserPreferredArtistList
-            )
+            let response: DTO.Response.FetchUserPreferredArtistList = try await preferenceService.fetchUserPreferredArtistList()
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToPreferenceError(error)
@@ -69,9 +63,7 @@ struct PreferenceRepositoryImpl: PreferenceRepository {
     @discardableResult
     func updateUserPreferredGenreList(genreIDs: [Int]) async throws(PreferenceError) -> [PreferredGenre] {
         do {
-            let response: DTO.Response.UpdateUserPreferredGenreList = try await preferenceService.request(
-                .updateUserPreferredGenreList(genreIDs: genreIDs)
-            )
+            let response: DTO.Response.UpdateUserPreferredGenreList = try await preferenceService.updateUserPreferredGenreList(genreIDs: genreIDs)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToPreferenceError(error)
@@ -81,9 +73,7 @@ struct PreferenceRepositoryImpl: PreferenceRepository {
     @discardableResult
     func updateUserPreferredArtistList(artistIDs: [Int]) async throws(PreferenceError) -> [PreferredArtist] {
         do {
-            let response: DTO.Response.UpdateUserPreferredArtistList = try await preferenceService.request(
-                .updateUserPreferredArtistList(artistIDs: artistIDs)
-            )
+            let response: DTO.Response.UpdateUserPreferredArtistList = try await preferenceService.updateUserPreferredArtistList(artistIDs: artistIDs)
             return mapper.toDomain(from: response)
         } catch {
             throw errorMapper.mapToPreferenceError(error)

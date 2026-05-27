@@ -10,22 +10,13 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 public struct PreferenceDataAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: any DependencyContainer) {
-        registerNetwork(to: container)
         registerRepository(to: container)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension PreferenceDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(PreferenceService(), for: PreferenceService.self)
     }
 }
 
@@ -33,8 +24,9 @@ private extension PreferenceDataAssembler {
 
 private extension PreferenceDataAssembler {
     func registerRepository(to container: any DependencyContainer) {
+        let factory = container.resolve(NetworkingFactory.self)
         let preferenceRepo = PreferenceRepositoryImpl(
-            preferenceService: container.resolve(PreferenceService.self)
+            preferenceService: factory.makePreferenceService()
         )
         container.register(preferenceRepo, for: PreferenceRepository.self)
     }

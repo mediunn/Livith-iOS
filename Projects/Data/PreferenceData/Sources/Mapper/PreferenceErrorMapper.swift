@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 struct PreferenceErrorMapper {
     func mapToPreferenceError(_ error: Error) -> PreferenceError {
@@ -35,28 +35,34 @@ struct PreferenceErrorMapper {
                 return .cancelled
             }
             return .noConnection
-            
+
         case .serverError:
             return .serverError
-            
-        case .noData, .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse:
+
+        case .timeout:
+            return .noConnection
+
+        case .cancelled:
+            return .cancelled
+
+        case .noData, .decodingFailed, .encodingFailed, .invalidURL, .invalidRequest, .invalidResponse:
             return .invalidResponse
-            
+
         case .badRequest(let message):
             return mapFromMessage(message)
-            
+
         case .unauthorized:
             return .unknown
-            
+
         case .forbidden(let message):
             return mapFromMessage(message)
-            
+
         case .notFound(let message):
             return mapFromMessage(message)
-            
+
         case .clientError:
             return .invalidResponse
-            
+
         case .unknown(let underlyingError):
             if let urlError = underlyingError as? URLError, urlError.code == .cancelled {
                 return .cancelled
