@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 struct SearchErrorMapper {
     func mapToSearchError(_ error: any Error) -> SearchError {
@@ -33,9 +33,13 @@ struct SearchErrorMapper {
             return .noConnection
         case .serverError:
             return .serverError
+        case .timeout:
+            return .noConnection
+        case .cancelled:
+            return .cancelled
         case .noData:
             return .noSearchResult
-        case .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
+        case .decodingFailed, .encodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
             return .invalidResponse
         case .unauthorized, .forbidden, .notFound:
             return .unknown
@@ -50,7 +54,7 @@ struct SearchErrorMapper {
              .unauthorized(let msg),
              .forbidden(let msg),
              .notFound(let msg),
-             .serverError(let msg),
+             .serverError(_, let msg),
              .clientError(_, let msg):
             return msg
         default:

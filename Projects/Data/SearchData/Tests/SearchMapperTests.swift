@@ -9,7 +9,7 @@
 import Foundation
 import Testing
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 @testable import SearchData
 
@@ -61,34 +61,6 @@ struct SearchMapperTests {
         #expect(result[1].description.contains("티스토리에서 라이빗을 검색해보세요!"))
     }
 
-    @Test("FetchBannerList 전체 응답은 BaseResponse data로 디코딩되어야 한다")
-    func fetchBannerList전체응답은BaseResponseData로디코딩되어야한다() throws {
-        // Given
-        let json = """
-        {
-          "message": "요청에 성공하였습니다.",
-          "data": [
-            {
-              "id": 1,
-              "title": "라이빗 인스타그램 운영 중!",
-              "category": "@livith_concert",
-              "imgUrl": "https://github.com/mediunn/Livith-Assets/blob/main/banner/instagram.png?raw=true",
-              "content": "인스타에서 아티스트 릴스, 숨겨진 비하인드 이야기, \\n떼창 가이드 등 다양한 컨텐츠를 확인해 보세요!",
-              "linkUrl": "https://www.instagram.com/livith_concert"
-            }
-          ],
-          "statusCode": 200
-        }
-        """.data(using: .utf8)!
-
-        // When
-        let result = try JSONDecoder().decode(BaseResponse<DTO.Response.FetchBannerList>.self, from: json)
-
-        // Then
-        #expect(result.statusCode == 200)
-        #expect(result.data?.count == 1)
-        #expect(result.data?.first?.linkURL == "https://www.instagram.com/livith_concert")
-    }
 
     @Test("배너 링크는 https와 host가 있을 때만 URL로 매핑되어야 한다")
     func 배너링크는Https와Host가있을때만URL로매핑되어야한다() throws {
@@ -300,7 +272,7 @@ struct SearchErrorMapperTests {
     @Test("기본 네트워크 에러가 SearchError로 변환되어야 한다")
     func 기본네트워크에러가SearchError로변환되어야한다() {
         #expect(sut.mapToSearchError(NetworkError.noConnection(NSError(domain: "", code: -1))) == .noConnection)
-        #expect(sut.mapToSearchError(NetworkError.serverError(message: nil)) == .serverError)
+        #expect(sut.mapToSearchError(NetworkError.serverError(statusCode: 500, message: nil)) == .serverError)
         #expect(sut.mapToSearchError(NetworkError.noData) == .noSearchResult)
         #expect(sut.mapToSearchError(NetworkError.invalidRequest) == .invalidResponse)
     }
@@ -328,5 +300,16 @@ struct SearchErrorMapperTests {
         #expect(sut.mapToSearchError(CancellationError()) == .cancelled)
         #expect(sut.mapToSearchError(URLError(.cancelled)) == .cancelled)
         #expect(sut.mapToSearchError(NetworkError.unknown(URLError(.cancelled))) == .cancelled)
+        #expect(sut.mapToSearchError(NetworkError.noConnection(URLError(.cancelled))) == .cancelled)
+    }
+
+    @Test("타임아웃 에러는 noConnection으로 변환되어야 한다")
+    func 타임아웃에러는NoConnection으로변환되어야한다() {
+        #expect(sut.mapToSearchError(NetworkError.timeout(NSError(domain: "", code: -1))) == .noConnection)
+    }
+
+    @Test("인코딩 실패 에러는 invalidResponse로 변환되어야 한다")
+    func 인코딩실패에러는InvalidResponse로변환되어야한다() {
+        #expect(sut.mapToSearchError(NetworkError.encodingFailed(NSError(domain: "", code: -1))) == .invalidResponse)
     }
 }

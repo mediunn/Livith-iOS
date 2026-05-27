@@ -10,13 +10,12 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 public struct SearchDataAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: any DependencyContainer) {
-        registerNetwork(to: container)
         registerSearchRepository(to: container)
     }
 }
@@ -25,17 +24,10 @@ public struct SearchDataAssembler: DependencyAssembler {
 
 private extension SearchDataAssembler {
     func registerSearchRepository(to container: any DependencyContainer) {
+        let factory = container.resolve(NetworkingFactory.self)
         let searchRepo = SearchRepositoryImpl(
-            searchService: container.resolve(SearchService.self)
+            searchService: factory.makeSearchService()
         )
         container.register(searchRepo, for: SearchRepository.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension SearchDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(SearchService(), for: SearchService.self)
     }
 }

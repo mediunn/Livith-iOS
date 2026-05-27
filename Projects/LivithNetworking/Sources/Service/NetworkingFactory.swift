@@ -16,6 +16,7 @@ public protocol NetworkingFactory: Sendable {
     func makeSongService() -> any SongService
     func makeSetlistService() -> any SetlistService
     func makeCommentService() -> any CommentService
+    func makeSearchService() -> any SearchService
 }
 
 // MARK: - NetworkingFactoryImpl
@@ -68,5 +69,9 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
 
     public func makeCommentService() -> any CommentService {
         return CommentServiceImpl(networkClient: networkClient)
+    }
+
+    public func makeSearchService() -> any SearchService {
+        return SearchServiceImpl(networkClient: networkClient)
     }
 }
