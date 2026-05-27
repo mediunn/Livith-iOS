@@ -17,7 +17,7 @@ let project = Project.make(
             dependencies: [
                 .domain(.domain),
                 .core(.socialAuth),
-                .core(.livithNetwork),
+                .livithNetworking(.livithNetworking),
                 .core(.livithFoundation),
                 .core(.persistence),
                 .core(.diContainer),

@@ -9,7 +9,7 @@
 import Foundation
 import Testing
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 @testable import AuthData
 
@@ -121,7 +121,7 @@ struct AuthErrorMapperTests {
 
         // When & Then
         #expect(sut.mapToAuthError(NetworkError.noConnection(NSError(domain: "", code: -1))) == .noConnection)
-        #expect(sut.mapToAuthError(NetworkError.serverError(message: nil)) == .serverError)
+        #expect(sut.mapToAuthError(NetworkError.serverError(statusCode: 500, message: nil)) == .serverError)
         #expect(sut.mapToAuthError(NetworkError.invalidRequest) == .invalidResponse)
     }
 
@@ -156,5 +156,18 @@ struct AuthErrorMapperTests {
         #expect(sut.mapToAuthError(CancellationError()) == .cancelled)
         #expect(sut.mapToAuthError(URLError(.cancelled)) == .cancelled)
         #expect(sut.mapToAuthError(NetworkError.unknown(URLError(.cancelled))) == .cancelled)
+        #expect(sut.mapToAuthError(NetworkError.noConnection(URLError(.cancelled))) == .cancelled)
+    }
+
+    @Test("타임아웃 에러를 noConnection으로 변환해야 한다")
+    func 타임아웃_에러를_noConnection으로_변환해야_한다() {
+        let sut = AuthErrorMapper()
+        #expect(sut.mapToAuthError(NetworkError.timeout(NSError(domain: "", code: -1))) == .noConnection)
+    }
+
+    @Test("인코딩 실패 에러를 invalidResponse로 변환해야 한다")
+    func 인코딩_실패_에러를_invalidResponse로_변환해야_한다() {
+        let sut = AuthErrorMapper()
+        #expect(sut.mapToAuthError(NetworkError.encodingFailed(NSError(domain: "", code: -1))) == .invalidResponse)
     }
 }

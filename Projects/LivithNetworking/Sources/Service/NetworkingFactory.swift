@@ -19,6 +19,9 @@ public protocol NetworkingFactory: Sendable {
     func makeSearchService() -> any SearchService
     func makePreferenceService() -> any PreferenceService
     func makeNotificationService() -> any NotificationService
+    func makeUserService() -> any UserService
+    func makeOnboardingService() -> any OnboardingService
+    func makeTokenStore() -> any TokenStore
 }
 
 // MARK: - NetworkingFactoryImpl
@@ -28,6 +31,7 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
     public let onAuthenticationExpired: @Sendable () -> Void
 
     private let networkClient: NetworkClient
+    private let tokenStore: any TokenStore
 
     public init(
         config: NetworkConfig,
@@ -36,6 +40,7 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
     ) {
         self.config = config
         self.onAuthenticationExpired = onAuthenticationExpired
+        self.tokenStore = tokenStore
 
         // 1. TokenRefreshService를 위한 별도 NetworkClient
         //    AuthInterceptor 없음 - 순환 의존성 방지
@@ -83,5 +88,17 @@ public struct NetworkingFactoryImpl: NetworkingFactory {
 
     public func makeNotificationService() -> any NotificationService {
         return NotificationServiceImpl(networkClient: networkClient)
+    }
+
+    public func makeUserService() -> any UserService {
+        return UserServiceImpl(networkClient: networkClient)
+    }
+
+    public func makeOnboardingService() -> any OnboardingService {
+        return OnboardingServiceImpl(networkClient: networkClient)
+    }
+
+    public func makeTokenStore() -> any TokenStore {
+        return tokenStore
     }
 }

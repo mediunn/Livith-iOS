@@ -10,7 +10,7 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 import Persistence
 import SocialAuth
 
@@ -19,7 +19,6 @@ public struct AuthDataAssembler: DependencyAssembler {
     
     public func assemble(to container: any DependencyContainer) {
         registerPersistence(to: container)
-        registerNetwork(to: container)
         registerSocialAuth(to: container)
         registerAuthRepository(to: container)
     }
@@ -29,13 +28,14 @@ public struct AuthDataAssembler: DependencyAssembler {
 
 private extension AuthDataAssembler {
     func registerAuthRepository(to container: any DependencyContainer) {
+        let factory = container.resolve(NetworkingFactory.self)
         let authRepo = AuthRepositoryImpl(
             socialAuthService: container.resolve(SocialAuthService.self),
-            onboardingService: container.resolve(OnboardingService.self),
-            userService: container.resolve(UserService.self),
+            onboardingService: factory.makeOnboardingService(),
+            userService: factory.makeUserService(),
             notificationRepository: container.resolve(NotificationRepository.self),
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
-            tokenService: container.resolve(TokenService.self)
+            tokenStore: factory.makeTokenStore()
         )
         container.register(authRepo, for: AuthRepository.self)
     }
@@ -54,15 +54,5 @@ private extension AuthDataAssembler {
 private extension AuthDataAssembler {
     func registerSocialAuth(to container: any DependencyContainer) {
         container.register(SocialAuthService(), for: SocialAuthService.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension AuthDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(TokenServiceImpl(), for: TokenService.self)
-        container.register(UserService(), for: UserService.self)
-        container.register(OnboardingService(), for: OnboardingService.self)
     }
 }
