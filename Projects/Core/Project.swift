@@ -16,22 +16,6 @@ let project = Project.make(
             product: .framework
         ),
         .make(
-            target: .core(.livithNetwork),
-            product: .framework,
-            infoPlist: .file(path: "LivithNetwork/Resources/Network-Info.plist"),
-            dependencies: [
-                .external(.alamofire)
-            ],
-            settings: .environment
-        ),
-        .make(
-            target: .core(.livithNetworkTests),
-            product: .unitTests,
-            dependencies: [
-                .core(.livithNetwork)
-            ]
-        ),
-        .make(
             target: .core(.persistence),
             product: .framework,
             dependencies: [

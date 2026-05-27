@@ -19,7 +19,6 @@ let project = Project.make(
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),
-                .core(.livithNetwork),
                 .core(.persistence),
                 .shared(.preferenceFeature)
             ]

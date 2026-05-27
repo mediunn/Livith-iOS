@@ -60,7 +60,7 @@ public enum TargetID {
         case .app:
             return ["Sources/**"]
         case .core(let module):
-            return coreModuleTestSourcePath(module) ?? ["\(module.rawValue)/Sources/**"]
+            return ["\(module.rawValue)/Sources/**"]
         case .livithNetworking(let module):
             return livithNetworkingSourcePath(module)
         case .login:
@@ -116,15 +116,6 @@ public enum TargetID {
 // MARK: - Helpers
 
 private extension TargetID {
-    func coreModuleTestSourcePath(_ module: CoreModule) -> SourceFilesList? {
-        let testModuleMappings: [CoreModule: String] = [
-            .livithNetworkTests: "LivithNetwork"
-        ]
-
-        guard let parentModule = testModuleMappings[module] else { return nil }
-        return ["\(parentModule)/Tests/**"]
-    }
-
     func dataModuleTestSourcePath(_ module: DataModule) -> SourceFilesList? {
         let testModuleMappings: [DataModule: String] = [
             .authDataTests: "AuthData",
