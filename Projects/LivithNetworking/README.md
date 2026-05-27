@@ -1,14 +1,14 @@
 # LivithNetworking
 
-`LivithNetworking`은 기존 `LivithNetwork`를 바로 대체하지 않는 신규 네트워킹 모듈이다. 현재 단계에서는 외부 라이브러리 없이 `RequestBuilder`, transport, `ResponseHandler`, Keychain 기반 토큰 저장소, 인증 헤더 삽입, refresh token 기반 재발급, 401 refresh/retry, plugin 기반 요청/응답 생명주기 확장, ETag 기반 메모리 캐시 흐름까지 연결한다.
+`LivithNetworking`은 기존 `LivithNetwork`를 대체하는 URLSession 기반 네트워킹 모듈이다. 외부 라이브러리 없이 `RequestBuilder`, transport, `ResponseHandler`, Keychain 기반 토큰 저장소, 인증 헤더 삽입, refresh token 기반 재발급, 401 refresh/retry, plugin 기반 요청/응답 생명주기 확장, ETag 기반 메모리 캐시 흐름까지 연결한다.
+
+기존의 `*Service` 계층(thin wrapper)은 제거하고, `*API` 네임스페이스의 `static func`로 엔드포인트를 정의한다. Repository는 `NetworkClient`를 직접 주입받아 `networkClient.request(*API.method(...))` 형태로 호출한다.
 
 ## 현재 범위
 
 ```mermaid
 flowchart LR
     Done[구현 완료]
-    Out[현재 제외]
-    Next[후속 후보]
 
     Done --> Request[RequestBuilder]
     Done --> Response[ResponseHandler]
@@ -22,15 +22,10 @@ flowchart LR
     Done --> Plugin[NetworkPlugin]
     Done --> DebugPlugin[DebugNetworkPlugin]
     Done --> Cache[ETag 메모리 캐시]
-    Done --> Factory[NetworkingFactory]
+    Done --> Builder[NetworkClientBuilder]
+    Done --> API["*API 네임스페이스 (10종)"]
+    Done --> MockTransport[MockNetworkTransport]
     Done --> Logout[refresh 만료 시 앱 이벤트 전파]
-
-    Out --> DI[앱/데이터 레이어 DI 등록]
-    Out --> Migration[기존 LivithNetwork 대체]
-
-    Next --> DI
-    Next --> Migration
-    DI --> Migration
 ```
 
 ## 모듈 경계
@@ -40,35 +35,25 @@ flowchart LR
     App[App]
     Feature[Feature Modules]
     Data[Data Modules]
-    Legacy[LivithNetwork<br/>Alamofire 기반 기존 레이어]
-    New[LivithNetworking<br/>URLSession 기반 신규 모듈]
+    Net["LivithNetworking<br/>URLSession 기반 네트워크 모듈"]
 
     App --> Feature
     Feature --> Data
-    Data --> Legacy
-
-    New -.->|현재 단계에서는 독립 구현| Data
-    Legacy -.->|아직 수정하거나 대체하지 않음| New
+    Data --> Net
 ```
 
 ## 타입 관계
 
 ```mermaid
 classDiagram
-    class NetworkingFactory {
-        <<protocol>>
-        +config: NetworkConfig
-        +onAuthenticationExpired: () -&gt; Void
-    }
-
-    class NetworkingFactoryImpl {
-        +config: NetworkConfig
-        +onAuthenticationExpired: () -&gt; Void
+    class NetworkClientBuilder {
+        <<enum>>
+        +build(config, onAuthExpired, tokenStore)
     }
 
     class NetworkClient {
-        +requestValue(endpoint) T
-        +requestVoid(endpoint) Void
+        +request(endpoint) T
+        +request(endpoint) Void
     }
 
     class NetworkEndpoint {
@@ -76,8 +61,8 @@ classDiagram
         +method: HTTPMethod
         +task: RequestTask
         +headers: [String: String]
-        +requiresAuthentication: Bool
-        +etagCacheEnabled: Bool
+        +authentication: AuthenticationPolicy
+        +cache: CachePolicy
     }
 
     class RequestInterceptor {
@@ -144,33 +129,33 @@ classDiagram
         +refreshTokenIssuedAt: Date
     }
 
-    class ETagCacheHandler {
-        +key(request, endpoint)
-        +apply(request, key, skipsETag)
-        +handle(data, response, request, key)
-        +removeAll()
+    class MockNetworkTransport {
+        +data(for:) async
+        +request() URLRequest?
+        +requests() [URLRequest]
     }
 
-    class ETagCacheStore {
-        <<protocol>>
-        +value(key) ETagCacheEntry
-        +save(entry, key)
-        +remove(key)
-        +removeAll()
+    class SongAPI {
+        <<enum>>
+        +fetchLyrics(songID) NetworkEndpoint
+        +fetchFanchant(setlistID, songID) NetworkEndpoint
     }
 
-    class MemoryETagCacheStore {
-        +value(key) ETagCacheEntry
-        +save(entry, key)
-        +remove(key)
-        +removeAll()
+    class SetlistAPI {
+        <<enum>>
+        +fetchSetlistDetail(concertID, setlistID) NetworkEndpoint
+        +fetchSetlistSongList(setlistID) NetworkEndpoint
+        +fetchConcertMainSetlist(concertID) NetworkEndpoint
     }
 
+    NetworkClientBuilder --> NetworkClient : build
+    NetworkClientBuilder --> TokenStore
+    NetworkClientBuilder --> AuthInterceptor
+    NetworkClientBuilder --> TokenManagerImpl
+    NetworkClientBuilder --> TokenRefreshServiceImpl
     NetworkClient --> NetworkEndpoint
     NetworkClient --> RequestInterceptor
     NetworkClient --> NetworkPlugin
-    NetworkClient --> ETagCacheHandler
-    ETagCacheHandler --> ETagCacheStore
     AuthInterceptor ..|> RequestInterceptor
     DebugNetworkPlugin ..|> NetworkPlugin
     AuthInterceptor --> TokenManager
@@ -179,13 +164,9 @@ classDiagram
     TokenManagerImpl --> TokenRefreshService
     TokenRefreshServiceImpl ..|> TokenRefreshService
     TokenRefreshServiceImpl --> NetworkClient
-    MemoryETagCacheStore ..|> ETagCacheStore
     KeychainTokenStore ..|> TokenStore
     KeychainTokenStore --> Token
-    NetworkingFactoryImpl ..|> NetworkingFactory
-    NetworkingFactoryImpl --> NetworkClient
-    NetworkingFactoryImpl --> AuthInterceptor
-    NetworkingFactoryImpl --> TokenManagerImpl
+    MockNetworkTransport ..|> NetworkTransport
 ```
 
 ## 요청 흐름
@@ -357,138 +338,125 @@ flowchart TD
     Root[Projects/LivithNetworking]
     Sources[Sources]
     Tests[Tests]
-    Request[Sources/Request]
-    Response[Sources/Response]
-    Client[Sources/Client]
-    Interceptor[Sources/Interceptor]
-    Plugin[Sources/Plugin]
-    Cache[Sources/Cache]
-    Token[Sources/Token]
-    Service[Sources/Service]
-    Factory[Sources/Factory]
+    API[Sources/API]
+    Foundation[Sources/Foundation]
     DTO[Sources/DTO]
-    ClientTests[Tests/Client]
-    InterceptorTests[Tests/Interceptor]
-    PluginTests[Tests/Plugin]
-    TokenTests[Tests/Token]
-    FactoryTests[Tests/Factory]
+    Testing[Sources/Testing]
+    Service[Sources/Service]
 
     Root --> Sources
     Root --> Tests
-    Sources --> Request
-    Sources --> Response
-    Sources --> Client
-    Sources --> Interceptor
-    Sources --> Plugin
-    Sources --> Cache
-    Sources --> Token
-    Sources --> Service
-    Sources --> Factory
+    Sources --> API
+    Sources --> Foundation
     Sources --> DTO
-    Tests --> ClientTests
-    Tests --> InterceptorTests
-    Tests --> PluginTests
-    Tests --> TokenTests
-    Tests --> FactoryTests
+    Sources --> Testing
+    Sources --> Service
+
+    API --> SongAPI[SongAPI.swift]
+    API --> SetlistAPI[SetlistAPI.swift]
+    API --> ConcertAPI[ConcertAPI.swift]
+    API --> CommentAPI[CommentAPI.swift]
+    API --> HomeAPI[HomeAPI.swift]
+    API --> NotificationAPI[NotificationAPI.swift]
+    API --> OnboardingAPI[OnboardingAPI.swift]
+    API --> PreferenceAPI[PreferenceAPI.swift]
+    API --> SearchAPI[SearchAPI.swift]
+    API --> UserAPI[UserAPI.swift]
+
+    Foundation --> Client[Client]
+    Foundation --> Request[Request]
+    Foundation --> Response[Response]
+    Foundation --> Interceptor[Interceptor]
+    Foundation --> Plugin[Plugin]
+    Foundation --> Token[Token]
+    Foundation --> Helper[Helper]
 
     Client --> NetworkClient[NetworkClient.swift]
+    Client --> NetworkClientBuilder[NetworkClientBuilder.swift]
     Client --> NetworkError[NetworkError.swift]
-    Client --> Transport[NetworkTransport.swift]
-    Client --> Config[NetworkConfig.swift]
-    Client --> Attempt[RequestAttempt.swift]
+    Client --> NetworkTransport[NetworkTransport.swift]
+    Client --> NetworkConfig[NetworkConfig.swift]
+    Client --> RequestAttempt[RequestAttempt.swift]
 
-    Interceptor --> RequestInterceptor[RequestInterceptor.swift]
-    Interceptor --> AuthInterceptor[AuthInterceptor.swift]
-
-    Plugin --> NetworkPlugin[NetworkPlugin.swift]
-    Plugin --> DebugNetworkPlugin[DebugNetworkPlugin.swift]
-
-    Cache --> ETagHandler[ETagCacheHandler.swift]
-    Cache --> ETagEntry[ETagCacheEntry.swift]
-    Cache --> ETagStore[ETagCacheStore.swift]
-    Cache --> MemoryETagStore[MemoryETagCacheStore.swift]
-
-    Token --> TokenModel[Token.swift]
-    Token --> TokenError[TokenError.swift]
-    Token --> Expiration[TokenExpirationPolicy.swift]
-    Token --> TokenStoreFile[TokenStore.swift]
-    Token --> KeychainStorage[KeychainStorage.swift]
-    Token --> TokenManagerFile[TokenManager.swift]
-
+    Testing --> MockNetworkTransport[MockNetworkTransport.swift]
     Service --> TokenRefresh[TokenRefreshService.swift]
-
-    Factory --> NetworkingFactoryFile[NetworkingFactory.swift]
-
-    DTO --> DTOFile[DTO.swift]
-    DTO --> AuthToken[Auth/AuthToken.swift]
-
-    ClientTests --> NetworkClientTests[NetworkClientTests.swift]
-    InterceptorTests --> AuthInterceptorTests[AuthInterceptorTests.swift]
-    PluginTests --> NetworkPluginTests[NetworkPluginTests.swift]
-    PluginTests --> DebugNetworkPluginTests[DebugNetworkPluginTests.swift]
-    TokenTests --> TokenModelTests[TokenTests.swift]
-    TokenTests --> ExpirationTests[TokenExpirationPolicyTests.swift]
-    TokenTests --> KeychainStoreTests[KeychainTokenStoreTests.swift]
-    TokenTests --> TokenRefreshTests[TokenRefreshServiceTests.swift]
-    TokenTests --> TokenManagerTests[TokenManagerTests.swift]
-
-    FactoryTests --> NetworkingFactoryTestsFile[NetworkingFactoryTests.swift]
 ```
 
 ## 사용 형태
 
-### 비인증 또는 interceptor 없는 요청
+### NetworkClientBuilder로 생성 (권장)
+
+팩토리가 `NetworkClient` + `TokenStore`를 한 번에 생성한다. App에서 `NetworkClientBuilder.build()`로 조립 후 DI 컨테이너에 등록한다.
 
 ```swift
-let client = NetworkClient(
-    config: NetworkConfig(baseURL: baseURL)
+// App 진입점
+let config = NetworkConfig(baseURL: baseURL)
+let onAuthenticationExpired: @Sendable () -> Void = {
+    Task { @MainActor in
+        NotificationCenter.default.post(
+            name: Notification.Name("reloginRequired"),
+            object: nil
+        )
+    }
+}
+let (client, tokenStore) = NetworkClientBuilder.build(
+    config: config,
+    onAuthenticationExpired: onAuthenticationExpired
 )
+container.register(client, for: NetworkClient.self)
+container.register(tokenStore, for: TokenStore.self)
+```
 
+### DataAssembler에서 주입
+
+```swift
+// 각 DataAssembler에서 DI로 NetworkClient resolve
+func registerSongRepository(to container: any DependencyContainer) {
+    let client = container.resolve(NetworkClient.self)
+    let songRepo = SongRepositoryImpl(networkClient: client)
+    container.register(songRepo, for: SongRepository.self)
+}
+```
+
+### Repository에서 사용
+
+```swift
+struct SongRepositoryImpl: SongRepository {
+    private let networkClient: NetworkClient
+    private let mapper: SongMapper = .init()
+    private let errorMapper: SongErrorMapper = .init()
+
+    init(networkClient: NetworkClient) {
+        self.networkClient = networkClient
+    }
+
+    func fetchSongLyrics(songID: Int) async throws(SongError) -> SongLyrics {
+        do {
+            let response: DTO.Response.FetchSongLyrics = try await networkClient.request(
+                SongAPI.fetchSongLyrics(songID: songID)
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            throw errorMapper.mapToSongError(error)
+        }
+    }
+}
+```
+
+### 비인증 요청 (interceptor 없음)
+
+```swift
+let client = NetworkClient(config: NetworkConfig(baseURL: baseURL))
 let value: SomeResponse = try await client.request(endpoint)
 try await client.request(voidEndpoint)
 ```
 
-### 인증 요청
+### 테스트 (MockNetworkTransport)
 
 ```swift
-let config = NetworkConfig(baseURL: baseURL)
-let authInterceptor = AuthInterceptor(config: config)
-let client = NetworkClient(
-    config: config,
-    interceptor: authInterceptor
-)
-
-let value: SomeResponse = try await client.request(authenticatedEndpoint)
-```
-
-### 직접 조립 → 팩토리 사용 (권장)
-
-```swift
-// 앱 초기화 시점에 팩토리 생성
-let factory = NetworkingFactoryImpl(
-    config: NetworkConfig(baseURL: baseURL),
-    onAuthenticationExpired: {
-        // refresh 토큰까지 만료된 경우 앱으로 이벤트 전파
-        // 로그아웃 또는 재로그인 처리
-    }
-)
-
-// DI 컨테이너에 등록
-container.register(NetworkingFactory.self) { factory }
-
-// Repository에서 사용 (추후 도메인 서비스 구현 시)
-// let userService = factory.makeUserService()
-```
-
-### 직접 조립 (팩토리 사용 전)
-
-```swift
-// 팩토리 도입 전 직접 조립 방식 (내부 타입은 이제 암시적 internal)
-// let tokenStore: any TokenStore = KeychainTokenStore()
-// let tokenRefreshService = TokenRefreshServiceImpl(networkClient: refreshClient)
-// let tokenManager = TokenManagerImpl(tokenStore: tokenStore, tokenRefreshService: tokenRefreshService)
-// let authInterceptor = AuthInterceptor(tokenManager: tokenManager)
-// let client = NetworkClient(config: config, interceptor: authInterceptor)
+let transport = MockNetworkTransport(output: .success(data, response))
+let client = NetworkClient(config: config, transport: transport)
+let repo = SongRepositoryImpl(networkClient: client)
 ```
 
 ### 디버그 플러그인
@@ -509,23 +477,6 @@ let client = NetworkClient(
 ```
 
 `DebugNetworkPlugin`은 기본적으로 구분선과 모듈명을 포함한 로그 블록에 method, userinfo/query/fragment를 제거한 URL의 scheme/host/path, status code, 전송 실패 요약만 출력한다. query string, request/response body, request/response header 값은 출력하지 않는다.
-
-### ETag 캐시 opt-in
-
-```swift
-let endpoint = NetworkEndpoint(
-    path: "/concerts",
-    method: .get,
-    etagCacheEnabled: true
-)
-
-let value: SomeResponse = try await client.request(endpoint)
-
-// 로그아웃 또는 사용자 전환 시
-await client.removeAllETagCache()
-```
-
-ETag 캐시는 GET 요청에만 적용되며, 캐시는 `NetworkClient` 인스턴스의 메모리에만 유지된다. 앱 재실행 후 유지되지 않고, `URLCache`를 사용하지 않는다.
 
 ## 플러그인과 인터셉터 책임
 
@@ -557,12 +508,12 @@ flowchart TD
     Q[ETag 캐시는 endpoint Bool opt-in]
     R[ETag 캐시는 GET과 메모리 store만 사용]
     S[304 cache miss는 조건 없이 1회 fallback]
-    T["NetworkingFactory가 공유자원 초기화/소유"]
+    T["NetworkClientBuilder가 모든 조립 담당"]
     U["TokenManager가 refresh 만료 이벤트 핸들러 소유"]
     V["TokenRefreshService는 순수 API 호출만 담당"]
     W["순환 의존성 방지: 별도 NetworkClient 사용"]
-    X["TokenManager / TokenRefreshService / AuthInterceptor는 암시적 internal"]
-    Y["Factory는 struct로 구현 (불변 상태)"]
+    X["TokenManager / TokenRefreshService / AuthInterceptor는 internal"]
+    Y["NetworkClientBuilder는 enum + static func"]
     Z["onAuthenticationExpired는 @Sendable 클로저로 전파"]
     a1["NetworkTransport / NetworkClient / RequestBuilder / ResponseHandler는 Sendable 준수"]
 
@@ -576,6 +527,7 @@ flowchart TD
     Q --> R --> S
     T --> U --> V
     W --> X --> Y --> Z --> a1
+```
 ```
 
 ## LocalizedError 및 보안 정책
@@ -598,13 +550,3 @@ xcodebuild test -workspace Livith-iOS.xcworkspace -scheme LivithNetworking -dest
 git diff --check
 ```
 
-## 관련 문서
-
-- `docs/designs/LIVD-298-livith-networking-boundary.md`
-- `docs/designs/LIVD-298-livith-networking-basic-request.md`
-- `docs/designs/LIVD-298-livith-networking-response.md`
-- `docs/designs/LIVD-298-livith-networking-client.md`
-- `docs/designs/LIVD-395-livith-networking-token-store.md`
-- `docs/archives/LIVD-395-livith-networking-token-management.md`
-- `docs/archives/LIVD-395-livith-networking-token-management-troubleshooting.md`
-- `docs/archives/LIVD-399-networking-plugin.md`
