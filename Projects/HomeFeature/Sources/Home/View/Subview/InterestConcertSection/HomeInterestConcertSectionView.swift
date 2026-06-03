@@ -200,11 +200,11 @@ private extension HomeInterestConcertSectionView {
 
                 InterestConcertCardView(
                     posterURL: concert.posterURL,
-                    badgeText: InterestConcertDisplayText.badge(for: interestConcert),
-                    titleText: InterestConcertDisplayText.title(for: interestConcert),
-                    dateText: InterestConcertDisplayText.dateRange(for: interestConcert),
-                    locationText: InterestConcertDisplayText.venue(for: interestConcert),
-                    bottomText: InterestConcertDisplayText.bottom(for: interestConcert)
+                    badgeText: InterestConcertDisplayHelper.badge(for: interestConcert),
+                    titleText: InterestConcertDisplayHelper.title(for: interestConcert),
+                    dateText: InterestConcertDisplayHelper.dateRange(for: interestConcert),
+                    locationText: InterestConcertDisplayHelper.venue(for: interestConcert),
+                    bottomText: InterestConcertDisplayHelper.bottom(for: interestConcert)
                 )
                 .opacity(index == currentPage ? 1 : 0)
             }

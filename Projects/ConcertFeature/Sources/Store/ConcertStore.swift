@@ -205,7 +205,7 @@ private extension ConcertStore {
     }
 
     func formatDateRange(from concert: Concert) -> String {
-        ConcertDisplayText.dateRange(for: concert)
+        ConcertDisplayHelper.dateRange(for: concert)
     }
 
     func setInterestConcert() {

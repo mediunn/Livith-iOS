@@ -27,10 +27,10 @@ struct ConcertSectionView: View {
                     ForEach(concertSection.concertList) { concert in
                         LivithCard(
                             imageURL: concert.posterURL,
-                            title: ConcertDisplayText.title(for: concert),
-                            subtitle: ConcertDisplayText.dateRange(for: concert),
+                            title: ConcertDisplayHelper.title(for: concert),
+                            subtitle: ConcertDisplayHelper.dateRange(for: concert),
                             secondaryText: concert.artist,
-                            badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
+                            badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
                             onTap: { onConcertTap(concert) }
                         )
                     }

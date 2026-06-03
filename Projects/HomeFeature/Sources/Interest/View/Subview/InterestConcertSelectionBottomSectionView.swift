@@ -52,7 +52,7 @@ private extension InterestConcertSelectionBottomSectionView {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 8) {
                 ForEach(selectedConcertList) { concert in
-                    RemovableChip(truncatedTitle(for: ConcertDisplayText.title(for: concert))) {
+                    RemovableChip(truncatedTitle(for: ConcertDisplayHelper.title(for: concert))) {
                         onRemoveSelectedConcert(concert.id)
                     }
                 }

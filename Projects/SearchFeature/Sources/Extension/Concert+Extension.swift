@@ -13,6 +13,6 @@ import Domain
 
 extension Concert {
     var formattedStartDate: String {
-        ConcertDisplayText.dateRange(for: self)
+        ConcertDisplayHelper.dateRange(for: self)
     }
 }
