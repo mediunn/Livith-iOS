@@ -11,8 +11,8 @@ import SwiftUI
 import LivithDesignSystem
 import Domain
 import LoginFeature
-import Persistence
 import DIContainer
+import LivithNetwork
 
 struct AppRootView: View {
     @State private var currentRoute: AppRoute = .launch
@@ -20,6 +20,7 @@ struct AppRootView: View {
     @State private var showWelcomeSheet: Bool = false
     
     @Injected private var userRepository: UserRepository
+    @Injected private var tokenService: TokenService
     
     var body: some View {
         contentView
@@ -61,33 +62,22 @@ private extension AppRootView {
     }
     
     func handleOnAppear() {
-        if currentRoute != .launch { return }
+        guard currentRoute == .launch else { return }
         
-        let targetRoute: AppRoute
-        do {
-            let _: User = try UserDefaultsStorage().fetch(for: .currentUser)
-            targetRoute = .main
-
-            preloadUser()
-        } catch {
-            targetRoute = .login
-        }
-
         Task {
-            try? await Task.sleep(nanoseconds: UInt64(Constants.startupDelay * 1_000_000_000))
-            await MainActor.run { transition(to: targetRoute) }
+            do {
+                try await tokenService.refresh()
+                _ = try? await userRepository.fetchUser()
+                await MainActor.run { transition(to: .main) }
+            } catch {
+                await MainActor.run { transition(to: .login) }
+            }
         }
     }
     
     func transition(to route: AppRoute) {
         withAnimation(.easeInOut(duration: Constants.animationDuration)) {
             currentRoute = route
-        }
-    }
-    
-    func preloadUser() {
-        Task {
-            _ = try? await userRepository.fetchUser()
         }
     }
 }
@@ -97,6 +87,5 @@ private extension AppRootView {
 private extension AppRootView {
     enum Constants {
         static let animationDuration = 0.5
-        static let startupDelay: TimeInterval = 3.0
     }
 }
