@@ -9,7 +9,7 @@
 import Foundation
 
 struct Token: Equatable {
-    static let refreshTokenExpirationInterval: TimeInterval = 3 * 24 * 60 * 60
+    static let refreshTokenExpirationInterval: TimeInterval = 10 * 24 * 60 * 60
     
     let accessToken: String
     let refreshToken: String
