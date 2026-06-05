@@ -11,6 +11,7 @@ import SwiftUI
 import LivithDesignSystem
 import Domain
 import LoginFeature
+import Persistence
 import DIContainer
 import LivithNetwork
 
@@ -65,6 +66,12 @@ private extension AppRootView {
         guard currentRoute == .launch else { return }
         
         Task {
+            guard fetchLocalUser() != nil else {
+                try? await tokenService.removeToken()
+                await MainActor.run { transition(to: .login) }
+                return
+            }
+            
             do {
                 try await tokenService.refresh()
                 _ = try? await userRepository.fetchUser()
@@ -73,6 +80,10 @@ private extension AppRootView {
                 await MainActor.run { transition(to: .login) }
             }
         }
+    }
+    
+    func fetchLocalUser() -> User? {
+        try? UserDefaultsStorage().fetch(for: .currentUser)
     }
     
     func transition(to route: AppRoute) {
