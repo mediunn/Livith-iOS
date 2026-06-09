@@ -1,0 +1,45 @@
+//
+//  UpdateUserPreferredArtistList.swift
+//  LivithNetworking
+//
+//  Created by 김진웅 on 5/27/26.
+//  Copyright © 2026 Livith. All rights reserved.
+//
+
+// MARK: - 43. 유저 취향 아티스트 설정/변경
+
+import Foundation
+
+public extension DTO.Request {
+    struct UpdateUserPreferredArtistList: Encodable {
+        public let artistIDList: [Int]
+
+        public init(artistIDs: [Int]) {
+            self.artistIDList = artistIDs
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case artistIDList = "artistIds"
+        }
+    }
+}
+
+public extension DTO.Response {
+    typealias UpdateUserPreferredArtistList = [UpdatedUserPreferredArtist]
+
+    struct UpdatedUserPreferredArtist: Decodable {
+        public let id: Int
+        public let userID: Int
+        public let genreID: Int
+        public let name: String
+        public let imageURLString: String?
+
+        enum CodingKeys: String, CodingKey {
+            case id
+            case userID = "userId"
+            case genreID = "genreId"
+            case name
+            case imageURLString = "imgUrl"
+        }
+    }
+}

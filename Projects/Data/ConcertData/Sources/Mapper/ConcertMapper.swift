@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 import LivithFoundation
-import LivithNetwork
+import LivithNetworking
 
 struct ConcertMapper {
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist? {

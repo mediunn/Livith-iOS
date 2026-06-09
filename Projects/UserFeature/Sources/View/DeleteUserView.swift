@@ -91,13 +91,13 @@ struct DeleteUserView: View {
                     isConfirmed = false
                 }
             }
-            .onChange(of: store.state.deleteUserResult) { _, result in
+            .onChange(of: store.state.deleteUserResult) { result in
                 switch result {
                 case .idle:
                     break
                 case .success:
                     NotificationCenter.default.post(
-                        name: .reloginRequired,
+                        name: Notification.Name("reloginRequired"),
                         object: nil,
                         userInfo: ["toastMessage": Literals.deleteSuccessMessage]
                     )

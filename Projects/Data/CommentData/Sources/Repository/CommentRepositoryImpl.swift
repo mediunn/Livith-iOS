@@ -9,15 +9,15 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 struct CommentRepositoryImpl: CommentRepository {
-    private let commentService: CommentService
+    private let networkClient: NetworkClient
     private let mapper: CommentMapper = .init()
     private let errorMapper: CommentErrorMapper = .init()
     
-    init(commentService: CommentService) {
-        self.commentService = commentService
+    init(networkClient: NetworkClient) {
+        self.networkClient = networkClient
     }
     
     func fetchConcertComments(
@@ -26,8 +26,8 @@ struct CommentRepositoryImpl: CommentRepository {
         size: Int?
     ) async throws(CommentError) -> (comments: [ConcertComment], cursor: (createdAt: String, id: Int)?, totalCount: Int) {
         do {
-            let response: DTO.Response.FetchConcertCommentList = try await commentService.request(
-                .fetchConcertCommentList(concertID: concertID, cursor: cursor, size: size)
+            let response: DTO.Response.FetchConcertCommentList = try await networkClient.request(
+                CommentAPI.fetchConcertComments(concertID: concertID, cursor: cursor, size: size)
             )
             return mapper.toDomain(from: response)
         } catch {
@@ -37,8 +37,8 @@ struct CommentRepositoryImpl: CommentRepository {
     
     func createComment(concertID: Int, content: String) async throws(CommentError) -> ConcertComment {
         do {
-            let response: DTO.Response.CreateConcertComment = try await commentService.request(
-                .createComment(concertID: concertID, content: content)
+            let response: DTO.Response.CreateConcertComment = try await networkClient.request(
+                CommentAPI.createComment(concertID: concertID, content: content)
             )
             guard let comment = mapper.toDomain(from: response) else {
                 throw CommentError.invalidResponse
@@ -51,8 +51,8 @@ struct CommentRepositoryImpl: CommentRepository {
     
     func deleteComment(commentID: Int) async throws(CommentError) {
         do {
-            let _: DTO.Response.EmptyResponse = try await commentService.request(
-                .deleteComment(commentID: commentID)
+            try await networkClient.request(
+                CommentAPI.deleteComment(commentID: commentID)
             )
         } catch {
             throw errorMapper.mapToCommentError(error)
@@ -61,8 +61,8 @@ struct CommentRepositoryImpl: CommentRepository {
     
     func reportComment(commentID: Int, content: String?) async throws(CommentError) {
         do {
-            let _: DTO.Response.CreateCommentReport = try await commentService.request(
-                .reportComment(commentID: commentID, content: content)
+            let _: DTO.Response.CreateCommentReport = try await networkClient.request(
+                CommentAPI.reportComment(commentID: commentID, content: content)
             )
         } catch {
             throw errorMapper.mapToCommentError(error)

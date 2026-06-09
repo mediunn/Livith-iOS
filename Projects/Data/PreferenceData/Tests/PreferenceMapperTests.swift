@@ -10,7 +10,7 @@ import Testing
 import Foundation
 
 @testable import PreferenceData
-@testable import LivithNetwork
+@testable import LivithNetworking
 @testable import Domain
 
 @Suite("PreferenceMapper Tests")

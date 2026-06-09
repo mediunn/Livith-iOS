@@ -17,12 +17,12 @@ struct RequestBuilderTests {
     @Test("baseURL과 path의 slash를 정규화해 URL을 만들어야 한다")
     func baseURL과_path의_slash를_정규화해_URL을_만들어야_한다() throws {
         let sut = RequestBuilder()
-        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com/api/")))
+        let config = NetworkConfig(baseURL: try #require(URL(string: "https://api.example.com/")))
         let endpoint = NetworkEndpoint(path: "/concerts", method: .get)
 
         let request = try sut.make(endpoint: endpoint, config: config)
 
-        #expect(request.url?.absoluteString == "https://api.example.com/api/concerts")
+        #expect(request.url?.absoluteString == "https://api.example.com/api/v6/concerts")
     }
 
     @Test("query task는 URL query에 반영해야 한다")
@@ -39,7 +39,7 @@ struct RequestBuilderTests {
         let url = try #require(request.url)
         let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
 
-        #expect(components.path == "/search/concerts")
+        #expect(components.path == "/api/v6/search/concerts")
         #expect(components.queryItems == [URLQueryItem(name: "keyword", value: "livith")])
     }
 

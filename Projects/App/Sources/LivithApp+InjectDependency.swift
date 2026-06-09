@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import LivithNetworking
 import AuthData
 import CommentData
 import ConcertData
@@ -21,6 +22,8 @@ import PreferenceData
 
 extension LivithApp {
     func registerDependency() {
+        registerNetworkingClient()
+
         DIContainer.shared.register(
             assemblers: [
                 NotificationDataAssembler(),
@@ -34,5 +37,34 @@ extension LivithApp {
                 PreferenceDataAssembler()
             ]
         )
+    }
+}
+
+// MARK: - Networking Client Registration
+
+private extension LivithApp {
+    func registerNetworkingClient() {
+        guard let baseURLString = Bundle.main.infoDictionary?["BASE_URL"] as? String,
+              let baseURL = URL(string: baseURLString)
+        else {
+            fatalError("BASE_URL is missing or invalid in Info.plist")
+        }
+
+        let onAuthenticationExpired: @Sendable () -> Void = {
+            Task { @MainActor in
+                NotificationCenter.default.post(
+                    name: Notification.Name("reloginRequired"),
+                    object: nil
+                )
+            }
+        }
+
+        let config = NetworkConfig(baseURL: baseURL)
+        let (client, tokenManager) = NetworkClientBuilder.build(
+            config: config,
+            onAuthenticationExpired: onAuthenticationExpired
+        )
+        DIContainer.shared.register(client, for: NetworkClient.self)
+        DIContainer.shared.register(tokenManager, for: TokenManager.self)
     }
 }

@@ -8,7 +8,7 @@
 
 import XCTest
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 @testable import SongData
 
@@ -38,7 +38,7 @@ final class SongErrorMapperTests: XCTestCase {
 
     func test_서버_에러는_serverError로_변환되어야_한다() {
         // Given
-        let networkError = NetworkError.serverError(message: nil)
+        let networkError = NetworkError.serverError(statusCode: 500, message: nil)
 
         // When
         let result = sut.mapToSongError(networkError)

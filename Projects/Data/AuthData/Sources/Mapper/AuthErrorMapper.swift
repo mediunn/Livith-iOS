@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 struct AuthErrorMapper {
     func mapToAuthError(_ error: any Error) -> AuthError {
@@ -33,7 +33,11 @@ struct AuthErrorMapper {
             return .noConnection
         case .serverError:
             return .serverError
-        case .noData, .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
+        case .timeout:
+            return .noConnection
+        case .cancelled:
+            return .cancelled
+        case .noData, .decodingFailed, .encodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
             return .invalidResponse
         case .unauthorized, .forbidden, .notFound:
              // AuthError handles some specifics like .withdrawn, .recentlyWithdrawn via message mapping.
@@ -50,7 +54,7 @@ struct AuthErrorMapper {
              .unauthorized(let msg),
              .forbidden(let msg),
              .notFound(let msg),
-             .serverError(let msg),
+             .serverError(_, let msg),
              .clientError(_, let msg):
             return msg
         default:

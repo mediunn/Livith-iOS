@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 
 struct CommentErrorMapper {
@@ -33,11 +33,15 @@ struct CommentErrorMapper {
             return .noConnection
         case .serverError:
             return .serverError
+        case .timeout:
+            return .noConnection
+        case .cancelled:
+            return .cancelled
         case .noData:
             return .invalidResponse
         case .notFound:
             return .unknown
-        case .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
+        case .decodingFailed, .encodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
             return .invalidResponse
         case .unauthorized, .forbidden:
             return .forbidden
@@ -52,7 +56,7 @@ struct CommentErrorMapper {
              .unauthorized(let msg),
              .forbidden(let msg),
              .notFound(let msg),
-             .serverError(let msg),
+             .serverError(_, let msg),
              .clientError(_, let msg):
             return msg
         default:

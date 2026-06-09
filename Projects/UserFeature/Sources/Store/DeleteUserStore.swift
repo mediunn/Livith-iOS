@@ -10,7 +10,6 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
 
 enum DeleteUserReason: String, CaseIterable {
     case lackOfInfo = "원하는 정보가 부족하거나 없어요"

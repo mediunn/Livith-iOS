@@ -10,13 +10,12 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 
 public struct SetlistDataAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: any DependencyContainer) {
-        registerNetwork(to: container)
         registerSetlistRepository(to: container)
     }
 }
@@ -25,17 +24,10 @@ public struct SetlistDataAssembler: DependencyAssembler {
 
 private extension SetlistDataAssembler {
     func registerSetlistRepository(to container: any DependencyContainer) {
+        let client = container.resolve(NetworkClient.self)
         let setlistRepo = SetlistRepositoryImpl(
-            setlistService: container.resolve(SetlistService.self)
+            networkClient: client
         )
         container.register(setlistRepo, for: SetlistRepository.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension SetlistDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(SetlistService(), for: SetlistService.self)
     }
 }

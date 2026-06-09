@@ -17,7 +17,7 @@ struct TokenRefreshServiceTests {
     @Test("refresh 성공 응답은 Token으로 변환해야 한다")
     func refresh_성공_응답은_Token으로_변환해야_한다() async throws {
         let fixture = try HTTPTestResponseFactory()
-        let transport = TestNetworkTransport(output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)))
+        let transport = MockNetworkTransport(output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)))
         let sut = makeSUT(transport: transport)
 
         let startedAt = Date()
@@ -33,7 +33,7 @@ struct TokenRefreshServiceTests {
     @Test("refresh 요청은 인증 없이 POST auth refresh endpoint로 전송해야 한다")
     func refresh_요청은_인증_없이_POST_auth_refresh_endpoint로_전송해야_한다() async throws {
         let fixture = try HTTPTestResponseFactory()
-        let transport = TestNetworkTransport(output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)))
+        let transport = MockNetworkTransport(output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)))
         let sut = makeSUT(transport: transport)
 
         _ = try await sut.refresh(with: "test-refresh-token")
@@ -44,7 +44,7 @@ struct TokenRefreshServiceTests {
         let body = try JSONDecoder().decode(RefreshRequestBody.self, from: try #require(request.httpBody))
 
         #expect(request.httpMethod == "POST")
-        #expect(components.path == "/auth/refresh")
+        #expect(components.path == "/api/v6/auth/refresh")
         #expect(components.queryItems == [URLQueryItem(name: "client", value: "mobile")])
         #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
         #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
@@ -54,7 +54,7 @@ struct TokenRefreshServiceTests {
     @Test("refresh 실패 응답은 NetworkError로 전달해야 한다")
     func refresh_실패_응답은_NetworkError로_전달해야_한다() async throws {
         let fixture = try HTTPTestResponseFactory()
-        let transport = TestNetworkTransport(
+        let transport = MockNetworkTransport(
             output: .success(
                 fixture.errorData(statusCode: 401, message: "unauthorized"),
                 try fixture.response(statusCode: 401)
@@ -75,7 +75,7 @@ struct TokenRefreshServiceTests {
     @Test("동시 refresh 호출은 하나의 네트워크 요청을 공유해야 한다")
     func 동시_refresh_호출은_하나의_네트워크_요청을_공유해야_한다() async throws {
         let fixture = try HTTPTestResponseFactory()
-        let transport = TestNetworkTransport(
+        let transport = MockNetworkTransport(
             output: .success(try makeSuccessData(), try fixture.response(statusCode: 200)),
             delayNanoseconds: 100_000_000
         )

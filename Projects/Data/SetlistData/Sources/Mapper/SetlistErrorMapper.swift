@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 
 struct SetlistErrorMapper {
@@ -35,9 +35,13 @@ struct SetlistErrorMapper {
             return .noConnection
         case .serverError:
             return .serverError
+        case .timeout:
+            return .noConnection
+        case .cancelled:
+            return .cancelled
         case .noData, .notFound:
             return .notFound
-        case .decodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
+        case .decodingFailed, .encodingFailed, .invalidURL, .invalidRequest, .invalidResponse, .badRequest, .clientError:
             return .invalidResponse
         case .unauthorized, .forbidden, .unknown:
             return .unknown
@@ -50,7 +54,7 @@ struct SetlistErrorMapper {
              .unauthorized(let msg),
              .forbidden(let msg),
              .notFound(let msg),
-             .serverError(let msg),
+             .serverError(_, let msg),
              .clientError(_, let msg):
             return msg
         default:

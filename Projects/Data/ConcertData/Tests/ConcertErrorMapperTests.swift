@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 @testable import ConcertData
 
 struct ConcertErrorMapperTests {

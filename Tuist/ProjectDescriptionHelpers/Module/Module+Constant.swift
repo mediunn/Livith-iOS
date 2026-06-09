@@ -12,8 +12,6 @@ import ProjectDescription
 public enum CoreModule: String {
     case diContainer = "DIContainer"
     case persistence = "Persistence"
-    case livithNetwork = "LivithNetwork"
-    case livithNetworkTests = "LivithNetworkTests"
     case livithFoundation = "LivithFoundation"
     case socialAuth = "SocialAuth"
     case coordinator = "Coordinator"
@@ -132,7 +130,6 @@ public enum DesignSystemModule: String {
 // MARK: - External Dependency
 
 public enum ExternalDependency: String {
-    case alamofire = "Alamofire"
     case kingfisher = "Kingfisher"
     case kakaoSDKCommon = "KakaoSDKCommon"
     case kakaoSDKAuth = "KakaoSDKAuth"

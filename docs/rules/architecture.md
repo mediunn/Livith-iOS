@@ -31,7 +31,7 @@
 ### Repository 패턴
 - Domain 레이어에 Repository 프로토콜을 정의한다.
 - Data 레이어에 `*RepositoryImpl` struct로 구현한다.
-- Repository 구현체는 Service(네트워크), Cache(로컬 저장소), Mapper를 조합한다.
+- Repository 구현체는 NetworkClient, Cache(로컬 저장소), Mapper를 조합한다.
 
 ### Mapper 패턴
 - DTO → Domain Entity 변환은 Mapper struct에서 수행한다.
@@ -57,9 +57,8 @@
 - Assembler 등록은 App 진입점(`LivithApp`)에서 일괄 수행한다.
 
 ### 네트워크
-- `NetworkService<EndPoint>` 제네릭 클래스를 사용한다.
-- 각 Feature별로 Service 타입 별칭을 정의한다 (예: `typealias HomeService = NetworkService<HomeEndpoint>`).
-- API 요청 정의는 `NetworkEndpoint` 프로토콜을 채택한 enum으로 작성한다.
+- 각 도메인별 API 네임스페이스를 정의한다 (예: `HomeAPI`).
+- API 요청 정의는 `*API` 네임스페이스의 static func로 `NetworkEndpoint`를 생성한다.
 
 ### 비동기 작업 관리
 - Store 내부에서 `CancelID` enum으로 Task를 식별한다.

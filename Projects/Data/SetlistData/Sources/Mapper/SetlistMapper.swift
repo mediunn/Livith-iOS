@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 import LivithFoundation
 
 struct SetlistMapper {

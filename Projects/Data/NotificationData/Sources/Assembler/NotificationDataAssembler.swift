@@ -10,7 +10,7 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 import Persistence
 
 public struct NotificationDataAssembler: DependencyAssembler {
@@ -18,7 +18,6 @@ public struct NotificationDataAssembler: DependencyAssembler {
 
     public func assemble(to container: any DependencyContainer) {
         registerPersistence(to: container)
-        registerNetwork(to: container)
         registerNotificationRepository(to: container)
     }
 }
@@ -35,19 +34,12 @@ private extension NotificationDataAssembler {
 
 private extension NotificationDataAssembler {
     func registerNotificationRepository(to container: any DependencyContainer) {
+        let client = container.resolve(NetworkClient.self)
         let notificationRepo = NotificationRepositoryImpl(
-            notificationService: container.resolve(NotificationService.self),
+            networkClient: client,
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self)
         )
 
         container.register(notificationRepo, for: NotificationRepository.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension NotificationDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(NotificationService(), for: NotificationService.self)
     }
 }

@@ -10,7 +10,7 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetwork
+import LivithNetworking
 import Persistence
 
 public struct UserDataAssembler: DependencyAssembler {
@@ -18,7 +18,6 @@ public struct UserDataAssembler: DependencyAssembler {
     
     public func assemble(to container: any DependencyContainer) {
         registerPersistence(to: container)
-        registerNetwork(to: container)
         registerUserRepository(to: container)
     }
 }
@@ -27,10 +26,9 @@ public struct UserDataAssembler: DependencyAssembler {
 
 private extension UserDataAssembler {
     func registerUserRepository(to container: any DependencyContainer) {
+        let client = container.resolve(NetworkClient.self)
         let userRepo = UserRepositoryImpl(
-            onboardingService: container.resolve(OnboardingService.self),
-            homeService: container.resolve(HomeService.self),
-            userService: container.resolve(UserService.self),
+            networkClient: client,
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self)
         )
         
@@ -43,15 +41,5 @@ private extension UserDataAssembler {
 private extension UserDataAssembler {
     func registerPersistence(to container: any DependencyContainer) {
         container.register(UserDefaultsStorage(), for: UserDefaultsStorage.self)
-    }
-}
-
-// MARK: - Network Registration
-
-private extension UserDataAssembler {
-    func registerNetwork(to container: any DependencyContainer) {
-        container.register(HomeService(), for: HomeService.self)
-        container.register(UserService(), for: UserService.self)
-        container.register(OnboardingService(), for: OnboardingService.self)
     }
 }

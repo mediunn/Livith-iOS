@@ -8,7 +8,7 @@
 
 import XCTest
 
-import LivithNetwork
+import LivithNetworking
 import Domain
 @testable import ConcertData
 

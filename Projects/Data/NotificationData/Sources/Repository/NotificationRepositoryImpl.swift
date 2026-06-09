@@ -9,27 +9,27 @@
 import Foundation
 
 import Domain
-import LivithNetwork
+import LivithNetworking
 import Persistence
 
 struct NotificationRepositoryImpl: NotificationRepository {
-    private let notificationService: NotificationService
+    private let networkClient: NetworkClient
     private let userdefaultsStorage: UserDefaultsStorage
     private let mapper: NotificationMapper = .init()
     private let errorMapper: NotificationErrorMapper = .init()
 
     init(
-        notificationService: NotificationService,
+        networkClient: NetworkClient,
         userdefaultsStorage: UserDefaultsStorage
     ) {
-        self.notificationService = notificationService
+        self.networkClient = networkClient
         self.userdefaultsStorage = userdefaultsStorage
     }
 
     func fetchNotificationList(cursor: Int?, size: Int) async throws(NotificationError) -> [NotificationItem] {
         do {
-            let response: [DTO.Response.FetchNotificationList] = try await notificationService.request(
-                .fetchList(cursor: cursor, size: size)
+            let response: [DTO.Response.FetchNotificationList] = try await networkClient.request(
+                NotificationAPI.fetchList(cursor: cursor, size: size)
             )
             return response.map { mapper.toDomain(from: $0) }
         } catch {
@@ -40,8 +40,8 @@ struct NotificationRepositoryImpl: NotificationRepository {
 
     func markNotificationAsRead(id: Int) async throws(NotificationError) {
         do {
-            let _: DTO.Response.EmptyResponse = try await notificationService.request(
-                .markAsRead(id: id)
+            try await networkClient.request(
+                NotificationAPI.markAsRead(id: id)
             )
         } catch {
             let notificationError: NotificationError = errorMapper.mapToNotificationError(error)
@@ -51,8 +51,8 @@ struct NotificationRepositoryImpl: NotificationRepository {
 
     func fetchUnreadNotificationCount() async throws(NotificationError) -> Int {
         do {
-            let response: DTO.Response.FetchUnreadNotificationCount = try await notificationService.request(
-                .fetchUnreadCount
+            let response: DTO.Response.FetchUnreadNotificationCount = try await networkClient.request(
+                NotificationAPI.fetchUnreadCount()
             )
             return response.unreadCount
         } catch {
@@ -66,12 +66,8 @@ struct NotificationRepositoryImpl: NotificationRepository {
         isAgreed: Bool
     ) async throws(NotificationError) -> NotificationConsentResult {
         do {
-            let request = DTO.Request.UpdateNotificationConsent(
-                field: field.rawValue,
-                isAgreed: isAgreed
-            )
-            let response: DTO.Response.UpdateNotificationConsent = try await notificationService.request(
-                .updateConsent(request: request)
+            let response: DTO.Response.UpdateNotificationConsent = try await networkClient.request(
+                NotificationAPI.updateConsent(field: field.rawValue, isAgreed: isAgreed)
             )
             updateUserAuthority { user in
                 switch field {
@@ -98,8 +94,8 @@ struct NotificationRepositoryImpl: NotificationRepository {
 
     func updateMarketingConsent() async throws(NotificationError) -> NotificationConsentResult {
         do {
-            let response: DTO.Response.UpdateNotificationConsent = try await notificationService.request(
-                .updateMarketingConsent
+            let response: DTO.Response.UpdateNotificationConsent = try await networkClient.request(
+                NotificationAPI.updateMarketingConsent()
             )
             updateUserAuthority { user in
                 user.authority.marketingConsent = true
@@ -119,8 +115,8 @@ struct NotificationRepositoryImpl: NotificationRepository {
 
     func fetchNotificationSettings() async throws(NotificationError) -> NotificationSettings {
         do {
-            let response: DTO.Response.FetchNotificationSettings = try await notificationService.request(
-                .fetchSettings
+            let response: DTO.Response.FetchNotificationSettings = try await networkClient.request(
+                NotificationAPI.fetchSettings()
             )
             return mapper.toDomain(from: response)
         } catch {
@@ -131,9 +127,8 @@ struct NotificationRepositoryImpl: NotificationRepository {
 
     func registerFCMToken(_ token: String) async throws(NotificationError) {
         do {
-            let request = DTO.Request.RegisterFCMToken(token: token)
-            let _: DTO.Response.EmptyResponse = try await notificationService.request(
-                .registerFCMToken(request: request)
+            try await networkClient.request(
+                NotificationAPI.registerFCMToken(token: token)
             )
         } catch {
             let notificationError: NotificationError = errorMapper.mapToNotificationError(error)
@@ -143,9 +138,8 @@ struct NotificationRepositoryImpl: NotificationRepository {
 
     func deleteFCMToken(_ token: String) async throws(NotificationError) {
         do {
-            let request = DTO.Request.DeleteFCMToken(token: token)
-            let _: DTO.Response.EmptyResponse = try await notificationService.request(
-                .deleteFCMToken(request: request)
+            try await networkClient.request(
+                NotificationAPI.deleteFCMToken(token: token)
             )
         } catch {
             let notificationError: NotificationError = errorMapper.mapToNotificationError(error)

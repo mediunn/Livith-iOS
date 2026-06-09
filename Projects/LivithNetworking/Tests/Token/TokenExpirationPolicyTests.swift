@@ -14,20 +14,20 @@ import Testing
 
 @Suite("TokenExpirationPolicy")
 struct TokenExpirationPolicyTests {
-    @Test("refresh token 발급 후 3일 초과 시 만료로 판단해야 한다")
-    func refresh_token_발급_후_3일_초과_시_만료로_판단해야_한다() {
+    @Test("refresh token 발급 후 14일 초과 시 만료로 판단해야 한다")
+    func refresh_token_발급_후_14일_초과_시_만료로_판단해야_한다() {
         let sut = TokenExpirationPolicy.default
         let issuedAt = Date(timeIntervalSince1970: 1_700_000_000)
-        let now = issuedAt.addingTimeInterval(3 * 24 * 60 * 60 + 1)
+        let now = issuedAt.addingTimeInterval(14 * 24 * 60 * 60 + 1)
 
         #expect(sut.isRefreshTokenExpired(issuedAt: issuedAt, now: now))
     }
 
-    @Test("refresh token 발급 후 3일 이하이면 만료가 아니어야 한다")
-    func refresh_token_발급_후_3일_이하이면_만료가_아니어야_한다() {
+    @Test("refresh token 발급 후 14일 이하이면 만료가 아니어야 한다")
+    func refresh_token_발급_후_14일_이하이면_만료가_아니어야_한다() {
         let sut = TokenExpirationPolicy.default
         let issuedAt = Date(timeIntervalSince1970: 1_700_000_000)
-        let now = issuedAt.addingTimeInterval(3 * 24 * 60 * 60)
+        let now = issuedAt.addingTimeInterval(14 * 24 * 60 * 60)
 
         #expect(!sut.isRefreshTokenExpired(issuedAt: issuedAt, now: now))
     }
