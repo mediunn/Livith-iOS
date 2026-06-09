@@ -73,6 +73,7 @@ Tuist/.build
 .opencode/
 .github/instructions/
 .github/copilot-instructions.md
+.pi/
 
 ### Config ###
 *.xcconfig
