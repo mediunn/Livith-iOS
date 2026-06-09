@@ -60,11 +60,11 @@ private extension LivithApp {
         }
 
         let config = NetworkConfig(baseURL: baseURL)
-        let (client, tokenStore) = NetworkClientBuilder.build(
+        let (client, tokenManager) = NetworkClientBuilder.build(
             config: config,
             onAuthenticationExpired: onAuthenticationExpired
         )
         DIContainer.shared.register(client, for: NetworkClient.self)
-        DIContainer.shared.register(tokenStore, for: TokenStore.self)
+        DIContainer.shared.register(tokenManager, for: TokenManager.self)
     }
 }

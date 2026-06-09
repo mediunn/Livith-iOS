@@ -10,9 +10,13 @@ import Foundation
 
 // MARK: - TokenManager
 
-protocol TokenManager: Sendable {
+public protocol TokenManager: Sendable {
     func accessToken() async throws(NetworkError) -> String
+    func refreshToken() async throws(NetworkError) -> String
     func refresh() async throws(NetworkError)
+    func save(_ token: Token) async throws(NetworkError)
+    func remove() async throws(NetworkError)
+    func isTokenValid() async -> Bool
 }
 
 // MARK: - TokenManagerImpl
@@ -36,7 +40,15 @@ actor TokenManagerImpl: TokenManager {
     func accessToken() async throws(NetworkError) -> String {
         do {
             return try await tokenStore.fetch().accessToken
-        } catch let error {
+        } catch {
+            throw mapFetchError(error)
+        }
+    }
+
+    func refreshToken() async throws(NetworkError) -> String {
+        do {
+            return try await tokenStore.fetch().refreshToken
+        } catch {
             throw mapFetchError(error)
         }
     }
@@ -54,6 +66,26 @@ actor TokenManagerImpl: TokenManager {
         defer { refreshTask = nil }
 
         try await value(from: task)
+    }
+
+    func save(_ token: Token) async throws(NetworkError) {
+        do {
+            try await tokenStore.save(token)
+        } catch {
+            throw mapSaveError(error)
+        }
+    }
+
+    func remove() async throws(NetworkError) {
+        do {
+            try await tokenStore.remove()
+        } catch {
+            throw mapRemoveError(error)
+        }
+    }
+
+    func isTokenValid() async -> Bool {
+        await !tokenStore.isRefreshTokenExpired()
     }
 }
 
@@ -101,6 +133,10 @@ private extension TokenManagerImpl {
     }
 
     func mapSaveError(_ error: TokenError) -> NetworkError {
+        .unknown(error)
+    }
+
+    func mapRemoveError(_ error: TokenError) -> NetworkError {
         .unknown(error)
     }
 }

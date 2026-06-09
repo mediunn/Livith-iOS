@@ -19,7 +19,7 @@ struct AuthRepositoryImpl: AuthRepository {
     private let networkClient: NetworkClient
     private let notificationRepository: NotificationRepository
     private let userdefaultsStorage: UserDefaultsStorage
-    private let tokenStore: any TokenStore
+    private let tokenManager: any TokenManager
     private let mapper: AuthMapper = .init()
     private let errorMapper: AuthErrorMapper = .init()
 
@@ -28,13 +28,13 @@ struct AuthRepositoryImpl: AuthRepository {
         networkClient: NetworkClient,
         notificationRepository: NotificationRepository,
         userdefaultsStorage: UserDefaultsStorage,
-        tokenStore: any TokenStore
+        tokenManager: any TokenManager
     ) {
         self.socialAuthService = socialAuthService
         self.networkClient = networkClient
         self.notificationRepository = notificationRepository
         self.userdefaultsStorage = userdefaultsStorage
-        self.tokenStore = tokenStore
+        self.tokenManager = tokenManager
     }
     
     func withdraw(reason: String) async throws(AuthError) {
@@ -51,7 +51,7 @@ struct AuthRepositoryImpl: AuthRepository {
     
     func logout() async throws(AuthError) {
         do {
-            let refreshToken = try await tokenStore.fetch().refreshToken
+            let refreshToken = try await tokenManager.refreshToken()
             let _: DTO.Response.RequestLogout = try await networkClient.request(
                 UserAPI.logout(refreshToken: refreshToken)
             )
@@ -159,7 +159,7 @@ private extension AuthRepositoryImpl {
     
     func handleLogout() async {
         await deleteFCMToken()
-        try? await tokenStore.remove()
+        try? await tokenManager.remove()
         userdefaultsStorage.remove(for: .currentUser)
     }
 
@@ -174,7 +174,7 @@ private extension AuthRepositoryImpl {
     }
     
     func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws {
-        try await tokenStore.save(Token(
+        try await tokenManager.save(Token(
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
             refreshTokenIssuedAt: Date()
@@ -208,7 +208,7 @@ private extension AuthRepositoryImpl {
                 throw AuthError.invalidResponse
             }
 
-            try await tokenStore.save(Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: Date()))
+            try await tokenManager.save(Token(accessToken: accessToken, refreshToken: refreshToken, refreshTokenIssuedAt: Date()))
 
             try? userdefaultsStorage.save(provider.description, for: .lastLoginPlatform)
 

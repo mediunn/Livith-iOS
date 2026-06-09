@@ -153,16 +153,19 @@ private extension AuthInterceptorTests {
 
     actor SpyTokenManager: TokenManager {
         private let accessTokenValue: String
+        private let refreshTokenValue: String
         private let accessTokenError: NetworkError?
         private let refreshError: NetworkError?
         private var refreshCount = 0
 
         init(
             accessToken: String = "test-access-token",
+            refreshToken: String = "test-refresh-token",
             accessTokenError: NetworkError? = nil,
             refreshError: NetworkError? = nil
         ) {
             accessTokenValue = accessToken
+            refreshTokenValue = refreshToken
             self.accessTokenError = accessTokenError
             self.refreshError = refreshError
         }
@@ -175,12 +178,24 @@ private extension AuthInterceptorTests {
             return accessTokenValue
         }
 
+        func refreshToken() async throws(NetworkError) -> String {
+            return refreshTokenValue
+        }
+
         func refresh() async throws(NetworkError) {
             refreshCount += 1
 
             if let refreshError {
                 throw refreshError
             }
+        }
+
+        func save(_ token: Token) async throws(NetworkError) {}
+
+        func remove() async throws(NetworkError) {}
+
+        func isTokenValid() async -> Bool {
+            return true
         }
 
         func refreshCallCount() -> Int {

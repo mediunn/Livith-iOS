@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - TokenStore
 
-public protocol TokenStore: Sendable {
+protocol TokenStore: Sendable {
     func save(_ token: Token) async throws(TokenError)
     func fetch() async throws(TokenError) -> Token
     func remove() async throws(TokenError)
@@ -19,9 +19,9 @@ public protocol TokenStore: Sendable {
 
 // MARK: - KeychainTokenStore
 
-public actor KeychainTokenStore: TokenStore {
-    public static let defaultService = "com.livith.livith-networking.token-store"
-    public static let defaultAccount = "token"
+actor KeychainTokenStore: TokenStore {
+    static let defaultService = "com.livith.livith-networking.token-store"
+    static let defaultAccount = "token"
 
     private let service: String
     private let account: String
@@ -30,7 +30,7 @@ public actor KeychainTokenStore: TokenStore {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
-    public init(
+    init(
         service: String = KeychainTokenStore.defaultService,
         account: String = KeychainTokenStore.defaultAccount
     ) {
@@ -56,7 +56,7 @@ public actor KeychainTokenStore: TokenStore {
         self.decoder = Self.makeDecoder()
     }
 
-    public func save(_ token: Token) async throws(TokenError) {
+    func save(_ token: Token) async throws(TokenError) {
         let data = try encode(token)
 
         do {
@@ -66,7 +66,7 @@ public actor KeychainTokenStore: TokenStore {
         }
     }
 
-    public func fetch() async throws(TokenError) -> Token {
+    func fetch() async throws(TokenError) -> Token {
         let data: Data
         do {
             data = try keychainStorage.load(service: service, account: account)
@@ -79,7 +79,7 @@ public actor KeychainTokenStore: TokenStore {
         return try decode(data)
     }
 
-    public func remove() async throws(TokenError) {
+    func remove() async throws(TokenError) {
         do {
             try keychainStorage.delete(service: service, account: account)
         } catch .itemNotFound {
@@ -89,7 +89,7 @@ public actor KeychainTokenStore: TokenStore {
         }
     }
 
-    public func isRefreshTokenExpired() async -> Bool {
+    func isRefreshTokenExpired() async -> Bool {
         guard let token = try? await fetch() else { return true }
 
         return expirationPolicy.isRefreshTokenExpired(

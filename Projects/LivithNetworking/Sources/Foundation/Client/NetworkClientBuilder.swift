@@ -11,9 +11,9 @@ import Foundation
 public enum NetworkClientBuilder {
     public static func build(
         config: NetworkConfig,
-        onAuthenticationExpired: @Sendable @escaping () -> Void = {},
-        tokenStore: any TokenStore = KeychainTokenStore()
-    ) -> (client: NetworkClient, tokenStore: any TokenStore) {
+        onAuthenticationExpired: @Sendable @escaping () -> Void = {}
+    ) -> (client: NetworkClient, tokenManager: any TokenManager) {
+        let tokenStore = KeychainTokenStore()
         let refreshClient = NetworkClient(config: config, interceptor: nil)
 
         let tokenRefreshService = TokenRefreshServiceImpl(
@@ -32,6 +32,6 @@ public enum NetworkClientBuilder {
             plugins: [DebugNetworkPlugin()]
         )
 
-        return (client: client, tokenStore: tokenStore)
+        return (client: client, tokenManager: tokenManager)
     }
 }

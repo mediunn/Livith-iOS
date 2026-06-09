@@ -164,6 +164,91 @@ struct TokenManagerTests {
         #expect(await tokenRefreshService.refreshTokenList() == ["stored-refresh-token"])
         #expect(await tokenStore.savedTokenList() == [makeRefreshedToken()])
     }
+
+    @Test("refreshToken은 저장된 refresh token을 반환해야 한다")
+    func refreshToken은_저장된_refresh_token을_반환해야_한다() async throws {
+        let tokenStore = SpyTokenStore(token: makeStoredToken())
+        let sut = makeSUT(tokenStore: tokenStore)
+
+        let refreshToken = try await sut.refreshToken()
+
+        #expect(refreshToken == "stored-refresh-token")
+        #expect(await tokenStore.fetchCallCount() == 1)
+    }
+
+    @Test("refreshToken의 저장 토큰 조회 실패는 unauthorized로 매핑해야 한다")
+    func refreshToken의_저장_토큰_조회_실패는_unauthorized로_매핑해야_한다() async throws {
+        let tokenStore = SpyTokenStore(fetchError: .noToken)
+        let sut = makeSUT(tokenStore: tokenStore)
+
+        do {
+            _ = try await sut.refreshToken()
+            #expect(Bool(false))
+        } catch .unauthorized(let message) {
+            #expect(message == nil)
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("save는 토큰을 저장해야 한다")
+    func save는_토큰을_저장해야_한다() async throws {
+        let tokenStore = SpyTokenStore()
+        let sut = makeSUT(tokenStore: tokenStore)
+        let token = makeStoredToken()
+
+        try await sut.save(token)
+
+        #expect(await tokenStore.savedTokenList() == [token])
+    }
+
+    @Test("save 실패는 unknown으로 매핑해야 한다")
+    func save_실패는_unknown으로_매핑해야_한다() async throws {
+        let tokenStore = SpyTokenStore(saveError: .saveFailed)
+        let sut = makeSUT(tokenStore: tokenStore)
+
+        do {
+            try await sut.save(makeStoredToken())
+            #expect(Bool(false))
+        } catch .unknown(let error) {
+            guard case .saveFailed = error as? TokenError else {
+                Issue.record("저장 실패 원본 TokenError를 보존해야 한다")
+                return
+            }
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test("remove는 토큰을 삭제해야 한다")
+    func remove는_토큰을_삭제해야_한다() async throws {
+        let tokenStore = SpyTokenStore()
+        let sut = makeSUT(tokenStore: tokenStore)
+
+        try await sut.remove()
+
+        #expect(await tokenStore.removeCallCount() == 1)
+    }
+
+    @Test("isTokenValid는 토큰이 만료되지 않았으면 true를 반환해야 한다")
+    func isTokenValid는_토큰이_만료되지_않았으면_true를_반환해야_한다() async throws {
+        let tokenStore = SpyTokenStore(isExpired: false)
+        let sut = makeSUT(tokenStore: tokenStore)
+
+        let result = await sut.isTokenValid()
+
+        #expect(result == true)
+    }
+
+    @Test("isTokenValid는 토큰이 만료되었으면 false를 반환해야 한다")
+    func isTokenValid는_토큰이_만료되었으면_false를_반환해야_한다() async throws {
+        let tokenStore = SpyTokenStore(isExpired: true)
+        let sut = makeSUT(tokenStore: tokenStore)
+
+        let result = await sut.isTokenValid()
+
+        #expect(result == false)
+    }
 }
 
 private extension TokenManagerTests {
@@ -199,17 +284,24 @@ private extension TokenManagerTests {
         private let token: Token?
         private let fetchError: TokenError?
         private let saveError: TokenError?
+        private let removeError: TokenError?
+        private let isExpired: Bool
         private var fetchCount = 0
+        private var removeCount = 0
         private var savedTokenListValue: [Token] = []
 
         init(
             token: Token? = nil,
             fetchError: TokenError? = nil,
-            saveError: TokenError? = nil
+            saveError: TokenError? = nil,
+            removeError: TokenError? = nil,
+            isExpired: Bool = false
         ) {
             self.token = token
             self.fetchError = fetchError
             self.saveError = saveError
+            self.removeError = removeError
+            self.isExpired = isExpired
         }
 
         func save(_ token: Token) async throws(TokenError) {
@@ -234,14 +326,23 @@ private extension TokenManagerTests {
             return token
         }
 
-        func remove() async throws(TokenError) {}
+        func remove() async throws(TokenError) {
+            removeCount += 1
+            if let removeError {
+                throw removeError
+            }
+        }
 
         func isRefreshTokenExpired() async -> Bool {
-            false
+            isExpired
         }
 
         func fetchCallCount() -> Int {
             fetchCount
+        }
+
+        func removeCallCount() -> Int {
+            removeCount
         }
 
         func savedTokenList() -> [Token] {

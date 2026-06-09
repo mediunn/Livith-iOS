@@ -13,7 +13,7 @@ import Domain
 import LoginFeature
 import Persistence
 import DIContainer
-import LivithNetwork
+import LivithNetworking
 
 struct AppRootView: View {
     @State private var currentRoute: AppRoute = .launch
@@ -21,7 +21,7 @@ struct AppRootView: View {
     @State private var showWelcomeSheet: Bool = false
     
     @Injected private var userRepository: UserRepository
-    @Injected private var tokenService: TokenService
+    @Injected private var tokenManager: TokenManager
     
     var body: some View {
         contentView
@@ -67,13 +67,13 @@ private extension AppRootView {
         
         Task {
             guard fetchLocalUser() != nil else {
-                try? await tokenService.removeToken()
+                try? await tokenManager.remove()
                 await MainActor.run { transition(to: .login) }
                 return
             }
             
             do {
-                try await tokenService.refresh()
+                try await tokenManager.refresh()
                 _ = try? await userRepository.fetchUser()
                 await MainActor.run { transition(to: .main) }
             } catch {
