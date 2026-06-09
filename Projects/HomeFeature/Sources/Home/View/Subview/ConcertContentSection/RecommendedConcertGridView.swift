@@ -59,10 +59,10 @@ private extension RecommendedConcertGridView {
     func concertCard(for concert: Concert) -> some View {
         LivithCard(
             imageURL: concert.posterURL,
-            title: ConcertDisplayText.title(for: concert),
-            subtitle: ConcertDisplayText.dateRange(for: concert),
+            title: ConcertDisplayHelper.title(for: concert),
+            subtitle: ConcertDisplayHelper.dateRange(for: concert),
             secondaryText: concert.artist,
-            badge: .status(text: ConcertDisplayText.statusBadge(for: concert), remainDays: nil),
+            badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
             onTap: {
                 AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
                 coordinator?.showConcertDetail(concertID: concert.id)

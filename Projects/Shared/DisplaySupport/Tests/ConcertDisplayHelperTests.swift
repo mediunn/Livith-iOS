@@ -1,5 +1,5 @@
 //
-//  ConcertDisplayTextTests.swift
+//  ConcertDisplayHelperTests.swift
 //  DisplaySupportTests
 //
 //  Created by 김진웅 on 4/29/26.
@@ -13,14 +13,14 @@ import Domain
 
 import Testing
 
-struct ConcertDisplayTextTests {
+struct ConcertDisplayHelperTests {
     @Test("공연명이 없으면 아티스트 내한 예정 문구를 표시해야 한다")
     func 공연명이_없으면_아티스트_내한_예정_문구를_표시해야_한다() {
         // Given
         let concert = makeConcert(title: nil)
 
         // When
-        let title = ConcertDisplayText.title(for: concert)
+        let title = ConcertDisplayHelper.title(for: concert)
 
         // Then
         #expect(title == "Taylor Swift 내한 예정")
@@ -32,7 +32,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(title: "  ")
 
         // When
-        let title = ConcertDisplayText.title(for: concert)
+        let title = ConcertDisplayHelper.title(for: concert)
 
         // Then
         #expect(title == "Taylor Swift 내한 예정")
@@ -44,7 +44,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(venue: nil)
 
         // When
-        let venue = ConcertDisplayText.venue(for: concert)
+        let venue = ConcertDisplayHelper.venue(for: concert)
 
         // Then
         #expect(venue == "장소 공개 예정")
@@ -56,7 +56,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(venue: "  ")
 
         // When
-        let venue = ConcertDisplayText.venue(for: concert)
+        let venue = ConcertDisplayHelper.venue(for: concert)
 
         // Then
         #expect(venue == "장소 공개 예정")
@@ -68,7 +68,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(startDate: nil)
 
         // When
-        let dateRange = ConcertDisplayText.dateRange(for: concert)
+        let dateRange = ConcertDisplayHelper.dateRange(for: concert)
 
         // Then
         #expect(dateRange == "추후 발표")
@@ -80,7 +80,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(daysLeft: nil)
 
         // When
-        let daysLeft = ConcertDisplayText.daysLeft(for: concert)
+        let daysLeft = ConcertDisplayHelper.daysLeft(for: concert)
 
         // Then
         #expect(daysLeft == "공연 예정")
@@ -92,7 +92,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(daysLeft: nil)
 
         // When
-        let badge = ConcertDisplayText.statusBadge(for: concert)
+        let badge = ConcertDisplayHelper.statusBadge(for: concert)
 
         // Then
         #expect(badge == "공연 예정")
@@ -104,7 +104,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(daysLeft: 7)
 
         // When
-        let badge = ConcertDisplayText.statusBadge(for: concert)
+        let badge = ConcertDisplayHelper.statusBadge(for: concert)
 
         // Then
         #expect(badge == "D-7")
@@ -116,7 +116,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(status: .completed, daysLeft: nil)
 
         // When
-        let badge = ConcertDisplayText.statusBadge(for: concert)
+        let badge = ConcertDisplayHelper.statusBadge(for: concert)
 
         // Then
         #expect(badge == "종료")
@@ -128,7 +128,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(daysLeft: 0)
 
         // When
-        let daysLeft = ConcertDisplayText.daysLeft(for: concert)
+        let daysLeft = ConcertDisplayHelper.daysLeft(for: concert)
 
         // Then
         #expect(daysLeft == "진행중")
@@ -140,7 +140,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(status: .upcoming, daysLeft: 0)
 
         // When
-        let badge = ConcertDisplayText.statusBadge(for: concert)
+        let badge = ConcertDisplayHelper.statusBadge(for: concert)
 
         // Then
         #expect(badge == "진행중")
@@ -152,7 +152,7 @@ struct ConcertDisplayTextTests {
         let concert = makeConcert(daysLeft: 7)
 
         // When
-        let daysLeft = ConcertDisplayText.daysLeft(for: concert)
+        let daysLeft = ConcertDisplayHelper.daysLeft(for: concert)
 
         // Then
         #expect(daysLeft == "D-7")
@@ -161,14 +161,14 @@ struct ConcertDisplayTextTests {
     @Test("예매 일정이 없으면 예매 오픈 예정 문구를 표시해야 한다")
     func 예매_일정이_없으면_예매_오픈_예정_문구를_표시해야_한다() {
         // When
-        let ticketingDate = ConcertDisplayText.ticketingDate(nil)
+        let ticketingDate = ConcertDisplayHelper.ticketingDate(nil)
 
         // Then
         #expect(ticketingDate == "예매 오픈 예정")
     }
 }
 
-private extension ConcertDisplayTextTests {
+private extension ConcertDisplayHelperTests {
     func makeConcert(
         title: String? = "Taylor Swift | The Eras Tour",
         status: ConcertStatus = .upcoming,
