@@ -116,8 +116,6 @@ struct DebugNetworkPluginTests {
         #expect(message.contains("***"))
     }
 
-    // MARK: - 새 출력 형식 (실패 예상)
-
     @Test("요청 로그는 REQUEST 블록 멀티라인 포맷으로 출력해야 한다")
     func 요청_로그는_REQUEST_블록_멀티라인_포맷으로_출력해야_한다() async throws {
         let recorder = OutputRecorder()
