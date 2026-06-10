@@ -34,7 +34,8 @@ public enum HomeAPI {
             path: "/users/interest-concerts",
             method: .get,
             task: .query(queryItems),
-            authentication: .required
+            authentication: .required,
+            cache: .enabled
         )
     }
 
