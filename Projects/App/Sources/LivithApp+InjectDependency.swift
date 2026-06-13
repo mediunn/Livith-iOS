@@ -60,7 +60,7 @@ private extension LivithApp {
         }
 
         let config = NetworkConfig(baseURL: baseURL)
-        let (client, tokenManager) = NetworkClientBuilder.build(
+        let (client, tokenManager) = NetworkingFactory.build(
             config: config,
             onAuthenticationExpired: onAuthenticationExpired
         )

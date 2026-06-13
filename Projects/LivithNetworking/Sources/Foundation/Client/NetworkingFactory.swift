@@ -1,5 +1,5 @@
 //
-//  NetworkClientBuilder.swift
+//  NetworkingFactory.swift
 //  LivithNetworking
 //
 //  Created by 김진웅 on 5/27/26.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum NetworkClientBuilder {
+public enum NetworkingFactory {
     public static func build(
         config: NetworkConfig,
         onAuthenticationExpired: @Sendable @escaping () -> Void = {}
@@ -26,10 +26,16 @@ public enum NetworkClientBuilder {
             onRefreshTokenExpired: onAuthenticationExpired
         )
 
+        #if DEBUG
+        let plugins: [any NetworkPlugin] = [DebugNetworkPlugin()]
+        #else
+        let plugins: [any NetworkPlugin] = []
+        #endif
+
         let client = NetworkClient(
             config: config,
             interceptor: AuthInterceptor(tokenManager: tokenManager),
-            plugins: [DebugNetworkPlugin()]
+            plugins: plugins
         )
 
         return (client: client, tokenManager: tokenManager)
