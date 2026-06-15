@@ -27,7 +27,7 @@ struct LoginView: View {
     }
     
     @StateObject private var store = LoginStore()
-    @Environment(\.loginCoordinator) private var coordinator
+    @EnvironmentObject private var router: LoginRouter
     
     var body: some View {
         contentView
@@ -133,9 +133,9 @@ private extension LoginView {
     func handleLoginSuccess(_ status: LoginStatus) {
         switch status {
         case .existingUser:
-            coordinator?.completeLogin()
+            router.completeLogin()
         case .newUser(let tempUser):
-            coordinator?.push(to: .terms(tempUser))
+            router.push(.terms(tempUser))
         }
     }
 }

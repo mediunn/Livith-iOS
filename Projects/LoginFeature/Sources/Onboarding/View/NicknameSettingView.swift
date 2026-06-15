@@ -13,7 +13,7 @@ import LivithDesignSystem
 import NicknameEditFeature
 
 struct NicknameSettingView: View {
-    @Environment(\.loginCoordinator) private var coordinator
+    @EnvironmentObject private var router: LoginRouter
 
     @State private var isSignupFailureModalPresented: Bool = false
     @State private var signupFailureMessage: String = ""
@@ -26,9 +26,9 @@ struct NicknameSettingView: View {
 
     var body: some View {
         NicknameEditView(config: .signup) {
-            coordinator?.pop()
+            router.pop()
         } onSubmitSuccess: { nickname in
-            coordinator?.push(to: .preferredGenre(builder.withNickname(nickname)))
+            router.push(.preferredGenre(builder.withNickname(nickname)))
         }
         .crossDissolve(isPresented: $isSignupFailureModalPresented, dismissOnTapOutside: false) {
             LivithModal(
@@ -38,7 +38,7 @@ struct NicknameSettingView: View {
                     isSignupFailureModalPresented = false
                     Task { @MainActor in
                         try? await Task.sleep(for: .seconds(0.25))
-                        coordinator?.popToRoot()
+                        router.popToRoot()
                     }
                 }
             )

@@ -13,7 +13,7 @@ import LivithDesignSystem
 
 struct TermsView: View {
     @StateObject private var store = TermsStore()
-    @Environment(\.loginCoordinator) private var coordinator
+    @EnvironmentObject private var router: LoginRouter
     @Environment(\.openURL) private var openURL
     @State private var showSafari = false
     @State private var safariURL: URL?
@@ -65,7 +65,7 @@ struct TermsView: View {
 private extension TermsView {
     var navigationBar: some View {
         LivithNavigationView(
-            type: .back(title: Literals.navigationTitle, onBack: { coordinator?.pop() })
+            type: .back(title: Literals.navigationTitle, onBack: { router.pop() })
         )
     }
     
@@ -146,7 +146,7 @@ private extension TermsView {
     
     var nextButton: some View {
         LivithButton(Literals.nextButtonText, variant: .primary) {
-            coordinator?.push(to: .nickname(.start(tempUser: tempUser, isMarketingAgreed: isMarketingAgreed)))
+            router.push(.nickname(.start(tempUser: tempUser, isMarketingAgreed: isMarketingAgreed)))
         }
         .disabled(!canProceed)
     }

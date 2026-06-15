@@ -14,7 +14,7 @@ import LivithDesignSystem
 import PreferenceFeature
 
 struct PreferredArtistSettingView: View {
-    @Environment(\.loginCoordinator) private var coordinator
+    @EnvironmentObject private var router: LoginRouter
     @StateObject private var store: SignupStore
     
     @State private var isSignupFailureModalPresented: Bool = false
@@ -35,7 +35,7 @@ struct PreferredArtistSettingView: View {
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
-                coordinator?.pop()
+                router.pop()
             }
         } onSkip: {
             AmplitudeService.shared.trackEvent(tag: .click(.skipArtistPreference))
@@ -53,7 +53,7 @@ struct PreferredArtistSettingView: View {
                 confirmTitle: Literals.signupFailureModalConfirmTitle,
                 onConfirm: {
                     isSignupFailureModalPresented = false
-                    coordinator?.popToRoot()
+                    router.popToRoot()
                 }
             )
         }
@@ -64,7 +64,7 @@ struct PreferredArtistSettingView: View {
                 cancelTitle: Literals.discardChangesCancelTitle,
                 type: .confirm(onConfirm: {
                     isDiscardChangesModalPresented = false
-                    coordinator?.pop()
+                    router.pop()
                 }),
                 onCancel: {
                     isDiscardChangesModalPresented = false
@@ -82,7 +82,7 @@ private extension PreferredArtistSettingView {
         case .idle:
             break
         case .success:
-            coordinator?.completeSignup(with: builder.nickname)
+            router.completeSignup(with: builder.nickname)
         case .failure:
             isSignupFailureModalPresented = true
         }

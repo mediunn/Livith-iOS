@@ -8,11 +8,10 @@
 
 import Foundation
 
-import LivithDesignSystem
-import Coordinator
 import Domain
+import LivithDesignSystem
 
-enum LoginRoute: Route {
+enum LoginRoute: Hashable {
     case login
     case terms(TempUser)
     case nickname(SignupBuilder)
