@@ -8,10 +8,9 @@
 
 import Foundation
 
-import Coordinator
 import Domain
 
-enum UserRoute: Route {
+enum UserRoute: Hashable {
     case user
     case setting
     case noticeSetting

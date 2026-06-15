@@ -36,17 +36,9 @@ struct UserView: View {
     @State private var showGenreUpdateSuccessSnackBar: Bool = false
     @State private var showArtistUpdateSuccessSnackBar: Bool = false
     
-    @Binding private var isTabBarHidden: Bool
-    
     @StateObject private var store = UserStore()
     
-    @Environment(\.userCoordinator) private var coordinator
-    
-    // MARK: - LifeCycle
-    
-    init(isTabBarHidden: Binding<Bool>) {
-        self._isTabBarHidden = isTabBarHidden
-    }
+    @EnvironmentObject private var router: UserRouter
     
     // MARK: - Body
     
@@ -102,7 +94,7 @@ struct UserView: View {
 
 private extension UserView {
     var settingButton: some View {
-        Button(action: { coordinator?.push(to: .setting) }) {
+        Button(action: { router.push(.setting) }) {
             Image.livithIcon(.settingFill)
                 .resizable()
                 .frame(width: 36, height: 36)
@@ -131,7 +123,7 @@ private extension UserView {
     }
     
     var editButton: some View {
-        Button(action: { coordinator?.push(to: .nicknameUpdate) }) {
+        Button(action: { router.push(.nicknameUpdate) }) {
             Text(Literals.editNickname)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
@@ -182,8 +174,9 @@ private extension UserView {
                         } else {
                             AmplitudeService.shared.trackEvent(tag: .click(.setGenrePreference))
                         }
-                        coordinator?.push(to: .genreUpdate(selectedGenreList: store.state.genres))
-                        coordinator?.onGenreUpdateSuccess = {
+                        router.push(.genreUpdate(selectedGenreList: store.state.genres))
+                        // TODO: 향후 Store 상태 변경으로 이전 예정
+                        router.onGenreUpdateSuccess = {
                             showGenreUpdateSuccessSnackBar = true
                         }
                     }
@@ -213,10 +206,11 @@ private extension UserView {
                         if store.state.hasArtistData {
                             AmplitudeService.shared.trackEvent(tag: .click(.changeArtistPreference))
                         } else {
-                            AmplitudeService.shared.trackEvent(tag: .click(.setArtistPreference))
+                            AmplitudeService.shared.trackEvent(tag: .click(.setGenrePreference))
                         }
-                        coordinator?.push(to: .artistUpdate(selectedArtistList: store.state.artists))
-                        coordinator?.onArtistUpdateSuccess = {
+                        router.push(.artistUpdate(selectedArtistList: store.state.artists))
+                        // TODO: 향후 Store 상태 변경으로 이전 예정
+                        router.onArtistUpdateSuccess = {
                             showArtistUpdateSuccessSnackBar = true
                         }
                     }
@@ -249,7 +243,7 @@ private extension UserView {
                 position: .top,
                 onActionTapped: {
                     showGenreUpdateSuccessSnackBar = false
-                    coordinator?.onNavigateToHome?()
+                    router.navigateToHome()
                 },
                 onDismiss: {
                     showGenreUpdateSuccessSnackBar = false
@@ -268,7 +262,7 @@ private extension UserView {
                 position: .top,
                 onActionTapped: {
                     showArtistUpdateSuccessSnackBar = false
-                    coordinator?.onNavigateToHome?()
+                    router.navigateToHome()
                 },
                 onDismiss: {
                     showArtistUpdateSuccessSnackBar = false
@@ -349,7 +343,5 @@ private extension UserView {
 // MARK: - Preview
 
 #Preview {
-    UserView(
-        isTabBarHidden: .constant(false)
-    )
+    UserView()
 }

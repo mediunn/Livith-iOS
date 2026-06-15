@@ -18,14 +18,14 @@ struct NicknameUpdateView: View {
     @State private var showFailureToast: Bool = false
     @State private var toastMessage: String = ""
 
-    @Environment(\.userCoordinator) private var coordinator
+    @EnvironmentObject private var router: UserRouter
 
     var body: some View {
         NicknameEditView(
             config: .update,
-            onDismiss: { coordinator?.pop() },
+            onDismiss: { router.pop() },
             onSubmitSuccess: { _ in
-                coordinator?.pop()
+                router.pop()
             },
             onSubmitFailure: { _ in
                 toastMessage = "닉네임 변경에 실패했어요"

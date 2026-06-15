@@ -31,15 +31,15 @@ struct LivithMainTabView: View {
     @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
     @State private var deepLinkInitialSection: ConcertInfoSection?
     @State private var deepLinkShowInterest: Bool = false
-    
+
     // MARK: - LifeCycle
-    
+
     init() {
         configureTabBarAppearance()
     }
-    
+
     // MARK: - Body
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeContentView(
@@ -54,16 +54,15 @@ struct LivithMainTabView: View {
                 makeTabItem(.home)
             }
             .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
-            
+
             SearchContentView(isTabBarHidden: $isTabBarHidden)
                 .tag(Tab.search)
                 .tabItem {
                     makeTabItem(.search)
                 }
                 .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
-            
-            UserContentView(
-                isTabBarHidden: $isTabBarHidden,
+
+            UserCoordinatorView(
                 onNavigateToHome: {
                     selectedTab = .home
                 }
@@ -72,7 +71,6 @@ struct LivithMainTabView: View {
             .tabItem {
                 makeTabItem(.my)
             }
-            .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
         }
         .preferredColorScheme(.dark)
         .onChange(of: selectedTab) { _, newTab in
@@ -109,24 +107,24 @@ private extension LivithMainTabView {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(Color.livithColor(.black100))
-        
+
         // 상단 구분선 설정
         appearance.shadowColor = UIColor(Color.livithColor(.black50))
-        
+
         appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color.livithColor(.black50))
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
             .foregroundColor: UIColor(Color.livithColor(.black50))
         ]
-        
+
         appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color.livithColor(.yellow60))
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
             .foregroundColor: UIColor(Color.livithColor(.yellow60))
         ]
-        
+
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
-    
+
     @ViewBuilder
     func makeTabItem(_ tab: Tab) -> some View {
         (selectedTab == tab ? tab.selectedIcon : tab.defaultIcon)
@@ -147,7 +145,7 @@ extension LivithMainTabView.Tab {
         case .my: return "마이"
         }
     }
-    
+
     var defaultIcon: Image {
         switch self {
         case .home: return Image.livithIcon(.homeDisabled)
@@ -155,7 +153,7 @@ extension LivithMainTabView.Tab {
         case .my: return Image.livithIcon(.myDisabled)
         }
     }
-    
+
     var selectedIcon: Image {
         switch self {
         case .home: return Image.livithIcon(.homeEnabled)
