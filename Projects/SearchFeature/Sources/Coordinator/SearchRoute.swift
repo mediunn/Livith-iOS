@@ -8,10 +8,8 @@
 
 import Foundation
 
-import LivithDesignSystem
-import Coordinator
-
-enum SearchRoute: Route {
+enum SearchRoute: Hashable {
     case explore
     case search
+    case concertDetail(concertID: Int)
 }

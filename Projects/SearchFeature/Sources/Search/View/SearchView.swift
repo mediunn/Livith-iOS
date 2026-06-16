@@ -19,7 +19,7 @@ struct SearchView: View {
 
     // MARK: - Property
 
-    @Environment(\.searchCoordinator) private var coordinator
+    @EnvironmentObject private var searchRouter: SearchRouter
     @ObservedObject private var store: SearchStore
 
     @State private var showError: Bool = false
@@ -111,7 +111,7 @@ private extension SearchView {
         HStack(alignment: .center) {
             Button {
                 hideKeyboard()
-                coordinator?.pop()
+                searchRouter.pop()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .resizable()
@@ -243,7 +243,7 @@ private extension SearchView {
                 onTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
                     hideKeyboard()
-                    coordinator?.showConcertDetail(concertID: concert.id)
+                    searchRouter.push(.concertDetail(concertID: concert.id))
                 }
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))

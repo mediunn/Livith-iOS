@@ -26,7 +26,6 @@ struct LivithMainTabView: View {
     // MARK: - Property
 
     @State private var selectedTab: Tab = .home
-    @State private var isTabBarHidden: Bool = false
     @State private var deepLinkConcertID: Int?
     @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
     @State private var deepLinkInitialSection: ConcertInfoSection?
@@ -53,12 +52,11 @@ struct LivithMainTabView: View {
                 makeTabItem(.home)
             }
 
-            SearchContentView(isTabBarHidden: $isTabBarHidden)
+            SearchCoordinatorView()
                 .tag(Tab.search)
                 .tabItem {
                     makeTabItem(.search)
                 }
-                .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
 
             UserCoordinatorView(
                 onNavigateToHome: {
