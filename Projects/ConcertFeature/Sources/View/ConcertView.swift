@@ -20,9 +20,9 @@ public struct ConcertView: View {
     private let concertID: Int
     private let initialTab: ConcertTab
     private let initialSection: ConcertInfoSection?
-    private let onDismiss: () -> Void
+    private let onTicketSiteReturn: () -> Void
 
-    @Environment(\.concertCoordinator) private var coordinator
+    @Environment(\.dismiss) private var dismiss
 
     @ObservedObject private var store: ConcertStore
     @StateObject private var communityStore: CommunityStore = CommunityStore()
@@ -36,13 +36,13 @@ public struct ConcertView: View {
         concertID: Int,
         initialTab: ConcertTab = .artistDetail,
         initialSection: ConcertInfoSection? = nil,
-        onDismiss: @escaping () -> Void
+        onTicketSiteReturn: @escaping () -> Void = {}
     ) {
         self.store = store
         self.concertID = concertID
         self.initialTab = initialTab
         self.initialSection = initialSection
-        self.onDismiss = onDismiss
+        self.onTicketSiteReturn = onTicketSiteReturn
     }
 
     // MARK: - Body
@@ -54,7 +54,7 @@ public struct ConcertView: View {
     public var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(
-                type: .back(title: navigationTitle, onBack: onDismiss)
+                type: .back(title: navigationTitle, onBack: { dismiss() })
             )
 
             if showEmptyView {
@@ -116,12 +116,6 @@ public struct ConcertView: View {
             store.send(.tabSelected(initialTab))
             store.send(.sectionSelected(initialSection))
             communityStore.send(.onAppear(concertID: concertID))
-            coordinator?.onTicketSiteReturn = { [weak store] in
-                store?.send(.onTicketSiteReturn)
-            }
-        }
-        .onDisappear {
-            coordinator?.onTicketSiteReturn = nil
         }
     }
 }
@@ -312,7 +306,8 @@ private extension ConcertView {
                 concertInfoList: store.state.concertInfoList,
                 merchandiseList: store.state.merchandiseList,
                 initialSection: store.state.initialSection,
-                onSectionScrolled: { store.send(.sectionSelected(nil)) }
+                onSectionScrolled: { store.send(.sectionSelected(nil)) },
+                onTicketSiteReturn: { store.send(.onTicketSiteReturn) }
             )
             .frame(maxWidth: UIScreen.main.bounds.width)
             .background(.livithColor(.black100))
@@ -489,7 +484,6 @@ private extension ConcertView {
 #Preview {
     ConcertView(
         store: ConcertStore(),
-        concertID: 1,
-        onDismiss: {}
+        concertID: 1
     )
 }

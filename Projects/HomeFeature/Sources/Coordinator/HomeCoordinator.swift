@@ -17,9 +17,7 @@ final class HomeCoordinator: Coordinator {
     typealias R = HomeRoute
     
     let navigationController: UINavigationController
-    
-    private var concertCoordinator: ConcertCoordinator?
-    
+
     init() {
         self.navigationController = UINavigationController()
         
@@ -94,40 +92,20 @@ final class HomeCoordinator: Coordinator {
         }
     }
     
+    // MARK: - Concert (임시 어댑터, Plan 2에서 정식 Router로 대체)
+
     func showConcertDetail(
         concertID: Int,
         initialTab: SegmentedTabBarType.DetailTab = .artistDetail,
         initialSection: ConcertInfoSection? = nil
     ) {
-        let coordinator = ConcertCoordinator(
-            navigationController: navigationController,
-            onDismiss: { [weak self] in
-                self?.concertCoordinator = nil
-            }
+        let view = ConcertCoordinatorView(
+            concertID: concertID,
+            initialTab: initialTab,
+            initialSection: initialSection
         )
-        self.concertCoordinator = coordinator
-        coordinator.start(concertID: concertID, initialTab: initialTab, initialSection: initialSection)
-    }
-    
-    func showSongDetail(songID: Int, setlistID: Int, songTitle: String) {
-        let coordinator = ConcertCoordinator(
-            navigationController: navigationController,
-            onDismiss: { [weak self] in
-                self?.concertCoordinator = nil
-            }
-        )
-        self.concertCoordinator = coordinator
-        coordinator.push(to: .songLyrics(songID: songID, setlistID: setlistID, songTitle: songTitle))
-    }
-    
-    func showSetlistDetail(concertID: Int, setlistID: Int) {
-        let coordinator = ConcertCoordinator(
-            navigationController: navigationController,
-            onDismiss: { [weak self] in
-                self?.concertCoordinator = nil
-            }
-        )
-        self.concertCoordinator = coordinator
-        coordinator.push(to: .setlistDetail(concertID: concertID, setlistID: setlistID))
+        let hosting = UIHostingController(rootView: view)
+        hosting.hidesBottomBarWhenPushed = true
+        navigationController.pushViewController(hosting, animated: true)
     }
 }

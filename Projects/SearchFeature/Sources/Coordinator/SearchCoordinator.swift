@@ -19,8 +19,6 @@ final class SearchCoordinator: Coordinator {
 
     let navigationController: UINavigationController
 
-    private var concertCoordinator: ConcertCoordinator?
-
     init() {
         self.navigationController = UINavigationController()
 
@@ -40,14 +38,16 @@ final class SearchCoordinator: Coordinator {
         }
     }
 
+    // MARK: - Concert (임시 어댑터, Plan 3에서 정식 Router로 대체)
+
     func showConcertDetail(concertID: Int) {
-        let coordinator = ConcertCoordinator(
-            navigationController: navigationController,
-            onDismiss: { [weak self] in
-                self?.concertCoordinator = nil
-            }
+        let view = ConcertCoordinatorView(
+            concertID: concertID,
+            initialTab: .artistDetail,
+            initialSection: nil
         )
-        self.concertCoordinator = coordinator
-        coordinator.start(concertID: concertID)
+        let hosting = UIHostingController(rootView: view)
+        hosting.hidesBottomBarWhenPushed = true
+        navigationController.pushViewController(hosting, animated: true)
     }
 }

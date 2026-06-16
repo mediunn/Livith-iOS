@@ -28,30 +28,30 @@ public struct SongLyricsView: View {
 
     // MARK: - Property
 
+    private static let reportFormURL = URL(string: "https://forms.gle/aMj5C4LhDcMzueWz5")!
+
     @StateObject private var store = SongLyricsStore()
     @Environment(\.dismiss) private var dismiss
     @State private var selectedDetent: PresentationDetent = .medium
     @State private var warningMessage: String?
     @State private var errorMessage: String?
     @State private var warningDismissTask: Task<Void, Never>?
+    @State private var isReportSheetPresented: Bool = false
 
     private let songID: Int
     private let setlistID: Int?
     private let songTitle: String
-    private let onReportTapped: () -> Void
 
     // MARK: - Initializer
 
     public init(
         songID: Int,
         setlistID: Int? = nil,
-        songTitle: String,
-        onReportTapped: @escaping () -> Void = {}
+        songTitle: String
     ) {
         self.songID = songID
         self.setlistID = setlistID
         self.songTitle = songTitle
-        self.onReportTapped = onReportTapped
     }
 
     private var showErrorToast: Binding<Bool> {
@@ -102,6 +102,9 @@ public struct SongLyricsView: View {
             type: .failure,
             message: errorMessage ?? ""
         )
+        .sheet(isPresented: $isReportSheetPresented) {
+            SafariView(url: Self.reportFormURL)
+        }
         .onAppear {
             store.send(.onAppear(songID: songID, setlistID: setlistID, songTitle: songTitle))
         }
@@ -155,7 +158,7 @@ private extension SongLyricsView {
 
             Button {
                 AmplitudeService.shared.trackEvent(tag: .click(.reportSong))
-                onReportTapped()
+                isReportSheetPresented = true
             } label: {
                 Text("정보 제보")
                     .notosans(.caption1Semibold)

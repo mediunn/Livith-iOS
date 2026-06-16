@@ -17,10 +17,10 @@ struct SetlistTabView: View {
 
     // MARK: - Property
 
-    @Environment(\.concertCoordinator) private var coordinator
-
     let concertID: Int
     let setlistList: [Setlist]
+
+    @State private var isReportSheetPresented: Bool = false
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: 10, alignment: .top),
@@ -58,7 +58,7 @@ private extension SetlistTabView {
                 secondLine: "확인해 보세요"
             ) {
                 AmplitudeService.shared.trackEvent(tag: .click(.reportSetlistSection))
-                coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
+                isReportSheetPresented = true
             }
 
             LazyVGrid(columns: columns, spacing: 16) {
@@ -70,13 +70,13 @@ private extension SetlistTabView {
         .padding(.horizontal, 16)
         .padding(.top, 30)
         .padding(.bottom, 40)
+        .sheet(isPresented: $isReportSheetPresented) {
+            SafariView(url: ConcertConstant.reportFormURL)
+        }
     }
 
     func setlistCard(for setlist: Setlist) -> some View {
-        Button {
-            AmplitudeService.shared.trackEvent(tag: .click(.setlistCell))
-            coordinator?.push(to: .setlistDetail(concertID: concertID, setlistID: setlist.id))
-        } label: {
+        NavigationLink(value: ConcertRoute.setlistDetail(concertID: concertID, setlistID: setlist.id)) {
             LivithCard(
                 imageURL: setlist.imageURL,
                 title: setlist.title,
@@ -87,6 +87,9 @@ private extension SetlistTabView {
             )
         }
         .buttonStyle(.plain)
+        .simultaneousGesture(TapGesture().onEnded {
+            AmplitudeService.shared.trackEvent(tag: .click(.setlistCell))
+        })
     }
 
     func formatDate(_ setlist: Setlist) -> String {
