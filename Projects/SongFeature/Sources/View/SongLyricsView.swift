@@ -37,6 +37,8 @@ public struct SongLyricsView: View {
     @State private var errorMessage: String?
     @State private var warningDismissTask: Task<Void, Never>?
     @State private var isReportSheetPresented: Bool = false
+    @State private var isLyricsSheetPresented: Bool = false
+    @State private var isPendingReportPresentation: Bool = false
 
     private let songID: Int
     private let setlistID: Int?
@@ -86,7 +88,7 @@ public struct SongLyricsView: View {
         .background(Color.livithColor(.black100))
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
-        .sheet(isPresented: .constant(store.state.hasLyrics)) {
+        .sheet(isPresented: $isLyricsSheetPresented) {
             LyricsContentView(store: store)
                 .presentationDetents([.height(150), .medium, .large], selection: $selectedDetent)
                 .presentationDragIndicator(.visible)
@@ -128,6 +130,20 @@ public struct SongLyricsView: View {
                 }
             }
         }
+        .onChange(of: store.state.hasLyrics) { newValue in
+            isLyricsSheetPresented = newValue
+        }
+        .onChange(of: isLyricsSheetPresented) { newValue in
+            if !newValue && isPendingReportPresentation {
+                isPendingReportPresentation = false
+                isReportSheetPresented = true
+            }
+        }
+        .onChange(of: isReportSheetPresented) { newValue in
+            if !newValue && store.state.hasLyrics {
+                isLyricsSheetPresented = true
+            }
+        }
         .onDisappear {
             warningDismissTask?.cancel()
         }
@@ -140,6 +156,7 @@ private extension SongLyricsView {
     var navigationBar: some View {
         HStack(spacing: 4) {
             Button {
+                isLyricsSheetPresented = false
                 dismiss()
             } label: {
                 Image.livithIcon(.backLineDefault)
@@ -158,7 +175,12 @@ private extension SongLyricsView {
 
             Button {
                 AmplitudeService.shared.trackEvent(tag: .click(.reportSong))
-                isReportSheetPresented = true
+                if isLyricsSheetPresented {
+                    isLyricsSheetPresented = false
+                    isPendingReportPresentation = true
+                } else {
+                    isReportSheetPresented = true
+                }
             } label: {
                 Text("정보 제보")
                     .notosans(.caption1Semibold)
