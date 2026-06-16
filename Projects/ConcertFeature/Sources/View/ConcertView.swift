@@ -24,7 +24,7 @@ public struct ConcertView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @ObservedObject private var store: ConcertStore
+    @StateObject private var store: ConcertStore = ConcertStore()
     @StateObject private var communityStore: CommunityStore = CommunityStore()
     @State private var isExceedingLineLimit: Bool = false
     @State private var isExceedingCharacterLimit: Bool = false
@@ -32,13 +32,11 @@ public struct ConcertView: View {
     // MARK: - Initializer
 
     public init(
-        store: ConcertStore = ConcertStore(),
         concertID: Int,
         initialTab: ConcertTab = .artistDetail,
         initialSection: ConcertInfoSection? = nil,
         onTicketSiteReturn: @escaping () -> Void = {}
     ) {
-        self.store = store
         self.concertID = concertID
         self.initialTab = initialTab
         self.initialSection = initialSection
@@ -483,7 +481,6 @@ private extension ConcertView {
 
 #Preview {
     ConcertView(
-        store: ConcertStore(),
         concertID: 1
     )
 }
