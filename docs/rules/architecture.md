@@ -43,12 +43,15 @@
 - Data 레이어에 ErrorMapper를 두어 네트워크/저장소 에러를 도메인 에러로 변환한다.
 - Repository 메서드는 Typed Throws를 사용한다 (예: `throws(UserError)`).
 
-### Coordinator 패턴
-- 화면 전환 로직은 Coordinator에서 관리한다.
-- 각 Feature 모듈은 독립적인 Coordinator와 Route enum을 가진다.
-- SwiftUI View는 `UIHostingController`로 래핑하여 Coordinator에 연결한다.
-- View는 `@Environment`를 통해 Coordinator를 참조한다.
-- 다른 Feature로의 전환이 필요하면 Child Coordinator를 생성한다.
+### 네비게이션 패턴 (Router + NavigationStack)
+- 화면 전환은 SwiftUI 네이티브 `NavigationStack` + `Router<R>`을 사용한다.
+- 각 Feature 모듈은 독립적인 `Router<R>` (또는 typealias)와 `Route` enum을 가진다. `Route`는 `Hashable`을 채택하며, `Router`는 `Router<R>: ObservableObject`를 상속받는다.
+- Feature의 진입점은 `*CoordinatorView`로, `NavigationStack(path: $router.path)`를 생성하고 `navigationDestination(for:)`에서 Route → View를 매핑한다.
+- `NavigationStack`은 **탭 단위로 1개**만 유지하며, 중첩을 금지한다 (자식 Feature는 view-only CoordinatorView로 동작).
+- View는 `@EnvironmentObject var *Router: *Router`로 Router에 접근하여 `push()`, `pop()`, `popToRoot()`를 호출한다.
+- 자식 Feature(예: Concert)로 진입 시 부모 Feature의 Route case에 추가하고, `navigationDestination`에서 자식의 `*CoordinatorView`(Router 없음)를 렌더링하여 단일 NavigationStack을 유지한다.
+- 모달(Sheet, fullScreenCover)은 각 View 내부에서 `.sheet(isPresented:)`, `.fullScreenCover(isPresented:)`로 자체 처리한다.
+- 다른 Feature와 공유되는 View(예: `NoticeSettingView`)는 closure 인터페이스를 유지하여 Router 타입에 결합되지 않도록 한다.
 
 ### 의존성 주입
 - `@Injected` Property Wrapper를 사용하여 의존성을 주입한다.
@@ -71,8 +74,8 @@
 - View에서 State를 직접 변경하지 않는다 (Intent를 통해서만 변경한다).
 - Store 외부에서 `state` 프로퍼티에 직접 값을 할당하지 않는다.
 - DTO를 Domain 레이어나 Presentation 레이어에 노출하지 않는다.
-- Coordinator 없이 View에서 직접 화면 전환 로직을 작성하지 않는다.
-- Feature 모듈 간 직접 의존을 만들지 않는다 (Coordinator 또는 Shared를 통한다).
+- Router 없이 View에서 직접 `NavigationStack`을 생성하지 않는다.
+- Feature 모듈 간 직접 의존을 만들지 않는다 (Router + CoordinatorView, NotificationCenter, 또는 Shared를 통한다).
 
 ## Exception
 - DesignSystem 모듈은 레이어 구조와 무관하게 Presentation 레이어에서 자유롭게 사용한다.
@@ -86,4 +89,5 @@
 - Store가 send → State 변경 흐름을 따르는가
 - DTO가 Domain/Presentation에 노출되지 않았는가
 - 새 Data 모듈에 전담 Assembler가 있는가
-- 화면 전환이 Coordinator를 통해 이루어지는가
+- 화면 전환이 Router + NavigationStack을 통해 이루어지는가
+- 자식 Feature 진입 시 단일 NavigationStack 정책을 지키는가 (Router 없이 view-only CoordinatorView 사용)
