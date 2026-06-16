@@ -8,10 +8,11 @@
 
 import Foundation
 
-import Coordinator
+import ConcertFeature
 import Domain
+import LivithDesignSystem
 
-enum HomeRoute: Route {
+enum HomeRoute: Hashable {
     case home
     case interestConcertSetting(mode: InterestConcertSettingMode)
     case interestConcertList
@@ -20,4 +21,9 @@ enum HomeRoute: Route {
     case recommendedConcertList(concertList: [Concert])
     case preferredGenreUpdate
     case preferredArtistUpdate(selectedGenreList: [PreferredGenre])
+    case concertDetail(
+        concertID: Int,
+        initialTab: SegmentedTabBarType.DetailTab,
+        initialSection: ConcertInfoSection?
+    )
 }

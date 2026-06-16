@@ -18,21 +18,21 @@ struct RecommendedConcertGridView: View {
 
     // MARK: - Properties
 
-    @Environment(\.homeCoordinator) private var coordinator
-    
+    @EnvironmentObject private var homeRouter: HomeRouter
+
     let concertList: [Concert]
 
     // MARK: - Body
-    
+
     var body: some View {
         VStack(spacing: .zero) {
             LivithNavigationView(
                 type: .back(
                     title: "취향이 담긴 콘서트",
-                    onBack: { coordinator?.pop() }
+                    onBack: { homeRouter.pop() }
                 )
             )
-            
+
             gridView
                 .padding(16)
         }
@@ -65,7 +65,11 @@ private extension RecommendedConcertGridView {
             badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
             onTap: {
                 AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
-                coordinator?.showConcertDetail(concertID: concert.id)
+                homeRouter.push(.concertDetail(
+                    concertID: concert.id,
+                    initialTab: .artistDetail,
+                    initialSection: nil
+                ))
             }
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))

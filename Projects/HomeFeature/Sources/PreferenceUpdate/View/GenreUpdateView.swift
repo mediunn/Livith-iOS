@@ -14,7 +14,7 @@ import LivithDesignSystem
 import Coordinator
 
 struct GenreUpdateView: View {
-    @Environment(\.homeCoordinator) private var coordinator
+    @EnvironmentObject private var homeRouter: HomeRouter
     @State private var isDiscardChangesModalPresented: Bool = false
 
     var body: some View {
@@ -22,10 +22,10 @@ struct GenreUpdateView: View {
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
-                coordinator?.pop()
+                homeRouter.pop()
             }
         } onSubmit: { genreList in
-            coordinator?.push(to: .preferredArtistUpdate(selectedGenreList: genreList))
+            homeRouter.push(.preferredArtistUpdate(selectedGenreList: genreList))
         }
         .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
             LivithDangerModal(
@@ -34,7 +34,7 @@ struct GenreUpdateView: View {
                 cancelTitle: "잘못 눌렀어요",
                 type: .confirm(onConfirm: {
                     isDiscardChangesModalPresented = false
-                    coordinator?.pop()
+                    homeRouter.pop()
                 }),
                 onCancel: {
                     isDiscardChangesModalPresented = false

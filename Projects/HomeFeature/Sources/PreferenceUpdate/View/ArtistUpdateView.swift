@@ -14,24 +14,24 @@ import LivithDesignSystem
 import Coordinator
 
 struct ArtistUpdateView: View {
-    @Environment(\.homeCoordinator) private var coordinator
-    
+    @EnvironmentObject private var homeRouter: HomeRouter
+
     @StateObject private var store: PreferenceUpdateStore
-    
+
     @State private var isUpdateFailureModalPresented: Bool = false
     @State private var isDiscardChangesModalPresented: Bool = false
     @State private var isSuccessToastPresented: Bool = false
-    
+
     init(selectedGenreList: [PreferredGenre]) {
         self._store = StateObject(wrappedValue: PreferenceUpdateStore(selectedGenreList))
     }
-    
+
     var body: some View {
         ArtistEditView(config: .artistHome(), isSubmitting: store.state.isLoading) { isModified in
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
-                self.coordinator?.pop()
+                self.homeRouter.pop()
             }
         } onSkip: {
             store.send(.onSkip)
@@ -42,7 +42,7 @@ struct ArtistUpdateView: View {
             switch result {
             case .success:
                 isSuccessToastPresented = true
-                coordinator?.popToRoot()
+                homeRouter.popToRoot()
             case .failure:
                 isUpdateFailureModalPresented = true
             case .idle:
@@ -60,7 +60,7 @@ struct ArtistUpdateView: View {
                 confirmTitle: "홈으로 돌아가기",
                 onConfirm: {
                     isUpdateFailureModalPresented = false
-                    coordinator?.popToRoot()
+                    homeRouter.popToRoot()
                 }
             )
         }
@@ -71,7 +71,7 @@ struct ArtistUpdateView: View {
                 cancelTitle: "잘못 눌렀어요",
                 type: .confirm(onConfirm: {
                     isDiscardChangesModalPresented = false
-                    coordinator?.pop()
+                    homeRouter.pop()
                 }),
                 onCancel: {
                     isDiscardChangesModalPresented = false

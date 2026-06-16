@@ -42,8 +42,7 @@ struct LivithMainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeContentView(
-                isTabBarHidden: $isTabBarHidden,
+            HomeCoordinatorView(
                 deepLinkConcertID: $deepLinkConcertID,
                 deepLinkInitialTab: $deepLinkInitialTab,
                 deepLinkInitialSection: $deepLinkInitialSection,
@@ -53,7 +52,6 @@ struct LivithMainTabView: View {
             .tabItem {
                 makeTabItem(.home)
             }
-            .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
 
             SearchContentView(isTabBarHidden: $isTabBarHidden)
                 .tag(Tab.search)
