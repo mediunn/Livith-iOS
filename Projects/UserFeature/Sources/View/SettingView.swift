@@ -20,7 +20,7 @@ struct SettingView: View {
 
     @StateObject private var logoutStore = LogoutStore()
 
-    @Environment(\.userCoordinator) private var coordinator
+    @EnvironmentObject private var router: UserRouter
 
     // MARK: - Initializer
 
@@ -33,7 +33,7 @@ struct SettingView: View {
             navigationBar
 
             VStack(spacing: 12) {
-                LivithListItem(Literals.noticeSetting, type: .navigation, action: { coordinator?.push(to: .noticeSetting) })
+                LivithListItem(Literals.noticeSetting, type: .navigation, action: { router.push(.noticeSetting) })
 
                 LivithListItem(Literals.updateNote, type: .navigation, action: showUpdateNote)
 
@@ -43,7 +43,7 @@ struct SettingView: View {
 
                 LivithListItem(Literals.logout, type: .action, action: showLogoutModal)
 
-                LivithListItem(Literals.deleteAccount, type: .action, action: { coordinator?.push(to: .deleteUser) })
+                LivithListItem(Literals.deleteAccount, type: .action, action: { router.push(.deleteUser) })
             }
             .padding(.top, 20)
 
@@ -84,7 +84,7 @@ struct SettingView: View {
 
 private extension SettingView {
     var navigationBar: some View {
-        LivithNavigationView(type: .back(title: Literals.title, onBack: { coordinator?.pop() }))
+        LivithNavigationView(type: .back(title: Literals.title, onBack: { router.pop() }))
     }
 }
 

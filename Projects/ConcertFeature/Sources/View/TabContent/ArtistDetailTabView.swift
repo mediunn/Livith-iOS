@@ -16,11 +16,13 @@ struct ArtistDetailTabView: View {
 
     // MARK: - Property
 
-    @Environment(\.concertCoordinator) private var coordinator
-    
     let artist: Artist?
     let introduction: String
     let fanCultures: [ConcertCulture]
+
+    @State private var isReportSheetPresented: Bool = false
+    @State private var isInstagramSheetPresented: Bool = false
+    @State private var isTwitterSheetPresented: Bool = false
 
     // MARK: - Body
 
@@ -48,6 +50,19 @@ struct ArtistDetailTabView: View {
             }
             .padding(.top, 30)
             .padding(.bottom, 40)
+            .sheet(isPresented: $isReportSheetPresented) {
+                SafariView(url: ConcertConstant.reportFormURL)
+            }
+            .sheet(isPresented: $isInstagramSheetPresented) {
+                if let url = artist?.instagramURL {
+                    SafariView(url: url)
+                }
+            }
+            .sheet(isPresented: $isTwitterSheetPresented) {
+                if let url = artist?.twitterURL {
+                    SafariView(url: url)
+                }
+            }
         }
     }
 }
@@ -72,7 +87,7 @@ private extension ArtistDetailTabView {
                     secondLine: "함께 알아볼까요?"
                 ) {
                     AmplitudeService.shared.trackEvent(tag: .click(.reportArtistInfo))
-                    coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
+                    isReportSheetPresented = true
                 }
                 .padding(.bottom, 20)
                 .zIndex(1)
@@ -135,9 +150,9 @@ private extension ArtistDetailTabView {
 
             Spacer()
 
-            if let instagramURL = artist.instagramURL {
+            if artist.instagramURL != nil {
                 Button {
-                    coordinator?.present(to: .safari(instagramURL))
+                    isInstagramSheetPresented = true
                 } label: {
                     Image.livithImage(.instagram)
                         .resizable()
@@ -145,9 +160,9 @@ private extension ArtistDetailTabView {
                 }
             }
 
-            if let twitterURL = artist.twitterURL {
+            if artist.twitterURL != nil {
                 Button {
-                    coordinator?.present(to: .safari(twitterURL))
+                    isTwitterSheetPresented = true
                 } label: {
                     Image.livithImage(.twitter)
                         .resizable()
@@ -202,7 +217,7 @@ private extension ArtistDetailTabView {
                     secondLine: "꿀팁을 알아봐요"
                 ) {
                     AmplitudeService.shared.trackEvent(tag: .click(.reportFanTips))
-                    coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
+                    isReportSheetPresented = true
                 }
                 .padding(.horizontal, 16)
 

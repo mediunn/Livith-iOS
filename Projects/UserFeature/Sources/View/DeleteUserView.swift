@@ -23,7 +23,7 @@ struct DeleteUserView: View {
 
     @ObservedObject private var store: DeleteUserStore
 
-    @Environment(\.userCoordinator) private var coordinator
+    @EnvironmentObject private var router: UserRouter
 
     // MARK: - LifeCycle
 
@@ -116,7 +116,7 @@ struct DeleteUserView: View {
                     isConfirmed: $isConfirmed,
                     onCancel: {
                         showConfirmSheet = false
-                        coordinator?.pop()
+                        router.pop()
                     },
                     onConfirm: {
                         showConfirmSheet = false
@@ -132,7 +132,7 @@ struct DeleteUserView: View {
 private extension DeleteUserView {
     var navigationBar: some View {
         LivithNavigationView(
-            type: .backOnly(onBack: { coordinator?.pop() })
+            type: .backOnly(onBack: { router.pop() })
         )
     }
 

@@ -10,9 +10,8 @@ import Foundation
 
 import Domain
 import LivithDesignSystem
-import Coordinator
 
-public enum ConcertRoute: Route {
+public enum ConcertRoute: Hashable {
     case detail(
         concertID: Int,
         initialTab: SegmentedTabBarType.DetailTab = .artistDetail,
@@ -20,7 +19,5 @@ public enum ConcertRoute: Route {
     )
     case setlistDetail(concertID: Int, setlistID: Int)
     case songLyrics(songID: Int, setlistID: Int, songTitle: String)
-    case safari(URL)
-    case ticketSafari(URL)
     case merchandiseDetail([ConcertMerchandise], ticketingOfficeURL: URL?)
 }

@@ -15,11 +15,13 @@ struct MerchandiseDetailView: View {
 
     // MARK: - Property
 
-    @Environment(\.concertCoordinator) private var coordinator
+    @Environment(\.dismiss) private var dismiss
 
     let merchandiseList: [ConcertMerchandise]
     let ticketingOfficeURL: URL?
-    let onDismiss: () -> Void
+    let onTicketSiteReturn: () -> Void
+
+    @State private var isTicketSheetPresented: Bool = false
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: 8, alignment: .top),
@@ -31,7 +33,7 @@ struct MerchandiseDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(
-                type: .back(title: "MD 상세", onBack: onDismiss)
+                type: .back(title: "MD 상세", onBack: { dismiss() })
             )
 
             ScrollView {
@@ -44,8 +46,9 @@ struct MerchandiseDetailView: View {
                             isFlexible: true
                         )
                         .onTapGesture {
-                            guard let url = ticketingOfficeURL else { return }
-                            coordinator?.present(to: .ticketSafari(url))
+                            if ticketingOfficeURL != nil {
+                                isTicketSheetPresented = true
+                            }
                         }
                     }
                 }
@@ -55,6 +58,14 @@ struct MerchandiseDetailView: View {
             }
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
+        .sheet(
+            isPresented: $isTicketSheetPresented,
+            onDismiss: { onTicketSiteReturn() }
+        ) {
+            if let ticketingOfficeURL {
+                SafariView(url: ticketingOfficeURL)
+            }
+        }
     }
 }
 
@@ -70,6 +81,6 @@ struct MerchandiseDetailView: View {
             ConcertMerchandise(id: 5, name: "제품이름", price: "가격", imageURL: nil)
         ],
         ticketingOfficeURL: nil,
-        onDismiss: {}
+        onTicketSiteReturn: {}
     )
 }

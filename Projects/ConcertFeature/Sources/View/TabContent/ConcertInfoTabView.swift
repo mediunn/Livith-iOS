@@ -16,8 +16,6 @@ struct ConcertInfoTabView: View {
 
     // MARK: - Property
 
-    @Environment(\.concertCoordinator) private var coordinator
-
     let ticketingOffice: String?
     let ticketingOfficeURL: URL?
     let scheduleList: [ConcertSchedule]
@@ -25,6 +23,10 @@ struct ConcertInfoTabView: View {
     let merchandiseList: [ConcertMerchandise]
     let initialSection: ConcertInfoSection?
     let onSectionScrolled: () -> Void
+    let onTicketSiteReturn: () -> Void
+
+    @State private var isReportSheetPresented: Bool = false
+    @State private var isTicketSheetPresented: Bool = false
 
     // MARK: - Body
 
@@ -57,6 +59,17 @@ struct ConcertInfoTabView: View {
                     }
                 }
             }
+            .sheet(isPresented: $isReportSheetPresented) {
+                SafariView(url: ConcertConstant.reportFormURL)
+            }
+            .sheet(
+                isPresented: $isTicketSheetPresented,
+                onDismiss: { onTicketSiteReturn() }
+            ) {
+                if let ticketingOfficeURL {
+                    SafariView(url: ticketingOfficeURL)
+                }
+            }
         }
     }
 }
@@ -73,7 +86,7 @@ private extension ConcertInfoTabView {
                     secondLine: "잊지 말고 확인해요"
                 ) {
                     AmplitudeService.shared.trackEvent(tag: .click(.reportSchedule))
-                    coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
+                    isReportSheetPresented = true
                 }
 
                 VStack(spacing: 34) {
@@ -91,9 +104,9 @@ private extension ConcertInfoTabView {
 private extension ConcertInfoTabView {
     @ViewBuilder
     var ticketWebsiteCard: some View {
-        if let ticketingOfficeURL {
+        if ticketingOfficeURL != nil {
             Button {
-                coordinator?.present(to: .ticketSafari(ticketingOfficeURL))
+                isTicketSheetPresented = true
             } label: {
                 HStack(alignment: .top, spacing: 16) {
                     Image.livithIcon(.earth)
@@ -136,12 +149,13 @@ private extension ConcertInfoTabView {
                     secondLine: "빠르게 확인해요"
                 ) {
                     AmplitudeService.shared.trackEvent(tag: .click(.reportConcertInfo))
-                    coordinator?.present(to: .safari(ConcertConstant.reportFormURL))
+                    isReportSheetPresented = true
                 }
 
                 ConcertInfoCarousel(
                     concertInfoList: concertInfoList,
-                    ticketingOfficeURL: ticketingOfficeURL
+                    ticketingOfficeURL: ticketingOfficeURL,
+                    onTicketSiteReturn: onTicketSiteReturn
                 )
             }
         }
@@ -161,9 +175,7 @@ private extension ConcertInfoTabView {
                     firstLine: "의 MD 정보를",
                     secondLine: "한 눈에 확인해요"
                 ) {
-                    Button {
-                        coordinator?.push(to: .merchandiseDetail(merchandiseList, ticketingOfficeURL: ticketingOfficeURL))
-                    } label: {
+                    NavigationLink(value: ConcertRoute.merchandiseDetail(merchandiseList, ticketingOfficeURL: ticketingOfficeURL)) {
                         Image.livithIcon(.rightLineDefault)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -236,7 +248,8 @@ private extension ConcertInfoTabView {
                 ConcertMerchandise(id: 3, name: "제품이름", price: "가격", imageURL: nil)
             ],
             initialSection: nil,
-            onSectionScrolled: {}
+            onSectionScrolled: {},
+            onTicketSiteReturn: {}
         )
     }
     .background(Color.livithColor(.black100))

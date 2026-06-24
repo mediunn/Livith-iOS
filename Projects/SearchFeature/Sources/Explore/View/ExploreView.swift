@@ -17,7 +17,7 @@ struct ExploreView: View {
 
     // MARK: - Property
 
-    @Environment(\.searchCoordinator) private var coordinator
+    @EnvironmentObject private var searchRouter: SearchRouter
     @Environment(\.openURL) private var openURL
     @StateObject private var store: ExploreStore = ExploreStore()
 
@@ -227,7 +227,7 @@ private extension ExploreView {
                         badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
                         onTap: {
                             AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
-                            coordinator?.showConcertDetail(concertID: concert.id)
+                            searchRouter.push(.concertDetail(concertID: concert.id))
                         }
                     )
                     .onAppear {
@@ -264,7 +264,7 @@ private extension ExploreView {
 
     func handleSearchTap() {
         AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
-        coordinator?.push(to: .search)
+        searchRouter.push(.search)
     }
 
     func handleBannerTap(_ banner: Banner) {

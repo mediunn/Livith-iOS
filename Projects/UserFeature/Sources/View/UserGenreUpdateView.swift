@@ -21,7 +21,7 @@ struct UserGenreUpdateView: View {
     
     private let selectedGenreList: [PreferredGenre]
     
-    @Environment(\.userCoordinator) private var coordinator
+    @EnvironmentObject private var router: UserRouter
     
     init(
         selectedGenreList: [PreferredGenre]
@@ -39,7 +39,7 @@ struct UserGenreUpdateView: View {
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
-                coordinator?.pop()
+                router.pop()
             }
         } onSubmit: { genreList in
             AmplitudeService.shared.trackEvent(tag: .confirm(.changeGenrePreference))
@@ -53,7 +53,7 @@ struct UserGenreUpdateView: View {
                 type: .confirm(onConfirm: {
                     AmplitudeService.shared.trackEvent(tag: .confirm(.backPreference))
                     isDiscardChangesModalPresented = false
-                    coordinator?.pop()
+                    router.pop()
                 })
             ) {
                 AmplitudeService.shared.trackEvent(tag: .click(.cancelPreference))
@@ -63,8 +63,9 @@ struct UserGenreUpdateView: View {
         .onChange(of: store.state.result) { _, result in
             switch result {
             case .success:
-                coordinator?.onGenreUpdateSuccess?()
-                coordinator?.pop()
+                // TODO: 향후 Store 상태 변경으로 이전 예정
+                router.genreUpdateSuccess()
+                router.pop()
             case .failure:
                 isFailureToastPresented = true
             case .idle:

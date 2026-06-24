@@ -15,7 +15,7 @@ struct InterestConcertSettingView: View {
 
     // MARK: - Properties
 
-    @Environment(\.homeCoordinator) private var coordinator
+    @EnvironmentObject private var homeRouter: HomeRouter
     @StateObject private var store: InterestConcertSettingStore
     @State private var showErrorToast: Bool = false
     @State private var showSuccessToast: Bool = false
@@ -72,7 +72,7 @@ struct InterestConcertSettingView: View {
                 cancelTitle: "잘못 눌렀어요",
                 type: .confirm(onConfirm: {
                     isDiscardChangesModalPresented = false
-                    coordinator?.pop()
+                    homeRouter.pop()
                 }),
                 onCancel: {
                     isDiscardChangesModalPresented = false
@@ -89,7 +89,7 @@ struct InterestConcertSettingView: View {
                 showSuccessToast = true
                 Task { @MainActor in
                     await Task.yield()
-                    coordinator?.popToRoot()
+                    homeRouter.popToRoot()
                 }
             }
         }
@@ -212,12 +212,12 @@ private extension InterestConcertSettingView {
 
     func handleBackButtonTap() {
         guard store.state.mode != .initialSetup else {
-            coordinator?.pop()
+            homeRouter.pop()
             return
         }
 
         guard store.state.hasUnsavedChanges else {
-            coordinator?.pop()
+            homeRouter.pop()
             return
         }
 

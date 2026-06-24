@@ -28,30 +28,32 @@ public struct SongLyricsView: View {
 
     // MARK: - Property
 
+    private static let reportFormURL = URL(string: "https://forms.gle/aMj5C4LhDcMzueWz5")!
+
     @StateObject private var store = SongLyricsStore()
     @Environment(\.dismiss) private var dismiss
     @State private var selectedDetent: PresentationDetent = .medium
     @State private var warningMessage: String?
     @State private var errorMessage: String?
     @State private var warningDismissTask: Task<Void, Never>?
+    @State private var isReportSheetPresented: Bool = false
+    @State private var isLyricsSheetPresented: Bool = false
+    @State private var isPendingReportPresentation: Bool = false
 
     private let songID: Int
     private let setlistID: Int?
     private let songTitle: String
-    private let onReportTapped: () -> Void
 
     // MARK: - Initializer
 
     public init(
         songID: Int,
         setlistID: Int? = nil,
-        songTitle: String,
-        onReportTapped: @escaping () -> Void = {}
+        songTitle: String
     ) {
         self.songID = songID
         self.setlistID = setlistID
         self.songTitle = songTitle
-        self.onReportTapped = onReportTapped
     }
 
     private var showErrorToast: Binding<Bool> {
@@ -86,7 +88,7 @@ public struct SongLyricsView: View {
         .background(Color.livithColor(.black100))
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
-        .sheet(isPresented: .constant(store.state.hasLyrics)) {
+        .sheet(isPresented: $isLyricsSheetPresented) {
             LyricsContentView(store: store)
                 .presentationDetents([.height(150), .medium, .large], selection: $selectedDetent)
                 .presentationDragIndicator(.visible)
@@ -102,6 +104,9 @@ public struct SongLyricsView: View {
             type: .failure,
             message: errorMessage ?? ""
         )
+        .sheet(isPresented: $isReportSheetPresented) {
+            SafariView(url: Self.reportFormURL)
+        }
         .onAppear {
             store.send(.onAppear(songID: songID, setlistID: setlistID, songTitle: songTitle))
         }
@@ -125,6 +130,20 @@ public struct SongLyricsView: View {
                 }
             }
         }
+        .onChange(of: store.state.hasLyrics) { newValue in
+            isLyricsSheetPresented = newValue
+        }
+        .onChange(of: isLyricsSheetPresented) { newValue in
+            if !newValue && isPendingReportPresentation {
+                isPendingReportPresentation = false
+                isReportSheetPresented = true
+            }
+        }
+        .onChange(of: isReportSheetPresented) { newValue in
+            if !newValue && store.state.hasLyrics {
+                isLyricsSheetPresented = true
+            }
+        }
         .onDisappear {
             warningDismissTask?.cancel()
         }
@@ -137,6 +156,7 @@ private extension SongLyricsView {
     var navigationBar: some View {
         HStack(spacing: 4) {
             Button {
+                isLyricsSheetPresented = false
                 dismiss()
             } label: {
                 Image.livithIcon(.backLineDefault)
@@ -155,7 +175,12 @@ private extension SongLyricsView {
 
             Button {
                 AmplitudeService.shared.trackEvent(tag: .click(.reportSong))
-                onReportTapped()
+                if isLyricsSheetPresented {
+                    isLyricsSheetPresented = false
+                    isPendingReportPresentation = true
+                } else {
+                    isReportSheetPresented = true
+                }
             } label: {
                 Text("정보 제보")
                     .notosans(.caption1Semibold)

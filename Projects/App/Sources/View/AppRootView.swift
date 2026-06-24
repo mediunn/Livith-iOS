@@ -49,7 +49,7 @@ private extension AppRootView {
         case .launch:
             LaunchScreenView()
         case .login:
-            LoginContentView(
+            LoginCoordinatorView(
                 onLoginCompleted: { transition(to: .main) },
                 onSignupCompleted: { nickname in
                     self.nickname = nickname

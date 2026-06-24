@@ -16,7 +16,7 @@ struct InterestConcertListView: View {
 
     // MARK: - Properties
 
-    @Environment(\.homeCoordinator) private var coordinator
+    @EnvironmentObject private var homeRouter: HomeRouter
     @StateObject private var store: InterestConcertListStore = .init()
 
     @State private var showSortOption: Bool = false
@@ -50,7 +50,7 @@ private extension InterestConcertListView {
     var headerView: some View {
         HStack(spacing: 4) {
             Button {
-                coordinator?.pop()
+                homeRouter.pop()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .resizable()
@@ -73,7 +73,7 @@ private extension InterestConcertListView {
 
     var changeButton: some View {
         Button {
-            coordinator?.push(to: .interestConcertSetting(mode: .update))
+            homeRouter.push(.interestConcertSetting(mode: .update))
         } label: {
             Text("변경하기")
                 .notosans(.body4Medium)
@@ -202,7 +202,13 @@ private extension InterestConcertListView {
             subtitle: ConcertDisplayHelper.dateRange(for: concert),
             secondaryText: concert.artist,
             badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
-            onTap: { coordinator?.showConcertDetail(concertID: concert.id) }
+            onTap: {
+                homeRouter.push(.concertDetail(
+                    concertID: concert.id,
+                    initialTab: .artistDetail,
+                    initialSection: nil
+                ))
+            }
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
         .onAppear {

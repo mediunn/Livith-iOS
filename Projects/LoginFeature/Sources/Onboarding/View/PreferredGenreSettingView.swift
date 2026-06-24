@@ -14,7 +14,7 @@ import PreferenceFeature
 import LivithDesignSystem
 
 struct PreferredGenreSettingView: View {
-    @Environment(\.loginCoordinator) private var coordinator
+    @EnvironmentObject private var router: LoginRouter
 
     @State private var isDiscardChangesModalPresented: Bool = false
     
@@ -29,12 +29,12 @@ struct PreferredGenreSettingView: View {
             if isModified {
                 isDiscardChangesModalPresented = true
             } else {
-                coordinator?.pop()
+                router.pop()
             }
         } onSubmit: { selectedGenreList in
             AmplitudeService.shared.trackEvent(tag: .confirm(.genrePreference))
             let updated = builder.withPreferredGenreList(selectedGenreList)
-            coordinator?.push(to: .preferredArtist(updated))
+            router.push(.preferredArtist(updated))
         }
         .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
             LivithDangerModal(
@@ -43,7 +43,7 @@ struct PreferredGenreSettingView: View {
                 cancelTitle: "잘못 눌렀어요",
                 type: .confirm(onConfirm: {
                     isDiscardChangesModalPresented = false
-                    coordinator?.pop()
+                    router.pop()
                 }),
                 onCancel: {
                     isDiscardChangesModalPresented = false

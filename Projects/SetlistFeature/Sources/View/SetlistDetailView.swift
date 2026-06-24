@@ -16,26 +16,27 @@ public struct SetlistDetailView: View {
 
     // MARK: - Property
 
+    private static let reportFormURL = URL(string: "https://forms.gle/aMj5C4LhDcMzueWz5")!
+
     @StateObject private var store = SetlistStore()
     @Environment(\.dismiss) private var dismiss
 
     private let concertID: Int
     private let setlistID: Int
     private let onPlaySong: ((SetlistSong) -> Void)?
-    private let onReportTapped: (() -> Void)?
+
+    @State private var isReportSheetPresented: Bool = false
 
     // MARK: - Initializer
 
     public init(
         concertID: Int,
         setlistID: Int,
-        onPlaySong: ((SetlistSong) -> Void)? = nil,
-        onReportTapped: (() -> Void)? = nil
+        onPlaySong: ((SetlistSong) -> Void)? = nil
     ) {
         self.concertID = concertID
         self.setlistID = setlistID
         self.onPlaySong = onPlaySong
-        self.onReportTapped = onReportTapped
     }
 
     private var showErrorToast: Binding<Bool> {
@@ -72,6 +73,9 @@ public struct SetlistDetailView: View {
             type: .failure,
             message: store.state.fetchError ?? ""
         )
+        .sheet(isPresented: $isReportSheetPresented) {
+            SafariView(url: Self.reportFormURL)
+        }
         .onAppear {
             store.send(.onAppear(concertID: concertID, setlistID: setlistID))
         }
@@ -102,7 +106,7 @@ private extension SetlistDetailView {
                         firstLine: setlist.type.displayText,
                         onReportTapped: {
                             AmplitudeService.shared.trackEvent(tag: .click(.reportSetlist))
-                            onReportTapped?()
+                            isReportSheetPresented = true
                         }
                     )
                     .padding(.horizontal, 16)

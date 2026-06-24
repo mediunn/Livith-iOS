@@ -16,7 +16,7 @@ struct HomeView: View {
 
     // MARK: - Properties
 
-    @Environment(\.homeCoordinator) private var coordinator
+    @EnvironmentObject private var homeRouter: HomeRouter
     @StateObject private var store: HomeStore = .init()
 
     @State private var showErrorToast = false
@@ -88,7 +88,7 @@ private extension HomeView {
     var navigationView: some View {
         LivithNavigationView(type: .logo(
             hasNewNotice: store.state.hasNewNotice,
-            onNoticeTap: { coordinator?.push(to: .notice) }
+            onNoticeTap: { homeRouter.push(.notice) }
         ))
     }
 
@@ -133,7 +133,7 @@ private extension HomeView {
                 isExpanded: $isPreferenceBannerExpanded,
                 onTapBanner: {
                     AmplitudeService.shared.trackEvent(tag: .click(.setPreferenceBannerMain))
-                    coordinator?.push(to: .preferredGenreUpdate)
+                    homeRouter.push(.preferredGenreUpdate)
                 },
                 backgroundColor: preferenceBannerBackgroundColor
             )
@@ -148,11 +148,15 @@ private extension HomeView {
             HomeInterestConcertSectionView(
                 interestConcertList: store.state.interestConcertList,
                 selectedSort: store.state.interestConcertSort,
-                onChangeTap: { coordinator?.push(to: .interestConcertSetting(mode: .update)) },
-                onTitleTap: { coordinator?.push(to: .interestConcertList) },
+                onChangeTap: { homeRouter.push(.interestConcertSetting(mode: .update)) },
+                onTitleTap: { homeRouter.push(.interestConcertList) },
                 onSortSelected: { store.send(.interestConcertSortSelected($0)) },
                 onConcertTap: { interestConcert in
-                    coordinator?.showConcertDetail(concertID: interestConcert.concert.id)
+                    homeRouter.push(.concertDetail(
+                        concertID: interestConcert.concert.id,
+                        initialTab: .artistDetail,
+                        initialSection: nil
+                    ))
                 }
             )
         } else {
@@ -160,7 +164,7 @@ private extension HomeView {
                 nickname: store.state.user?.nickname ?? "라이빗",
                 onSettingTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
-                    coordinator?.push(to: .interestConcertSetting(mode: .initialSetup))
+                    homeRouter.push(.interestConcertSetting(mode: .initialSetup))
                 }
             )
         }
@@ -174,14 +178,22 @@ private extension HomeView {
             shouldShowRecommendedConcertSection: !store.state.shouldShowPreferenceBanner,
             onRecommendedConcertTap: { concert in
                 AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
-                coordinator?.showConcertDetail(concertID: concert.id)
+                homeRouter.push(.concertDetail(
+                    concertID: concert.id,
+                    initialTab: .artistDetail,
+                    initialSection: nil
+                ))
             },
             onRecommendedSeeAllTap: {
-                coordinator?.push(to: .recommendedConcertList(concertList: store.state.recommendedConcertList))
+                homeRouter.push(.recommendedConcertList(concertList: store.state.recommendedConcertList))
             },
             onConcertTap: { concert in
                 AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
-                coordinator?.showConcertDetail(concertID: concert.id)
+                homeRouter.push(.concertDetail(
+                    concertID: concert.id,
+                    initialTab: .artistDetail,
+                    initialSection: nil
+                ))
             }
         )
     }

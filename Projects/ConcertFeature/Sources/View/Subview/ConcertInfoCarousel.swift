@@ -15,13 +15,13 @@ struct ConcertInfoCarousel: View {
 
     // MARK: - Property
 
-    @Environment(\.concertCoordinator) private var coordinator
-
     let concertInfoList: [ConcertInfo]
     let ticketingOfficeURL: URL?
+    let onTicketSiteReturn: () -> Void
 
     @State private var currentIndex: Int = 0
     @State private var dragOffset: CGFloat = 0
+    @State private var isTicketSheetPresented: Bool = false
 
     // MARK: - Body
 
@@ -39,8 +39,8 @@ struct ConcertInfoCarousel: View {
         .clipped()
         .contentShape(Rectangle())
         .onTapGesture {
-            if let url = ticketingOfficeURL {
-                coordinator?.present(to: .ticketSafari(url))
+            if ticketingOfficeURL != nil {
+                isTicketSheetPresented = true
             }
         }
         .simultaneousGesture(
@@ -50,6 +50,14 @@ struct ConcertInfoCarousel: View {
                 }
                 .onEnded(handleDragEnded)
         )
+        .sheet(
+            isPresented: $isTicketSheetPresented,
+            onDismiss: { onTicketSiteReturn() }
+        ) {
+            if let ticketingOfficeURL {
+                SafariView(url: ticketingOfficeURL)
+            }
+        }
     }
 }
 
@@ -128,7 +136,8 @@ private extension ConcertInfoCarousel {
                 description: "공연 당일 현장에서 MD를 구매하실 수 있습니다."
             )
         ],
-        ticketingOfficeURL: URL(string: "https://tickets.interpark.com")
+        ticketingOfficeURL: URL(string: "https://tickets.interpark.com"),
+        onTicketSiteReturn: {}
     )
     .background(Color.livithColor(.black100))
 }
