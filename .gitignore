@@ -70,6 +70,7 @@ Tuist/.build
 ### AI Agents ###
 .claude/
 .codex/
+.cursor/
 .opencode/
 .github/instructions/
 .github/copilot-instructions.md
