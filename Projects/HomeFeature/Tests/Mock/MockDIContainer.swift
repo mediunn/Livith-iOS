@@ -18,7 +18,8 @@ final class MockDIContainer {
     let searchRepository = MockSearchRepository()
     let setlistRepository = MockSetlistRepository()
     let preferenceRepository = MockPreferenceRepository()
-    
+    let concertMatchingRepository = MockConcertMatchingRepository()
+
     func registerDependencies() {
         DIContainer.shared.register(userRepository, for: UserRepository.self)
         DIContainer.shared.register(notificationRepository, for: NotificationRepository.self)
@@ -26,5 +27,6 @@ final class MockDIContainer {
         DIContainer.shared.register(searchRepository, for: SearchRepository.self)
         DIContainer.shared.register(setlistRepository, for: SetlistRepository.self)
         DIContainer.shared.register(preferenceRepository, for: PreferenceRepository.self)
+        DIContainer.shared.register(concertMatchingRepository, for: ConcertMatchingRepository.self)
     }
 }
