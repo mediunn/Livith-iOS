@@ -27,7 +27,8 @@
 - [x] App: 딥링크 진입 (FR-01~03 준비)
   - `DeepLinkService.handleDeepLink`에 `case "instagram"`(url 쿼리 파라미터) 추가 → `Notification.Name.openInstagramMatch` post → `LivithMainTabView` onReceive → `HomeCoordinatorView` Binding onChange → push
 - [x] 검증: `tuist generate` → `tuist build`(Livith-iOS-Dev 성공) → `xcodebuild test`(iPhone 17, 84개 중 신규 21개 포함 83개 통과 — 실패 1건은 develop 선행 이슈, 트러블슈팅 참조)
-- [ ] 잔여: Figma 재접속 후 토스트·팝업 문구 대조, `xcrun simctl openurl`로 딥링크 수동 확인
+- [x] Figma 재접속 후 토스트·팝업 문구 대조 및 확정 문구 반영 (성공 토스트 화면별 상이, 콘서트명 20자 말줄임)
+- [ ] 잔여: `xcrun simctl openurl`로 딥링크 수동 확인 (시뮬레이터 앱 설치 필요)
 
 ## 영향 범위
 - `Projects/Domain` (프로토콜·에러 추가)
