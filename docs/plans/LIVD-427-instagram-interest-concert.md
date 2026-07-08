@@ -11,22 +11,23 @@
 - Store 로직은 TDD(red→green)로 구현한다.
 
 ## 작업 항목
-- [ ] Domain: 매칭 계약 정의
+- [x] Domain: 매칭 계약 정의
   - `ConcertMatchingRepository` 프로토콜: `fetchMatchedConcertList(sourceURL: URL) async throws(ConcertMatchingError) -> [Concert]` (최대 3개)
   - `ConcertMatchingError` enum (noConnection, serverError, matchFailed, unknown 등)
-- [ ] Data/UserData: `ConcertMatchingRepositoryImpl` 추가
+- [x] Data/UserData: `ConcertMatchingRepositoryImpl` 추가
   - 서버 API 미확정이므로 임시 스텁(고정 응답 + TODO 주석), `UserDataAssembler`에 등록
-- [ ] HomeFeature: 매칭 확인 화면 (FR-04) — **TDD**
+- [x] HomeFeature: 매칭 확인 화면 (FR-04) — **TDD** (red 11/12 확인 → green 12/12)
   - `InstagramMatchConfirmStore`: 추출 로딩 상태, 매칭 결과 1~3개 노출, 셀 1개만 선택(하이라이팅), 선택 시 등록하기 활성화, 등록 성공 `_registerResult` → 홈 이동+성공 토스트(콘서트명 말줄임), 실패 → 화면 유지+실패 토스트, 취소/비활성 등록하기 → 중단 확인 팝업("지금은 그만할래요"=홈 이동, "잘못 눌렀어요"=닫기), "직접 찾아볼게요" → FR-05 화면 이동
   - `InstagramMatchConfirmView`: 타이틀·설명, `LivithCard` 1~3개(단일 선택), 로딩 dots, 하단 취소/등록하기(`LivithButton`), `LivithDangerModal`, `.livithToast`
-- [ ] HomeFeature: 직접 검색 화면 (FR-05) — **TDD**
+- [x] HomeFeature: 직접 검색 화면 (FR-05) — **TDD** (red 8/9 확인 → green 9/9)
   - `InstagramMatchSearchStore`: `SearchRepository.fetchFilterSearchResult` 재사용(기존 검색 로직과 동일, 300ms debounce), 단일 선택, 등록/취소는 FR-04와 동일 규칙
   - `InstagramMatchSearchView`: 진입 경로별 타이틀("공연 정보를 불러오지 못했어요…" / "등록하려는 공연을 직접 검색해보세요"), 검색 필드(`LivithTextField(.search)`), 3열 그리드(`InterestConcertSelectionGridView` 재사용), 하단 취소/등록하기
-- [ ] HomeFeature: 라우팅 연결
+- [x] HomeFeature: 라우팅 연결
   - `HomeRoute`에 `.instagramMatchConfirm(sourceURL:)`, `.instagramMatchSearch(context:)` 케이스 추가 및 `HomeCoordinatorView.destinationView` 매핑
-- [ ] App: 딥링크 진입 (FR-01~03 준비)
+- [x] App: 딥링크 진입 (FR-01~03 준비)
   - `DeepLinkService.handleDeepLink`에 `case "instagram"`(url 쿼리 파라미터) 추가 → `Notification.Name.openInstagramMatch` post → `LivithMainTabView` onReceive → `HomeCoordinatorView` Binding onChange → push
-- [ ] 검증: `tuist generate` → `tuist build` → `xcodebuild test`(iPhone 17, HomeFeature 테스트 포함)
+- [x] 검증: `tuist generate` → `tuist build`(Livith-iOS-Dev 성공) → `xcodebuild test`(iPhone 17, 84개 중 신규 21개 포함 83개 통과 — 실패 1건은 develop 선행 이슈, 트러블슈팅 참조)
+- [ ] 잔여: Figma 재접속 후 토스트·팝업 문구 대조, `xcrun simctl openurl`로 딥링크 수동 확인
 
 ## 영향 범위
 - `Projects/Domain` (프로토콜·에러 추가)
