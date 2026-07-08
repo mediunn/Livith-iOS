@@ -95,11 +95,28 @@ private extension DeepLinkService {
         switch host {
         case "concert":
             handleConcertDeepLink(url)
+        case "instagram":
+            handleInstagramDeepLink(url)
         case "home":
             break
         default:
             break
         }
+    }
+
+    func handleInstagramDeepLink(_ url: URL) {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let sourceURLString = components.queryItems?.first(where: { $0.name == "url" })?.value,
+              let sourceURL = URL(string: sourceURLString)
+        else {
+            return
+        }
+
+        NotificationCenter.default.post(
+            name: .openInstagramMatch,
+            object: nil,
+            userInfo: ["sourceURL": sourceURL]
+        )
     }
 
     func handleConcertDeepLink(_ url: URL) {
@@ -160,4 +177,5 @@ private extension DeepLinkService {
 public extension Notification.Name {
     static let openConcertDetail = Notification.Name("openConcertDetail")
     static let openInterestConcert = Notification.Name("openInterestConcert")
+    static let openInstagramMatch = Notification.Name("openInstagramMatch")
 }
