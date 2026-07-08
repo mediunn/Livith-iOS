@@ -29,6 +29,7 @@ public struct HomeCoordinatorView: View {
     @Binding private var deepLinkInitialTab: SegmentedTabBarType.DetailTab
     @Binding private var deepLinkInitialSection: ConcertInfoSection?
     @Binding private var deepLinkShowInterest: Bool
+    @Binding private var deepLinkInstagramURL: URL?
 
     // MARK: - Initializer
 
@@ -36,13 +37,15 @@ public struct HomeCoordinatorView: View {
         deepLinkConcertID: Binding<Int?> = .constant(nil),
         deepLinkInitialTab: Binding<SegmentedTabBarType.DetailTab> = .constant(.artistDetail),
         deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil),
-        deepLinkShowInterest: Binding<Bool> = .constant(false)
+        deepLinkShowInterest: Binding<Bool> = .constant(false),
+        deepLinkInstagramURL: Binding<URL?> = .constant(nil)
     ) {
         _router = StateObject(wrappedValue: HomeRouter())
         self._deepLinkConcertID = deepLinkConcertID
         self._deepLinkInitialTab = deepLinkInitialTab
         self._deepLinkInitialSection = deepLinkInitialSection
         self._deepLinkShowInterest = deepLinkShowInterest
+        self._deepLinkInstagramURL = deepLinkInstagramURL
     }
 
     // MARK: - Body
@@ -75,6 +78,13 @@ public struct HomeCoordinatorView: View {
                 router.popToRoot()
                 router.push(.interestConcertSetting(mode: .update))
                 deepLinkShowInterest = false
+            }
+        }
+        .onChange(of: deepLinkInstagramURL) { newValue in
+            if let sourceURL = newValue {
+                router.popToRoot()
+                router.push(.instagramMatchConfirm(sourceURL: sourceURL))
+                deepLinkInstagramURL = nil
             }
         }
     }
@@ -115,6 +125,10 @@ public struct HomeCoordinatorView: View {
                 initialTab: initialTab,
                 initialSection: initialSection
             )
+        case .instagramMatchConfirm(let sourceURL):
+            InstagramMatchConfirmView(sourceURL: sourceURL)
+        case .instagramMatchSearch(let context):
+            InstagramMatchSearchView(context: context)
         }
     }
 }

@@ -1,0 +1,241 @@
+//
+//  InstagramMatchSearchView.swift
+//  HomeFeature
+//
+//  Created by youz2me on 7/8/26.
+//  Copyright © 2026 Livith. All rights reserved.
+//
+
+import SwiftUI
+
+import Domain
+import LivithDesignSystem
+
+struct InstagramMatchSearchView: View {
+
+    // MARK: - Properties
+
+    @EnvironmentObject private var homeRouter: HomeRouter
+    @StateObject private var store: InstagramMatchSearchStore
+    @State private var showErrorToast: Bool = false
+    @State private var showSuccessToast: Bool = false
+
+    // MARK: - Initializer
+
+    init(context: InstagramMatchSearchContext) {
+        _store = StateObject(
+            wrappedValue: InstagramMatchSearchStore(context: context)
+        )
+    }
+
+    // MARK: - Body
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            VStack(spacing: .zero) {
+                navigationBar
+
+                topSection
+
+                gridSection
+            }
+
+            bottomSection
+        }
+        .background(Color.livithColor(.black100))
+        .ignoresSafeArea(.keyboard)
+        .navigationBarHidden(true)
+        .simultaneousGesture(TapGesture().onEnded { _ in
+            store.send(.setSearchFocused(false))
+        })
+        .livithToast(
+            isPresented: Binding(
+                get: { showErrorToast && !store.state.errorMessage.isEmpty },
+                set: { if !$0 { showErrorToast = false; store.send(.clearErrorMessage) } }
+            ),
+            type: .failure,
+            message: store.state.errorMessage
+        )
+        .livithToast(
+            isPresented: Binding(
+                get: { showSuccessToast && !store.state.successMessage.isEmpty },
+                set: { if !$0 { showSuccessToast = false; store.send(.clearSuccessMessage) } }
+            ),
+            type: .success,
+            message: store.state.successMessage
+        )
+        .crossDissolve(isPresented: cancelModalPresented, dismissOnTapOutside: false) {
+            LivithDangerModal(
+                message: Literals.cancelModalMessage,
+                confirmTitle: Literals.cancelModalConfirmTitle,
+                cancelTitle: Literals.cancelModalCancelTitle,
+                type: .confirm(onConfirm: { store.send(.confirmCancel) }),
+                onCancel: { store.send(.dismissCancelModal) }
+            )
+        }
+        .onChange(of: store.state.errorMessage) { _, errorMessage in
+            if !errorMessage.isEmpty {
+                showErrorToast = true
+            }
+        }
+        .onChange(of: store.state.successMessage) { _, successMessage in
+            if !successMessage.isEmpty {
+                showSuccessToast = true
+            }
+        }
+        .onChange(of: store.state.shouldNavigateToHome) { _, shouldNavigate in
+            if shouldNavigate {
+                Task { @MainActor in
+                    await Task.yield()
+                    homeRouter.popToRoot()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - UIComponents
+
+private extension InstagramMatchSearchView {
+    var navigationBar: some View {
+        LivithNavigationView(
+            type: .back(
+                title: Literals.navigationTitle,
+                onBack: { homeRouter.pop() }
+            )
+        )
+    }
+
+    var topSection: some View {
+        VStack(spacing: .zero) {
+            if !store.state.isSearchFocused {
+                guideSection
+            }
+
+            searchTextField
+                .padding(.top, store.state.isSearchFocused ? 12 : 30)
+                .padding(.horizontal, Constants.horizontalPadding)
+        }
+    }
+
+    var guideSection: some View {
+        HStack(alignment: .top, spacing: .zero) {
+            Text(store.state.context.guideTitle)
+                .notosans(.body1Semibold)
+                .foregroundStyle(Color.livithColor(.white100))
+                .multilineTextAlignment(.leading)
+
+            Spacer()
+        }
+        .padding(.top, 30)
+        .padding(.horizontal, Constants.horizontalPadding)
+    }
+
+    var searchTextField: some View {
+        LivithTextField(
+            text: searchText,
+            isFocused: searchFocus,
+            type: .search,
+            placeholder: Literals.searchPlaceholder,
+            onClear: { store.send(.clearSearchText) }
+        )
+    }
+
+    var gridSection: some View {
+        Group {
+            if store.state.isInitialLoading || store.state.isSearchLoading {
+                loadingView
+            } else {
+                InterestConcertSelectionGridView(
+                    concertList: store.state.displayedConcertList,
+                    selectedConcertIDList: selectedConcertIDList,
+                    isLoadingMore: store.state.isLoadingMore,
+                    onConcertTap: { store.send(.selectConcert($0)) },
+                    onScroll: { store.send(.setSearchFocused(false)) },
+                    onLoadMore: { store.send(.loadNextPage) }
+                )
+            }
+        }
+        .padding(.top, 12)
+    }
+
+    var bottomSection: some View {
+        HStack(spacing: 15) {
+            LivithButton(Literals.cancelTitle, variant: .secondary) {
+                store.send(.cancelTapped)
+            }
+
+            LivithButton(
+                Literals.registerTitle,
+                variant: .primary,
+                isLoading: store.state.isRegistering
+            ) {
+                store.send(.register)
+            }
+            .disabled(!store.state.isCTAEnabled)
+        }
+        .padding(.horizontal, Constants.horizontalPadding)
+        .padding(.bottom, 50)
+    }
+
+    var loadingView: some View {
+        VStack(spacing: .zero) {
+            Spacer()
+
+            ProgressView()
+                .tint(Color.livithColor(.white100))
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Helpers
+
+private extension InstagramMatchSearchView {
+    var selectedConcertIDList: [Int] {
+        guard let selectedConcertID = store.state.selectedConcertID else { return [] }
+
+        return [selectedConcertID]
+    }
+
+    var searchText: Binding<String> {
+        Binding(
+            get: { store.state.searchText },
+            set: { store.send(.updateSearchText($0)) }
+        )
+    }
+
+    var searchFocus: Binding<Bool> {
+        Binding(
+            get: { store.state.isSearchFocused },
+            set: { store.send(.setSearchFocused($0)) }
+        )
+    }
+
+    var cancelModalPresented: Binding<Bool> {
+        Binding(
+            get: { store.state.isCancelModalPresented },
+            set: { if !$0 { store.send(.dismissCancelModal) } }
+        )
+    }
+}
+
+// MARK: - Constants
+
+private extension InstagramMatchSearchView {
+    enum Constants {
+        static let horizontalPadding: CGFloat = 16
+    }
+
+    enum Literals {
+        static let navigationTitle = "공연 설정"
+        static let searchPlaceholder = "찾고 있는 콘서트나 가수를 검색하세요"
+        static let cancelTitle = "취소"
+        static let registerTitle = "등록하기"
+        static let cancelModalMessage = "관심 콘서트 등록을 그만할까요?"
+        static let cancelModalConfirmTitle = "지금은 그만할래요"
+        static let cancelModalCancelTitle = "잘못 눌렀어요"
+    }
+}
