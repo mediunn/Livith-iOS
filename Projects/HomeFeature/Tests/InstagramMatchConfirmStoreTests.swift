@@ -130,7 +130,7 @@ struct InstagramMatchConfirmStoreTests {
         #expect(container.userRepository.checkInterestedConcertCallCount == 1)
         #expect(container.userRepository.checkInterestedConcertID == 2)
         #expect(container.userRepository.updateInterestedConcertCallCount == 1)
-        #expect(sut.state.successMessage == "[테스트 콘서트 2] 관심 콘서트로 등록되었어요")
+        #expect(sut.state.successMessage == "테스트 콘서트 2 콘서트가\n관심 콘서트와 일정에 자동 등록되었어요")
         #expect(sut.state.shouldNavigateToHome)
         #expect(!sut.state.isRegistering)
     }
@@ -149,8 +149,28 @@ struct InstagramMatchConfirmStoreTests {
         // Then
         #expect(container.userRepository.checkInterestedConcertCallCount == 1)
         #expect(container.userRepository.updateInterestedConcertCallCount == 0)
-        #expect(sut.state.successMessage == "[테스트 콘서트 1] 관심 콘서트로 등록되었어요")
+        #expect(sut.state.successMessage == "테스트 콘서트 1 콘서트가\n관심 콘서트와 일정에 자동 등록되었어요")
         #expect(sut.state.shouldNavigateToHome)
+    }
+
+    @Test("콘서트명이 20자를 넘으면 말줄임하여 성공 메시지에 표시해야 한다")
+    func 콘서트명이_20자를_넘으면_말줄임하여_성공_메시지에_표시해야_한다() async throws {
+        // Given
+        let longTitle = "아주아주아주아주아주아주아주아주아주 긴 콘서트 이름"
+        container.userRepository.checkInterestedConcertResult = true
+        container.concertMatchingRepository.matchedConcertListResultQueue = [
+            .success([makeConcert(id: 1, title: longTitle)])
+        ]
+        let sut = InstagramMatchConfirmStore(sourceURL: makeSourceURL())
+        try await waitForAsyncTask()
+        sut.send(.selectConcert(1))
+
+        // When
+        sut.send(.register)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.successMessage == "\(longTitle.prefix(20)).. 콘서트가\n관심 콘서트와 일정에 자동 등록되었어요")
     }
 
     @Test("등록 실패 시 실패 메시지를 노출하고 화면을 유지해야 한다")
@@ -165,7 +185,7 @@ struct InstagramMatchConfirmStoreTests {
 
         // Then
         #expect(container.userRepository.updateInterestedConcertCallCount == 1)
-        #expect(sut.state.errorMessage == "관심 콘서트 등록에 실패했어요")
+        #expect(sut.state.errorMessage == "관심 콘서트 등록에 실패했어요\n다시 시도해주세요")
         #expect(!sut.state.shouldNavigateToHome)
         #expect(!sut.state.isRegistering)
     }
@@ -246,13 +266,13 @@ private extension InstagramMatchConfirmStoreTests {
     }
 
     func makeConcertList(_ idList: [Int]) -> [Concert] {
-        idList.map(makeConcert)
+        idList.map { makeConcert(id: $0) }
     }
 
-    func makeConcert(id: Int) -> Concert {
+    func makeConcert(id: Int, title: String? = nil) -> Concert {
         Concert(
             id: id,
-            title: "테스트 콘서트 \(id)",
+            title: title ?? "테스트 콘서트 \(id)",
             artist: "테스트 아티스트",
             status: .upcoming,
             daysLeft: 10,

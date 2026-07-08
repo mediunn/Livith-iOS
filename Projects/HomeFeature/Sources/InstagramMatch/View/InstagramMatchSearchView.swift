@@ -234,7 +234,7 @@ private extension InstagramMatchSearchView {
         static let searchPlaceholder = "찾고 있는 콘서트나 가수를 검색하세요"
         static let cancelTitle = "취소"
         static let registerTitle = "등록하기"
-        static let cancelModalMessage = "관심 콘서트 등록을 그만할까요?"
+        static let cancelModalMessage = "관심 콘서트 등록을 그만 두시나요?\n관심 콘서트에서 다시 지정할 수 있어요."
         static let cancelModalConfirmTitle = "지금은 그만할래요"
         static let cancelModalCancelTitle = "잘못 눌렀어요"
     }

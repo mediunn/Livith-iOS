@@ -212,11 +212,11 @@ final class InstagramMatchSearchStore: ObservableObject {
                 state.hasMoreConcertList = false
                 state.errorMessage = error.localizedDescription
             }
-        case ._registerResult(let concert, let result):
+        case ._registerResult(_, let result):
             state.isRegistering = false
             switch result {
             case .success:
-                state.successMessage = Constants.successMessage(for: concert)
+                state.successMessage = Constants.registerSuccessMessage
                 state.shouldNavigateToHome = true
             case .failure:
                 state.errorMessage = Constants.registerFailureMessage
@@ -365,10 +365,7 @@ private extension InstagramMatchSearchStore {
         static let pageSize = 12
         static let searchDebounceDuration: Duration = .milliseconds(300)
         static let searchStatusList: [ConcertStatus] = [.ongoing, .upcoming]
-        static let registerFailureMessage = "관심 콘서트 등록에 실패했어요"
-
-        static func successMessage(for concert: Concert) -> String {
-            "[\(ConcertDisplayHelper.title(for: concert))] 관심 콘서트로 등록되었어요"
-        }
+        static let registerFailureMessage = "관심 콘서트 등록에 실패했어요\n다시 시도해주세요"
+        static let registerSuccessMessage = "관심콘서트와 일정에 등록했어요"
     }
 }

@@ -168,10 +168,16 @@ private extension InstagramMatchConfirmStore {
 private extension InstagramMatchConfirmStore {
     enum Constants {
         static let maxMatchedConcertCount = 3
-        static let registerFailureMessage = "관심 콘서트 등록에 실패했어요"
+        static let successMessageTitleLimit = 20
+        static let registerFailureMessage = "관심 콘서트 등록에 실패했어요\n다시 시도해주세요"
 
         static func successMessage(for concert: Concert) -> String {
-            "[\(ConcertDisplayHelper.title(for: concert))] 관심 콘서트로 등록되었어요"
+            let title = ConcertDisplayHelper.title(for: concert)
+            let truncatedTitle = title.count > successMessageTitleLimit
+                ? "\(title.prefix(successMessageTitleLimit)).."
+                : title
+
+            return "\(truncatedTitle) 콘서트가\n관심 콘서트와 일정에 자동 등록되었어요"
         }
     }
 }

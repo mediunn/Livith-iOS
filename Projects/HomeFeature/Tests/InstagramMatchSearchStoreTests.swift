@@ -112,7 +112,7 @@ struct InstagramMatchSearchStoreTests {
         // Then
         #expect(container.userRepository.checkInterestedConcertCallCount == 1)
         #expect(container.userRepository.updateInterestedConcertCallCount == 1)
-        #expect(sut.state.successMessage == "[테스트 콘서트 1] 관심 콘서트로 등록되었어요")
+        #expect(sut.state.successMessage == "관심콘서트와 일정에 등록했어요")
         #expect(sut.state.shouldNavigateToHome)
         #expect(!sut.state.isRegistering)
     }
@@ -128,7 +128,7 @@ struct InstagramMatchSearchStoreTests {
         try await waitForAsyncTask()
 
         // Then
-        #expect(sut.state.errorMessage == "관심 콘서트 등록에 실패했어요")
+        #expect(sut.state.errorMessage == "관심 콘서트 등록에 실패했어요\n다시 시도해주세요")
         #expect(!sut.state.shouldNavigateToHome)
         #expect(!sut.state.isRegistering)
     }
