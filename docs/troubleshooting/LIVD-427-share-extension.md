@@ -2,6 +2,25 @@
 
 ## 기록
 
+### 2026-07-09 - 공유 진입 시 매칭 화면 대신 홈으로 이동 (콜드 런치 딥링크 유실)
+
+**상황**
+- 사용자가 실기기/시뮬레이터에서 공유 시트로 Livith를 선택하자 앱은 열리지만 매칭 화면이 아닌 홈이 표시됐다.
+
+**문제**
+- 앱이 종료된 상태(콜드 런치)에서 `onOpenURL`이 런치 스크린 단계에 발사되고, `DeepLinkService`가 `NotificationCenter.post(.openInstagramMatch)`를 즉시 쏘는데, 구독자인 `LivithMainTabView`는 토큰 갱신 후 `.main` 전환 뒤에야 마운트되어 알림이 유실됐다.
+
+**원인**
+- NotificationCenter 기반 딥링크 전달은 구독자가 살아 있는 웜 런치에서만 동작한다. 콜드 런치와 로그인 경유(FR-01의 미로그인 분기) 시나리오를 고려하지 않았다.
+
+**해결**
+- `DeepLinkService`에 `pendingInstagramURL`을 보관하고(@MainActor), `LivithMainTabView`가 `onAppear`에서 `consumePendingInstagramURL()`로 소비하도록 했다. 웜 런치의 onReceive 경로에서도 consume해 중복 진입을 방지했다. 로그인 경유 시에도 로그인 완료 → 메인 탭 마운트 시점에 소비되므로 FR-01 분기가 함께 해결된다.
+
+**교훈**
+- 딥링크를 NotificationCenter로 전달할 때는 콜드 런치(구독자 부재) 유실을 항상 고려하고, pending 보관 + 진입 시점 소비 패턴을 함께 둔다.
+
+---
+
 ### 2026-07-09 - Xcode 서명 오류: App Groups 프로비저닝 미지원
 
 **상황**
