@@ -14,16 +14,16 @@
 ## 작업 항목
 
 ### 1. `ShareFeature` 모듈 신설
-- [ ] Tuist 모듈 등록 (Workspace는 `Projects/**`라 별도 변경 불필요)
+- [x] Tuist 모듈 등록 (Workspace는 `Projects/**`라 별도 변경 불필요)
   - `ProjectID.share = "ShareFeature"` (`Module+ProjectID.swift`)
   - `ShareModule.shareFeature = "ShareFeature"` (`Module+Constant.swift`)
   - `TargetDependency.share(_:)` (`TargetDependency+Extension.swift`)
   - `TargetID`에 `case share(ShareModule)` 추가, `name` / `sourcesPath`(`["Sources/**"]`) / `bundleID` switch 분기 (`Module+TargetID.swift`)
-- [ ] `Projects/ShareFeature/Project.swift` 생성
+- [x] `Projects/ShareFeature/Project.swift` 생성
   - product: `.framework`
   - 의존성(이번 이슈): `LivithDesignSystem`만 (UI-only)
   - Domain / DI / Coordinator는 FR-04/05·API 연동 시점에 추가
-- [ ] 폴더 골격 생성
+- [x] 폴더 골격 생성
   ```
   Projects/ShareFeature/
     Project.swift
@@ -32,11 +32,12 @@
         ConcertRequestView.swift
         Components/
           InterestConcertBottomSheet.swift
+          UnlimitedTextField.swift
   ```
-- [ ] `tuist generate` 실행
+- [x] `tuist generate` 실행
 
 ### 2. `ConcertRequestView` 구현 (단일 화면 + 상태)
-- [ ] `ConcertRequestView` 신설
+- [x] `ConcertRequestView` 신설
   - 헤더: `LivithNavigationView(.back(...))` + 타이틀 `공연 요청`
   - 안내 문구: `필요한 공연 정보를 요청하면 / 빠르게 등록까지 도와드려요`
   - 서브 문구: `지난 공연은 관심 콘서트에 추가할 수 없어요`
@@ -46,30 +47,30 @@
     - 추가 작성(선택, 멀티라인, **글자수 제한 없음**, 카운터 없음) — **커스텀 멀티라인 필드**. placeholder `아티스트 명이나 공연 일자 적어주면 더 빠르게 등록되어요!`
   - 하단 고정 `요청하기` 버튼 — `LivithButton`
     - 활성 조건: `concertName.trimmingCharacters(in: .whitespacesAndNewlines)`가 비어 있지 않을 때
-- [ ] `@State`로 UI 상태 관리 (Store 없음)
+- [x] `@State`로 UI 상태 관리 (Store 없음)
   - `concertName`, `url`, `additionalNote`
   - `isBottomSheetPresented`
   - `isCancelModalPresented`
   - `showFailureToast`
-- [ ] dirty / 작성 있음 판정 (공백만은 작성 없음)
+- [x] dirty / 작성 있음 판정 (공백만은 작성 없음)
   ```
   hasInput =
     !concertName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     || !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     || !additionalNote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
   ```
-- [ ] 인터랙션
+- [x] 인터랙션
   - 공연명(trim 후 non-empty) → 요청하기 활성화
   - 요청하기 탭 → 관심 콘서트 바텀시트 표시
   - 뒤로가기(`!hasInput`) → `onDismiss()`
   - 뒤로가기(`hasInput`) → 취소 확인 모달
-  - 바텀시트 `괜찮아요` / `등록할래요` → **동일 동작**: 시트 dismiss + **실패 토스트(08) 표시** (UI-only 스텁)
-- [ ] 진입 인터페이스는 closure 기반 (`NicknameEditView`의 **closure 인터페이스만** 참고, Store 패턴은 따르지 않음)
+  - 바텀시트 `괜찮아요` / `등록할래요` → **동일 동작**: 시트 유지 + **실패 토스트(08) 표시** (UI-only 스텁)
+- [x] 진입 인터페이스는 closure 기반 (`NicknameEditView`의 **closure 인터페이스만** 참고, Store 패턴은 따르지 않음)
   - `onDismiss: () -> Void`
   - (선택) `onRequest: (concertName:url:note:registerInterest:) -> Void` — 후속 API용 스텁. 이번엔 바텀시트 버튼이 토스트를 띄우는 것이 완료 조건
 
 ### 3. 관심 콘서트 등록 바텀시트
-- [ ] `InterestConcertBottomSheet` 컴포넌트
+- [x] `InterestConcertBottomSheet` 컴포넌트
   - Figma `1:1729` 기준
   - 타이틀: `콘서트가 등록되면 / 관심 콘서트로 자동 등록할까요?`
   - 설명: `관심 콘서트로 등록하면 예매 알림, / 콘서트 정보 업데이트 소식을 빠르게 받아볼 수 있어요!`
@@ -78,17 +79,17 @@
   - detent는 Figma `1:1729` 기준으로 맞추고, 구현 시 측정 후 고정
 
 ### 4. 취소 확인 모달 · 실패 토스트
-- [ ] 취소 모달 — `.crossDissolve` + `LivithDangerModal` 재사용
+- [x] 취소 모달 — `.crossDissolve` + `LivithDangerModal` 재사용
   - 메시지: `공연 요청을 그만 두시나요?\n언제든 다시 지정할 수 있어요.`
   - confirm: `지금은 그만할래요` → `onDismiss`
   - cancel: `잘못 눌렀어요` → 모달 닫기
-- [ ] 실패 토스트 — `.livithToast` / `LivithToast` 재사용
+- [x] 실패 토스트 — `.livithToast` / `LivithToast` 재사용
   - 메시지: `요청 중 오류가 발생했어요\n다시 시도해주세요`
   - 바텀시트 버튼 탭 시 `showFailureToast = true`로 연결
   - Preview에서 `.livithToast`가 `UIWindowScene` 부재로 실패하면 **완료를 막지 않고**, 사용자에게 알린 뒤 해당 Preview 검증만 스킵
 
 ### 5. Preview
-- [ ] `#Preview`로 주요 상태 확인
+- [x] `#Preview`로 주요 상태 확인
   - 빈 폼 (요청하기 비활성)
   - 공연명 입력 (요청하기 활성)
   - 바텀시트 표시
@@ -96,10 +97,10 @@
   - 실패 토스트 표시 (안 되면 스킵 + 사용자 알림)
 
 ### 6. 검증
-- [ ] `tuist generate`
-- [ ] XcodeBuildMCP로 `ShareFeature` 빌드 (시뮬레이터: **iPhone 17**)
+- [x] `tuist generate`
+- [x] XcodeBuildMCP로 `ShareFeature` 빌드 (시뮬레이터: **iPhone 17**)
   - `session_show_defaults`로 scheme/시뮬레이터 확인 후, 필요 시 scheme=`ShareFeature`, simulator=`iPhone 17`로 설정
-  - `build_sim`으로 컴파일 검증
+  - `build_sim`으로 컴파일 검증 — **성공**
 
 ## 영향 범위
 - **신규**
@@ -127,7 +128,7 @@ Figma Description (`1:1431`, `1:1457`) 기준. UI-only 범위에서 **구현 / �
 | 4 | **URL** — 선택, 글자수 제한 없음. 입력 필드 클릭 시 키보드 | **구현** | 커스텀 단일라인. 제한·카운터 없음 |
 | 5 | **추가 작성** — 선택, 글자수 제한 없음. 입력 필드 클릭 시 키보드 | **구현** | 커스텀 멀티라인. 제한·카운터 없음 |
 | 6 | **요청하기 버튼** — 필수(공연 명) 입력 시 활성화. 클릭 시 관심 콘서트 등록 선택 바텀시트(07) 등장 | **구현** | 공연명 trim 후 non-empty일 때 enabled. 탭 → 바텀시트 |
-| 7 | **관심 콘서트 등록 바텀시트** — `등록할래요` 선택 시 추후 관심 콘서트 자동 추가. `괜찮아요` / `등록할래요` 클릭 시 동작 동일. 실패 → 현 페이지 유지 + 실패 토스트(08). 성공 → 홈 + 성공 토스트(09) + 디스코드 | **부분 구현** | `.livithSheet` + UI. 두 버튼 동일: dismiss + **실패 토스트(08)**. 성공·디스코드 **제외** |
+| 7 | **관심 콘서트 등록 바텀시트** — `등록할래요` 선택 시 추후 관심 콘서트 자동 추가. `괜찮아요` / `등록할래요` 클릭 시 동작 동일. 실패 → 현 페이지 유지 + 실패 토스트(08). 성공 → 홈 + 성공 토스트(09) + 디스코드 | **부분 구현** | `.livithSheet` + UI. 두 버튼 동일: **시트 유지 + 실패 토스트(08)**. 성공·디스코드 **제외** |
 | 8 | **공연 요청 실패 토스트** — `요청 중 오류가 발생했어요 / 다시 시도해주세요` | **구현** | 바텀시트 버튼에서 트리거. Preview 실패 시 스킵 + 사용자 알림 |
 | 9 | **공연 요청 성공 토스트** — 홈 이동 후 `정보가 요청되었어요` (`1:1910`) | **제외** | 홈 화면 연출·성공 플로우는 이번 이슈 밖 |
 
@@ -158,7 +159,7 @@ Figma Description (`1:1431`, `1:1457`) 기준. UI-only 범위에서 **구현 / �
 | URL·추가작성 필드 | LivithTextField 우회 vs 커스텀 | **커스텀** | 글자수 제한 없음. `LivithTextField`는 `maxLength` 필수·`.text`는 카운터 표시 |
 | 작성 있음(dirty) | 원문 empty vs trim | **trim 후 non-empty** | 공백만은 작성 없음·버튼 비활성과 동일 기준 |
 | 바텀시트 제시 | 커스텀 overlay vs `.livithSheet` | **`.livithSheet`** | DesignSystem 표준 |
-| 바텀시트 버튼 스텁 | dismiss만 vs 실패 토스트 | **dismiss + 실패 토스트(08)** | 사용자 확정. UI-only에서 실패 경로를 Preview로 확인 |
+| 바텀시트 버튼 스텁 | dismiss + 토스트 vs 시트 유지 + 토스트 | **시트 유지 + 실패 토스트(08)** | 사용자 피드백. UI-only에서 시트 위 실패 경로 확인 |
 | 성공 홈 토스트 | 포함 vs 제외 | **제외** (`1:1910`, 명세 #9) | 사용자 확정 |
 | 실패 토스트 Preview | 필수 vs 실패 시 스킵 | **시도 후 실패 시 스킵 + 사용자 알림** | `.livithToast`는 `UIWindowScene` 의존. Preview 한계 허용 |
 | 완료 확인 | Preview vs 앱 임시 진입점 | **`#Preview`** | UI-only + 진입점 미연결 |
@@ -168,7 +169,7 @@ Figma Description (`1:1431`, `1:1457`) 기준. UI-only 범위에서 **구현 / �
 - DesignSystem 컴포넌트를 우선 재사용한다. URL·추가작성만 제한 없음 요구로 커스텀 필드를 둔다. DesignSystem API 확장은 이번 이슈 밖.
 - 공연명 제한은 명세에 `50자`와 `n/20`이 혼재한다. Figma 화면 카운터(`50/50`)를 우선하고 **max 50자**로 구현한다.
 - `hasInput` / 요청하기 활성 모두 **trim 후** 판정한다. 공백만 입력은 작성 없음으로 본다.
-- 바텀시트 두 버튼은 동일하게 실패 토스트를 띄운다. 성공 플로우는 구현하지 않는다.
+- 바텀시트 두 버튼은 동일하게 **시트를 유지한 채** 실패 토스트를 띄운다. 성공 플로우는 구현하지 않는다.
 - 이번 이슈에서 App에 `ShareFeature`를 연결하지 않는다. Preview로만 검증한다.
 - 실패 토스트 Preview가 안 되면 완료를 막지 말고 사용자에게 알린다.
 - 작업 중 빌드 실패·피드백·접근 변경 시 `docs/troubleshooting/LIVD-429-concert-request-ui.md`에 즉시 기록한다.
