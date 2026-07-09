@@ -97,6 +97,13 @@ struct LivithMainTabView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .openInstagramMatch)) { notification in
             if let sourceURL = notification.userInfo?["sourceURL"] as? URL {
+                _ = DeepLinkService.shared.consumePendingInstagramURL()
+                selectedTab = .home
+                deepLinkInstagramURL = sourceURL
+            }
+        }
+        .onAppear {
+            if let sourceURL = DeepLinkService.shared.consumePendingInstagramURL() {
                 selectedTab = .home
                 deepLinkInstagramURL = sourceURL
             }
