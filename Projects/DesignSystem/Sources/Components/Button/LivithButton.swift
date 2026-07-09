@@ -14,6 +14,7 @@ public enum LivithButtonVariant {
     case primary
     case pink
     case secondary
+    case cancel
 
     var enabledBackground: Color {
         switch self {
@@ -23,6 +24,8 @@ public enum LivithButtonVariant {
             return .livithColor(.translation)
         case .secondary:
             return .livithColor(.black50)
+        case .cancel:
+            return .livithColor(.black80)
         }
     }
 
@@ -34,6 +37,8 @@ public enum LivithButtonVariant {
             return .livithColor(.translation).opacity(0.8)
         case .secondary:
             return .livithColor(.black80)
+        case .cancel:
+            return .livithColor(.black90)
         }
     }
 
@@ -47,6 +52,8 @@ public enum LivithButtonVariant {
             return .livithColor(.black100)
         case .secondary:
             return .livithColor(.white100)
+        case .cancel:
+            return .livithColor(.black30)
         }
     }
 

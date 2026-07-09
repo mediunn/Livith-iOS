@@ -163,20 +163,21 @@ private extension InstagramMatchConfirmView {
         } label: {
             VStack(spacing: 6) {
                 Text(Literals.searchDirectlyTitle)
-                    .notosans(.body3Medium)
+                    .notosans(.body2Medium)
                     .foregroundStyle(Color.livithColor(.black50))
 
                 Rectangle()
                     .fill(Color.livithColor(.black50))
                     .frame(height: 1)
             }
+            .padding(8)
             .fixedSize()
         }
     }
 
     var bottomSection: some View {
         HStack(spacing: 15) {
-            LivithButton(Literals.cancelTitle, variant: .secondary) {
+            LivithButton(Literals.cancelTitle, variant: .cancel) {
                 store.send(.cancelTapped)
             }
 

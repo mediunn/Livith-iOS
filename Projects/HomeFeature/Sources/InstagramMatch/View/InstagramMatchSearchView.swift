@@ -139,7 +139,7 @@ private extension InstagramMatchSearchView {
 
             Spacer()
         }
-        .padding(.top, 30)
+        .padding(.top, 20)
         .padding(.horizontal, Constants.horizontalPadding)
     }
 
@@ -173,7 +173,7 @@ private extension InstagramMatchSearchView {
 
     var bottomSection: some View {
         HStack(spacing: 15) {
-            LivithButton(Literals.cancelTitle, variant: .secondary) {
+            LivithButton(Literals.cancelTitle, variant: .cancel) {
                 store.send(.cancelTapped)
             }
 
