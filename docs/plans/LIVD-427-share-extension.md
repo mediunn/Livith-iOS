@@ -15,8 +15,9 @@
   - `Resources/ShareExtension-Info.plist`: `NSExtensionActivationRule`(WebURL 1개 + Text 지원), `NSExtensionPointIdentifier=com.apple.share-services`
   - `Resources/ShareExtension.entitlements`: App Group `group.com.youz2me.livith`
 - [x] `Projects/App/Project.swift`: `.make(name:product:.appExtension)` 타겟 추가 + App 타겟 dependency에 익스텐션 추가(임베드)
-- [ ] TDD: `ShareURLExtractor`의 URL 추출 규칙을 테스트 (App 스킴 테스트 타겟 유무 확인 후, 없으면 익스텐션 순수 로직은 예외 처리로 문서화)
-- [ ] 검증: `tuist generate` → `tuist build`(앱+익스텐션 컴파일) → 시뮬레이터에서 공유 시트 노출 확인
+- [x] TDD: App 프로젝트에 익스텐션 전용 테스트 타겟이 없어, Share Extension은 `docs/rules/tdd.md`의 예외 허용 작업(시스템 delegate 연결·UI 배선)으로 처리. `ShareURLExtractor.makeDeepLink`는 순수 함수로 분리해 두어 추후 테스트 타겟 추가 시 바로 검증 가능
+- [x] 검증: `tuist generate` → `tuist build Livith-iOS-Dev`(앱+익스텐션 임베드 빌드 성공)
+- [ ] 잔여: 시뮬레이터 앱 설치 후 공유 시트에서 Livith 노출 및 선택 시 매칭 화면 진입 수동 확인
 
 ## 영향 범위
 - `Projects/App/Project.swift` (타겟 추가)
