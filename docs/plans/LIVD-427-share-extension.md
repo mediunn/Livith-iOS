@@ -13,7 +13,7 @@
   - `Sources/ShareViewController.swift`: 공유 항목에서 URL(또는 텍스트 속 URL) 추출 → `livith://instagram?url=<encoded>` 생성 → 메인 앱 open → 익스텐션 종료
   - `Sources/ShareURLExtractor.swift`: `NSExtensionItem` 배열에서 첫 URL을 뽑는 순수 로직 (테스트 대상)
   - `Resources/ShareExtension-Info.plist`: `NSExtensionActivationRule`(WebURL 1개 + Text 지원), `NSExtensionPointIdentifier=com.apple.share-services`
-  - `Resources/ShareExtension.entitlements`: App Group `group.com.youz2me.livith`
+  - entitlements 없음 — 딥링크 방식이라 App Group 등 capability 불필요 (서명 오류 방지, 트러블슈팅 참조)
 - [x] `Projects/App/Project.swift`: `.make(name:product:.appExtension)` 타겟 추가 + App 타겟 dependency에 익스텐션 추가(임베드)
 - [x] TDD: App 프로젝트에 익스텐션 전용 테스트 타겟이 없어, Share Extension은 `docs/rules/tdd.md`의 예외 허용 작업(시스템 delegate 연결·UI 배선)으로 처리. `ShareURLExtractor.makeDeepLink`는 순수 함수로 분리해 두어 추후 테스트 타겟 추가 시 바로 검증 가능
 - [x] 검증: `tuist generate` → `tuist build Livith-iOS-Dev`(앱+익스텐션 임베드 빌드 성공)

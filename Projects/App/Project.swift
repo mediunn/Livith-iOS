@@ -48,8 +48,7 @@ let project = Project.make(
             product: .appExtension,
             bundleID: "\(BuildConfiguration.baseBundleID).shareextension",
             infoPlist: .file(path: "ShareExtension/Resources/ShareExtension-Info.plist"),
-            sources: ["ShareExtension/Sources/**"],
-            entitlements: .file(path: "ShareExtension/Resources/ShareExtension.entitlements")
+            sources: ["ShareExtension/Sources/**"]
         )
     ],
     schemes: Scheme.makeAppSchemes(name: BuildConfiguration.appName)

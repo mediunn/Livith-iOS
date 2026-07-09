@@ -2,6 +2,25 @@
 
 ## 기록
 
+### 2026-07-09 - Xcode 서명 오류: App Groups 프로비저닝 미지원
+
+**상황**
+- 사용자가 Xcode에서 실행하자 LivithShareExtension 타겟에 서명 오류 4건이 발생했다: Apple ID 로그인 거부 1건 + "iOS Team Provisioning Profile: *"이 App Groups capability/entitlement를 포함하지 않는다는 오류 3건.
+
+**문제**
+- 익스텐션 entitlements에 App Group(`group.com.youz2me.livith`)을 선언했지만, 자동 생성 프로비저닝 프로파일에 해당 capability가 없어 서명이 실패했다.
+
+**원인**
+- 이 익스텐션은 딥링크(URL scheme)로 메인 앱을 여는 구조라 App Group 공유 저장소를 사용하지 않는데, 앱 entitlements를 관성적으로 복사해 불필요한 capability를 선언했다.
+
+**해결**
+- 익스텐션의 entitlements 파일과 Project.swift의 entitlements 지정을 제거해 서명 요구사항 자체를 없앴다. Apple ID 로그인 거부는 Xcode > Settings > Accounts에서 재로그인 필요 (사용자 액션).
+
+**교훈**
+- 익스텐션 entitlements는 실제 사용하는 capability만 선언한다. App Group은 데이터 공유가 필요해지는 시점(예: 익스텐션에서 직접 저장)에만 추가한다.
+
+---
+
 ### 2026-07-09 - 익스텐션 번들 ID 접두사 불일치 (Info.plist 표준 키 누락)
 
 **상황**
