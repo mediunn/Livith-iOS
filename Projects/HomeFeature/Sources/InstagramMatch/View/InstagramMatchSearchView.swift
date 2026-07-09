@@ -98,12 +98,24 @@ struct InstagramMatchSearchView: View {
 
 private extension InstagramMatchSearchView {
     var navigationBar: some View {
-        LivithNavigationView(
-            type: .back(
-                title: Literals.navigationTitle,
-                onBack: { homeRouter.pop() }
-            )
-        )
+        HStack(spacing: .zero) {
+            if store.state.context == .manualSearch {
+                Button(action: { homeRouter.pop() }) {
+                    Image.livithIcon(.backLineDefault)
+                        .resizable()
+                        .frame(width: 36, height: 36)
+                }
+                .padding(.leading, 16)
+            }
+
+            Spacer()
+
+            LivithReportButton(Literals.reportButtonTitle, variant: .info) {
+                // TODO: FR-06 공연 정보 요청 페이지 연결 (후속 이슈)
+            }
+            .padding(.trailing, 16)
+        }
+        .frame(height: Constants.navigationBarHeight)
     }
 
     var topSection: some View {
@@ -227,10 +239,11 @@ private extension InstagramMatchSearchView {
 private extension InstagramMatchSearchView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
+        static let navigationBarHeight: CGFloat = 66
     }
 
     enum Literals {
-        static let navigationTitle = "공연 설정"
+        static let reportButtonTitle = "정보 요청"
         static let searchPlaceholder = "찾고 있는 콘서트나 가수를 검색하세요"
         static let cancelTitle = "취소"
         static let registerTitle = "등록하기"
