@@ -4,7 +4,7 @@
 - 홈이 **관심 콘서트 / 캘린더** 두 모드로 분리된다. ([참고 Figma](https://www.figma.com/design/G53QwXoxT96gB68dO7vRZi/?node-id=10-17969))
 - 세그먼트·단일 `HomeStore`·초기 로드 동시성 1차는 반영됨. 이어서 **View를 탭 맥락으로 분리**하고, **로드 트리거를 셸/관심 콘텐츠로 나눈다**.
 - `HomeView.onAppear`에 관심 파이프라인까지 두면 캘린더가 보이는 상태에서도 관심 API가 돌 수 있어, 책임이 어긋난다.
-- **관심 콘서트 결과 안내(toast → FR-06 시트)** 는 별도 계획: `docs/plans/LIVD-438-interest-concert-result-sheet.md`
+- **관심 콘서트 결과 안내(toast → FR-06 시트)** 는 별도 계획: `docs/archives/LIVD-438-interest-concert-result-sheet.md`
 
 ## 목표
 - 홈 루트에 세그먼트(관심 콘서트 / 캘린더)를 둔다. (**완료**)

@@ -4,7 +4,7 @@
 - 기존에는 관심 콘서트 자동 정리 결과를 **토스트**로 안내했다 (`interestToastMessage` + `fetchInterestConcertCleanupPolicy`).
 - 변경된 기획(FR-06)은 홈 최초 진입 시 정리·요청 결과를 **시스템 시트**로 보여 준다.
 - Figma: [FR-06 섹션](https://www.figma.com/design/G53QwXoxT96gB68dO7vRZi/?node-id=15-1954), [시트 화면 예](https://www.figma.com/design/G53QwXoxT96gB68dO7vRZi/?node-id=15-4474)
-- 세그먼트·View 분리·동시성 작업은 `docs/plans/LIVD-438-home-segment-concurrency.md`에서 진행 중/완료. **본 문서는 그와 별도**이며, 브랜치 `feat/LIVD-438-home-ui`를 유지한다.
+- 세그먼트·View 분리·동시성 작업은 `docs/archives/LIVD-438-home-segment-concurrency.md`에서 진행 중/완료. **본 문서는 그와 별도**이며, 브랜치 `feat/LIVD-438-home-ui`를 유지한다.
 
 ## 목표
 - 홈 섹션 로드 성공 후, 기존 interest toast 대신 **FR-06 관심 콘서트 소식 시트**를 띄운다.
