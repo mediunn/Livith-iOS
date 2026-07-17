@@ -15,13 +15,13 @@ public enum SegmentedTabBarType {
     case detail(selectedTab: DetailTab, communityCount: Int, onTabSelected: (DetailTab) -> Void)
 
     public enum HomeTab: Int, CaseIterable {
-        case schedule
-        case setlist
+        case interestConcert
+        case calendar
 
         var title: String {
             switch self {
-            case .schedule: return "콘서트 일정"
-            case .setlist: return "셋리스트"
+            case .interestConcert: return "관심 콘서트"
+            case .calendar: return "캘린더"
             }
         }
     }
@@ -209,7 +209,7 @@ private extension SegmentedTabBar {
 
 #Preview("Home") {
     struct PreviewContainer: View {
-        @State var selectedTab: SegmentedTabBarType.HomeTab = .schedule
+        @State var selectedTab: SegmentedTabBarType.HomeTab = .interestConcert
 
         var body: some View {
             ZStack {

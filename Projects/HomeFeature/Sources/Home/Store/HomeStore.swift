@@ -10,10 +10,12 @@ import Foundation
 
 import DIContainer
 import Domain
+import LivithDesignSystem
 
 // MARK: - State
 
 struct HomeState {
+    var selectedHomeTab: SegmentedTabBarType.HomeTab = .interestConcert
     var user: User? = nil
     var interestConcertList: [InterestConcert] = []
     var interestConcertSort: InterestConcertSort = .ticketing
@@ -32,6 +34,7 @@ struct HomeState {
 enum HomeIntent {
     case onAppear
     case onRefresh
+    case homeTabSelected(SegmentedTabBarType.HomeTab)
     case onErrorToastDisappear
     case onInterestConcertToastDisappear
     case checkUnreadNotification
@@ -75,6 +78,9 @@ final class HomeStore: ObservableObject {
         case .onRefresh:
             performFetchConcertSectionData()
 
+        case .homeTabSelected(let tab):
+            state.selectedHomeTab = tab
+
         case .onErrorToastDisappear:
             state.errorMessage = ""
 
@@ -96,8 +102,8 @@ final class HomeStore: ObservableObject {
                 state.user = data.user
                 state.interestConcertList = data.interestConcertList
                 state.hasNewNotice = data.hasNewNotice
-                executeInitialConcertSectionLoadIfNeeded()
             case .failure(let error):
+                state.isConcertSectionLoading = false
                 setErrorMessage(from: error)
             }
 
@@ -181,27 +187,37 @@ private extension HomeStore {
 
     func performFetchInitialHomeData() {
         cancellables[.fetchInitialHomeData]?.cancel()
+
+        let shouldLoadSections = state.isConcertSectionInitialLoad
+        if shouldLoadSections {
+            state.isConcertSectionLoading = true
+            shouldFetchInterestConcertToastAfterSectionLoad = true
+        }
+
+        let interestSort = state.interestConcertSort
+
         cancellables[.fetchInitialHomeData] = Task {
             async let userResult = fetchUserResult()
             async let interestConcertListResult = fetchInterestConcertListResult(
-                filter: .homeSection(sort: state.interestConcertSort)
+                filter: .homeSection(sort: interestSort)
             )
             async let hasNewNoticeResult = fetchHasNewNoticeResult()
+            async let sectionsResult = fetchHomeSectionsResultIfNeeded(shouldLoadSections)
 
-            let (
-                resolvedUserResult,
-                resolvedInterestConcertListResult,
-                resolvedHasNewNoticeResult
-            ) = await (
-                userResult,
-                interestConcertListResult,
-                hasNewNoticeResult
-            )
+            let resolvedUserResult = await userResult
+
+            if Task.isCancelled { return }
 
             switch resolvedUserResult {
+            case .failure(let error):
+                // 미대기 async let은 스코프 종료 시 취소된다.
+                shouldFetchInterestConcertToastAfterSectionLoad = false
+                send(._fetchInitialHomeDataResult(.failure(error)))
+                return
+
             case .success(let user):
                 let list: [InterestConcert]
-                switch resolvedInterestConcertListResult {
+                switch await interestConcertListResult {
                 case .success(let interestConcertList):
                     list = interestConcertList
                 case .failure:
@@ -209,20 +225,42 @@ private extension HomeStore {
                 }
 
                 let hasNewNotice: Bool
-                switch resolvedHasNewNoticeResult {
+                switch await hasNewNoticeResult {
                 case .success(let result):
                     hasNewNotice = result
                 case .failure:
                     hasNewNotice = false
                 }
 
+                if Task.isCancelled { return }
+
                 send(._fetchInitialHomeDataResult(.success((
                     user: user,
                     interestConcertList: list,
                     hasNewNotice: hasNewNotice
                 ))))
-            case .failure(let error):
-                send(._fetchInitialHomeDataResult(.failure(error)))
+
+                guard shouldLoadSections else { return }
+
+                let resolvedSectionsResult = await sectionsResult
+                if Task.isCancelled { return }
+
+                guard let resolvedSectionsResult else { return }
+
+                switch resolvedSectionsResult {
+                case .success(let sectionList):
+                    let recommendations = await fetchRecommendations(for: user)
+                    if Task.isCancelled { return }
+                    // 취소 없이 섹션·추천까지 도달했을 때만 초기 로드 플래그를 소진한다.
+                    state.isConcertSectionInitialLoad = false
+                    send(._fetchConcertSectionDataResult(.success((
+                        sectionList: sectionList,
+                        recommendedConcertList: recommendations
+                    ))))
+                case .failure(let error):
+                    state.isConcertSectionInitialLoad = false
+                    send(._fetchConcertSectionDataResult(.failure(error)))
+                }
             }
         }
     }
@@ -248,6 +286,20 @@ private extension HomeStore {
         do {
             let count = try await notificationRepository.fetchUnreadNotificationCount()
             return .success(count > 0)
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    func fetchHomeSectionsResultIfNeeded(_ shouldLoad: Bool) async -> Result<[ConcertSection], Error>? {
+        guard shouldLoad else { return nil }
+        return await fetchHomeSectionsResult()
+    }
+
+    func fetchHomeSectionsResult() async -> Result<[ConcertSection], Error> {
+        do {
+            let sections = try await concertRepository.fetchHomeConcertSectionList()
+            return .success(sections)
         } catch {
             return .failure(error)
         }
@@ -323,8 +375,12 @@ private extension HomeStore {
     }
 
     func fetchRecommendationsIfNeeded() async -> [Concert]? {
-        guard let hasPreferences = state.user?.hasPreferences else { return nil }
-        guard hasPreferences else { return nil }
+        guard let user = state.user else { return nil }
+        return await fetchRecommendations(for: user)
+    }
+
+    func fetchRecommendations(for user: User) async -> [Concert]? {
+        guard user.hasPreferences else { return nil }
 
         do {
             return try await concertRepository.fetchRecommendedConcertList()

@@ -29,7 +29,9 @@ struct HomeView: View {
         VStack(spacing: .zero) {
             navigationView
 
-            scrollView
+            segmentedTabBar
+
+            tabContent
         }
         .background(backgroundColor.ignoresSafeArea())
         .onAppear {
@@ -74,7 +76,12 @@ struct HomeView: View {
 
 private extension HomeView {
     var backgroundColor: Color {
-        Color.livithColor(store.state.interestConcertList.isEmpty ? .black90 : .black100)
+        switch store.state.selectedHomeTab {
+        case .interestConcert:
+            return Color.livithColor(store.state.interestConcertList.isEmpty ? .black90 : .black100)
+        case .calendar:
+            return Color.livithColor(.black100)
+        }
     }
 
     var preferenceBannerBackgroundColor: Color {
@@ -90,6 +97,34 @@ private extension HomeView {
             hasNewNotice: store.state.hasNewNotice,
             onNoticeTap: { homeRouter.push(.notice) }
         ))
+    }
+
+    var segmentedTabBar: some View {
+        SegmentedTabBar(type: .home(
+            selectedTab: store.state.selectedHomeTab,
+            onTabSelected: { store.send(.homeTabSelected($0)) }
+        ))
+    }
+
+    @ViewBuilder
+    var tabContent: some View {
+        switch store.state.selectedHomeTab {
+        case .interestConcert:
+            scrollView
+        case .calendar:
+            calendarPlaceholderView
+        }
+    }
+
+    var calendarPlaceholderView: some View {
+        VStack {
+            Spacer()
+            Text(Constants.calendarPlaceholderText)
+                .notosans(.body2Semibold)
+                .foregroundStyle(Color.livithColor(.black50))
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     var scrollView: some View {
@@ -206,5 +241,6 @@ private extension HomeView {
         static let headerSectionTopPadding: CGFloat = 16
         static let sectionHorizontalPadding: CGFloat = 16
         static let loadingMinHeight: CGFloat = 240
+        static let calendarPlaceholderText = "준비 중"
     }
 }
