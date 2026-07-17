@@ -2,71 +2,74 @@
 
 ## 배경
 - 홈이 **관심 콘서트 / 캘린더** 두 모드로 분리된다. ([참고 Figma](https://www.figma.com/design/G53QwXoxT96gB68dO7vRZi/?node-id=10-17969))
-- 현재 `HomeView`에는 세그먼트가 없고, 기존 홈 콘텐츠가 단일 스크롤로 구성되어 있다.
-- 초기 진입 네트워크는 Phase 1(유저·관심·알림 동시) → Phase 2(섹션·추천) → Phase 3(토스트)로 **단계 직렬**이다. 의존성이 없는 호출까지 대기하는 구조라 진입 지연이 커질 수 있다.
-- `DesignSystem.SegmentedTabBarType.HomeTab`은 현재 `콘서트 일정` / `셋리스트`로 정의되어 있어, 이번 홈 세그먼트 라벨과 맞지 않는다.
+- 세그먼트·단일 `HomeStore`·초기 로드 동시성 1차는 반영됨. 이어서 **View를 탭 맥락으로 분리**하고, **로드 트리거를 셸/관심 콘텐츠로 나눈다**.
+- `HomeView.onAppear`에 관심 파이프라인까지 두면 캘린더가 보이는 상태에서도 관심 API가 돌 수 있어, 책임이 어긋난다.
 
 ## 목표
-- 홈 루트에 세그먼트(관심 콘서트 / 캘린더)를 추가한다.
-- **기존 홈 콘텐츠 전부**를 관심 콘서트 탭 아래에 그대로 둔다. (관심 탭 콘텐츠 재디자인 없음)
-- 캘린더 탭은 `준비 중` 문구 플레이스홀더만 제공한다. (실제 캘린더 콘텐츠는 범위 밖)
-- 초기 진입 네트워크에서 의존성 없는 호출은 최대한 동시 실행하고, 필수 순서만 유지한다.
-- 기존과 동일한 데이터 결과·에러 흡수·토스트 타이밍(콘텐츠 로드 후)을 유지한다.
-- 세그먼트 전환 + 관심 탭 기존 동작 유지 + 동시성 정리를 테스트로 검증한다.
+- 홈 루트에 세그먼트(관심 콘서트 / 캘린더)를 둔다. (**완료**)
+- **기존 홈 콘텐츠 전부**를 관심 콘서트 탭 아래에 유지한다. (관심 탭 콘텐츠 재디자인 없음)
+- 캘린더 탭은 `준비 중` 플레이스홀더. (실제 캘린더 콘텐츠는 범위 밖)
+- **단일 `HomeStore`**를 유지하되, **View는 탭별로 분리·폴더링**한다.
+- 네트워크 책임 분리:
+  - `homeAppear`(셸): 유저 + 미읽음 알림
+  - `interestAppear`(관심 콘텐츠): 관심 목록 ∥ 섹션, 추천(user 후), 토스트(섹션 성공 후)
+- 세그먼트 전환 + 관심 탭 동작 유지 + 동시성/분리를 테스트로 검증한다.
 
 ## 작업 항목
 
 ### 1. 세그먼트 타입 / DesignSystem 정리
 - [x] `SegmentedTabBarType.HomeTab`을 `interestConcert` / `calendar`로 **교체**
-  - 표시명: `관심 콘서트` / `캘린더`
-  - 기존 `schedule` / `setlist` 사용처 검색 후 Preview 등 동기화
-  - (실사용처가 홈 외 없으면 교체로 단순화 — 그릴 확정)
+- [x] 홈 `.home` 세그먼트 배경을 clear로 두어 빈 상태 `black90`과 단차 제거
 
-### 2. Home UI — 세그먼트 + 탭 콘텐츠 분기
-- [x] `HomeView`에 `SegmentedTabBar(type: .home(...))` 추가
-  - 기본 선택: 관심 콘서트
-  - 관심 콘서트: 기존 `scrollView` 및 관련 UI 전부 이동 (헤더/알림/토스트/리프레시 등 기존 홈 동작 유지)
-  - 캘린더: `준비 중` 문구 플레이스홀더
-- [x] 세그먼트 선택 상태를 **단일 `HomeStore`**에서 관리 (`selectedHomeTab` + `homeTabSelected` Intent)
-  - 관심/캘린더 전용 자식 Store **분리하지 않음** (추후 캘린더 실구현 시 재검토)
-  - 바닐라 Reducer/Effect 패턴 **이번 티켓에서 도입하지 않음** (기존 `send` + `perform*` 유지)
-  - 선택 상태 영속화 없음 (재진입 시 관심 콘서트 기본)
-  - 탭과 무관하게 관심 콘서트용 초기 로드 수행 (탭별 로드 분기 없음)
+### 2. Home UI — 세그먼트 + 단일 Store (1차)
+- [x] `HomeView`에 세그먼트 추가, 관심=기존 홈 / 캘린더=`준비 중`
+- [x] `selectedHomeTab` + `homeTabSelected`를 **단일 `HomeStore`**에서 관리
+- [x] 자식 Store / Reducer 미도입
 
-### 3. 초기 진입 네트워크 동시성 정리 (`HomeStore`)
-- [x] Phase 1 → 2 → 3 직렬 파이프라인을 재구성 (그릴 확정 모델)
-  - **동시 시작:** 유저, 관심 목록, 알림 수, **홈 섹션**
-  - **유저 성공 후:** 추천 (`user.hasPreferences`일 때만)
-  - **섹션 성공 후(기존 타이밍):** 관심 콘서트 토스트 조회·표시
-  - **유저 실패 시:** 관련 Task **cancel** + 섹션 성공 결과 **미반영** + 기존처럼 초기 실패 처리
-  - **로딩 UX:** `onAppear`에서 `isConcertSectionLoading = true`, 유저·섹션 준비 후 해제
-- [x] 에러 흡수 규칙 유지
-  - 관심 목록 / 알림 실패 → 홈 초기 실패로 전파하지 않음
-  - 유저 실패만 초기 데이터 실패로 전파
-- [x] `onRefresh`는 **범위 밖** — 기존 동작 회귀 확인만
+### 3. 초기 진입 네트워크 동시성 (1차 — 이후 4항에서 트리거·파이프라인 재분리)
+- [x] 의존 없는 호출 동시 실행, 추천·토스트 후행, 유저 실패 시 섹션 미반영/cancel
+- [x] `onRefresh`는 범위 밖(회귀만)
+- [x] HomeStoreTests로 세그먼트·동시성·재시도 검증
 
-### 4. TDD — 실패 테스트 선행
-- [x] 세그먼트 선택 Intent/State 테스트 (기본값 = 관심 콘서트, 전환)
-- [x] 초기 로드 동시성/순서 회귀 테스트
-  - 유저 실패 시 섹션 결과 미반영·Task cancel 동작
-  - 관심/알림 실패 흡수
-  - 토스트는 섹션 로드 성공 후에만 조회
-  - 섹션이 유저와 직렬 대기하지 않음 (delay stub로 검증 가능하면)
-- [x] 기존 `HomeStoreTests`의 onAppear 시나리오가 새 파이프라인에서도 통과하도록 갱신
+### 4. Home View 분리 + 폴더링 + 로드 트리거 재분리 (그릴 2차)
+- [x] `HomeView`를 셸만 남기고 탭 콘텐츠 View 분리
+  - `InterestHomeContentView` — 기존 관심 스크롤 + `refreshable`
+  - `CalendarHomeContentView` — `준비 중` 플레이스홀더
+- [x] 폴더 구조
+
+```text
+Home/View/
+  HomeView.swift
+  Interest/
+    InterestHomeContentView.swift
+    Subview/   # 기존 Interest·Empty·ConcertContent 이동
+  Calendar/
+    CalendarHomeContentView.swift
+```
+
+- [x] 자식 View는 `@ObservedObject var store: HomeStore` 생성자 주입 (`@StateObject`는 `HomeView`만)
+- [x] 셸 책임: 네비·세그먼트·토스트·배경, `homeAppear` 호출
+- [x] 관심 콘텐츠: `interestAppear` 호출 (캘린더 보일 때는 관심 파이프라인 미실행)
+- [x] Intent 분리
+  - `homeAppear` → 유저 ∥ 미읽음 알림
+  - `interestAppear` → 관심 목록 ∥ 섹션, 추천은 `user` 준비 후, 토스트는 섹션 성공 후
+  - 기존 단일 `onAppear` 초기 로드는 위 둘로 대체
+- [x] 기본 탭이 관심이면 두 `onAppear`가 거의 동시 → 파이프라인은 병렬 유지, 추천만 user 후행
+- [x] TDD: `homeAppear` / `interestAppear` 각각의 호출·순서·실패 흡수 테스트 갱신
+- [x] Swift 파일 이동 후 `tuist generate` + XcodeBuildMCP로 테스트
 
 ### 5. 검증
-- [x] Swift 파일 추가/이동 시 `tuist generate` (셸)
-- [x] **빌드·테스트·시뮬레이터 확인은 XcodeBuildMCP 우선** (`session_show_defaults` → `build_sim` / `test_sim` / `build_run_sim`)
-  - MCP 세션 기본값(project/scheme/simulator) 확인 후 실행
-  - `xcodebuild` 직접 호출은 MCP로 불가하거나 실패할 때만 fallback (`docs/rules/project-operations.md`)
-- [ ] 시뮬레이터에서 세그먼트 전환·관심 탭 기존 콘텐츠·캘린더 `준비 중` 확인 (단위 테스트·빌드는 완료, 수동 UI 확인은 미실시)
+- [x] 1차: XcodeBuildMCP `HomeStoreTests` 통과
+- [x] 2차: View 분리·Intent 분리 후 `HomeStoreTests` (+ 필요 시 회귀) 통과
+- [ ] 시뮬레이터에서 세그먼트 전환·관심 탭·캘린더 `준비 중`·캘린더만 볼 때 관심 API 미호출 확인
 
 ## 영향 범위
-- `Projects/DesignSystem/Sources/Components/Navigation/SegmentedTabBar.swift` — `HomeTab` 케이스/라벨 교체
-- `Projects/HomeFeature/Sources/Home/View/HomeView.swift` — 세그먼트 UI, 탭 분기, 캘린더 플레이스홀더
-- `Projects/HomeFeature/Sources/Home/Store/HomeStore.swift` — `selectedHomeTab`, 초기 로드 동시성
+- `Projects/HomeFeature/Sources/Home/View/HomeView.swift` — 셸만 유지
+- `Projects/HomeFeature/Sources/Home/View/Interest/**` — 콘텐츠 + 기존 Subview 이동
+- `Projects/HomeFeature/Sources/Home/View/Calendar/**` — 플레이스홀더
+- `Projects/HomeFeature/Sources/Home/Store/HomeStore.swift` — `homeAppear` / `interestAppear` 파이프라인 분리
 - `Projects/HomeFeature/Tests/HomeStoreTests.swift`
-- `SegmentedTabBarType.HomeTab` 기존 사용처 (DesignSystem preview 등)
+- DesignSystem `SegmentedTabBar` — (1차 완료, 추가 변경 최소)
 - Domain / Networking / Repository 계약 변경 **없음**
 
 ## 기술 결정
@@ -75,62 +78,50 @@
 |-----------|--------|------|------|
 | 관심 탭 콘텐츠 | Figma 재디자인 vs 기존 홈 유지 | **기존 홈 전부 유지** | deep-interview |
 | 캘린더 탭 | 콘텐츠 vs 플레이스홀더 | **`준비 중` 플레이스홀더** | deep-interview + 그릴 |
-| 초기 네트워크 | 3단계 유지 vs 최대 동시 | **섹션∥유저 등 최대 동시** | deep-interview + 그릴 |
-| 섹션 vs 유저 | 유저 후 섹션 vs 병렬 | **병렬 + 유저 실패 시 미반영/cancel** | 그릴 |
-| 추천 | 병렬 vs 유저 후행 | **유저 후행** | `hasPreferences` 의존 |
-| 토스트 | 병렬 vs 섹션 후 | **섹션 성공 후** | 기존 UX 유지 |
-| 로딩 플래그 | 기존 타이밍 vs onAppear | **onAppear부터 전체 로딩** | 그릴 |
-| refresh | 동시성 포함 vs 제외 | **제외 (회귀만)** | 그릴 |
-| 세그먼트 컴포넌트 | 신규 vs `SegmentedTabBar` | **`SegmentedTabBar` 재사용** | 기존 DS |
-| `HomeTab` | 유지+신규 vs 교체 | **`interestConcert`/`calendar`로 교체** | 그릴 |
-| 세그먼트 상태 | View vs Store | **`HomeStore`** | 그릴 |
-| Store 분리 | 단일 vs 부모+자식 | **단일 `HomeStore`** | 캘린더는 플레이스홀더, MVI 기본형은 화면 단위 단일 Store. 분리·Reducer는 추후 재검토 |
-| Reducer | 도입 vs 미도입 | **미도입** (`send`/`perform*` 유지) | LIVD-438 범위·회귀 최소화. 레포에 Reducer 컨벤션 없음 |
-| 탭별 초기 로드 | 분기 vs 무관 | **탭 무관 (관심용 로드)** | 그릴 — 이번 범위에 분기로 이득 없음 |
+| Store 분리 | 단일 vs 부모+자식 | **단일 `HomeStore`** | 그릴 1차 |
+| View 분리 | 단일 HomeView vs 탭별 | **탭별 분리 + 폴더링** | 그릴 2차 |
+| Store 주입 | ObservedObject vs EnvironmentObject | **`@ObservedObject` 생성자 주입** | 그릴 2차 |
+| 관심 로드 트리거 | HomeView.onAppear vs Interest content | **`InterestHomeContentView.onAppear`** | 캘린더 표시 중 관심 API 방지 |
+| 셸 로드 | 유저만 vs 유저+알림 vs 없음 | **유저 ∥ 미읽음 알림** | 뱃지가 셸 소속 |
+| Intent | 단일 onAppear vs 분리 | **`homeAppear` / `interestAppear`** | 그릴 2차 |
+| 동시성 (2차) | 직렬 vs 분리 병렬 | **home∥interest 동시, 목록∥섹션, 추천=user 후, 토스트=섹션 후** | 그릴 2차 |
+| refresh | 셸 vs 관심 콘텐츠 | **관심 콘텐츠 `refreshable`** | 그릴 2차 |
+| Reducer | 도입 vs 미도입 | **미도입** | LIVD-438 |
 
-## HomeStore 구조 (단일 Store, 확정)
+## Home 구조 (2차 목표)
 
 ```text
-HomeView
-  └─ HomeStore.send(HomeIntent)     // 단일 진입점
-       ├─ state 갱신 (HomeState)
-       └─ perform*() 부수효과 → ._fetch… Result Intent로 재진입
+HomeView (@StateObject HomeStore)
+  ├─ homeAppear → 유저 ∥ 미읽음 알림
+  ├─ 네비 / 세그먼트 / 토스트
+  └─ tabContent
+       ├─ InterestHomeContentView (@ObservedObject store)
+       │    └─ interestAppear → 목록 ∥ 섹션 → 추천(user 후) → 토스트(섹션 후)
+       │         + refreshable
+       └─ CalendarHomeContentView (@ObservedObject store)
+            └─ "준비 중" (로드 없음)
 ```
 
-- **State:** 기존 홈 필드 + `selectedHomeTab` (기본 `.interestConcert`). 캘린더 전용 필드는 이번엔 없음.
-- **Intent:** 기존 + `homeTabSelected(HomeTab)`. 탭 전환은 state만 변경, 초기 로드 재실행 없음.
-- **동시성:** `performFetchInitialHomeData()` 한 파이프라인 (섹션∥유저, 추천·토스트 후행, 유저 실패 시 cancel).
-- **View:** `selectedHomeTab`으로 관심(기존 scrollView) / 캘린더(`준비 중`) 분기.
-- **비범위:** 관심·캘린더 자식 Store 분리, 바닐라 Reducer/Effect 도입.
+- **비범위:** 캘린더 실콘텐츠, 관심 탭 Figma 재디자인, 자식 Store, Reducer, refresh 동시성 개편, 탭 선택 영속화
 
 ## 주의 사항
-- `HomeTab` 교체 전 `schedule`/`setlist` 사용처를 검색한다.
-- 추천 API는 유저 의존 — 섹션과 같은 “완전 병렬”로 묶지 않는다.
-- 토스트 API를 초기 동시 묶음에 넣지 않는다.
-- 관심 콘서트 탭 콘텐츠 재디자인은 범위 밖이다.
-- 캘린더 실콘텐츠·탭 선택 영속화·refresh 동시성 개편·홈 외 API 변경은 범위 밖이다.
-- TDD: Store/동시성·세그먼트 state는 실패 테스트 먼저 (`docs/rules/tdd.md`).
-- 빌드·테스트·시뮬레이터 검증은 **XcodeBuildMCP를 우선** 사용한다.
+- 파일 이동 후 반드시 `tuist generate`.
+- 추천은 `user` 의존 — `interestAppear`가 `homeAppear`보다 먼저여도 섹션은 진행 가능, 추천만 user 대기.
+- 유저 실패 시 섹션 성공 결과 미반영·관련 Task cancel 정책 유지.
+- 상태 변경은 `send`에서, `perform*`는 부수효과만 (`docs/rules/architecture.md`).
+- TDD: Intent 분리·트리거 변경은 실패 테스트 먼저 (`docs/rules/tdd.md`).
+- 빌드·테스트는 **XcodeBuildMCP 우선**.
 
 ## 검증 방법
 - 단위 테스트
-  - 세그먼트 기본값 = 관심 콘서트, 전환 시 state 반영
-  - onAppear: 유저 실패(cancel·미반영) / 관심·알림 흡수 / 토스트 후행 / 섹션∥유저 / 추천 조건
-- 명령
-  - Swift 파일 추가·이동 후: `tuist generate` (셸)
-  - 빌드/테스트/실행: **XcodeBuildMCP** (`session_show_defaults`로 project·scheme·simulator 확인 후 `build_sim` / `test_sim` / `build_run_sim`)
-  - MCP 불가 시에만 `xcodebuild test` fallback (`docs/rules/project-operations.md`, destination은 환경에 맞게)
-- 수동
-  - 홈 진입 → 세그먼트 표시, 기본 탭 = 관심 콘서트
-  - 관심 콘서트: 기존과 동일한 콘텐츠·토스트·리프레시
-  - 캘린더: `준비 중`
-  - 탭 전환 반복 시 크래시/이상 로드 없음
+  - `homeAppear`: 유저·알림 호출, 관심 목록/섹션 미호출(또는 관심 Intent와 분리됨을 검증)
+  - `interestAppear`: 목록∥섹션, 추천 user 후행, 토스트 섹션 후행, 실패 흡수
+  - 세그먼트 전환은 로드 재실행 없음
+- 명령: `tuist generate` → XcodeBuildMCP `test_sim` (HomeFeatureTests)
+- 수동: 관심 기본 진입, 캘린더만 선택 후 재진입 시 관심 API 과도 호출 없음, `준비 중` 표시
 
-## 요구사항 고정 (deep-interview + 그릴)
-- 목표: 세그먼트 + 기존 홈→관심 탭 + 초기 네트워크 동시성
-- 포함: 세그먼트 UI, 캘린더 `준비 중`, HomeStore 탭 state, 초기 로드 동시성, 테스트
-- 제외: 캘린더 콘텐츠, 관심 탭 재디자인, 토스트/에러 UX 의도적 변경, refresh 동시성 개편, 탭별 로드 분기, 자식 Store 분리, Reducer 도입
-- 완료: 세그먼트 전환 + 관심 탭 동작 유지 + 동시성 테스트 검증
-- Store: **단일 HomeStore** (`selectedHomeTab` + 기존 send/perform*)
-- 공유 이해: 그릴 Q1–Q9 확정 + Store는 **단일 HomeStore** (자식 분리·Reducer 미도입)
-- 구현 착수: 계획 확인 후 가능
+## 요구사항 고정 (deep-interview + 그릴 1·2차)
+- Store: **단일 HomeStore**
+- View: **탭별 분리 + Interest/Calendar 폴더링**
+- 로드: **`homeAppear`(유저+알림)** / **`interestAppear`(관심 파이프라인)**
+- 공유 이해: 그릴 2차 Q1–Q8 확정 (계획 반영 후 구현)

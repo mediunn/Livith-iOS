@@ -1,5 +1,41 @@
 # LIVD-438 홈 세그먼트 / 동시성 트러블슈팅
 
+## 2026-07-17 - interestAppear 관심 목록 실패가 초기 에러로 전파됨
+
+### 증상
+- Intent 분리 후 `performInterestAppear`가 `._interestListResult(.failure)`를 그대로 보내 `setError`로 전파됨
+- 기존 초기 로드는 관심 목록 실패를 빈 목록으로 흡수해야 함
+
+### 시도
+- `interestList(from:)`로 실패를 `[]`로 흡수한 뒤 `._interestListResult(.success)`만 전달
+- 정렬 변경 등 `performFetchInterestList` 경로의 실패 전파는 유지
+
+### 결과
+- 초기 `interestAppear` 흡수 정책 복구
+
+### 학습
+- 초기 로드 흡수와 이후 명시적 refetch 실패 전파는 경로를 분리해야 한다
+
+---
+
+## 2026-07-17 - 관심 목록 성공이 유저 실패 에러를 지움
+
+### 증상
+- `homeAppear` 유저 실패로 `errorMessage`를 세운 뒤, `interestAppear`의 관심 목록 성공이 `errorMessage = ""`로 덮어씀
+- 유저 실패 전파·재시도 관련 테스트 2개 실패
+
+### 시도
+- `._interestListResult(.success)`에서 `state.user != nil`일 때만 에러 클리어
+- 정렬 재조회 성공(유저 존재) 경로는 기존처럼 클리어 유지
+
+### 결과
+- HomeStoreTests 40개 통과
+
+### 학습
+- 병렬 Intent 결과 처리 시 다른 Intent가 세운 에러를 무조건 클리어하면 안 된다
+
+---
+
 ## 2026-07-17 - 유저 피드백: HomeStore 상태 변경을 send로 집중
 
 ### 증상

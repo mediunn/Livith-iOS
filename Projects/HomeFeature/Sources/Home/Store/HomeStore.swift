@@ -32,14 +32,15 @@ struct HomeState {
 // MARK: - Intent
 
 enum HomeIntent {
-    case onAppear
+    case homeAppear
+    case interestAppear
     case onRefresh
     case homeTabSelected(SegmentedTabBarType.HomeTab)
     case onErrorToastDisappear
     case onInterestToastDisappear
     case checkUnreadNotification
     case interestConcertSortSelected(InterestConcertSort)
-    case _initialLoadResult(Result<(user: User, interestConcertList: [InterestConcert], hasNewNotice: Bool), Error>)
+    case _homeAppearResult(Result<(user: User, hasNewNotice: Bool), Error>)
     case _fetchUserResult(Result<User, Error>)
     case _interestListResult(Result<[InterestConcert], Error>)
     case _unreadCountResult(Result<Int, Error>)
@@ -53,10 +54,18 @@ enum HomeIntent {
 @MainActor
 final class HomeStore: ObservableObject {
     private enum CancelID {
-        case initialLoad
+        case homeAppear
+        case interestAppear
         case interestList
         case sections
         case unreadCount
+    }
+
+    /// `homeAppear`가 완료되기 전까지 `interestAppear`의 추천 조회가 대기하는 상태.
+    private enum UserAvailability {
+        case pending
+        case available(User)
+        case unavailable
     }
     
     @Published private(set) var state: HomeState = .init()
@@ -67,18 +76,24 @@ final class HomeStore: ObservableObject {
     
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var pendingInterestToast = false
+    private var userAvailability: UserAvailability = .pending
+    private var userWaiters: [CheckedContinuation<User?, Never>] = []
 
     // MARK: - Public Interface
     
     func send(_ intent: HomeIntent) {
         switch intent {
-        case .onAppear:
+        case .homeAppear:
+            userAvailability = .pending
+            performHomeAppear()
+
+        case .interestAppear:
             let loadsSections = state.needsInitialSectionLoad
             if loadsSections {
                 state.isSectionLoading = true
                 pendingInterestToast = true
             }
-            performInitialLoad(loadsSections: loadsSections)
+            performInterestAppear(loadsSections: loadsSections)
 
         case .onRefresh:
             performFetchSections()
@@ -101,16 +116,17 @@ final class HomeStore: ObservableObject {
             state.interestConcertSort = sort
             performFetchInterestList(filter: .homeSection(sort: sort))
 
-        case ._initialLoadResult(let result):
+        case ._homeAppearResult(let result):
             switch result {
             case .success(let data):
                 state.user = data.user
-                state.interestConcertList = data.interestConcertList
                 state.hasNewNotice = data.hasNewNotice
+                resolveUserAvailability(with: data.user)
             case .failure(let error):
                 pendingInterestToast = false
                 state.isSectionLoading = false
                 setError(from: error)
+                resolveUserAvailability(with: nil)
             }
 
         case ._fetchUserResult(let result):
@@ -131,7 +147,11 @@ final class HomeStore: ObservableObject {
             switch result {
             case .success(let list):
                 state.interestConcertList = list
-                state.errorMessage = ""
+                // 유저 조회 실패로 설정된 에러를 관심 목록 성공이 지우지 않도록,
+                // 유저가 있을 때만(정렬 재조회 등) 에러를 클리어한다.
+                if state.user != nil {
+                    state.errorMessage = ""
+                }
             case .failure(let error):
                 setError(from: error)
             }
@@ -193,41 +213,43 @@ final class HomeStore: ObservableObject {
 // MARK: - Helpers
 
 private extension HomeStore {
-    func performInitialLoad(loadsSections: Bool) {
-        cancellables[.initialLoad]?.cancel()
+    func performHomeAppear() {
+        cancellables[.homeAppear]?.cancel()
 
-        let sort = state.interestConcertSort
-
-        cancellables[.initialLoad] = Task {
+        cancellables[.homeAppear] = Task {
             async let userResult = fetchUser()
-            async let interestListResult = fetchInterestList(filter: .homeSection(sort: sort))
             async let hasNewNoticeResult = fetchHasNewNotice()
-            async let sectionsResult = fetchSectionsIfNeeded(loadsSections)
 
-            guard let user = resolveUser(from: await userResult) else { return }
+            let user = await userResult
             if Task.isCancelled { return }
 
-            send(._initialLoadResult(.success((
-                user: user,
-                interestConcertList: interestList(from: await interestListResult),
-                hasNewNotice: hasNewNotice(from: await hasNewNoticeResult)
-            ))))
-
-            guard loadsSections else { return }
-            await sendSectionResult(user: user, sectionsResult: await sectionsResult)
+            switch user {
+            case .success(let user):
+                send(._homeAppearResult(.success((
+                    user: user,
+                    hasNewNotice: hasNewNotice(from: await hasNewNoticeResult)
+                ))))
+            case .failure(let error):
+                // 미대기 async let은 스코프 종료 시 취소된다.
+                send(._homeAppearResult(.failure(error)))
+            }
         }
     }
 
-    func resolveUser(from result: Result<User, Error>) -> User? {
-        if Task.isCancelled { return nil }
+    func performInterestAppear(loadsSections: Bool) {
+        cancellables[.interestAppear]?.cancel()
 
-        switch result {
-        case .failure(let error):
-            // 미대기 async let은 스코프 종료 시 취소된다.
-            send(._initialLoadResult(.failure(error)))
-            return nil
-        case .success(let user):
-            return user
+        let sort = state.interestConcertSort
+
+        cancellables[.interestAppear] = Task {
+            async let interestListResult = fetchInterestList(filter: .homeSection(sort: sort))
+            async let sectionsResult = fetchSectionsIfNeeded(loadsSections)
+
+            // 관심 목록 실패는 초기 로드 실패로 전파하지 않는다.
+            send(._interestListResult(.success(interestList(from: await interestListResult))))
+
+            guard loadsSections else { return }
+            await sendSectionResult(sectionsResult: await sectionsResult)
         }
     }
 
@@ -240,6 +262,30 @@ private extension HomeStore {
         }
     }
 
+    /// `homeAppear`의 유저 조회 결과를 대기한다. 이미 결과가 나와 있으면 즉시 반환하고,
+    /// 아직 진행 중이면 `resolveUserAvailability`가 호출될 때까지 대기한다.
+    /// 유저 조회가 실패하면 `nil`을 반환해 추천 조회를 건너뛴다.
+    func waitForUser() async -> User? {
+        switch userAvailability {
+        case .available(let user):
+            return user
+        case .unavailable:
+            return nil
+        case .pending:
+            return await withCheckedContinuation { continuation in
+                userWaiters.append(continuation)
+            }
+        }
+    }
+
+    func resolveUserAvailability(with user: User?) {
+        userAvailability = user.map { .available($0) } ?? .unavailable
+
+        let waiters = userWaiters
+        userWaiters.removeAll()
+        waiters.forEach { $0.resume(returning: user) }
+    }
+
     func hasNewNotice(from result: Result<Bool, Error>) -> Bool {
         switch result {
         case .success(let hasNewNotice):
@@ -249,15 +295,17 @@ private extension HomeStore {
         }
     }
 
-    func sendSectionResult(
-        user: User,
-        sectionsResult: Result<[ConcertSection], Error>?
-    ) async {
+    /// 섹션 조회 성공 시 유저 조회가 끝날 때까지 대기해 추천을 함께 반영한다.
+    /// `homeAppear`의 유저 조회가 실패하면(`waitForUser`가 `nil` 반환) 섹션 결과를 UI에 반영하지 않는다.
+    func sendSectionResult(sectionsResult: Result<[ConcertSection], Error>?) async {
         if Task.isCancelled { return }
         guard let sectionsResult else { return }
 
         switch sectionsResult {
         case .success(let sectionList):
+            guard let user = await waitForUser() else { return }
+            if Task.isCancelled { return }
+
             let recommendations = await fetchRecommendations(for: user)
             if Task.isCancelled { return }
             send(._sectionLoadResult(.success((

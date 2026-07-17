@@ -71,9 +71,55 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
     }
 
-    // MARK: - onAppear 테스트
+    // MARK: - homeAppear / interestAppear 분리 테스트
 
-    @Test("onAppear 시 유저 조회 완료 전에 홈 섹션 조회가 시작되어야 한다")
+    @Test("homeAppear는 관심 콘서트 목록과 홈 섹션을 조회하지 않아야 한다")
+    func testHomeAppearDoesNotFetchInterestListOrSections() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser(nickname: "홍길동")
+        container.notificationRepository.unreadNotificationCountStub = 3
+
+        let sut = HomeStore()
+
+        // When
+        sut.send(.homeAppear)
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(container.userRepository.fetchUserCallCount == 1)
+        #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
+        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.hasNewNotice)
+        #expect(sut.state.interestConcertList.isEmpty)
+        #expect(sut.state.concertSectionList.isEmpty)
+    }
+
+    @Test("interestAppear는 유저를 조회하지 않아야 한다")
+    func testInterestAppearDoesNotFetchUser() async throws {
+        // Given
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
+
+        let sut = HomeStore()
+
+        // When
+        sut.send(.interestAppear)
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(container.userRepository.fetchUserCallCount == 0)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
+
+        // homeAppear가 끝내 오지 않아도 대기 중인 추천 조회가 누수되지 않도록 정리한다.
+        container.userRepository.userStub = makeMockUser()
+        sut.send(.homeAppear)
+        try await Task.sleep(nanoseconds: 100_000_000)
+    }
+
+    @Test("homeAppear와 interestAppear 동시 진행 시 유저 조회 완료 전에 홈 섹션 조회가 시작되어야 한다")
     func testOnAppearStartsHomeSectionFetchWithoutWaitingForUser() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -85,7 +131,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 50_000_000)
 
         // Then
@@ -100,7 +147,7 @@ struct HomeStoreTests {
         #expect(!sut.state.isSectionLoading)
     }
 
-    @Test("onAppear 시 유저와 관심 콘서트 목록과 알림 수를 함께 조회한 뒤 홈 콘서트 섹션 데이터를 로드해야 한다")
+    @Test("homeAppear와 interestAppear가 함께 진행되면 유저·관심 콘서트 목록·알림 수·홈 섹션을 모두 조회해야 한다")
     func testOnAppearFetchesInitialHomeDataTogether() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -111,7 +158,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
         
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 150_000_000)
         
         // Then
@@ -129,14 +177,43 @@ struct HomeStoreTests {
         #expect(!sut.state.isSectionLoading)
     }
 
-    @Test("onAppear 시 유저 조회 실패 후 다시 onAppear하면 홈 섹션을 로드해야 한다")
+    @Test("동시 진행 시 추천 콘서트는 유저 조회가 끝난 뒤에만 조회되어야 한다")
+    func testRecommendationsWaitForUserBeforeBeingFetched() async throws {
+        // Given
+        container.userRepository.userStub = makeMockUser(hasPreferences: true)
+        container.userRepository.fetchUserDelay = 200_000_000
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
+        container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 99)]
+
+        let sut = HomeStore()
+
+        // When
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
+        try await Task.sleep(nanoseconds: 80_000_000)
+
+        // Then: 섹션 조회는 끝났지만 유저 조회가 끝나지 않아 추천은 아직 조회되지 않는다.
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
+        #expect(sut.state.concertSectionList.isEmpty)
+
+        try await Task.sleep(nanoseconds: 250_000_000)
+
+        // Then: 유저 조회가 끝나면 추천을 조회하고 섹션과 함께 반영한다.
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
+        #expect(sut.state.concertSectionList.count == 1)
+        #expect(sut.state.recommendedConcertList.map(\.id) == [99])
+    }
+
+    @Test("homeAppear 유저 조회 실패 후 다시 진행하면 홈 섹션을 로드해야 한다")
     func testOnAppearRetriesHomeSectionLoadAfterUserFailure() async throws {
         // Given
         container.userRepository.fetchUserErrorStub = .serverError
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
         let sut = HomeStore()
 
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
         #expect(!sut.state.errorMessage.isEmpty)
         #expect(sut.state.concertSectionList.isEmpty)
@@ -146,7 +223,8 @@ struct HomeStoreTests {
         container.notificationRepository.unreadNotificationCountStub = 1
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 150_000_000)
 
         // Then
@@ -155,7 +233,7 @@ struct HomeStoreTests {
         #expect(!sut.state.isSectionLoading)
     }
 
-    @Test("섹션 로드 중 다시 onAppear하면 섹션 파이프라인을 다시 수행해야 한다")
+    @Test("섹션 로드 중 다시 interestAppear하면 섹션 파이프라인을 다시 수행해야 한다")
     func testOnAppearDuringSectionLoadRetriesSectionPipeline() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -164,7 +242,8 @@ struct HomeStoreTests {
         container.concertRepository.fetchHomeConcertSectionListDelay = 300_000_000
         let sut = HomeStore()
 
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 50_000_000)
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.isSectionLoading)
@@ -172,7 +251,8 @@ struct HomeStoreTests {
 
         // When
         container.concertRepository.fetchHomeConcertSectionListDelay = 0
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
@@ -181,7 +261,7 @@ struct HomeStoreTests {
         #expect(!sut.state.needsInitialSectionLoad)
     }
 
-    @Test("초기 로드 중 다시 onAppear하면 이전 Task를 취소하고 로드를 완료해야 한다")
+    @Test("초기 로드 중 다시 진행하면 이전 Task를 취소하고 로드를 완료해야 한다")
     func testOnAppearCancelsInFlightLoadAndCompletesNewLoad() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -189,13 +269,15 @@ struct HomeStoreTests {
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
         let sut = HomeStore()
 
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 30_000_000)
         #expect(sut.state.isSectionLoading)
 
         // When: 재요청으로 이전 Task 취소
         container.userRepository.fetchUserDelay = 0
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 150_000_000)
 
         // Then
@@ -203,7 +285,7 @@ struct HomeStoreTests {
         #expect(sut.state.concertSectionList.count == 1)
     }
 
-    @Test("onAppear 시 관심 콘서트 목록 조회 실패는 홈 초기 데이터 실패로 전파하지 않아야 한다")
+    @Test("interestAppear 시 관심 콘서트 목록 조회 실패는 홈 초기 데이터 실패로 전파하지 않아야 한다")
     func testOnAppearInterestConcertListFailureDoesNotFailHomeInitialData() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -214,7 +296,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 150_000_000)
 
         // Then
@@ -227,7 +310,7 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
     }
 
-    @Test("onAppear 시 알림 수 조회 실패는 홈 초기 데이터 실패로 전파하지 않아야 한다")
+    @Test("homeAppear 시 알림 수 조회 실패는 홈 초기 데이터 실패로 전파하지 않아야 한다")
     func testOnAppearNotificationCountFailureDoesNotFailHomeInitialData() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -238,7 +321,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 150_000_000)
 
         // Then
@@ -252,7 +336,7 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
     }
 
-    @Test("onAppear 시 유저 조회 실패만 홈 초기 데이터 실패로 전파하고 섹션 결과는 반영하지 않아야 한다")
+    @Test("homeAppear 유저 조회 실패만 홈 초기 데이터 실패로 전파하고 섹션 결과는 반영하지 않아야 한다")
     func testOnAppearUserFailureFailsHomeInitialData() async throws {
         // Given
         container.userRepository.fetchUserErrorStub = .serverError
@@ -264,14 +348,42 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 300_000_000)
 
-        // Then
+        // Then: 관심 목록은 유저 조회와 무관하게 반영되지만, 섹션은 유저 실패로 반영되지 않는다.
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(sut.state.user == nil)
-        #expect(sut.state.interestConcertList.isEmpty)
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
         #expect(!sut.state.hasNewNotice)
+        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(sut.state.concertSectionList.isEmpty)
+        #expect(!sut.state.isSectionLoading)
+    }
+
+    @Test("홈 섹션 조회가 유저 조회보다 먼저 끝나도 유저 조회가 실패하면 섹션 결과를 반영하지 않아야 한다")
+    func testSectionResultIsDiscardedWhenUserFailsAfterSectionSucceeds() async throws {
+        // Given: 섹션은 지연 없이 바로 성공하고, 유저 조회는 지연 후 실패한다.
+        container.userRepository.fetchUserErrorStub = .serverError
+        container.userRepository.fetchUserDelay = 150_000_000
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
+
+        let sut = HomeStore()
+
+        // When
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
+        try await Task.sleep(nanoseconds: 60_000_000)
+
+        // Then: 섹션 조회는 이미 끝났지만 유저 조회 결과를 기다리는 중이다.
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(sut.state.concertSectionList.isEmpty)
+        #expect(sut.state.isSectionLoading)
+
+        try await Task.sleep(nanoseconds: 150_000_000)
+
+        // Then: 유저 조회 실패가 도착하면 대기 중이던 섹션 결과를 반영하지 않는다.
         #expect(!sut.state.errorMessage.isEmpty)
         #expect(sut.state.concertSectionList.isEmpty)
         #expect(!sut.state.isSectionLoading)
@@ -279,7 +391,7 @@ struct HomeStoreTests {
 
     // MARK: - InterestConcertToast 테스트
 
-    @Test("onAppear 시 관심 콘서트 토스트 노출이 필요하면 성공 메시지를 설정하고 노출 처리해야 한다")
+    @Test("homeAppear·interestAppear 시 관심 콘서트 토스트 노출이 필요하면 성공 메시지를 설정하고 노출 처리해야 한다")
     func testOnAppearShowsInterestConcertToastAndMarksShownWhenNeeded() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -291,7 +403,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
@@ -321,7 +434,7 @@ struct HomeStoreTests {
         #expect(sut.state.interestToastMessage == "종료·취소된 공연이 자동 정리됐어요")
     }
 
-    @Test("onAppear 시 관심 콘서트 토스트 노출이 필요하지 않으면 성공 메시지와 노출 처리를 생략해야 한다")
+    @Test("homeAppear·interestAppear 시 관심 콘서트 토스트 노출이 필요하지 않으면 성공 메시지와 노출 처리를 생략해야 한다")
     func testOnAppearSkipsInterestConcertToastWhenNotNeeded() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
@@ -332,7 +445,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
@@ -354,7 +468,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
@@ -384,7 +499,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
@@ -405,7 +521,8 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(.onAppear)
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
