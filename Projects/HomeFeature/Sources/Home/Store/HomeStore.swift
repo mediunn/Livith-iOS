@@ -80,10 +80,6 @@ final class HomeStore: ObservableObject {
     private var userAvailability: UserAvailability = .pending
     private var userWaiters: [CheckedContinuation<User?, Never>] = []
 
-    /// UI 검증용 강제 시트 노출. 확인 후 `false`로 되돌릴 것.
-    /// 단위 테스트 실행 중에는 켜지지 않는다.
-    private static let forceInterestResultSheet = false
-
     // MARK: - Public Interface
     
     func send(_ intent: HomeIntent) {
@@ -99,10 +95,6 @@ final class HomeStore: ObservableObject {
                 pendingInterestResultPolicyFetch = true
             }
             performInterestAppear(loadsSections: loadsSections)
-            // 초기 섹션 로드가 아닐 때도 강제 노출이 켜져 있으면 즉시 시트를 다시 띄운다.
-            if Self.shouldForceInterestResultSheet, !loadsSections {
-                presentForcedInterestResultSheet()
-            }
 
         case .onRefresh:
             performFetchSections()
@@ -116,8 +108,6 @@ final class HomeStore: ObservableObject {
         case .onInterestResultSheetDismiss:
             guard state.shouldShowInterestResultSheet else { return }
             clearInterestResultSheet()
-            // 강제 노출 중에는 서버 mark를 호출하지 않아 반복 확인이 쉽다.
-            guard !Self.shouldForceInterestResultSheet else { return }
             performMarkInterestToastShown()
 
         case .checkUnreadNotification:
@@ -214,11 +204,7 @@ final class HomeStore: ObservableObject {
                 state.recommendedConcertList = data.recommendedConcertList ?? []
                 state.errorMessage = ""
                 if isInitialLoad {
-                    if Self.shouldForceInterestResultSheet {
-                        presentForcedInterestResultSheet()
-                    } else {
-                        performFetchInterestResultPolicy()
-                    }
+                    performFetchInterestResultPolicy()
                 }
             case .failure(let error):
                 setError(from: error)
@@ -479,18 +465,7 @@ private extension HomeStore {
         state.interestResultSheetContent = nil
     }
 
-    func presentForcedInterestResultSheet() {
-        state.interestResultSheetContent = .stub
-        state.shouldShowInterestResultSheet = true
-    }
-
     func shouldPresentInterestResultSheet(for policy: InterestConcertCleanupPolicy) -> Bool {
         policy != .none
-    }
-
-    static var shouldForceInterestResultSheet: Bool {
-        guard forceInterestResultSheet else { return false }
-        // XCTest / Swift Testing 실행 환경에서는 강제 노출을 끈다.
-        return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
     }
 }
