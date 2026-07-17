@@ -16,28 +16,28 @@
 ## 작업 항목
 
 ### 1. 도메인/표시 모델 (stub)
-- [ ] 시트에 필요한 표시용 모델 정의 (자동 정리 카드, 요청 결과 카드, 실패 사유 카피 등)
-- [ ] stub 팩토리/샘플 데이터로 Figma의 자동 정리·요청 완료·요청 실패 섹션을 채울 수 있게 한다
-- [ ] API/Repository 계약 확장은 **범위 밖** (기존 GET/PATCH toast 엔드포인트만 게이트·mark에 사용)
+- [x] 시트에 필요한 표시용 모델 정의 (자동 정리 카드, 요청 결과 카드, 실패 사유 카피 등)
+- [x] stub 팩토리/샘플 데이터로 Figma의 자동 정리·요청 완료·요청 실패 섹션을 채울 수 있게 한다
+- [x] API/Repository 계약 확장은 **범위 밖** (기존 GET/PATCH toast 엔드포인트만 게이트·mark에 사용)
 
 ### 2. HomeStore — toast → 시트 전환
-- [ ] `interestToastMessage` 기반 토스트 흐름을 시트 표시 상태(`shouldShowInterestResultSheet` 등)로 교체
-- [ ] 섹션 로드 성공 후 기존처럼 cleanup policy를 fetch
+- [x] `interestToastMessage` 기반 토스트 흐름을 시트 표시 상태(`shouldShowInterestResultSheet` 등)로 교체
+- [x] 섹션 로드 성공 후 기존처럼 cleanup policy를 fetch
   - `needsToShow` / policy ≠ `.none` → 시트 present + stub 콘텐츠 세팅
   - 불필요하면 present 안 함
-- [ ] dismiss Intent에서 시트 닫기 + `markInterestConcertToastShown` 호출
-- [ ] 기존 에러 토스트와 충돌 시 시트 결과 discard 정책은 현 toast와 동일하게 유지(에러 있으면 관심 안내 미노출)
-- [ ] TDD: 노출 조건, 섹션 실패 시 미조회, dismiss 시 mark, fetch 실패 흡수 등 `HomeStoreTests` 갱신
+- [x] dismiss Intent에서 시트 닫기 + `markInterestConcertToastShown` 호출
+- [x] 기존 에러 토스트와 충돌 시 시트 결과 discard 정책은 현 toast와 동일하게 유지(에러 있으면 관심 안내 미노출)
+- [x] TDD: 노출 조건, 섹션 실패 시 미조회, dismiss 시 mark, fetch 실패 흡수 등 `HomeStoreTests` 갱신
 
 ### 3. Home UI — 시스템 시트
-- [ ] DesignSystem `livithSheet`(또는 동등 `.sheet` + detents)로 시트 프레젠테이션
-- [ ] `InterestConcertResultSheetView`(가칭) — 타이틀, 자동 정리 섹션, 요청한 공연 섹션, 확인 버튼
-- [ ] 「확인하기」「재요청」은 탭 가능 UI만, 네비게이션은 no-op
-- [ ] 「확인」및 시트 dismiss → store dismiss Intent
-- [ ] `HomeView`의 interest success toast UI 제거
+- [x] DesignSystem `livithSheet`(또는 동등 `.sheet` + detents)로 시트 프레젠테이션
+- [x] `InterestConcertResultSheetView`(가칭) — 타이틀, 자동 정리 섹션, 요청한 공연 섹션, 확인 버튼
+- [x] 「확인하기」「재요청」은 탭 가능 UI만, 네비게이션은 no-op
+- [x] 「확인」및 시트 dismiss → store dismiss Intent
+- [x] `HomeView`의 interest success toast UI 제거
 
 ### 4. 검증
-- [ ] XcodeBuildMCP로 `HomeStoreTests` 통과
+- [x] XcodeBuildMCP로 `HomeStoreTests` 통과
 - [ ] (선택) 시뮬에서 needsToShow 상황에서 시트·dismiss 확인
 
 ## 영향 범위

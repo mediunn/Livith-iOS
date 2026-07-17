@@ -26,7 +26,8 @@ struct HomeState {
     var needsInitialSectionLoad: Bool = true
     var shouldShowPreferenceBanner: Bool = false
     var recommendedConcertList: [Concert] = []
-    var interestToastMessage: String = ""
+    var shouldShowInterestResultSheet: Bool = false
+    var interestResultSheetContent: InterestConcertResultSheetContent? = nil
 }
 
 // MARK: - Intent
@@ -37,14 +38,14 @@ enum HomeIntent {
     case onRefresh
     case homeTabSelected(SegmentedTabBarType.HomeTab)
     case onErrorToastDisappear
-    case onInterestToastDisappear
+    case onInterestResultSheetDismiss
     case checkUnreadNotification
     case interestConcertSortSelected(InterestConcertSort)
     case _homeAppearResult(Result<(user: User, hasNewNotice: Bool), Error>)
     case _fetchUserResult(Result<User, Error>)
     case _interestListResult(Result<[InterestConcert], Error>)
     case _unreadCountResult(Result<Int, Error>)
-    case _interestToastResult(Result<InterestConcertCleanupPolicy, Error>)
+    case _interestResultPolicyResult(Result<InterestConcertCleanupPolicy, Error>)
     case _markInterestToastResult(Result<Void, Error>)
     case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
@@ -75,9 +76,13 @@ final class HomeStore: ObservableObject {
     @Injected private var concertRepository: ConcertRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
-    private var pendingInterestToast = false
+    private var pendingInterestResultPolicyFetch = false
     private var userAvailability: UserAvailability = .pending
     private var userWaiters: [CheckedContinuation<User?, Never>] = []
+
+    /// UI 검증용 강제 시트 노출. 확인 후 `false`로 되돌릴 것.
+    /// 단위 테스트 실행 중에는 켜지지 않는다.
+    private static let forceInterestResultSheet = false
 
     // MARK: - Public Interface
     
@@ -91,9 +96,13 @@ final class HomeStore: ObservableObject {
             let loadsSections = state.needsInitialSectionLoad
             if loadsSections {
                 state.isSectionLoading = true
-                pendingInterestToast = true
+                pendingInterestResultPolicyFetch = true
             }
             performInterestAppear(loadsSections: loadsSections)
+            // 초기 섹션 로드가 아닐 때도 강제 노출이 켜져 있으면 즉시 시트를 다시 띄운다.
+            if Self.shouldForceInterestResultSheet, !loadsSections {
+                presentForcedInterestResultSheet()
+            }
 
         case .onRefresh:
             performFetchSections()
@@ -104,8 +113,12 @@ final class HomeStore: ObservableObject {
         case .onErrorToastDisappear:
             state.errorMessage = ""
 
-        case .onInterestToastDisappear:
-            state.interestToastMessage = ""
+        case .onInterestResultSheetDismiss:
+            guard state.shouldShowInterestResultSheet else { return }
+            clearInterestResultSheet()
+            // 강제 노출 중에는 서버 mark를 호출하지 않아 반복 확인이 쉽다.
+            guard !Self.shouldForceInterestResultSheet else { return }
+            performMarkInterestToastShown()
 
         case .checkUnreadNotification:
             performFetchUnreadCount()
@@ -123,7 +136,7 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = data.hasNewNotice
                 resolveUserAvailability(with: data.user)
             case .failure(let error):
-                pendingInterestToast = false
+                pendingInterestResultPolicyFetch = false
                 state.isSectionLoading = false
                 setError(from: error)
                 resolveUserAvailability(with: nil)
@@ -137,7 +150,7 @@ final class HomeStore: ObservableObject {
 
                 state.isSectionLoading = true
                 state.needsInitialSectionLoad = false
-                pendingInterestToast = true
+                pendingInterestResultPolicyFetch = true
                 performFetchSections()
             case .failure(let error):
                 setError(from: error)
@@ -164,34 +177,34 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = false
             }
 
-        case ._interestToastResult(let result):
+        case ._interestResultPolicyResult(let result):
             switch result {
             case .success(let policy):
-                guard let message = toastMessage(for: policy) else {
-                    state.interestToastMessage = ""
+                guard shouldPresentInterestResultSheet(for: policy) else {
+                    clearInterestResultSheet()
                     return
                 }
                 guard state.errorMessage.isEmpty else {
-                    state.interestToastMessage = ""
+                    clearInterestResultSheet()
                     return
                 }
 
-                state.interestToastMessage = message
-                performMarkInterestToastShown()
+                state.interestResultSheetContent = .stub
+                state.shouldShowInterestResultSheet = true
             case .failure:
-                state.interestToastMessage = ""
+                clearInterestResultSheet()
             }
 
         case ._markInterestToastResult:
             break
 
         case ._sectionLoadResult(let result):
-            let isInitialLoad = pendingInterestToast
+            let isInitialLoad = pendingInterestResultPolicyFetch
             state.isSectionLoading = false
 
             if isInitialLoad {
                 state.needsInitialSectionLoad = false
-                pendingInterestToast = false
+                pendingInterestResultPolicyFetch = false
             }
 
             switch result {
@@ -201,7 +214,11 @@ final class HomeStore: ObservableObject {
                 state.recommendedConcertList = data.recommendedConcertList ?? []
                 state.errorMessage = ""
                 if isInitialLoad {
-                    performFetchInterestToast()
+                    if Self.shouldForceInterestResultSheet {
+                        presentForcedInterestResultSheet()
+                    } else {
+                        performFetchInterestResultPolicy()
+                    }
                 }
             case .failure(let error):
                 setError(from: error)
@@ -357,7 +374,7 @@ private extension HomeStore {
         }
     }
 
-    func fetchInterestToast() async -> Result<InterestConcertCleanupPolicy, Error> {
+    func fetchInterestResultPolicy() async -> Result<InterestConcertCleanupPolicy, Error> {
         do {
             return .success(try await userRepository.fetchInterestConcertCleanupPolicy())
         } catch {
@@ -365,10 +382,10 @@ private extension HomeStore {
         }
     }
 
-    func performFetchInterestToast() {
+    func performFetchInterestResultPolicy() {
         Task {
-            let result = await fetchInterestToast()
-            send(._interestToastResult(result))
+            let result = await fetchInterestResultPolicy()
+            send(._interestResultPolicyResult(result))
         }
     }
 
@@ -454,25 +471,26 @@ private extension HomeStore {
         state.errorMessage = message
 
         guard !message.isEmpty else { return }
-        state.interestToastMessage = ""
+        clearInterestResultSheet()
     }
 
-    func toastMessage(for policy: InterestConcertCleanupPolicy) -> String? {
-        switch policy {
-        case .none:
-            return nil
-        case .canceled:
-            return Constants.canceledToastMessage
-        case .completed:
-            return Constants.completedToastMessage
-        case .both:
-            return Constants.bothToastMessage
-        }
+    func clearInterestResultSheet() {
+        state.shouldShowInterestResultSheet = false
+        state.interestResultSheetContent = nil
     }
 
-    enum Constants {
-        static let canceledToastMessage = "취소된 공연이 자동 정리됐어요"
-        static let completedToastMessage = "종료된 공연이 자동 정리됐어요"
-        static let bothToastMessage = "종료·취소된 공연이 자동 정리됐어요"
+    func presentForcedInterestResultSheet() {
+        state.interestResultSheetContent = .stub
+        state.shouldShowInterestResultSheet = true
+    }
+
+    func shouldPresentInterestResultSheet(for policy: InterestConcertCleanupPolicy) -> Bool {
+        policy != .none
+    }
+
+    static var shouldForceInterestResultSheet: Bool {
+        guard forceInterestResultSheet else { return false }
+        // XCTest / Swift Testing 실행 환경에서는 강제 노출을 끈다.
+        return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
     }
 }

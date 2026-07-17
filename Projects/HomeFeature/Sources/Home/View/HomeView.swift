@@ -18,8 +18,8 @@ struct HomeView: View {
     @StateObject private var store: HomeStore = .init()
 
     @State private var showErrorToast = false
-    @State private var showInterestConcertToast = false
     @State private var isPreferenceBannerExpanded: Bool = true
+    @State private var interestResultSheetHeight: CGFloat = 320
 
     // MARK: - Body
     
@@ -39,12 +39,6 @@ struct HomeView: View {
         .onChange(of: store.state.errorMessage) { _, newValue in
             if !newValue.isEmpty {
                 showErrorToast = true
-                showInterestConcertToast = false
-            }
-        }
-        .onChange(of: store.state.interestToastMessage) { _, newValue in
-            if !newValue.isEmpty && store.state.errorMessage.isEmpty {
-                showInterestConcertToast = true
             }
         }
         .livithToast(
@@ -55,18 +49,21 @@ struct HomeView: View {
             type: .failure,
             message: store.state.errorMessage
         )
-        .livithToast(
-            isPresented: Binding(
-                get: {
-                    showInterestConcertToast
-                    && !store.state.interestToastMessage.isEmpty
-                    && !(showErrorToast && !store.state.errorMessage.isEmpty)
-                },
-                set: { if !$0 { showInterestConcertToast = false; store.send(.onInterestToastDisappear) } }
-            ),
-            type: .success,
-            message: store.state.interestToastMessage
-        )
+        .livithSheet(
+            isPresented: interestResultSheetBinding,
+            detents: [.height(interestResultSheetHeight)],
+            background: .livithColor(.black90)
+        ) {
+            if let content = store.state.interestResultSheetContent {
+                InterestConcertResultSheetView(
+                    content: content,
+                    sheetHeight: $interestResultSheetHeight,
+                    onConfirm: { store.send(.onInterestResultSheetDismiss) },
+                    onCheckTap: {},
+                    onRetryTap: {}
+                )
+            }
+        }
     }
 }
 
@@ -80,6 +77,17 @@ private extension HomeView {
         case .calendar:
             return Color.livithColor(.black100)
         }
+    }
+
+    var interestResultSheetBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.shouldShowInterestResultSheet },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.onInterestResultSheetDismiss)
+                }
+            }
+        )
     }
 }
 

@@ -389,10 +389,10 @@ struct HomeStoreTests {
         #expect(!sut.state.isSectionLoading)
     }
 
-    // MARK: - InterestConcertToast 테스트
+    // MARK: - InterestConcertResultSheet 테스트
 
-    @Test("homeAppear·interestAppear 시 관심 콘서트 토스트 노출이 필요하면 성공 메시지를 설정하고 노출 처리해야 한다")
-    func testOnAppearShowsInterestConcertToastAndMarksShownWhenNeeded() async throws {
+    @Test("homeAppear·interestAppear 시 관심 콘서트 결과 노출이 필요하면 시트를 띄우고 dismiss 전에는 mark하지 않아야 한다")
+    func testOnAppearShowsInterestResultSheetWithoutMarkingUntilDismiss() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
@@ -409,33 +409,34 @@ struct HomeStoreTests {
 
         // Then
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
-        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
+        #expect(sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == .stub)
+        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("관심 콘서트 정리 정책별 성공 메시지를 설정해야 한다")
-    func testInterestConcertCleanupPolicySetsMessage() async throws {
+    @Test("관심 콘서트 정리 정책이 none이 아니면 stub 시트를 띄워야 한다")
+    func testInterestConcertCleanupPolicyShowsStubSheetWhenNeeded() async throws {
         // Given
         let sut = HomeStore()
 
         // When & Then
-        sut.send(._interestToastResult(.success(.canceled)))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(sut.state.interestToastMessage == "취소된 공연이 자동 정리됐어요")
+        sut.send(._interestResultPolicyResult(.success(.canceled)))
+        #expect(sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == .stub)
 
-        sut.send(.onInterestToastDisappear)
-        sut.send(._interestToastResult(.success(.completed)))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
+        sut.send(.onInterestResultSheetDismiss)
+        sut.send(._interestResultPolicyResult(.success(.completed)))
+        #expect(sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == .stub)
 
-        sut.send(.onInterestToastDisappear)
-        sut.send(._interestToastResult(.success(.both)))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(sut.state.interestToastMessage == "종료·취소된 공연이 자동 정리됐어요")
+        sut.send(.onInterestResultSheetDismiss)
+        sut.send(._interestResultPolicyResult(.success(.both)))
+        #expect(sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == .stub)
     }
 
-    @Test("homeAppear·interestAppear 시 관심 콘서트 토스트 노출이 필요하지 않으면 성공 메시지와 노출 처리를 생략해야 한다")
-    func testOnAppearSkipsInterestConcertToastWhenNotNeeded() async throws {
+    @Test("homeAppear·interestAppear 시 관심 콘서트 결과 노출이 필요하지 않으면 시트를 띄우지 않아야 한다")
+    func testOnAppearSkipsInterestResultSheetWhenNotNeeded() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.interestConcertCleanupPolicyStub = .none
@@ -451,12 +452,13 @@ struct HomeStoreTests {
 
         // Then
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
-        #expect(sut.state.interestToastMessage.isEmpty)
+        #expect(!sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == nil)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("홈 섹션 데이터 반영 전에는 관심 콘서트 토스트를 조회하지 않아야 한다")
-    func testInterestConcertToastIsFetchedAfterHomeSectionDataIsLoaded() async throws {
+    @Test("홈 섹션 데이터 반영 전에는 관심 콘서트 결과 정책을 조회하지 않아야 한다")
+    func testInterestResultPolicyIsFetchedAfterHomeSectionDataIsLoaded() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
@@ -476,19 +478,20 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(sut.state.concertSectionList.isEmpty)
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
-        #expect(sut.state.interestToastMessage.isEmpty)
+        #expect(!sut.state.shouldShowInterestResultSheet)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
 
         try await Task.sleep(nanoseconds: 300_000_000)
 
         #expect(sut.state.concertSectionList.count == 1)
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
-        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
+        #expect(sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == .stub)
+        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("홈 섹션 데이터 조회가 실패하면 관심 콘서트 토스트를 조회하지 않아야 한다")
-    func testInterestConcertToastIsNotFetchedWhenHomeSectionDataFails() async throws {
+    @Test("홈 섹션 데이터 조회가 실패하면 관심 콘서트 결과 정책을 조회하지 않아야 한다")
+    func testInterestResultPolicyIsNotFetchedWhenHomeSectionDataFails() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
@@ -506,12 +509,12 @@ struct HomeStoreTests {
         // Then
         #expect(!sut.state.errorMessage.isEmpty)
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
-        #expect(sut.state.interestToastMessage.isEmpty)
+        #expect(!sut.state.shouldShowInterestResultSheet)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("관심 콘서트 토스트 조회 실패는 홈 초기 로딩과 오류 메시지로 전파하지 않아야 한다")
-    func testInterestConcertToastFetchFailureDoesNotFailInitialHomeData() async throws {
+    @Test("관심 콘서트 결과 정책 조회 실패는 홈 초기 로딩과 오류 메시지로 전파하지 않아야 한다")
+    func testInterestResultPolicyFetchFailureDoesNotFailInitialHomeData() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.fetchInterestConcertToastErrorStub = .serverError
@@ -528,71 +531,90 @@ struct HomeStoreTests {
         // Then
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.errorMessage.isEmpty)
-        #expect(sut.state.interestToastMessage.isEmpty)
+        #expect(!sut.state.shouldShowInterestResultSheet)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("오류 메시지가 있으면 관심 콘서트 성공 토스트를 폐기하고 노출 처리하지 않아야 한다")
-    func testInterestConcertToastResultIsDiscardedWhenErrorMessageExists() async throws {
+    @Test("오류 메시지가 있으면 관심 콘서트 결과 시트를 폐기하고 mark하지 않아야 한다")
+    func testInterestResultSheetIsDiscardedWhenErrorMessageExists() async throws {
         // Given
         let sut = HomeStore()
         sut.send(._fetchUserResult(.failure(UserError.serverError)))
         #expect(!sut.state.errorMessage.isEmpty)
 
         // When
-        sut.send(._interestToastResult(.success(.completed)))
-        try await Task.sleep(nanoseconds: 100_000_000)
+        sut.send(._interestResultPolicyResult(.success(.completed)))
 
         // Then
-        #expect(sut.state.interestToastMessage.isEmpty)
+        #expect(!sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == nil)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("오류가 발생하면 대기 중인 관심 콘서트 성공 토스트를 비워야 한다")
-    func testErrorClearsPendingInterestConcertToastMessage() async throws {
+    @Test("오류가 발생하면 대기 중인 관심 콘서트 결과 시트를 닫아야 한다")
+    func testErrorClearsPendingInterestResultSheet() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._interestToastResult(.success(.completed)))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(!sut.state.interestToastMessage.isEmpty)
+        sut.send(._interestResultPolicyResult(.success(.completed)))
+        #expect(sut.state.shouldShowInterestResultSheet)
 
         // When
         sut.send(._interestListResult(.failure(UserError.serverError)))
 
         // Then
         #expect(!sut.state.errorMessage.isEmpty)
-        #expect(sut.state.interestToastMessage.isEmpty)
+        #expect(!sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == nil)
     }
 
-    @Test("관심 콘서트 토스트 노출 처리 실패는 오류 메시지로 노출하지 않아야 한다")
-    func testInterestConcertToastMarkFailureDoesNotSetErrorMessage() async throws {
+    @Test("관심 콘서트 결과 시트 dismiss 시 mark를 호출하고 시트는 닫혀야 한다")
+    func testInterestResultSheetDismissMarksShownAndClosesSheet() async throws {
         // Given
-        container.userRepository.markInterestConcertToastShownErrorStub = .serverError
         let sut = HomeStore()
+        sut.send(._interestResultPolicyResult(.success(.completed)))
+        #expect(sut.state.shouldShowInterestResultSheet)
 
         // When
-        sut.send(._interestToastResult(.success(.completed)))
+        sut.send(.onInterestResultSheetDismiss)
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
+        #expect(!sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == nil)
+        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
+    }
+
+    @Test("관심 콘서트 결과 mark 실패는 오류 메시지로 노출하지 않아야 한다")
+    func testInterestResultSheetMarkFailureDoesNotSetErrorMessage() async throws {
+        // Given
+        container.userRepository.markInterestConcertToastShownErrorStub = .serverError
+        let sut = HomeStore()
+        sut.send(._interestResultPolicyResult(.success(.completed)))
+
+        // When
+        sut.send(.onInterestResultSheetDismiss)
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
         #expect(sut.state.errorMessage.isEmpty)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
     }
 
-    @Test("관심 콘서트 성공 토스트 dismiss 호출 시 메시지는 비워져야 한다")
-    func testOnInterestConcertToastDisappearClearsMessage() async throws {
+    @Test("이미 닫힌 관심 콘서트 결과 시트를 다시 dismiss해도 mark를 중복 호출하지 않아야 한다")
+    func testInterestResultSheetDismissIsIdempotent() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._interestToastResult(.success(.completed)))
+        sut.send(._interestResultPolicyResult(.success(.completed)))
+        sut.send(.onInterestResultSheetDismiss)
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(!sut.state.interestToastMessage.isEmpty)
+        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
 
         // When
-        sut.send(.onInterestToastDisappear)
+        sut.send(.onInterestResultSheetDismiss)
+        try await Task.sleep(nanoseconds: 50_000_000)
 
         // Then
-        #expect(sut.state.interestToastMessage.isEmpty)
+        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
     }
 
     // MARK: - Home Layout Load 테스트
