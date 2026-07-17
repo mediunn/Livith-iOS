@@ -133,13 +133,23 @@ public struct SegmentedTabBar: View {
 
             tabBarContent
         }
-        .background(.livithColor(.black100))
+        .background(barBackgroundColor)
     }
 }
 
 // MARK: - Content
 
 private extension SegmentedTabBar {
+    var barBackgroundColor: Color {
+        switch type {
+        case .home:
+            // 홈은 관심 콘서트 유무에 따라 화면 배경(black90/black100)이 달라지므로 부모 배경을 비춘다.
+            return .clear
+        case .detail:
+            return .livithColor(.black100)
+        }
+    }
+
     var tabBarContent: some View {
         Group {
             if type.isScrollable {
