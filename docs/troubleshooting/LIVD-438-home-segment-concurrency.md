@@ -1,5 +1,23 @@
 # LIVD-438 홈 세그먼트 / 동시성 트러블슈팅
 
+## 2026-07-17 - 유저 피드백: HomeStore 상태 변경을 send로 집중
+
+### 증상
+- `perform*` / Task 본문에서 `state`를 직접 바꿔 MVI(`send` 단일 진입)와 어긋남
+
+### 시도
+- 로딩·초기 로드·토스트 예약 플래그 변경을 `send`의 Intent 분기로 이동
+- `perform*`는 네트워크/Task만 수행하고 결과는 `._fetch*` Intent로만 반영
+
+### 결과
+- `HomeStore` 리팩터 반영. HomeStoreTests 36개 통과
+
+### 학습
+- 취소 재시도를 위해 `isConcertSectionInitialLoad` 소진은 섹션 결과 Intent에서 유지
+- `perform*` / Task에서는 `state`를 건드리지 않고 Intent로만 되돌린다
+
+---
+
 ## 2026-07-17 - 유저 피드백: 관심 콘서트 없을 때 상단 배경 색 단차
 
 ### 증상

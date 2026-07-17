@@ -44,7 +44,7 @@ struct HomeView: View {
                 showInterestConcertToast = false
             }
         }
-        .onChange(of: store.state.interestConcertToastMessage) { _, newValue in
+        .onChange(of: store.state.interestToastMessage) { _, newValue in
             if !newValue.isEmpty && store.state.errorMessage.isEmpty {
                 showInterestConcertToast = true
             }
@@ -61,13 +61,13 @@ struct HomeView: View {
             isPresented: Binding(
                 get: {
                     showInterestConcertToast
-                    && !store.state.interestConcertToastMessage.isEmpty
+                    && !store.state.interestToastMessage.isEmpty
                     && !(showErrorToast && !store.state.errorMessage.isEmpty)
                 },
-                set: { if !$0 { showInterestConcertToast = false; store.send(.onInterestConcertToastDisappear) } }
+                set: { if !$0 { showInterestConcertToast = false; store.send(.onInterestToastDisappear) } }
             ),
             type: .success,
-            message: store.state.interestConcertToastMessage
+            message: store.state.interestToastMessage
         )
     }
 }
@@ -129,7 +129,7 @@ private extension HomeView {
 
     var scrollView: some View {
         ScrollView {
-            if store.state.isConcertSectionLoading {
+            if store.state.isSectionLoading {
                 loadingView
             } else {
                 VStack(spacing: .zero) {

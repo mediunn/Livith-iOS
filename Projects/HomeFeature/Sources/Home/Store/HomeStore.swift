@@ -22,11 +22,11 @@ struct HomeState {
     var errorMessage: String = ""
     var hasNewNotice: Bool = false
     var concertSectionList: [ConcertSection] = []
-    var isConcertSectionLoading: Bool = false
-    var isConcertSectionInitialLoad: Bool = true
+    var isSectionLoading: Bool = false
+    var needsInitialSectionLoad: Bool = true
     var shouldShowPreferenceBanner: Bool = false
     var recommendedConcertList: [Concert] = []
-    var interestConcertToastMessage: String = ""
+    var interestToastMessage: String = ""
 }
 
 // MARK: - Intent
@@ -36,16 +36,16 @@ enum HomeIntent {
     case onRefresh
     case homeTabSelected(SegmentedTabBarType.HomeTab)
     case onErrorToastDisappear
-    case onInterestConcertToastDisappear
+    case onInterestToastDisappear
     case checkUnreadNotification
     case interestConcertSortSelected(InterestConcertSort)
-    case _fetchInitialHomeDataResult(Result<(user: User, interestConcertList: [InterestConcert], hasNewNotice: Bool), Error>)
+    case _initialLoadResult(Result<(user: User, interestConcertList: [InterestConcert], hasNewNotice: Bool), Error>)
     case _fetchUserResult(Result<User, Error>)
-    case _fetchInterestConcertListResult(Result<[InterestConcert], Error>)
-    case _fetchUnreadNotificationCountResult(Result<Int, Error>)
-    case _fetchInterestConcertToastResult(Result<InterestConcertCleanupPolicy, Error>)
-    case _markInterestConcertToastShownResult(Result<Void, Error>)
-    case _fetchConcertSectionDataResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
+    case _interestListResult(Result<[InterestConcert], Error>)
+    case _unreadCountResult(Result<Int, Error>)
+    case _interestToastResult(Result<InterestConcertCleanupPolicy, Error>)
+    case _markInterestToastResult(Result<Void, Error>)
+    case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
 
 // MARK: - Store
@@ -53,10 +53,10 @@ enum HomeIntent {
 @MainActor
 final class HomeStore: ObservableObject {
     private enum CancelID {
-        case fetchInitialHomeData
-        case fetchInterestConcertList
-        case refreshSections
-        case fetchUnreadNotificationCount
+        case initialLoad
+        case interestList
+        case sections
+        case unreadCount
     }
     
     @Published private(set) var state: HomeState = .init()
@@ -66,17 +66,22 @@ final class HomeStore: ObservableObject {
     @Injected private var concertRepository: ConcertRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
-    private var shouldFetchInterestConcertToastAfterSectionLoad = false
+    private var pendingInterestToast = false
 
     // MARK: - Public Interface
     
     func send(_ intent: HomeIntent) {
         switch intent {
         case .onAppear:
-            performFetchInitialHomeData()
+            let loadsSections = state.needsInitialSectionLoad
+            if loadsSections {
+                state.isSectionLoading = true
+                pendingInterestToast = true
+            }
+            performInitialLoad(loadsSections: loadsSections)
 
         case .onRefresh:
-            performFetchConcertSectionData()
+            performFetchSections()
 
         case .homeTabSelected(let tab):
             state.selectedHomeTab = tab
@@ -84,48 +89,54 @@ final class HomeStore: ObservableObject {
         case .onErrorToastDisappear:
             state.errorMessage = ""
 
-        case .onInterestConcertToastDisappear:
-            state.interestConcertToastMessage = ""
+        case .onInterestToastDisappear:
+            state.interestToastMessage = ""
 
         case .checkUnreadNotification:
-            performFetchUnreadNotificationCount()
+            performFetchUnreadCount()
 
         case .interestConcertSortSelected(let sort):
             guard state.interestConcertSort != sort else { return }
 
             state.interestConcertSort = sort
-            performFetchInterestConcertList(filter: .homeSection(sort: sort))
+            performFetchInterestList(filter: .homeSection(sort: sort))
 
-        case ._fetchInitialHomeDataResult(let result):
+        case ._initialLoadResult(let result):
             switch result {
             case .success(let data):
                 state.user = data.user
                 state.interestConcertList = data.interestConcertList
                 state.hasNewNotice = data.hasNewNotice
             case .failure(let error):
-                state.isConcertSectionLoading = false
-                setErrorMessage(from: error)
+                pendingInterestToast = false
+                state.isSectionLoading = false
+                setError(from: error)
             }
 
         case ._fetchUserResult(let result):
             switch result {
             case .success(let user):
                 state.user = user
-                executeInitialConcertSectionLoadIfNeeded()
+                guard state.needsInitialSectionLoad else { return }
+
+                state.isSectionLoading = true
+                state.needsInitialSectionLoad = false
+                pendingInterestToast = true
+                performFetchSections()
             case .failure(let error):
-                setErrorMessage(from: error)
+                setError(from: error)
             }
 
-        case ._fetchInterestConcertListResult(let result):
+        case ._interestListResult(let result):
             switch result {
             case .success(let list):
                 state.interestConcertList = list
                 state.errorMessage = ""
             case .failure(let error):
-                setErrorMessage(from: error)
+                setError(from: error)
             }
 
-        case ._fetchUnreadNotificationCountResult(let result):
+        case ._unreadCountResult(let result):
             switch result {
             case .success(let count):
                 state.hasNewNotice = count > 0
@@ -133,29 +144,35 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = false
             }
 
-        case ._fetchInterestConcertToastResult(let result):
+        case ._interestToastResult(let result):
             switch result {
             case .success(let policy):
-                guard let message = interestConcertCleanupMessage(for: policy) else {
-                    state.interestConcertToastMessage = ""
+                guard let message = toastMessage(for: policy) else {
+                    state.interestToastMessage = ""
                     return
                 }
                 guard state.errorMessage.isEmpty else {
-                    state.interestConcertToastMessage = ""
+                    state.interestToastMessage = ""
                     return
                 }
 
-                state.interestConcertToastMessage = message
-                performMarkInterestConcertToastShown()
+                state.interestToastMessage = message
+                performMarkInterestToastShown()
             case .failure:
-                state.interestConcertToastMessage = ""
+                state.interestToastMessage = ""
             }
 
-        case ._markInterestConcertToastShownResult:
+        case ._markInterestToastResult:
             break
 
-        case ._fetchConcertSectionDataResult(let result):
-            state.isConcertSectionLoading = false
+        case ._sectionLoadResult(let result):
+            let isInitialLoad = pendingInterestToast
+            state.isSectionLoading = false
+
+            if isInitialLoad {
+                state.needsInitialSectionLoad = false
+                pendingInterestToast = false
+            }
 
             switch result {
             case .success(let data):
@@ -163,10 +180,11 @@ final class HomeStore: ObservableObject {
                 state.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
                 state.recommendedConcertList = data.recommendedConcertList ?? []
                 state.errorMessage = ""
-                performFetchInterestConcertToastAfterSectionLoadIfNeeded()
+                if isInitialLoad {
+                    performFetchInterestToast()
+                }
             case .failure(let error):
-                shouldFetchInterestConcertToastAfterSectionLoad = false
-                setErrorMessage(from: error)
+                setError(from: error)
             }
         }
     }
@@ -175,97 +193,83 @@ final class HomeStore: ObservableObject {
 // MARK: - Helpers
 
 private extension HomeStore {
-    func executeInitialConcertSectionLoadIfNeeded() {
-        guard state.user != nil else { return }
-        guard state.isConcertSectionInitialLoad else { return }
+    func performInitialLoad(loadsSections: Bool) {
+        cancellables[.initialLoad]?.cancel()
 
-        state.isConcertSectionLoading = true
-        state.isConcertSectionInitialLoad = false
-        shouldFetchInterestConcertToastAfterSectionLoad = true
-        performFetchConcertSectionData()
-    }
+        let sort = state.interestConcertSort
 
-    func performFetchInitialHomeData() {
-        cancellables[.fetchInitialHomeData]?.cancel()
+        cancellables[.initialLoad] = Task {
+            async let userResult = fetchUser()
+            async let interestListResult = fetchInterestList(filter: .homeSection(sort: sort))
+            async let hasNewNoticeResult = fetchHasNewNotice()
+            async let sectionsResult = fetchSectionsIfNeeded(loadsSections)
 
-        let shouldLoadSections = state.isConcertSectionInitialLoad
-        if shouldLoadSections {
-            state.isConcertSectionLoading = true
-            shouldFetchInterestConcertToastAfterSectionLoad = true
-        }
-
-        let interestSort = state.interestConcertSort
-
-        cancellables[.fetchInitialHomeData] = Task {
-            async let userResult = fetchUserResult()
-            async let interestConcertListResult = fetchInterestConcertListResult(
-                filter: .homeSection(sort: interestSort)
-            )
-            async let hasNewNoticeResult = fetchHasNewNoticeResult()
-            async let sectionsResult = fetchHomeSectionsResultIfNeeded(shouldLoadSections)
-
-            let resolvedUserResult = await userResult
-
+            guard let user = resolveUser(from: await userResult) else { return }
             if Task.isCancelled { return }
 
-            switch resolvedUserResult {
-            case .failure(let error):
-                // 미대기 async let은 스코프 종료 시 취소된다.
-                shouldFetchInterestConcertToastAfterSectionLoad = false
-                send(._fetchInitialHomeDataResult(.failure(error)))
-                return
+            send(._initialLoadResult(.success((
+                user: user,
+                interestConcertList: interestList(from: await interestListResult),
+                hasNewNotice: hasNewNotice(from: await hasNewNoticeResult)
+            ))))
 
-            case .success(let user):
-                let list: [InterestConcert]
-                switch await interestConcertListResult {
-                case .success(let interestConcertList):
-                    list = interestConcertList
-                case .failure:
-                    list = []
-                }
-
-                let hasNewNotice: Bool
-                switch await hasNewNoticeResult {
-                case .success(let result):
-                    hasNewNotice = result
-                case .failure:
-                    hasNewNotice = false
-                }
-
-                if Task.isCancelled { return }
-
-                send(._fetchInitialHomeDataResult(.success((
-                    user: user,
-                    interestConcertList: list,
-                    hasNewNotice: hasNewNotice
-                ))))
-
-                guard shouldLoadSections else { return }
-
-                let resolvedSectionsResult = await sectionsResult
-                if Task.isCancelled { return }
-
-                guard let resolvedSectionsResult else { return }
-
-                switch resolvedSectionsResult {
-                case .success(let sectionList):
-                    let recommendations = await fetchRecommendations(for: user)
-                    if Task.isCancelled { return }
-                    // 취소 없이 섹션·추천까지 도달했을 때만 초기 로드 플래그를 소진한다.
-                    state.isConcertSectionInitialLoad = false
-                    send(._fetchConcertSectionDataResult(.success((
-                        sectionList: sectionList,
-                        recommendedConcertList: recommendations
-                    ))))
-                case .failure(let error):
-                    state.isConcertSectionInitialLoad = false
-                    send(._fetchConcertSectionDataResult(.failure(error)))
-                }
-            }
+            guard loadsSections else { return }
+            await sendSectionResult(user: user, sectionsResult: await sectionsResult)
         }
     }
 
-    func fetchUserResult() async -> Result<User, Error> {
+    func resolveUser(from result: Result<User, Error>) -> User? {
+        if Task.isCancelled { return nil }
+
+        switch result {
+        case .failure(let error):
+            // 미대기 async let은 스코프 종료 시 취소된다.
+            send(._initialLoadResult(.failure(error)))
+            return nil
+        case .success(let user):
+            return user
+        }
+    }
+
+    func interestList(from result: Result<[InterestConcert], Error>) -> [InterestConcert] {
+        switch result {
+        case .success(let list):
+            return list
+        case .failure:
+            return []
+        }
+    }
+
+    func hasNewNotice(from result: Result<Bool, Error>) -> Bool {
+        switch result {
+        case .success(let hasNewNotice):
+            return hasNewNotice
+        case .failure:
+            return false
+        }
+    }
+
+    func sendSectionResult(
+        user: User,
+        sectionsResult: Result<[ConcertSection], Error>?
+    ) async {
+        if Task.isCancelled { return }
+        guard let sectionsResult else { return }
+
+        switch sectionsResult {
+        case .success(let sectionList):
+            let recommendations = await fetchRecommendations(for: user)
+            if Task.isCancelled { return }
+            send(._sectionLoadResult(.success((
+                sectionList: sectionList,
+                recommendedConcertList: recommendations
+            ))))
+        case .failure(let error):
+            send(._sectionLoadResult(.failure(error)))
+        }
+    }
+
+    func fetchUser() async -> Result<User, Error> {
         do {
             return .success(try await userRepository.fetchUser())
         } catch {
@@ -273,7 +277,7 @@ private extension HomeStore {
         }
     }
 
-    func fetchInterestConcertListResult(filter: InterestConcertListFilter) async -> Result<[InterestConcert], Error> {
+    func fetchInterestList(filter: InterestConcertListFilter) async -> Result<[InterestConcert], Error> {
         do {
             let response = try await userRepository.fetchInterestedConcertList(filter: filter)
             return .success(response.items)
@@ -282,7 +286,7 @@ private extension HomeStore {
         }
     }
 
-    func fetchHasNewNoticeResult() async -> Result<Bool, Error> {
+    func fetchHasNewNotice() async -> Result<Bool, Error> {
         do {
             let count = try await notificationRepository.fetchUnreadNotificationCount()
             return .success(count > 0)
@@ -291,12 +295,12 @@ private extension HomeStore {
         }
     }
 
-    func fetchHomeSectionsResultIfNeeded(_ shouldLoad: Bool) async -> Result<[ConcertSection], Error>? {
+    func fetchSectionsIfNeeded(_ shouldLoad: Bool) async -> Result<[ConcertSection], Error>? {
         guard shouldLoad else { return nil }
-        return await fetchHomeSectionsResult()
+        return await fetchSections()
     }
 
-    func fetchHomeSectionsResult() async -> Result<[ConcertSection], Error> {
+    func fetchSections() async -> Result<[ConcertSection], Error> {
         do {
             let sections = try await concertRepository.fetchHomeConcertSectionList()
             return .success(sections)
@@ -305,7 +309,7 @@ private extension HomeStore {
         }
     }
 
-    func fetchInterestConcertToastResult() async -> Result<InterestConcertCleanupPolicy, Error> {
+    func fetchInterestToast() async -> Result<InterestConcertCleanupPolicy, Error> {
         do {
             return .success(try await userRepository.fetchInterestConcertCleanupPolicy())
         } catch {
@@ -313,63 +317,59 @@ private extension HomeStore {
         }
     }
 
-    func performFetchInterestConcertToastAfterSectionLoadIfNeeded() {
-        guard shouldFetchInterestConcertToastAfterSectionLoad else { return }
-
-        shouldFetchInterestConcertToastAfterSectionLoad = false
+    func performFetchInterestToast() {
         Task {
-            let result = await fetchInterestConcertToastResult()
-            send(._fetchInterestConcertToastResult(result))
+            let result = await fetchInterestToast()
+            send(._interestToastResult(result))
         }
     }
 
-    func performFetchInterestConcertList(filter: InterestConcertListFilter) {
-        cancellables[.fetchInterestConcertList]?.cancel()
-        cancellables[.fetchInterestConcertList] = Task {
-            let result = await fetchInterestConcertListResult(filter: filter)
-            send(._fetchInterestConcertListResult(result))
+    func performFetchInterestList(filter: InterestConcertListFilter) {
+        cancellables[.interestList]?.cancel()
+        cancellables[.interestList] = Task {
+            let result = await fetchInterestList(filter: filter)
+            send(._interestListResult(result))
         }
     }
 
-    func performFetchUnreadNotificationCount() {
-        cancellables[.fetchUnreadNotificationCount]?.cancel()
-        cancellables[.fetchUnreadNotificationCount] = Task {
+    func performFetchUnreadCount() {
+        cancellables[.unreadCount]?.cancel()
+        cancellables[.unreadCount] = Task {
             do {
                 let count = try await notificationRepository.fetchUnreadNotificationCount()
-                send(._fetchUnreadNotificationCountResult(.success(count)))
+                send(._unreadCountResult(.success(count)))
             } catch {
-                send(._fetchUnreadNotificationCountResult(.failure(error)))
+                send(._unreadCountResult(.failure(error)))
             }
         }
     }
 
-    func performMarkInterestConcertToastShown() {
+    func performMarkInterestToastShown() {
         Task {
             do {
                 try await userRepository.markInterestConcertToastShown()
-                send(._markInterestConcertToastShownResult(.success(())))
+                send(._markInterestToastResult(.success(())))
             } catch {
-                send(._markInterestConcertToastShownResult(.failure(error)))
+                send(._markInterestToastResult(.failure(error)))
             }
         }
     }
     
-    func performFetchConcertSectionData() {
-        cancellables[.refreshSections]?.cancel()
-        cancellables[.refreshSections] = Task {
+    func performFetchSections() {
+        cancellables[.sections]?.cancel()
+        cancellables[.sections] = Task {
             do {
                 async let sections = concertRepository.fetchHomeConcertSectionList()
                 async let recommendations = fetchRecommendationsIfNeeded()
                 
-                let resolvedSections = try await sections
-                let resolvedRecommendations = await recommendations
-                let data = (
-                    sectionList: resolvedSections,
-                    recommendedConcertList: resolvedRecommendations
-                )
-                send(._fetchConcertSectionDataResult(.success(data)))
+                let sectionList = try await sections
+                let recommendedConcertList = await recommendations
+                send(._sectionLoadResult(.success((
+                    sectionList: sectionList,
+                    recommendedConcertList: recommendedConcertList
+                ))))
             } catch {
-                send(._fetchConcertSectionDataResult(.failure(error)))
+                send(._sectionLoadResult(.failure(error)))
             }
         }
     }
@@ -389,7 +389,7 @@ private extension HomeStore {
         }
     }
     
-    func getErrorMessage(from error: Error) -> String {
+    func errorMessage(from error: Error) -> String {
         if error is CancellationError {
             return ""
         }
@@ -401,30 +401,30 @@ private extension HomeStore {
         return error.localizedDescription
     }
 
-    func setErrorMessage(from error: Error) {
-        let message = getErrorMessage(from: error)
+    func setError(from error: Error) {
+        let message = errorMessage(from: error)
         state.errorMessage = message
 
         guard !message.isEmpty else { return }
-        state.interestConcertToastMessage = ""
+        state.interestToastMessage = ""
     }
 
-    func interestConcertCleanupMessage(for policy: InterestConcertCleanupPolicy) -> String? {
+    func toastMessage(for policy: InterestConcertCleanupPolicy) -> String? {
         switch policy {
         case .none:
             return nil
         case .canceled:
-            return Constants.canceledInterestConcertToastMessage
+            return Constants.canceledToastMessage
         case .completed:
-            return Constants.completedInterestConcertToastMessage
+            return Constants.completedToastMessage
         case .both:
-            return Constants.bothInterestConcertToastMessage
+            return Constants.bothToastMessage
         }
     }
 
     enum Constants {
-        static let canceledInterestConcertToastMessage = "취소된 공연이 자동 정리됐어요"
-        static let completedInterestConcertToastMessage = "종료된 공연이 자동 정리됐어요"
-        static let bothInterestConcertToastMessage = "종료·취소된 공연이 자동 정리됐어요"
+        static let canceledToastMessage = "취소된 공연이 자동 정리됐어요"
+        static let completedToastMessage = "종료된 공연이 자동 정리됐어요"
+        static let bothToastMessage = "종료·취소된 공연이 자동 정리됐어요"
     }
 }

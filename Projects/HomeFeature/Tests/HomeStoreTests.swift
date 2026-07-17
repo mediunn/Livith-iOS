@@ -91,13 +91,13 @@ struct HomeStoreTests {
         // Then
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(sut.state.user == nil)
-        #expect(sut.state.isConcertSectionLoading)
+        #expect(sut.state.isSectionLoading)
 
         try await Task.sleep(nanoseconds: 350_000_000)
 
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.concertSectionList.count == 1)
-        #expect(!sut.state.isConcertSectionLoading)
+        #expect(!sut.state.isSectionLoading)
     }
 
     @Test("onAppear 시 유저와 관심 콘서트 목록과 알림 수를 함께 조회한 뒤 홈 콘서트 섹션 데이터를 로드해야 한다")
@@ -126,7 +126,7 @@ struct HomeStoreTests {
         #expect(sut.state.interestConcertList.map(\.id) == [123])
         #expect(sut.state.hasNewNotice)
         #expect(sut.state.concertSectionList.count == 1)
-        #expect(!sut.state.isConcertSectionLoading)
+        #expect(!sut.state.isSectionLoading)
     }
 
     @Test("onAppear 시 유저 조회 실패 후 다시 onAppear하면 홈 섹션을 로드해야 한다")
@@ -152,7 +152,7 @@ struct HomeStoreTests {
         // Then
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.concertSectionList.count == 1)
-        #expect(!sut.state.isConcertSectionLoading)
+        #expect(!sut.state.isSectionLoading)
     }
 
     @Test("섹션 로드 중 다시 onAppear하면 섹션 파이프라인을 다시 수행해야 한다")
@@ -167,7 +167,7 @@ struct HomeStoreTests {
         sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 50_000_000)
         #expect(sut.state.user?.nickname == "홍길동")
-        #expect(sut.state.isConcertSectionLoading)
+        #expect(sut.state.isSectionLoading)
         #expect(sut.state.concertSectionList.isEmpty)
 
         // When
@@ -177,8 +177,8 @@ struct HomeStoreTests {
 
         // Then
         #expect(sut.state.concertSectionList.count == 1)
-        #expect(!sut.state.isConcertSectionLoading)
-        #expect(!sut.state.isConcertSectionInitialLoad)
+        #expect(!sut.state.isSectionLoading)
+        #expect(!sut.state.needsInitialSectionLoad)
     }
 
     @Test("초기 로드 중 다시 onAppear하면 이전 Task를 취소하고 로드를 완료해야 한다")
@@ -191,7 +191,7 @@ struct HomeStoreTests {
 
         sut.send(.onAppear)
         try await Task.sleep(nanoseconds: 30_000_000)
-        #expect(sut.state.isConcertSectionLoading)
+        #expect(sut.state.isSectionLoading)
 
         // When: 재요청으로 이전 Task 취소
         container.userRepository.fetchUserDelay = 0
@@ -199,7 +199,7 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 150_000_000)
 
         // Then
-        #expect(!sut.state.isConcertSectionLoading)
+        #expect(!sut.state.isSectionLoading)
         #expect(sut.state.concertSectionList.count == 1)
     }
 
@@ -274,7 +274,7 @@ struct HomeStoreTests {
         #expect(!sut.state.hasNewNotice)
         #expect(!sut.state.errorMessage.isEmpty)
         #expect(sut.state.concertSectionList.isEmpty)
-        #expect(!sut.state.isConcertSectionLoading)
+        #expect(!sut.state.isSectionLoading)
     }
 
     // MARK: - InterestConcertToast 테스트
@@ -296,7 +296,7 @@ struct HomeStoreTests {
 
         // Then
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
-        #expect(sut.state.interestConcertToastMessage == "종료된 공연이 자동 정리됐어요")
+        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
     }
 
@@ -306,19 +306,19 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When & Then
-        sut.send(._fetchInterestConcertToastResult(.success(.canceled)))
+        sut.send(._interestToastResult(.success(.canceled)))
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(sut.state.interestConcertToastMessage == "취소된 공연이 자동 정리됐어요")
+        #expect(sut.state.interestToastMessage == "취소된 공연이 자동 정리됐어요")
 
-        sut.send(.onInterestConcertToastDisappear)
-        sut.send(._fetchInterestConcertToastResult(.success(.completed)))
+        sut.send(.onInterestToastDisappear)
+        sut.send(._interestToastResult(.success(.completed)))
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(sut.state.interestConcertToastMessage == "종료된 공연이 자동 정리됐어요")
+        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
 
-        sut.send(.onInterestConcertToastDisappear)
-        sut.send(._fetchInterestConcertToastResult(.success(.both)))
+        sut.send(.onInterestToastDisappear)
+        sut.send(._interestToastResult(.success(.both)))
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(sut.state.interestConcertToastMessage == "종료·취소된 공연이 자동 정리됐어요")
+        #expect(sut.state.interestToastMessage == "종료·취소된 공연이 자동 정리됐어요")
     }
 
     @Test("onAppear 시 관심 콘서트 토스트 노출이 필요하지 않으면 성공 메시지와 노출 처리를 생략해야 한다")
@@ -337,7 +337,7 @@ struct HomeStoreTests {
 
         // Then
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
-        #expect(sut.state.interestConcertToastMessage.isEmpty)
+        #expect(sut.state.interestToastMessage.isEmpty)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
@@ -361,14 +361,14 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(sut.state.concertSectionList.isEmpty)
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
-        #expect(sut.state.interestConcertToastMessage.isEmpty)
+        #expect(sut.state.interestToastMessage.isEmpty)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
 
         try await Task.sleep(nanoseconds: 300_000_000)
 
         #expect(sut.state.concertSectionList.count == 1)
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
-        #expect(sut.state.interestConcertToastMessage == "종료된 공연이 자동 정리됐어요")
+        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
     }
 
@@ -390,7 +390,7 @@ struct HomeStoreTests {
         // Then
         #expect(!sut.state.errorMessage.isEmpty)
         #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
-        #expect(sut.state.interestConcertToastMessage.isEmpty)
+        #expect(sut.state.interestToastMessage.isEmpty)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
@@ -411,7 +411,7 @@ struct HomeStoreTests {
         // Then
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.errorMessage.isEmpty)
-        #expect(sut.state.interestConcertToastMessage.isEmpty)
+        #expect(sut.state.interestToastMessage.isEmpty)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
@@ -423,11 +423,11 @@ struct HomeStoreTests {
         #expect(!sut.state.errorMessage.isEmpty)
 
         // When
-        sut.send(._fetchInterestConcertToastResult(.success(.completed)))
+        sut.send(._interestToastResult(.success(.completed)))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        #expect(sut.state.interestConcertToastMessage.isEmpty)
+        #expect(sut.state.interestToastMessage.isEmpty)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
@@ -435,16 +435,16 @@ struct HomeStoreTests {
     func testErrorClearsPendingInterestConcertToastMessage() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._fetchInterestConcertToastResult(.success(.completed)))
+        sut.send(._interestToastResult(.success(.completed)))
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(!sut.state.interestConcertToastMessage.isEmpty)
+        #expect(!sut.state.interestToastMessage.isEmpty)
 
         // When
-        sut.send(._fetchInterestConcertListResult(.failure(UserError.serverError)))
+        sut.send(._interestListResult(.failure(UserError.serverError)))
 
         // Then
         #expect(!sut.state.errorMessage.isEmpty)
-        #expect(sut.state.interestConcertToastMessage.isEmpty)
+        #expect(sut.state.interestToastMessage.isEmpty)
     }
 
     @Test("관심 콘서트 토스트 노출 처리 실패는 오류 메시지로 노출하지 않아야 한다")
@@ -454,11 +454,11 @@ struct HomeStoreTests {
         let sut = HomeStore()
 
         // When
-        sut.send(._fetchInterestConcertToastResult(.success(.completed)))
+        sut.send(._interestToastResult(.success(.completed)))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        #expect(sut.state.interestConcertToastMessage == "종료된 공연이 자동 정리됐어요")
+        #expect(sut.state.interestToastMessage == "종료된 공연이 자동 정리됐어요")
         #expect(sut.state.errorMessage.isEmpty)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
     }
@@ -467,15 +467,15 @@ struct HomeStoreTests {
     func testOnInterestConcertToastDisappearClearsMessage() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._fetchInterestConcertToastResult(.success(.completed)))
+        sut.send(._interestToastResult(.success(.completed)))
         try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(!sut.state.interestConcertToastMessage.isEmpty)
+        #expect(!sut.state.interestToastMessage.isEmpty)
 
         // When
-        sut.send(.onInterestConcertToastDisappear)
+        sut.send(.onInterestToastDisappear)
 
         // Then
-        #expect(sut.state.interestConcertToastMessage.isEmpty)
+        #expect(sut.state.interestToastMessage.isEmpty)
     }
 
     // MARK: - Home Layout Load 테스트
@@ -527,8 +527,8 @@ struct HomeStoreTests {
     func testInterestConcertListFailureKeepsInterestConcertListAndSetsErrorMessage() {
         let sut = HomeStore()
 
-        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
-        sut.send(._fetchInterestConcertListResult(.failure(UserError.serverError)))
+        sut.send(._interestListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+        sut.send(._interestListResult(.failure(UserError.serverError)))
 
         #expect(sut.state.interestConcertList.map(\.id) == [123])
         #expect(!sut.state.errorMessage.isEmpty)
@@ -538,7 +538,7 @@ struct HomeStoreTests {
     func testInterestConcertSortSelectedRefetchesInterestConcertList() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+        sut.send(._interestListResult(.success(makeInterestConcertList(concertIDList: [123]))))
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [456])
 
         // When
@@ -558,7 +558,7 @@ struct HomeStoreTests {
     func testInterestConcertSortFetchFailureKeepsExistingListAndSetsErrorMessage() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+        sut.send(._interestListResult(.success(makeInterestConcertList(concertIDList: [123]))))
         container.userRepository.fetchInterestedConcertListErrorStub = .serverError
 
         // When
@@ -617,10 +617,10 @@ struct HomeStoreTests {
         sut.send(._fetchUserResult(.success(user)))
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        sut.send(._fetchInterestConcertListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+        sut.send(._interestListResult(.success(makeInterestConcertList(concertIDList: [123]))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        sut.send(._fetchInterestConcertListResult(.success([])))
+        sut.send(._interestListResult(.success([])))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
