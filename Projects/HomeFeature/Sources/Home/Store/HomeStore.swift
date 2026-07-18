@@ -68,6 +68,11 @@ final class HomeStore: ObservableObject {
         case available(User)
         case unavailable
     }
+
+    private struct UserWaiter {
+        let id: UUID
+        let continuation: CheckedContinuation<User?, Never>
+    }
     
     @Published private(set) var state: HomeState = .init()
     
@@ -78,7 +83,7 @@ final class HomeStore: ObservableObject {
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var pendingInterestResultPolicyFetch = false
     private var userAvailability: UserAvailability = .pending
-    private var userWaiters: [CheckedContinuation<User?, Never>] = []
+    private var userWaiters: [UserWaiter] = []
 
     // MARK: - Public Interface
     
@@ -189,6 +194,10 @@ final class HomeStore: ObservableObject {
             break
 
         case ._sectionLoadResult(let result):
+            if case .failure(let error) = result, isCancellationError(error) {
+                return
+            }
+
             let isInitialLoad = pendingInterestResultPolicyFetch
             state.isSectionLoading = false
 
@@ -267,7 +276,7 @@ private extension HomeStore {
 
     /// `homeAppear`의 유저 조회 결과를 대기한다. 이미 결과가 나와 있으면 즉시 반환하고,
     /// 아직 진행 중이면 `resolveUserAvailability`가 호출될 때까지 대기한다.
-    /// 유저 조회가 실패하면 `nil`을 반환해 추천 조회를 건너뛴다.
+    /// 유저 조회가 실패하거나 대기 중 Task가 취소되면 `nil`을 반환해 추천 조회를 건너뛴다.
     func waitForUser() async -> User? {
         switch userAvailability {
         case .available(let user):
@@ -275,8 +284,19 @@ private extension HomeStore {
         case .unavailable:
             return nil
         case .pending:
-            return await withCheckedContinuation { continuation in
-                userWaiters.append(continuation)
+            let waiterID = UUID()
+            return await withTaskCancellationHandler {
+                await withCheckedContinuation { continuation in
+                    if Task.isCancelled {
+                        continuation.resume(returning: nil)
+                        return
+                    }
+                    userWaiters.append(UserWaiter(id: waiterID, continuation: continuation))
+                }
+            } onCancel: {
+                Task { @MainActor in
+                    resumeUserWaiter(id: waiterID, returning: nil)
+                }
             }
         }
     }
@@ -286,7 +306,13 @@ private extension HomeStore {
 
         let waiters = userWaiters
         userWaiters.removeAll()
-        waiters.forEach { $0.resume(returning: user) }
+        waiters.forEach { $0.continuation.resume(returning: user) }
+    }
+
+    func resumeUserWaiter(id: UUID, returning user: User?) {
+        guard let index = userWaiters.firstIndex(where: { $0.id == id }) else { return }
+        let waiter = userWaiters.remove(at: index)
+        waiter.continuation.resume(returning: user)
     }
 
     func hasNewNotice(from result: Result<Bool, Error>) -> Bool {
@@ -316,6 +342,7 @@ private extension HomeStore {
                 recommendedConcertList: recommendations
             ))))
         case .failure(let error):
+            if Task.isCancelled || isCancellationError(error) { return }
             send(._sectionLoadResult(.failure(error)))
         }
     }
@@ -414,12 +441,15 @@ private extension HomeStore {
                 async let recommendations = fetchRecommendationsIfNeeded()
                 
                 let sectionList = try await sections
+                if Task.isCancelled { return }
                 let recommendedConcertList = await recommendations
+                if Task.isCancelled { return }
                 send(._sectionLoadResult(.success((
                     sectionList: sectionList,
                     recommendedConcertList: recommendedConcertList
                 ))))
             } catch {
+                if Task.isCancelled || isCancellationError(error) { return }
                 send(._sectionLoadResult(.failure(error)))
             }
         }
@@ -441,15 +471,21 @@ private extension HomeStore {
     }
     
     func errorMessage(from error: Error) -> String {
-        if error is CancellationError {
-            return ""
-        }
-        
-        if case let error as ConcertError = error, error == .cancelled {
+        if isCancellationError(error) {
             return ""
         }
         
         return error.localizedDescription
+    }
+
+    func isCancellationError(_ error: Error) -> Bool {
+        if error is CancellationError {
+            return true
+        }
+        if case let error as ConcertError = error, error == .cancelled {
+            return true
+        }
+        return false
     }
 
     func setError(from error: Error) {

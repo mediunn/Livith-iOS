@@ -1,5 +1,23 @@
 # LIVD-438 홈 세그먼트 / 동시성 트러블슈팅
 
+## 2026-07-19 - PR 리뷰: waitForUser continuation / 섹션 cancel 플래그 소진
+
+### 증상
+- `waitForUser`가 Task 취소 시 continuation을 resume하지 않아 취소된 Task가 Store를 붙잡을 수 있음
+- `._sectionLoadResult(.failure(CancellationError))`가 `pendingInterestResultPolicyFetch`를 소진해 이후 성공 로드에서 결과 시트가 스킵될 수 있음
+
+### 시도
+- `waitForUser`에 waiter ID + cancel 시 resume(`nil`) 처리
+- 섹션 결과 Intent·`performFetchSections`에서 cancellation은 상태/플래그를 건드리지 않고 무시
+
+### 결과
+- `HomeStoreTests`에서 취소 failure가 정책 예약을 소진하지 않음을 검증. waitForUser cancel-safe resume 반영
+
+### 학습
+- CheckedContinuation 대기는 cancel-safe해야 하며, cancel failure를 일반 실패와 동일하게 플래그 소진하면 안 된다
+
+---
+
 ## 2026-07-17 - interestAppear 관심 목록 실패가 초기 에러로 전파됨
 
 ### 증상

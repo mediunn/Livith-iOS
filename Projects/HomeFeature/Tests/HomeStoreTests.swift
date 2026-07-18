@@ -391,6 +391,36 @@ struct HomeStoreTests {
 
     // MARK: - InterestConcertResultSheet 테스트
 
+    @Test("섹션 로드 CancellationError는 결과 시트 정책 조회 예약을 소진하지 않아야 한다")
+    func testSectionLoadCancellationDoesNotConsumeInterestResultPolicyFetch() async throws {
+        // Given: 초기 섹션 로드가 진행 중이라 정책 조회가 예약된 상태
+        container.userRepository.userStub = makeMockUser(nickname: "홍길동")
+        container.userRepository.interestConcertCleanupPolicyStub = .completed
+        container.notificationRepository.unreadNotificationCountStub = 1
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
+        container.concertRepository.fetchHomeConcertSectionListDelay = 5_000_000_000
+
+        let sut = HomeStore()
+        sut.send(.homeAppear)
+        sut.send(.interestAppear)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        #expect(sut.state.isSectionLoading)
+        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
+
+        // When: 취소된 섹션 Task가 failure를 보내고, 이어서 성공 결과가 도착한다
+        sut.send(._sectionLoadResult(.failure(CancellationError())))
+        sut.send(._sectionLoadResult(.success((
+            sectionList: [makeMockSection(id: 1)],
+            recommendedConcertList: []
+        ))))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then: 취소 failure에 예약이 소진되지 않아 성공 로드 후 정책을 조회한다
+        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
+        #expect(sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.concertSectionList.count == 1)
+    }
+
     @Test("homeAppear·interestAppear 시 관심 콘서트 결과 노출이 필요하면 시트를 띄우고 dismiss 전에는 mark하지 않아야 한다")
     func testOnAppearShowsInterestResultSheetWithoutMarkingUntilDismiss() async throws {
         // Given
