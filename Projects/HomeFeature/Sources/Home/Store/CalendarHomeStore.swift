@@ -24,6 +24,9 @@ struct CalendarHomeState {
     var isLoadFailed: Bool = true
     var selectionBlockedToastMessage: String = ""
     var selectionBlockedToastTrigger: Int = 0
+    var isDayScheduleModalPresented: Bool = false
+    var selectedDayTitle: String = ""
+    var dayScheduleItems: [CalendarDayScheduleItem] = []
 }
 
 // MARK: - Intent
@@ -34,6 +37,8 @@ enum CalendarHomeIntent {
     case allConcertsTapped
     case myConcertsTapped
     case onSelectionBlockedToastDisappear
+    case dayScheduleModalOpened(dayTitle: String, items: [CalendarDayScheduleItem])
+    case dayScheduleModalDismissed
 }
 
 // MARK: - Store
@@ -72,6 +77,14 @@ final class CalendarHomeStore: ObservableObject {
 
         case .onSelectionBlockedToastDisappear:
             state.selectionBlockedToastMessage = ""
+
+        case .dayScheduleModalOpened(let dayTitle, let items):
+            state.selectedDayTitle = dayTitle
+            state.dayScheduleItems = CalendarDayScheduleSorter.sorted(items)
+            state.isDayScheduleModalPresented = true
+
+        case .dayScheduleModalDismissed:
+            state.isDayScheduleModalPresented = false
         }
     }
 

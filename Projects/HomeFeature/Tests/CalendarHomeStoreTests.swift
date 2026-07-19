@@ -152,8 +152,64 @@ struct CalendarHomeStoreTests {
     await sut.performRefresh()
 
     // Then
-    #expect(!sut.state.isTicketingDateSelected)
-    #expect(sut.state.isPerformanceDateSelected)
+    #expect(sut.state.isTicketingDateSelected)
+    #expect(!sut.state.isPerformanceDateSelected)
     #expect(sut.state.concertScope == .my)
+  }
+
+  @Test("일자 일정 모달 오픈 시 정렬된 목록과 presented 상태가 true여야 한다")
+  func 일자_일정_모달_오픈_시_정렬된_목록과_presented_상태가_true여야_한다() {
+    // Given
+    let sut = CalendarHomeStore()
+    let cancelled = CalendarDayScheduleItem(
+      id: "c",
+      kind: .ticketing,
+      title: "취소",
+      subtitle: "NOL",
+      time: .init(hour: 10, minute: 0),
+      isCancelled: true
+    )
+    let timed = CalendarDayScheduleItem(
+      id: "t",
+      kind: .performance,
+      title: "정상",
+      subtitle: "잠실",
+      time: .init(hour: 18, minute: 0),
+      isCancelled: false
+    )
+
+    // When
+    sut.send(.dayScheduleModalOpened(dayTitle: "6월 20일 수요일", items: [cancelled, timed]))
+
+    // Then
+    #expect(sut.state.isDayScheduleModalPresented)
+    #expect(sut.state.selectedDayTitle == "6월 20일 수요일")
+    #expect(sut.state.dayScheduleItems.map(\.id) == ["t", "c"])
+  }
+
+  @Test("일자 일정 모달 dismiss 시 presented가 false여야 한다")
+  func 일자_일정_모달_dismiss_시_presented가_false여야_한다() {
+    // Given
+    let sut = CalendarHomeStore()
+    sut.send(.dayScheduleModalOpened(dayTitle: "6월 20일 수요일", items: []))
+
+    // When
+    sut.send(.dayScheduleModalDismissed)
+
+    // Then
+    #expect(!sut.state.isDayScheduleModalPresented)
+  }
+
+  @Test("빈 일정으로 모달 오픈 시 dayScheduleItems가 비어 있어야 한다")
+  func 빈_일정으로_모달_오픈_시_dayScheduleItems가_비어_있어야_한다() {
+    // Given
+    let sut = CalendarHomeStore()
+
+    // When
+    sut.send(.dayScheduleModalOpened(dayTitle: "6월 20일 수요일", items: []))
+
+    // Then
+    #expect(sut.state.isDayScheduleModalPresented)
+    #expect(sut.state.dayScheduleItems.isEmpty)
   }
 }
