@@ -21,6 +21,7 @@ final class MockUserRepository: UserRepository {
     var interestConcertCleanupPolicyStub: InterestConcertCleanupPolicy = .none
     var errorStub: UserError?
     var fetchUserErrorStub: UserError?
+    var fetchUserDelay: UInt64 = 0
     var fetchInterestedConcertListErrorStub: UserError?
     var fetchInterestConcertToastErrorStub: UserError?
     var markInterestConcertToastShownErrorStub: UserError?
@@ -49,6 +50,9 @@ final class MockUserRepository: UserRepository {
     
     func fetchUser() async throws(UserError) -> User {
         fetchUserCallCount += 1
+        if fetchUserDelay > 0 {
+            try? await Task.sleep(nanoseconds: fetchUserDelay)
+        }
         if let error = fetchUserErrorStub {
             throw error
         }
