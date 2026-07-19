@@ -50,6 +50,10 @@ extension TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.song.path)
     }
 
+    public static func share(_ module: ShareModule) -> TargetDependency {
+        return .project(target: module.rawValue, path: ProjectID.share.path)
+    }
+
     public static func widget(_ module: WidgetModule) -> TargetDependency {
         return .project(target: module.rawValue, path: ProjectID.widget.path)
     }
