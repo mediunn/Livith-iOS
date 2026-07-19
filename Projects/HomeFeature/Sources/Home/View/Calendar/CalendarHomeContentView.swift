@@ -14,26 +14,58 @@ struct CalendarHomeContentView: View {
 
     // MARK: - Properties
 
-    @ObservedObject var store: HomeStore
+    @ObservedObject var store: CalendarHomeStore
+
+    @State private var showSelectionBlockedToast = false
 
     // MARK: - Body
 
     var body: some View {
-        VStack {
-            Spacer()
-            Text(Constants.placeholderText)
-                .notosans(.body2Semibold)
-                .foregroundStyle(Color.livithColor(.black50))
-            Spacer()
+        VStack(spacing: .zero) {
+            CalendarFilterBarView(store: store)
+
+            CalendarWebView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.livithColor(.black100))
+        .onChange(of: store.state.selectionBlockedToastTrigger) { _, newValue in
+            guard newValue > 0 else { return }
+            showSelectionBlockedToast = true
+        }
+        .onDisappear {
+            dismissSelectionBlockedToast()
+        }
+        .livithToast(
+            isPresented: selectionBlockedToastBinding,
+            type: .failure,
+            message: store.state.selectionBlockedToastMessage
+        )
     }
 }
 
-// MARK: - Constants
+// MARK: - Computed Properties
 
 private extension CalendarHomeContentView {
-    enum Constants {
-        static let placeholderText = "준비 중"
+    var selectionBlockedToastBinding: Binding<Bool> {
+        Binding(
+            get: { showSelectionBlockedToast && !store.state.selectionBlockedToastMessage.isEmpty },
+            set: { isPresented in
+                if !isPresented {
+                    dismissSelectionBlockedToast()
+                }
+            }
+        )
+    }
+}
+
+// MARK: - Actions
+
+private extension CalendarHomeContentView {
+    func dismissSelectionBlockedToast() {
+        guard showSelectionBlockedToast || !store.state.selectionBlockedToastMessage.isEmpty else { return }
+
+        showSelectionBlockedToast = false
+        store.send(.onSelectionBlockedToastDisappear)
     }
 }
