@@ -21,6 +21,7 @@ struct CalendarHomeState {
     var isTicketingDateSelected: Bool = true
     var isPerformanceDateSelected: Bool = true
     var concertScope: CalendarConcertScope = .all
+    var isLoadFailed: Bool = true
     var selectionBlockedToastMessage: String = ""
     var selectionBlockedToastTrigger: Int = 0
 }
@@ -42,6 +43,7 @@ final class CalendarHomeStore: ObservableObject {
 
     enum Constants {
         static let selectionBlockedToastMessage = "예매일 또는 공연일 중 하나는 선택해야 해요."
+        static let loadFailedEmptyMessage = "캘린더를\n불러오지 못했어요"
     }
 
     @Published private(set) var state: CalendarHomeState = .init()
@@ -71,6 +73,10 @@ final class CalendarHomeStore: ObservableObject {
         case .onSelectionBlockedToastDisappear:
             state.selectionBlockedToastMessage = ""
         }
+    }
+
+    func performRefresh() async {
+        // TODO: WebView URL 재로드 연동
     }
 }
 

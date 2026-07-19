@@ -21,11 +21,18 @@ struct CalendarHomeContentView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: .zero) {
-            CalendarFilterBarView(store: store)
+        ScrollView {
+            VStack(spacing: .zero) {
+                if !store.state.isLoadFailed {
+                    CalendarFilterBarView(store: store)
+                }
 
-            CalendarWebView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                calendarBody
+            }
+        }
+        .scrollIndicators(.never)
+        .refreshable {
+            await store.performRefresh()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
@@ -41,6 +48,22 @@ struct CalendarHomeContentView: View {
             type: .failure,
             message: store.state.selectionBlockedToastMessage
         )
+    }
+}
+
+// MARK: - UIComponents
+
+private extension CalendarHomeContentView {
+    @ViewBuilder
+    var calendarBody: some View {
+        if store.state.isLoadFailed {
+            LivithEmptyView(text: CalendarHomeStore.Constants.loadFailedEmptyMessage)
+                .frame(maxWidth: .infinity)
+                .containerRelativeFrame(.vertical)
+        } else {
+            CalendarWebView()
+                .frame(minHeight: Layout.webViewMinHeight)
+        }
     }
 }
 
@@ -67,5 +90,13 @@ private extension CalendarHomeContentView {
 
         showSelectionBlockedToast = false
         store.send(.onSelectionBlockedToastDisappear)
+    }
+}
+
+// MARK: - Layout
+
+private extension CalendarHomeContentView {
+    enum Layout {
+        static let webViewMinHeight: CGFloat = 500
     }
 }

@@ -19,6 +19,8 @@ struct CalendarWebView: UIViewRepresentable {
         let webView = WKWebView()
         webView.isOpaque = false
         webView.backgroundColor = UIColor(Color.livithColor(.black100))
+        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.bounces = false
         webView.scrollView.backgroundColor = UIColor(Color.livithColor(.black100))
         webView.load(URLRequest(url: Constants.blankURL))
         return webView

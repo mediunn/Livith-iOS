@@ -24,6 +24,7 @@ struct CalendarHomeStoreTests {
     #expect(sut.state.isPerformanceDateSelected)
     #expect(sut.state.concertScope == .all)
     #expect(sut.state.selectionBlockedToastMessage.isEmpty)
+    #expect(sut.state.isLoadFailed)
   }
 
   @Test("예매일 칩 탭 시 예매일 선택 상태가 토글되어야 한다")
@@ -138,5 +139,21 @@ struct CalendarHomeStoreTests {
 
     // Then
     #expect(sut.state.selectionBlockedToastTrigger == firstTrigger + 1)
+  }
+
+  @Test("새로고침 시 필터 선택 상태는 유지되어야 한다")
+  func 새로고침_시_필터_선택_상태는_유지되어야_한다() async {
+    // Given
+    let sut = CalendarHomeStore()
+    sut.send(.performanceDateTapped)
+    sut.send(.myConcertsTapped)
+
+    // When
+    await sut.performRefresh()
+
+    // Then
+    #expect(!sut.state.isTicketingDateSelected)
+    #expect(sut.state.isPerformanceDateSelected)
+    #expect(sut.state.concertScope == .my)
   }
 }
