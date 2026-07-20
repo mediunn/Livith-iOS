@@ -21,6 +21,21 @@
 
 ---
 
+### 2026-07-20 21:24 - PR #290 리뷰 피드백 반영
+
+**상황**
+- youz2me Approve 리뷰: List 네이밍, Store 테스트 2-space 들여쓰기, Sorter 파일 분리 요청.
+
+**해결**
+- `dayScheduleItems`/`items`/`listItems` → `dayScheduleItemList`/`itemList`
+- `CalendarHomeStoreTests` 들여쓰기 4-space
+- `CalendarDayScheduleSorter`를 `CalendarDayScheduleSorter.swift`로 분리
+
+**교훈**
+- 신규 컬렉션 API는 처음부터 `List` 접미사를 쓴다. 테스트 들여쓰기는 기존 Suite와 맞춘다.
+
+---
+
 ### 2026-07-19 21:28 - 모달 높이 비율 적용
 
 **상황**

@@ -12,7 +12,7 @@ import Foundation
 enum CalendarDayScheduleFixture {
     static let dayTitle = "6월 20일 수요일"
 
-    static let listItems: [CalendarDayScheduleItem] = [
+    static let itemList: [CalendarDayScheduleItem] = [
         CalendarDayScheduleItem(
             id: "1",
             kind: .ticketing,

@@ -58,7 +58,7 @@ struct CalendarHomeContentView: View {
         .crossDissolve(isPresented: dayScheduleModalBinding, dismissOnTapOutside: true) {
             CalendarDayScheduleModalView(
                 dayTitle: store.state.selectedDayTitle,
-                items: store.state.dayScheduleItems,
+                itemList: store.state.dayScheduleItemList,
                 onDismiss: { store.send(.dayScheduleModalDismissed) },
                 onInterestSettingTap: {
                     store.send(.dayScheduleModalDismissed)
@@ -90,13 +90,13 @@ private extension CalendarHomeContentView {
             Button("일정 모달") {
                 store.send(.dayScheduleModalOpened(
                     dayTitle: CalendarDayScheduleFixture.dayTitle,
-                    items: CalendarDayScheduleFixture.listItems
+                    itemList: CalendarDayScheduleFixture.itemList
                 ))
             }
             Button("엠티 모달") {
                 store.send(.dayScheduleModalOpened(
                     dayTitle: CalendarDayScheduleFixture.dayTitle,
-                    items: []
+                    itemList: []
                 ))
             }
         }

@@ -15,7 +15,7 @@ struct CalendarDayScheduleModalView: View {
     // MARK: - Properties
 
     let dayTitle: String
-    let items: [CalendarDayScheduleItem]
+    let itemList: [CalendarDayScheduleItem]
     let onDismiss: () -> Void
     let onInterestSettingTap: () -> Void
 
@@ -39,7 +39,7 @@ private extension CalendarDayScheduleModalView {
             header
                 .padding(.bottom, Layout.headerBottomSpacing)
 
-            if items.isEmpty {
+            if itemList.isEmpty {
                 emptyContent
             } else {
                 scheduleList
@@ -72,7 +72,7 @@ private extension CalendarDayScheduleModalView {
     var scheduleList: some View {
         ScrollView {
             LazyVStack(spacing: Layout.listSpacing) {
-                ForEach(items) { item in
+                ForEach(itemList) { item in
                     CalendarDayScheduleItemRow(item: item)
                 }
             }
