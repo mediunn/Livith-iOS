@@ -71,6 +71,7 @@ Tuist/.build
 .claude/
 .codex/
 .cursor/
+.cursorignore
 .opencode/
 .github/instructions/
 .github/copilot-instructions.md

@@ -16,6 +16,7 @@ struct HomeView: View {
 
     @EnvironmentObject private var homeRouter: HomeRouter
     @StateObject private var store: HomeStore = .init()
+    @StateObject private var calendarStore: CalendarHomeStore = .init()
 
     @State private var showErrorToast = false
     @State private var isPreferenceBannerExpanded: Bool = true
@@ -117,7 +118,7 @@ private extension HomeView {
                 isPreferenceBannerExpanded: $isPreferenceBannerExpanded
             )
         case .calendar:
-            CalendarHomeContentView(store: store)
+            CalendarHomeContentView(store: calendarStore)
         }
     }
 }
