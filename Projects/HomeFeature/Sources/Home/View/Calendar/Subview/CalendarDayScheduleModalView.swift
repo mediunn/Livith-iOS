@@ -119,7 +119,6 @@ private extension CalendarDayScheduleModalView {
 
 private extension CalendarDayScheduleModalView {
     enum Layout {
-        /// Figma 기준 화면 812 / 모달 540
         static let heightRatio: CGFloat = 540 / 812
         static let modalPadding: CGFloat = 16
         static let modalCornerRadius: CGFloat = 16
