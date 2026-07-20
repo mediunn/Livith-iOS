@@ -91,7 +91,7 @@
 - 웹용 Description(비로그인 팝업, 웹 엠티뷰)을 모바일 범위로 끌어오지 말 것.
 - WebView 실데이터/브릿지 이번 PR 금지.
 - `about:blank` 흰 화면 플래시 → WKWebView/`isOpaque`/배경을 `black100`에 맞출 것.
-- 실패·피드백·가정 변경 시 `docs/troubleshooting/LIVD-439-home-calendar-ui.md`에 즉시 기록.
+- 실패·피드백·가정 변경 시 `docs/archives/LIVD-439-home-calendar-ui-troubleshooting.md`에 기록.
 
 ## 검증 방법
 - 자동화

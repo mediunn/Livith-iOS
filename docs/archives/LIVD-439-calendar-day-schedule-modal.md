@@ -71,7 +71,7 @@
 - `Projects/HomeFeature/Sources/Home/View/Calendar/` — 모달·카드 Subview, ContentView 배선
 - DesignSystem — 기존 `.crossDissolve` / `LivithEmptyView` / 토큰만 사용
 - Domain / Networking / Repository / WebView 브릿지 — **변경 없음**
-- 트러블슈팅: 본 계획용 `docs/troubleshooting/LIVD-439-calendar-day-schedule-modal.md`에 실패·피드백 기록 (골격 트러블슈팅과 분리)
+- 트러블슈팅: `docs/archives/LIVD-439-calendar-day-schedule-modal-troubleshooting.md` (골격 트러블슈팅과 분리)
 
 ## 기술 결정
 
@@ -95,8 +95,8 @@
 - 로드 실패 엠티(`isLoadFailed`)와 **일자 일정 엠티**를 혼동하지 말 것. 후자는 모달 내부.
 - `containerRelativeFrame(.vertical)`은 **캘린더 로드실패 Empty 전용**. 모달 엠티에는 쓰지 않는다.
 - Pressed/Hover는 iOS에서 Button pressed 스타일로 최소 반영(과도한 커스텀 금지).
-- 실패·피드백 시 `docs/troubleshooting/LIVD-439-calendar-day-schedule-modal.md`에 즉시 기록.
-- 1차 골격 계획(`docs/plans/LIVD-439-home-calendar-ui.md`)과 병행. 완료 시 둘 다 archives 후보.
+- 실패·피드백 시 `docs/archives/LIVD-439-calendar-day-schedule-modal-troubleshooting.md`에 기록.
+- 1차 골격 계획(`docs/archives/LIVD-439-home-calendar-ui.md`)과 병행. 완료 후 archives로 이동.
 
 ## 검증 방법
 - 자동화: 정렬 테스트(가나다·취소·추후발표), `CalendarHomeStore` 모달 Intent 테스트, HomeFeature test scheme
