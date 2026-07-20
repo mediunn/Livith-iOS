@@ -20,6 +20,7 @@ public enum TargetID {
     case concert(ConcertModule)
     case home(HomeModule)
     case user(UserModule)
+    case share(ShareModule)
     case widget(WidgetModule)
     case domain(DomainModule)
     case data(DataModule)
@@ -38,6 +39,7 @@ public enum TargetID {
         case .concert(let module): return module.rawValue
         case .home(let module): return module.rawValue
         case .user(let module): return module.rawValue
+        case .share(let module): return module.rawValue
         case .widget(let module): return module.rawValue
         case .domain(let module): return module.rawValue
         case .data(let module): return module.rawValue
@@ -76,6 +78,8 @@ public enum TargetID {
         case .home(let module):
             return homeSourcePath(module)
         case .user:
+            return ["Sources/**"]
+        case .share:
             return ["Sources/**"]
         case .widget:
             return ["Sources/**"]

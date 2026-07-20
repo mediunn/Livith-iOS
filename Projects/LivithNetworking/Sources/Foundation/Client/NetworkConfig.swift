@@ -11,7 +11,7 @@ import Foundation
 public struct NetworkConfig: Sendable {
     private static var apiVersion: String {
         #if DEBUG
-        return "v6"
+        return "v7"
         #else
         return "v6"
         #endif

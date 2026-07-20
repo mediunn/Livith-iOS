@@ -20,6 +20,7 @@ public enum ProjectID: String, CaseIterable {
     case concert = "ConcertFeature"
     case setlist = "SetlistFeature"
     case song = "SongFeature"
+    case share = "ShareFeature"
     case widget = "Widget"
     case domain = "Domain"
     case data = "Data"

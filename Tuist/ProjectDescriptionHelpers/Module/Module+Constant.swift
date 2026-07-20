@@ -73,6 +73,12 @@ public enum SongModule: String {
     case songFeature = "SongFeature"
 }
 
+// MARK: - Share Module
+
+public enum ShareModule: String {
+    case shareFeature = "ShareFeature"
+}
+
 // MARK: - Widget Module
 
 public enum WidgetModule: String {
