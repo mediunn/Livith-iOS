@@ -37,7 +37,11 @@ private extension UserDataAssembler {
     }
 
     func registerConcertMatchingRepository(to container: any DependencyContainer) {
-        container.register(ConcertMatchingRepositoryImpl(), for: ConcertMatchingRepository.self)
+        let client = container.resolve(NetworkClient.self)
+        container.register(
+            ConcertMatchingRepositoryImpl(networkClient: client),
+            for: ConcertMatchingRepository.self
+        )
     }
 }
 

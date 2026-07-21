@@ -9,12 +9,42 @@
 import Foundation
 
 import Domain
+import LivithNetworking
 
 public struct ConcertMatchingRepositoryImpl: ConcertMatchingRepository {
-    public init() {}
+    private let networkClient: NetworkClient
+    private let mapper: ConcertMatchingMapper = .init()
+    private let errorMapper: ConcertMatchingErrorMapper = .init()
+
+    public init(networkClient: NetworkClient) {
+        self.networkClient = networkClient
+    }
 
     public func fetchMatchedConcertList(sourceURL: URL) async throws(ConcertMatchingError) -> [Concert] {
-        // TODO: 인스타그램 파싱·매칭 서버 API 확정 시 네트워크 연동으로 교체 (LIVD-427 후속)
-        throw ConcertMatchingError.matchFailed
+        do {
+            let response: DTO.Response.CreateExtractionJob = try await networkClient.request(
+                InstagramAPI.createExtractionJob(instagramURL: sourceURL.absoluteString)
+            )
+
+            switch ExtractionResult(rawValue: response.result) {
+            case .matched:
+                return mapper.toDomain(from: response)
+            case .noMatch:
+                return []
+            case nil:
+                throw ConcertMatchingError.matchFailed
+            }
+        } catch let error as ConcertMatchingError {
+            throw error
+        } catch {
+            throw errorMapper.mapToConcertMatchingError(error)
+        }
+    }
+}
+
+private extension ConcertMatchingRepositoryImpl {
+    enum ExtractionResult: String {
+        case matched = "MATCHED"
+        case noMatch = "NO_MATCH"
     }
 }
