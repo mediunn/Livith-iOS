@@ -116,16 +116,36 @@ private extension InstagramMatchSearchView {
             .padding(.trailing, 16)
         }
         .frame(height: Constants.navigationBarHeight)
+        .overlay(alignment: .bottomTrailing) {
+            reportTooltip
+                .offset(y: Constants.tooltipBottomOffset)
+                .padding(.trailing, Constants.horizontalPadding)
+        }
+        .zIndex(1)
+    }
+
+    var reportTooltip: some View {
+        VStack(alignment: .trailing, spacing: .zero) {
+            TooltipArrowShape()
+                .fill(Color.livithColor(.yellow30))
+                .frame(width: Constants.tooltipArrowWidth, height: Constants.tooltipArrowHeight)
+                .padding(.trailing, Constants.tooltipArrowTrailingPadding)
+
+            Text(Literals.reportTooltipTitle)
+                .notosans(.caption1Bold)
+                .foregroundStyle(Color.livithColor(.black90))
+                .padding(.horizontal, 15)
+                .frame(height: Constants.tooltipBubbleHeight)
+                .background(Capsule().fill(Color.livithColor(.yellow30)))
+        }
     }
 
     var topSection: some View {
         VStack(spacing: .zero) {
-            if !store.state.isSearchFocused {
-                guideSection
-            }
+            guideSection
 
             searchTextField
-                .padding(.top, store.state.isSearchFocused ? 12 : 30)
+                .padding(.top, 32)
                 .padding(.horizontal, Constants.horizontalPadding)
         }
     }
@@ -168,7 +188,7 @@ private extension InstagramMatchSearchView {
                 )
             }
         }
-        .padding(.top, 12)
+        .padding(.top, 9)
     }
 
     var bottomSection: some View {
@@ -200,6 +220,19 @@ private extension InstagramMatchSearchView {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - TooltipArrowShape
+
+private struct TooltipArrowShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+            path.closeSubpath()
+        }
     }
 }
 
@@ -240,10 +273,16 @@ private extension InstagramMatchSearchView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
         static let navigationBarHeight: CGFloat = 66
+        static let tooltipArrowWidth: CGFloat = 13
+        static let tooltipArrowHeight: CGFloat = 8
+        static let tooltipArrowTrailingPadding: CGFloat = 5
+        static let tooltipBubbleHeight: CGFloat = 21
+        static let tooltipBottomOffset: CGFloat = 7
     }
 
     enum Literals {
         static let reportButtonTitle = "정보 요청"
+        static let reportTooltipTitle = "찾는 콘서트가 없다면?"
         static let searchPlaceholder = "찾고 있는 콘서트나 가수를 검색하세요"
         static let cancelTitle = "취소"
         static let registerTitle = "등록하기"

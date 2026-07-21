@@ -47,7 +47,7 @@ private extension InterestConcertSelectionGridView {
     var gridView: some View {
         LazyVGrid(
             columns: gridItems,
-            spacing: Constants.gridSpacing
+            spacing: Constants.rowSpacing
         ) {
             ForEach(concertList) { concert in
                 concertCard(for: concert)
@@ -85,16 +85,18 @@ private extension InterestConcertSelectionGridView {
 
 private extension InterestConcertSelectionGridView {
     var gridItems: [GridItem] {
-        Array(
-            repeating: GridItem(.flexible(), spacing: Constants.gridSpacing, alignment: .top),
-            count: Constants.gridColumns
-        )
+        [
+            GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .topLeading),
+            GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .top),
+            GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .topTrailing)
+        ]
     }
 }
 
 private extension InterestConcertSelectionGridView {
     enum Constants {
         static let gridColumns = 3
-        static let gridSpacing: CGFloat = 12
+        static let columnSpacing: CGFloat = 12
+        static let rowSpacing: CGFloat = 24
     }
 }
