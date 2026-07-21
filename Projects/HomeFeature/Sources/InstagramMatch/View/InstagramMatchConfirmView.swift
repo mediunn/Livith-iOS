@@ -145,13 +145,15 @@ private extension InstagramMatchConfirmView {
                         remainDays: concert.daysLeft
                     ),
                     isSelected: store.state.selectedConcertID == concert.id,
+                    isFlexible: true,
                     onTap: { store.send(.selectConcert(concert.id)) }
                 )
-                .frame(width: Constants.cardWidth)
             }
 
-            if store.state.matchedConcertList.count < Constants.maxCardCount {
-                Spacer()
+            // 매칭이 3개 미만이어도 카드 폭은 3열 기준을 유지한다 (빈 칸 균등 분할)
+            ForEach(store.state.matchedConcertList.count..<Constants.maxCardCount, id: \.self) { _ in
+                Color.clear
+                    .frame(maxWidth: .infinity)
             }
         }
         .padding(.horizontal, Constants.horizontalPadding)
@@ -226,7 +228,6 @@ private extension InstagramMatchConfirmView {
 private extension InstagramMatchConfirmView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
-        static let cardWidth: CGFloat = 108
         static let cardSpacing: CGFloat = 10
         static let cardSectionHeight: CGFloat = 262
         static let maxCardCount = 3

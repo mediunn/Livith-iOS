@@ -73,6 +73,7 @@ private extension InterestConcertSelectionGridView {
             secondaryText: concert.artist,
             badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
             isSelected: selectedConcertIDList.contains(concert.id),
+            isFlexible: true,
             onTap: { onConcertTap(concert.id) }
         )
         .onAppear {
@@ -85,18 +86,17 @@ private extension InterestConcertSelectionGridView {
 
 private extension InterestConcertSelectionGridView {
     var gridItems: [GridItem] {
-        [
-            GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .topLeading),
-            GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .top),
-            GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .topTrailing)
-        ]
+        Array(
+            repeating: GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .top),
+            count: Constants.gridColumns
+        )
     }
 }
 
 private extension InterestConcertSelectionGridView {
     enum Constants {
         static let gridColumns = 3
-        static let columnSpacing: CGFloat = 12
+        static let columnSpacing: CGFloat = 10
         static let rowSpacing: CGFloat = 24
     }
 }
