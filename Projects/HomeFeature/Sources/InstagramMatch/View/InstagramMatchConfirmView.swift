@@ -197,14 +197,45 @@ private extension InstagramMatchConfirmView {
     }
 
     var loadingDots: some View {
-        HStack(spacing: 12) {
-            ForEach(0..<3) { _ in
-                Circle()
-                    .fill(Color.livithColor(.black50))
-                    .frame(width: 8, height: 8)
+        TimelineView(.animation) { context in
+            let elapsedMs = context.date.timeIntervalSinceReferenceDate
+                .truncatingRemainder(dividingBy: Constants.dotCycleSeconds) * 1000
+
+            HStack(spacing: 12) {
+                ForEach(Array(Constants.dotTimelineList.enumerated()), id: \.offset) { _, timeline in
+                    Circle()
+                        .fill(Color.livithColor(.black50))
+                        .frame(width: 8, height: 8)
+                        .offset(y: timeline.offsetY(atMs: elapsedMs))
+                }
             }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - DotTimeline
+
+// Figma 모션 명세(2000ms 루프): 도트별로 -6pt 상승 → 홀드 → 복귀를 선형 보간으로 재생한다.
+private struct DotTimeline {
+    let riseStart: Double
+    let riseEnd: Double
+    let fallStart: Double
+    let fallEnd: Double
+
+    func offsetY(atMs time: Double) -> CGFloat {
+        let peak: CGFloat = -6
+
+        switch time {
+        case riseStart..<riseEnd:
+            return peak * CGFloat((time - riseStart) / (riseEnd - riseStart))
+        case riseEnd..<fallStart:
+            return peak
+        case fallStart..<fallEnd:
+            return peak * CGFloat(1 - (time - fallStart) / (fallEnd - fallStart))
+        default:
+            return 0
+        }
     }
 }
 
@@ -231,6 +262,12 @@ private extension InstagramMatchConfirmView {
         static let cardSpacing: CGFloat = 10
         static let cardSectionHeight: CGFloat = 262
         static let maxCardCount = 3
+        static let dotCycleSeconds: Double = 2.0
+        static let dotTimelineList: [DotTimeline] = [
+            DotTimeline(riseStart: 0, riseEnd: 204, fallStart: 396, fallEnd: 603),
+            DotTimeline(riseStart: 202, riseEnd: 400, fallStart: 600, fallEnd: 803),
+            DotTimeline(riseStart: 395, riseEnd: 601, fallStart: 803, fallEnd: 995)
+        ]
     }
 
     enum Literals {
