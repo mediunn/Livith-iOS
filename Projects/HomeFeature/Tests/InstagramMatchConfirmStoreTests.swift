@@ -49,6 +49,21 @@ struct InstagramMatchConfirmStoreTests {
         #expect(!sut.state.shouldNavigateToSearch)
     }
 
+    @Test("매칭 결과가 3개를 넘으면 앞의 3개만 노출해야 한다")
+    func 매칭_결과가_3개를_넘으면_앞의_3개만_노출해야_한다() async throws {
+        // Given
+        container.concertMatchingRepository.matchedConcertListResultQueue = [
+            .success(makeConcertList([1, 2, 3, 4, 5]))
+        ]
+
+        // When
+        let sut = InstagramMatchConfirmStore(sourceURL: makeSourceURL())
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.matchedConcertList.map(\.id) == [1, 2, 3])
+    }
+
     @Test("매칭 결과가 비어 있으면 검색 화면 이동 상태가 되어야 한다")
     func 매칭_결과가_비어_있으면_검색_화면_이동_상태가_되어야_한다() async throws {
         // Given
