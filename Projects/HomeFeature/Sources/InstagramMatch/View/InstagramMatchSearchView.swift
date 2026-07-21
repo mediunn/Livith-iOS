@@ -40,6 +40,8 @@ struct InstagramMatchSearchView: View {
                 gridSection
             }
 
+            bottomGradient
+
             bottomSection
         }
         .background(Color.livithColor(.black100))
@@ -132,7 +134,7 @@ private extension InstagramMatchSearchView {
                 .padding(.trailing, Constants.tooltipArrowTrailingPadding)
 
             Text(Literals.reportTooltipTitle)
-                .notosans(.caption1Bold)
+                .notosans(.caption2Semibold)
                 .foregroundStyle(Color.livithColor(.black90))
                 .padding(.horizontal, 15)
                 .frame(height: Constants.tooltipBubbleHeight)
@@ -191,6 +193,28 @@ private extension InstagramMatchSearchView {
         .padding(.top, 9)
     }
 
+    var bottomGradient: some View {
+        GeometryReader { proxy in
+            VStack(spacing: .zero) {
+                LinearGradient(
+                    colors: [
+                        Color.livithColor(.black100).opacity(0),
+                        Color.livithColor(.black100)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: Constants.bottomGradientHeight)
+
+                Color.livithColor(.black100)
+                    .frame(height: proxy.safeAreaInsets.bottom)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom, -proxy.safeAreaInsets.bottom)
+        }
+        .allowsHitTesting(false)
+    }
+
     var bottomSection: some View {
         HStack(spacing: 15) {
             LivithButton(Literals.cancelTitle, variant: .cancel) {
@@ -227,10 +251,16 @@ private extension InstagramMatchSearchView {
 
 private struct TooltipArrowShape: Shape {
     func path(in rect: CGRect) -> Path {
-        Path { path in
-            path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        let apexRadius: CGFloat = 2.5
+
+        return Path { path in
+            path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+            path.addArc(
+                tangent1End: CGPoint(x: rect.midX, y: rect.minY),
+                tangent2End: CGPoint(x: rect.maxX, y: rect.maxY),
+                radius: apexRadius
+            )
             path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
             path.closeSubpath()
         }
     }
@@ -275,9 +305,10 @@ private extension InstagramMatchSearchView {
         static let navigationBarHeight: CGFloat = 66
         static let tooltipArrowWidth: CGFloat = 13
         static let tooltipArrowHeight: CGFloat = 8
-        static let tooltipArrowTrailingPadding: CGFloat = 5
+        static let tooltipArrowTrailingPadding: CGFloat = 18.5
         static let tooltipBubbleHeight: CGFloat = 21
         static let tooltipBottomOffset: CGFloat = 7
+        static let bottomGradientHeight: CGFloat = 152
     }
 
     enum Literals {
