@@ -43,7 +43,7 @@ public enum LivithButtonVariant {
     }
 
     var disabledBackground: Color {
-        return .livithColor(.black80)
+        return .livithColor(.black50)
     }
 
     var enabledForeground: Color {
@@ -58,7 +58,7 @@ public enum LivithButtonVariant {
     }
 
     var disabledForeground: Color {
-        return .livithColor(.black50)
+        return .livithColor(.black30)
     }
 }
 
