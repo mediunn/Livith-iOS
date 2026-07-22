@@ -195,20 +195,16 @@ private extension InstagramMatchSearchView {
 
     var bottomGradient: some View {
         GeometryReader { proxy in
-            VStack(spacing: .zero) {
-                LinearGradient(
-                    colors: [
-                        Color.livithColor(.black100).opacity(0),
-                        Color.livithColor(.black100)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: Constants.bottomGradientHeight)
-
-                Color.livithColor(.black100)
-                    .frame(height: proxy.safeAreaInsets.bottom)
-            }
+            // 디자인: 버튼 상단 50pt 위에서 시작해 화면 맨 아래에서만 완전 불투명해지는 선형 그라데이션
+            LinearGradient(
+                colors: [
+                    Color.livithColor(.black100).opacity(0),
+                    Color.livithColor(.black100)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: Constants.bottomGradientHeight + proxy.safeAreaInsets.bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .padding(.bottom, -proxy.safeAreaInsets.bottom)
         }
