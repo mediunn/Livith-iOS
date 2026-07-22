@@ -76,22 +76,42 @@ struct UserMapper {
         dto.compactMap(toConcert)
     }
 
-    func toDomain(from dto: DTO.Response.FetchInterestConcertToast) -> InterestConcertCleanupPolicy? {
-        guard dto.needsToShow else { return InterestConcertCleanupPolicy.none }
-        guard let type = dto.type else { return nil }
-
-        switch type {
-        case .canceled:
-            return .canceled
-        case .completed:
-            return .completed
-        case .both:
-            return .both
-        }
+    func toDomain(from dto: DTO.Response.FetchInterestConcertEntryAlerts) -> [InterestConcertEntryAlert] {
+        dto.items.compactMap(toInterestConcertEntryAlert)
     }
 }
 
 private extension UserMapper {
+    func toInterestConcertEntryAlert(
+        from dto: DTO.Response.FetchInterestConcertEntryAlerts.AlertItem
+    ) -> InterestConcertEntryAlert? {
+        guard let kind = toInterestConcertEntryAlertKind(from: dto.kind) else {
+            return nil
+        }
+
+        return InterestConcertEntryAlert(
+            kind: kind,
+            title: dto.title,
+            content: dto.content,
+            concertId: dto.concertId
+        )
+    }
+
+    func toInterestConcertEntryAlertKind(from rawValue: String) -> InterestConcertEntryAlertKind? {
+        switch rawValue {
+        case "AUTO_REMOVED_COMPLETED":
+            return .autoRemovedCompleted
+        case "AUTO_REMOVED_CANCELED":
+            return .autoRemovedCanceled
+        case "REQUEST_REGISTERED":
+            return .requestRegistered
+        case "REQUEST_FAILED":
+            return .requestFailed
+        default:
+            return nil
+        }
+    }
+
     func calculateDaysLeft(from date: Date) -> Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())

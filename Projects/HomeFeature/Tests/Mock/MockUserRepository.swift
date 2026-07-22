@@ -18,13 +18,12 @@ final class MockUserRepository: UserRepository {
     var fetchInterestedConcertListDelayQueue: [UInt64] = []
     var updatedConcertStub: Concert?
     var updatedConcertListStub: [Concert] = []
-    var interestConcertCleanupPolicyStub: InterestConcertCleanupPolicy = .none
+    var interestConcertEntryAlertListStub: [InterestConcertEntryAlert] = []
     var errorStub: UserError?
     var fetchUserErrorStub: UserError?
     var fetchUserDelay: UInt64 = 0
     var fetchInterestedConcertListErrorStub: UserError?
-    var fetchInterestConcertToastErrorStub: UserError?
-    var markInterestConcertToastShownErrorStub: UserError?
+    var fetchInterestConcertEntryAlertsErrorStub: UserError?
     
     var fetchUserCallCount: Int = 0
     var fetchInterestedConcertListCallCount: Int = 0
@@ -38,8 +37,7 @@ final class MockUserRepository: UserRepository {
     var updateInterestedConcertIDList: [Int]?
     var deleteInterestedConcertCallCount: Int = 0
     var updateNicknameCallCount: Int = 0
-    var fetchInterestConcertCleanupPolicyCallCount: Int = 0
-    var markInterestConcertToastShownCallCount: Int = 0
+    var fetchInterestConcertEntryAlertsCallCount: Int = 0
 
     func updateNickname(_ nickname: String) async throws(UserError) {
         updateNicknameCallCount += 1
@@ -173,24 +171,14 @@ final class MockUserRepository: UserRepository {
         }
     }
 
-    func fetchInterestConcertCleanupPolicy() async throws(UserError) -> InterestConcertCleanupPolicy {
-        fetchInterestConcertCleanupPolicyCallCount += 1
-        if let error = fetchInterestConcertToastErrorStub {
+    func fetchInterestConcertEntryAlerts() async throws(UserError) -> [InterestConcertEntryAlert] {
+        fetchInterestConcertEntryAlertsCallCount += 1
+        if let error = fetchInterestConcertEntryAlertsErrorStub {
             throw error
         }
         if let error = errorStub {
             throw error
         }
-        return interestConcertCleanupPolicyStub
-    }
-
-    func markInterestConcertToastShown() async throws(UserError) {
-        markInterestConcertToastShownCallCount += 1
-        if let error = markInterestConcertToastShownErrorStub {
-            throw error
-        }
-        if let error = errorStub {
-            throw error
-        }
+        return interestConcertEntryAlertListStub
     }
 }
