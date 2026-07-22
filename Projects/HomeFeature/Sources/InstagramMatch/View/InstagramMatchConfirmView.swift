@@ -154,6 +154,7 @@ private extension InstagramMatchConfirmView {
             ForEach(store.state.matchedConcertList.count..<Constants.maxCardCount, id: \.self) { _ in
                 Color.clear
                     .frame(maxWidth: .infinity)
+                    .frame(height: 0)
             }
         }
         .padding(.horizontal, Constants.horizontalPadding)
