@@ -219,8 +219,7 @@ private extension InstagramMatchSearchView {
 
             LivithButton(
                 Literals.registerTitle,
-                variant: .primary,
-                isLoading: store.state.isRegistering
+                variant: .primary
             ) {
                 store.send(.register)
             }
