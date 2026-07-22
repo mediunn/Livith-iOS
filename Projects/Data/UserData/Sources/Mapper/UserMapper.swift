@@ -45,15 +45,12 @@ struct UserMapper {
     }
 
     func toDomain(from dto: DTO.Response.UpdateUserInterestConcert) -> Concert? {
-        guard let status = ConcertStatus(rawValue: dto.status),
-              let startDate = DateFormatterService.date(from: dto.startDate, type: .dotDate),
-              let endDate = DateFormatterService.date(from: dto.endDate, type: .dotDate),
-              let posterURL = parseURL(dto.posterURL)
-        else {
+        guard let status = ConcertStatus(rawValue: dto.status) else {
             return nil
         }
 
-        let daysLeft = calculateDaysLeft(from: startDate)
+        let startDate = dto.startDate.flatMap { DateFormatterService.date(from: $0, type: .dotDate) }
+        let daysLeft = dto.daysLeft ?? startDate.map(calculateDaysLeft)
 
         return Concert(
             id: dto.id,
@@ -62,8 +59,8 @@ struct UserMapper {
             status: status,
             daysLeft: daysLeft,
             startDate: startDate,
-            endDate: endDate,
-            posterURL: posterURL,
+            endDate: dto.endDate.flatMap { DateFormatterService.date(from: $0, type: .dotDate) },
+            posterURL: parseURL(dto.posterURL),
             venue: dto.venue,
             ticketSite: dto.ticketSite,
             ticketURL: parseURL(dto.ticketURL),
