@@ -49,6 +49,27 @@ extension InterestConcertEntryAlertKind {
     }
 }
 
+extension InterestConcertEntryAlert {
+    /// 요청 결과 카드 공연명. Figma: 19자 초과 시 말줄임. 자동 정리는 원문 유지.
+    var displayTitle: String {
+        switch kind {
+        case .autoRemovedCompleted, .autoRemovedCanceled:
+            return title
+        case .requestRegistered, .requestFailed:
+            return title.truncatedForRequestConcertName
+        }
+    }
+}
+
+private extension String {
+    static let requestConcertNameMaxLength = 19
+
+    var truncatedForRequestConcertName: String {
+        guard count > Self.requestConcertNameMaxLength else { return self }
+        return String(prefix(Self.requestConcertNameMaxLength)) + "…"
+    }
+}
+
 extension Array where Element == InterestConcertEntryAlert {
     var autoCleanupAlertList: [InterestConcertEntryAlert] {
         filter(\.kind.isAutoCleanup)

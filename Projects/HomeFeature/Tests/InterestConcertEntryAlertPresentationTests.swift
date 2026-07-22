@@ -37,6 +37,36 @@ struct InterestConcertEntryAlertPresentationTests {
         #expect(InterestConcertEntryAlertKind.autoRemovedCompleted.actionTitle == nil)
     }
 
+    @Test("요청 결과 title은 19자를 넘으면 말줄임해야 한다")
+    func 요청_결과_title은_19자를_넘으면_말줄임해야_한다() {
+        // Given
+        let longTitle = String(repeating: "가", count: 20)
+        let shortTitle = String(repeating: "나", count: 19)
+        let longAlert = InterestConcertEntryAlert(
+            kind: .requestRegistered,
+            title: longTitle,
+            content: "나의 관심 콘서트에 추가됐어요",
+            concertId: 1
+        )
+        let shortAlert = InterestConcertEntryAlert(
+            kind: .requestFailed,
+            title: shortTitle,
+            content: "장르가 없어 관심 콘서트에 추가되지 않았어요",
+            concertId: nil
+        )
+        let autoCleanupAlert = InterestConcertEntryAlert(
+            kind: .autoRemovedCompleted,
+            title: longTitle,
+            content: "원 오크 록 내한 공연이 자동 정리 됐어요",
+            concertId: nil
+        )
+
+        // When / Then
+        #expect(longAlert.displayTitle == String(repeating: "가", count: 19) + "…")
+        #expect(shortAlert.displayTitle == shortTitle)
+        #expect(autoCleanupAlert.displayTitle == longTitle)
+    }
+
     @Test("alertList는 kind 기준으로 섹션 목록을 나눠야 한다")
     func alertList는_kind_기준으로_섹션_목록을_나눠야_한다() {
         // Given

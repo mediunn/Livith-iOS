@@ -137,7 +137,7 @@ private extension InterestConcertResultSheetView {
 
     func autoCleanupCard(_ item: InterestConcertEntryAlert) -> some View {
         VStack(alignment: .leading, spacing: Constants.autoCleanupCardTextSpacing) {
-            Text(item.title)
+            Text(item.displayTitle)
                 .notosans(.body3Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
 
@@ -160,7 +160,7 @@ private extension InterestConcertResultSheetView {
                 }
 
                 VStack(alignment: .leading, spacing: Constants.requestTextSpacing) {
-                    Text(item.title)
+                    Text(item.displayTitle)
                         .notosans(.body3Semibold)
                         .foregroundStyle(Color.livithColor(.white100))
                         .lineLimit(1)
