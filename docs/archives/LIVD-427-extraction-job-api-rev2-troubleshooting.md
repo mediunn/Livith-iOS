@@ -2,6 +2,45 @@
 
 ## 기록
 
+### 2026-07-22 - FR-04 매칭 결과 화면에서 "직접 찾아볼게요"가 하단으로 밀리는 회귀
+
+**상황**
+- 서버 매칭이 실제로 성공(MATCHED 1건)하면서 처음으로 FR-04 결과 화면이 실기동으로 확인됐고, 유저가 "직접 찾아볼게요" 버튼이 화면 맨 아래(취소/등록 아래)에 있다고 지적했다.
+
+**문제**
+- 카드 채움 전환에서 3열 폭 유지용 빈 칸으로 넣은 `Color.clear.frame(maxWidth: .infinity)`가 세로로도 무한 확장되어, 카드 HStack이 남은 세로 공간을 전부 차지하며 아래 요소를 밀어냈다. 매칭 3개(빈 칸 없음)와 로딩 상태에서는 재현되지 않아 놓쳤다.
+
+**원인**
+- `Color`는 제안된 크기를 모두 채우는 뷰라 폭만 제한하면 높이는 무한 확장된다.
+
+**해결**
+- 빈 칸에 `.frame(height: 0)`을 추가해 폭 분할 역할만 하도록 수정. 실기동 재현(히게단 실게시물 MATCHED 1건)으로 "직접 찾아볼게요"가 카드 아래 30pt 규칙 위치(y 558)로 복원됨을 확인.
+
+**교훈**
+- 스페이서 용도의 `Color.clear`는 확장 축을 명시적으로 제한한다. 분기 상태(1·2·3개)별로 실기동 확인 범위를 나눠서 검증한다.
+
+---
+
+### 2026-07-22 - 관심 콘서트 등록 API가 구 스펙(body 방식)으로 남아있던 문제 → v7 정합
+
+**상황**
+- 유저가 등록하기 버튼을 "유저의 관심 콘서트 단건 추가" 명세(`POST /api/v7/users/interest-concert/{id}`)로 연결하고, 기존 구현이 있으면 재활용하라고 지시했다.
+
+**문제**
+- Store 흐름(선택→checkInterestedConcert→updateInterestedConcert)은 이미 재활용 구조였으나, `HomeAPI.updateInterestedConcert`가 구 스펙(`POST /users/interest-concert` + body `{concertId}`)이었고, 응답 DTO가 명세상 null 허용 필드(code/title/startDate/endDate/poster/venue)를 non-optional로 선언해 null 응답 시 디코딩이 깨질 수 있었다. `daysLeft` 필드도 누락.
+
+**원인**
+- LIVD-422에서 path variable 방식으로 바꿨다는 계획 문서가 있으나 해당 작업이 이 브랜치·develop에 반영되지 않은 상태였다(문서만 untracked로 존재).
+
+**해결**
+- TDD(red 3건 → green): 경로를 path variable + body 제거로 변경, 미사용 Request DTO 삭제, 응답 DTO를 명세 필수/optional에 맞게 조정(daysLeft 추가), `UserMapper`를 optional 대응으로 수정(daysLeft는 응답 값 우선, 없으면 startDate로 계산). LivithNetworking 130/130·UserData 40/40 통과.
+- 실기동 E2E: FR-05에서 카드 선택→등록하기→v7 실서버 등록 성공, 홈 관심 콘서트 섹션에 즉시 반영 확인.
+
+**교훈**
+- "이미 구현됨"으로 기록된 API도 명세 페이지와 경로·필수/optional까지 재대조한다. 계획 문서의 [x]가 코드 반영을 보장하지 않는다.
+
+---
+
 ### 2026-07-21 - 카드 고정 108pt → 채움(fill) 제약 전환 피드백
 
 **상황**
