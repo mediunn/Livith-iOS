@@ -40,6 +40,9 @@ public enum DateFormatType: String {
     /// 한글 연월일: "2024년 3월 15일"
     case koreanFullDate = "yyyy년 M월 d일"
 
+    /// 한글 월일+요일: "6월 20일 수요일"
+    case koreanMonthDayWeekday = "M월 d일 EEEE"
+
     /// 시간만: "2:30"
     case timeOnly = "h:mm"
 
@@ -60,6 +63,7 @@ extension DateFormatType {
         case .koreanDateTime: return Self._koreanDateTime
         case .koreanDateOnly: return Self._koreanDateOnly
         case .koreanFullDate: return Self._koreanFullDate
+        case .koreanMonthDayWeekday: return Self._koreanMonthDayWeekday
         case .timeOnly: return Self._timeOnly
         case .ampm: return Self._ampm
         }
@@ -69,7 +73,7 @@ extension DateFormatType {
         switch self {
         case .iso8601, .dashDate, .dotDate, .dotDateTime, .shortDate:
             return true
-        case .koreanDateTime, .koreanDateOnly, .koreanFullDate, .timeOnly, .ampm:
+        case .koreanDateTime, .koreanDateOnly, .koreanFullDate, .koreanMonthDayWeekday, .timeOnly, .ampm:
             return false
         }
     }
@@ -143,6 +147,14 @@ private extension DateFormatType {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy년 M월 d일"
         formatter.locale = Locale(identifier: "ko_KR")
+        return formatter
+    }()
+
+    static let _koreanMonthDayWeekday: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M월 d일 EEEE"
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
         return formatter
     }()
 
