@@ -6,7 +6,8 @@
   - 월별: `GET /api/v7/calendar?year&month&scheduleTypes&concertType`
   - 날짜별: `GET /api/v7/calendar/events?date&scheduleTypes&concertType`
 - 월 헤더·그리드는 WebView 소속이며, 이번 이슈에서는 **브릿지·실 URL을 넣지 않는다**.
-- deep-interview로 기능 범위·경계를 확정했고, Domain 모델은 grill로 합의했다 (브랜치: `feat/LIVD-452-home-calendar-api`).
+- deep-interview로 기능 범위·경계를 확정했고, Domain·Data는 grill로 합의했다 (브랜치: `feat/LIVD-452-home-calendar-api`).
+- Domain Entity는 타입 의미 유지 하에 파일 4개로 통합했다 (`CalendarMonth` / `CalendarDaySchedule` / `CalendarEvent` / `CalendarFilter`).
 
 ## 목표
 - 월별·날짜별 캘린더 API를 Domain → Data → `CalendarHomeStore`까지 연동한다.
@@ -17,47 +18,61 @@
 ## 작업 항목
 
 ### 1. Domain (TDD)
-- [ ] Value / Enum
+- [x] Value / Enum
   - `CalendarEventID` — 합성 identity struct (`concertID` + type 등). 빈혈 지양, 비교·해시는 타입으로
   - `CalendarEventTime` — `hour` / `minute` (날짜 없는 시각)
-  - `CalendarEventDetail` — associated value: `.ticketOffice(String)` / `.venue(String)`
+  - `CalendarEventDetail` — associated value: `.ticketOffice(String)` / `.venue(String)` + `make(text:aligningWith:)`
   - `CalendarMonthEventType` — `TICKETING` | `CONCERT` (기존 `ScheduleType` 비침범)
   - `CalendarDayEventType` — `GENERAL_TICKETING` | `PRE_TICKETING` | `ADD_TICKETING` | `CONCERT`
   - `CalendarDayEventStatus` — `ONGOING` | `UPCOMING` | `COMPLETED` | `CANCELLED` (기존 `ConcertStatus` 비침범)
   - `CalendarScheduleTypeFilter` — `ticketing` / `concert` (쿼리 `scheduleTypes`)
   - `CalendarConcertTypeFilter` — `all` / `interest` (쿼리 `concertType`)
-- [ ] Entity
-  - `CalendarMonth` — `year: Int`, `month: Int`, `days: [CalendarMonthDay]` (**sparse**: 일정 있는 날만)
-  - `CalendarMonthDay` — `date: Date` (day 정규화), `events: [CalendarMonthEvent]`, `Identifiable` (`id == date`)
-  - `CalendarMonthEvent` — `id: CalendarEventID`, `concertID: Int`, `artist: String`, `type: CalendarMonthEventType`, `Identifiable`
-  - `CalendarDaySchedule` — `date: Date`, `events: [CalendarDayEvent]`
-  - `CalendarDayEvent` — `id: CalendarEventID`, `concertID: Int`, `title: String?`, `type`, `status`, `time: CalendarEventTime?`, `detail: CalendarEventDetail?`, `Identifiable`
-- [ ] 동작 (빈혈 Domain 지양)
-  - `CalendarEventID` / `CalendarEventDetail` 등 value에 의미 있는 생성·비교·파생을 둔다 (데이터 가방만 두지 않음)
-  - 알 수 없는 type/status 문자열 처리는 **Mapper에서 해당 이벤트 스킵** (Domain enum에 `.unknown` 남발 금지)
-- [ ] `CalendarError` — 공통 세트: `noConnection`, `serverError`, `invalidResponse`, `invalidRequest`, `unauthorized`, `cancelled`, `unknown` (`ConcertError` 수준). 특화 케이스는 필요 시 추가
-- [ ] `CalendarRepository`
-  - `fetchMonth(year: Int, month: Int, scheduleTypes: [CalendarScheduleTypeFilter], concertType: CalendarConcertTypeFilter) async throws(CalendarError) -> CalendarMonth`
-  - `fetchDayEvents(date: Date, scheduleTypes: [CalendarScheduleTypeFilter], concertType: CalendarConcertTypeFilter) async throws(CalendarError) -> CalendarDaySchedule`
-  - `scheduleTypes` 빈 배열 허용 — NonEmpty 타입 없음 (칩 최소 1개는 Store 불변식)
-- [ ] Domain 단위 테스트 — ID 합성, Detail, Time, 필요 시 Entity 불변식 (`Testing`)
+- [x] Entity
+  - `CalendarMonth` — `year: Int`, `month: Int`, `dayList: [CalendarMonthDay]` (**sparse**)
+  - `CalendarMonthDay` — `date: Date`, `eventList`, `Identifiable` (`id == date`)
+  - `CalendarMonthEvent` — `id: CalendarEventID`, `concertID`, `artist`, `type`, `Identifiable`
+  - `CalendarDaySchedule` — `date`, `eventList: [CalendarDayEvent]`
+  - `CalendarDayEvent` — `id`, `concertID`, `title?`, `type`, `status`, `time?`, `detail?`, `Identifiable`
+- [x] 동작 (빈혈 Domain 지양)
+  - `CalendarEventID` / `CalendarEventDetail` / `CalendarEventTime` / `status.isCancelled` 등
+  - 알 수 없는 type/status 문자열 처리는 **Mapper에서 해당 이벤트 스킵** (후속)
+- [x] `CalendarError` — 공통 세트
+- [x] `CalendarRepository` 프로토콜
+- [x] Domain 단위 테스트 (`CalendarDomainModelTests` 8개 통과)
 
-### 2. Networking + CalendarData (TDD: Mapper 중심)
+### 2. Networking (먼저) → CalendarData (TDD: Mapper 중심)
+
+Data grill 합의: **Networking(API+DTO) 확정·커밋 후** CalendarData(Mapper → Impl → Assembler)로 진행한다.
+
+#### 2-1. Networking
+- [ ] `LivithNetworking`에 `CalendarAPI` 추가 (Domain 비의존, 쿼리 인자는 `String` / `[String]`)
+  - `fetchMonth(year:month:scheduleTypes:concertType:)` → `/calendar`
+  - `fetchDayEvents(date:scheduleTypes:concertType:)` → `/calendar/events`
+  - `scheduleTypes`는 SearchAPI와 같이 동일 key 반복 `URLQueryItem`
+  - **auth:** `concertType == "INTEREST"` 일 때만 `.required`, 그 외(ALL)는 `.none` (문자열 비교 유지)
+- [ ] DTO 2파일 유지 (월/일 API index 분리 관례)
+  - `DTO.Response.FetchCalendarMonth` (`year`, `month`, `days[]` → `date`, `events[]` → `id`, `artist`, `type`)
+  - `DTO.Response.FetchCalendarDayEvents` (`date`, `events[]` → `id`, `title?`, `type`, `status`, `time?`, `detail?`)
+  - enum 필드는 DTO에서 **`String` raw** (매핑은 Mapper)
+- [ ] CalendarAPI **전용 단위 테스트 없음** (기존 API enum과 동일). 매핑·스킵 검증은 CalendarData Mapper 테스트
+
+#### 2-2. CalendarData
 - [ ] Tuist `DataModule`에 `calendarData` / `calendarDataTests` 추가
 - [ ] `Projects/Data/Project.swift`에 `CalendarData` / `CalendarDataTests` 타깃 등록
 - [ ] App 의존성·`LivithApp+InjectDependency`에 `CalendarDataAssembler` 등록
-- [ ] `LivithNetworking`에 `CalendarAPI` 추가
-  - `fetchMonth(...)` → `/calendar` (기존 path 컨벤션 따름)
-  - `fetchDayEvents(...)` → `/calendar/events`
-  - `concertType == .interest`일 때 `authentication: .required`
-- [ ] DTO → Domain `CalendarMapper` + Mapper 테스트
-  - `yyyy-MM-dd` → day `Date` 정규화
-  - `HH:mm` → `CalendarEventTime?`
-  - `detail` + type → `CalendarEventDetail` (type과 불일치 시 스킵 또는 type 우선 — 구현 시 하나로 고정·테스트)
-  - 알 수 없는 type/status → **해당 이벤트만 제외**
-- [ ] `CalendarRepositoryImpl` + ErrorMapper
-- [ ] Mock `CalendarRepository` (Store 테스트용 — 기존 패턴 따름)
-- [ ] `tuist generate --no-open`
+- [ ] `CalendarMapper` 1개 + `CalendarErrorMapper` 1개
+  - `toDomain(from: FetchCalendarMonth)` / `toDomain(from: FetchCalendarDayEvents)`
+  - `yyyy-MM-dd` → day `Date` (`DateFormatType.dashDate`)
+  - date 파싱 실패 → **그 day 전체 스킵**
+  - 알 수 없는 type/status → **그 event만 스킵**
+  - `HH:mm` 파싱 실패·이상 값 → **`time = nil`**, 이벤트는 유지
+  - `detail` null/빈 문자열 → `nil`; 값 있으면 `CalendarEventDetail.make(text:aligningWith: type)` (type 기준)
+  - 스킵 후 dayList가 비어도 **빈 `CalendarMonth` 성공** (year/month 유지). 네트워크/디코드 실패만 Error
+- [ ] `CalendarRepositoryImpl`
+  - Domain → 쿼리 변환은 **Impl** (`rawValue`, `Date`→`yyyy-MM-dd` via `DateFormatterService`)
+  - `CalendarAPI` 호출 + Mapper + ErrorMapper
+- [ ] Mock `CalendarRepository`는 **HomeFeature Tests**에 (Store 연동 시). CalendarData 단계 필수 아님
+- [ ] Mapper 테스트 (TDD) + `tuist generate --no-open`
 
 ### 3. Feature · Store 연동 (TDD)
 - [ ] **`CalendarDayScheduleItem` 제거** (mock/쇼 전용 모델로 간주). 모달·정렬·Row는 Domain `CalendarDayEvent` 사용
@@ -135,13 +150,28 @@
 | detail | String? vs associated | **`CalendarEventDetail` associated** | grill (빈혈 지양) |
 | CalendarError | 공통 vs 특화 | **공통 세트 우선** | grill |
 | CalendarMonthDay id | date vs 없음 | **`Identifiable`, id = date** | grill |
+| Domain Entity 파일 | 타입당 1파일 vs 개념 통합 | **4파일** (Month / DaySchedule / Event / Filter) + MARK | grill |
+| Data 구현 순서 | 한 번에 vs 단계 | **Networking 먼저 → CalendarData** | Data grill |
+| calendar auth | INTEREST만 vs 항상 | **INTEREST만 `.required`**, ALL `.none` | Data grill |
+| DTO 파일 | 합치기 vs 2파일 | **월/일 2파일 유지** | Data grill |
+| CalendarAPI 단위 테스트 | 있음 vs 없음 | **없음** | Data grill |
+| auth 분기 | 문자열 vs policy 인자 | **`concertType == "INTEREST"`** | Data grill |
+| Mapper 구성 | 분리 vs 1+1 | **Mapper 1 + ErrorMapper 1** | Data grill |
+| 파싱 실패(day/type/status) | 스킵 vs 전체 실패 | **해당 day/event 스킵** | Data grill |
+| 이상 time | nil vs 이벤트 스킵 | **`time = nil`, 이벤트 유지** | Data grill |
+| detail 매핑 | type 기준 vs 문자열 추정 | **`make(aligningWith: type)`**, 빈값 nil | Data grill |
+| Domain→쿼리 변환 | Impl vs Mapper | **`CalendarRepositoryImpl`** | Data grill |
+| Mock Repository 위치 | CalendarData vs HomeFeature Tests | **HomeFeature Tests** (Store 시) | Data grill |
+| 전부 스킵된 Month | 빈 성공 vs invalidResponse | **빈 `CalendarMonth` 성공** | Data grill |
 
 ## 주의 사항
-- **TDD**: Domain 모델·Mapper·Store·Sorter는 `docs/rules/tdd.md` 준수. Tuist/Assembler/순수 배선은 예외 허용 가능.
+- **TDD**: Domain 모델·Mapper·Store·Sorter는 `docs/rules/tdd.md` 준수. Tuist/Assembler/순수 배선·API enum은 예외 허용 가능.
 - Domain은 빈혈 모델이 되지 않게 value/Entity에 의미 있는 동작을 둔다. Show-only 문구·스타일은 Feature extension.
+- raw value enum에 불필요한 `Hashable` 명시를 다시 넣지 않는다 (자동 합성).
 - 월별 `type`과 날짜별 `type`을 Mapper에서 혼용하지 말 것.
 - 날짜별 URI 문서의 `&` 누락 표기는 무시하고 쿼리를 각각 보낸다.
-- `scheduleTypes` 배열 쿼리 관례는 기존 Networking과 맞출 것.
+- `scheduleTypes` 배열 쿼리 관례는 SearchAPI와 같이 동일 key 반복.
+- Networking은 Domain에 의존하지 않는다. Domain→raw 변환은 RepositoryImpl.
 - WebView URL·브릿지·월 데이터 주입·날짜 탭 콜백은 **이번 PR 금지**.
 - 관심 탭 `interestAppear`·세그먼트 회귀 금지 (LIVD-438).
 - `INTEREST` 시 Authorization 필수 (모바일 항상 로그인 전제).
