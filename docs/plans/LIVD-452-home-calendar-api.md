@@ -45,22 +45,22 @@
 Data grill 합의: **Networking(API+DTO) 확정·커밋 후** CalendarData(Mapper → Impl → Assembler)로 진행한다.
 
 #### 2-1. Networking
-- [ ] `LivithNetworking`에 `CalendarAPI` 추가 (Domain 비의존, 쿼리 인자는 `String` / `[String]`)
+- [x] `LivithNetworking`에 `CalendarAPI` 추가 (Domain 비의존, 쿼리 인자는 `String` / `[String]`)
   - `fetchMonth(year:month:scheduleTypes:concertType:)` → `/calendar`
   - `fetchDayEvents(date:scheduleTypes:concertType:)` → `/calendar/events`
   - `scheduleTypes`는 SearchAPI와 같이 동일 key 반복 `URLQueryItem`
   - **auth:** `concertType == "INTEREST"` 일 때만 `.required`, 그 외(ALL)는 `.none` (문자열 비교 유지)
-- [ ] DTO 2파일 유지 (월/일 API index 분리 관례)
+- [x] DTO 2파일 유지 (월/일 API index 분리 관례)
   - `DTO.Response.FetchCalendarMonth` (`year`, `month`, `days[]` → `date`, `events[]` → `id`, `artist`, `type`)
   - `DTO.Response.FetchCalendarDayEvents` (`date`, `events[]` → `id`, `title?`, `type`, `status`, `time?`, `detail?`)
   - enum 필드는 DTO에서 **`String` raw** (매핑은 Mapper)
-- [ ] CalendarAPI **전용 단위 테스트 없음** (기존 API enum과 동일). 매핑·스킵 검증은 CalendarData Mapper 테스트
+- [x] CalendarAPI **전용 단위 테스트 없음** (기존 API enum과 동일). 매핑·스킵 검증은 CalendarData Mapper 테스트
 
 #### 2-2. CalendarData
-- [ ] Tuist `DataModule`에 `calendarData` / `calendarDataTests` 추가
-- [ ] `Projects/Data/Project.swift`에 `CalendarData` / `CalendarDataTests` 타깃 등록
-- [ ] App 의존성·`LivithApp+InjectDependency`에 `CalendarDataAssembler` 등록
-- [ ] `CalendarMapper` 1개 + `CalendarErrorMapper` 1개
+- [x] Tuist `DataModule`에 `calendarData` / `calendarDataTests` 추가
+- [x] `Projects/Data/Project.swift`에 `CalendarData` / `CalendarDataTests` 타깃 등록
+- [x] App 의존성·`LivithApp+InjectDependency`에 `CalendarDataAssembler` 등록
+- [x] `CalendarMapper` 1개 + `CalendarErrorMapper` 1개
   - `toDomain(from: FetchCalendarMonth)` / `toDomain(from: FetchCalendarDayEvents)`
   - `yyyy-MM-dd` → day `Date` (`DateFormatType.dashDate`)
   - date 파싱 실패 → **그 day 전체 스킵**
@@ -68,11 +68,11 @@ Data grill 합의: **Networking(API+DTO) 확정·커밋 후** CalendarData(Mappe
   - `HH:mm` 파싱 실패·이상 값 → **`time = nil`**, 이벤트는 유지
   - `detail` null/빈 문자열 → `nil`; 값 있으면 `CalendarEventDetail.make(text:aligningWith: type)` (type 기준)
   - 스킵 후 dayList가 비어도 **빈 `CalendarMonth` 성공** (year/month 유지). 네트워크/디코드 실패만 Error
-- [ ] `CalendarRepositoryImpl`
+- [x] `CalendarRepositoryImpl`
   - Domain → 쿼리 변환은 **Impl** (`rawValue`, `Date`→`yyyy-MM-dd` via `DateFormatterService`)
   - `CalendarAPI` 호출 + Mapper + ErrorMapper
 - [ ] Mock `CalendarRepository`는 **HomeFeature Tests**에 (Store 연동 시). CalendarData 단계 필수 아님
-- [ ] Mapper 테스트 (TDD) + `tuist generate --no-open`
+- [x] Mapper 테스트 (TDD) + `tuist generate --no-open` (`CalendarMapperTests` 6개 통과)
 
 ### 3. Feature · Store 연동 (TDD)
 - [ ] **`CalendarDayScheduleItem` 제거** (mock/쇼 전용 모델로 간주). 모달·정렬·Row는 Domain `CalendarDayEvent` 사용

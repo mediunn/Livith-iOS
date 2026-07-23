@@ -113,6 +113,8 @@ public enum DataModule: String {
     case userDataTests = "UserDataTests"
     case notificationData = "NotificationData"
     case notificationDataTests = "NotificationDataTests"
+    case calendarData = "CalendarData"
+    case calendarDataTests = "CalendarDataTests"
     case dataTests = "DataTests"
 }
 
