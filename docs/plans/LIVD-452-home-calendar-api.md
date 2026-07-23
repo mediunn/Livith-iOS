@@ -6,7 +6,7 @@
   - 월별: `GET /api/v7/calendar?year&month&scheduleTypes&concertType`
   - 날짜별: `GET /api/v7/calendar/events?date&scheduleTypes&concertType`
 - 월 헤더·그리드는 WebView 소속이며, 이번 이슈에서는 **브릿지·실 URL을 넣지 않는다**.
-- deep-interview로 기능 범위·경계를 확정했고, Domain·Data는 grill로 합의했다 (브랜치: `feat/LIVD-452-home-calendar-api`).
+- deep-interview로 기능 범위·경계를 확정했고, Domain·Data·Store/Feature는 grill로 합의했다 (브랜치: `feat/LIVD-452-home-calendar-api`).
 - Domain Entity는 타입 의미 유지 하에 파일 4개로 통합했다 (`CalendarMonth` / `CalendarDaySchedule` / `CalendarEvent` / `CalendarFilter`).
 
 ## 목표
@@ -75,30 +75,55 @@ Data grill 합의: **Networking(API+DTO) 확정·커밋 후** CalendarData(Mappe
 - [x] Mapper 테스트 (TDD) + `tuist generate --no-open` (`CalendarMapperTests` 6개 통과)
 
 ### 3. Feature · Store 연동 (TDD)
-- [ ] **`CalendarDayScheduleItem` 제거** (mock/쇼 전용 모델로 간주). 모달·정렬·Row는 Domain `CalendarDayEvent` 사용
-- [ ] Show용 표시는 `HomeFeature`에서 `extension CalendarDayEvent` (및 필요 시 관련 Domain 타입)로 추가
-  - 예: `timeLabel`, 취소 여부 파생, 카드 kind 등 — Domain 규칙을 깨지 않는 범위
-- [ ] `CalendarDayScheduleSorter` — **HomeFeature**에 유지·시그니처를 `[CalendarDayEvent]` 기준으로 변경 (모달 Show 규칙)
+
+Store grill 합의: Repository `@Injected`, appear·필터·PTR 월별 refetch, 날짜별 `dayScheduleRequested`, 로딩·토스트·DEBUG 규칙 확정.
+
+- [ ] **`CalendarDayScheduleItem` 제거** — `CalendarDayScheduleFixture`도 제거. 모달·정렬·Row는 Domain `CalendarDayEvent`
+- [ ] Show용 표시는 `HomeFeature`에서 `extension CalendarDayEvent`로 추가
+  - 예: `timeLabel`, `displayTitle`, `detailText`, `kind`, `isCancelled` 등 — Domain 규칙을 깨지 않는 범위
+- [ ] `CalendarDayScheduleSorter` — **HomeFeature** 유지, 시그니처 `[CalendarDayEvent]` (모달 Show 규칙)
 - [ ] 필터 → 쿼리 매핑 (Store 또는 순수 헬퍼)
-  - 칩 → `CalendarScheduleTypeFilter` / `CalendarConcertTypeFilter` (Feature `CalendarConcertScope`와 이름 비공유, 매핑만)
-- [ ] `CalendarHomeStore`에 Repository 주입 (`@Injected` 또는 기존 Home 패턴)
+  - `isTicketingDateSelected` / `isPerformanceDateSelected` → `[CalendarScheduleTypeFilter]` (최소 1개 Store 불변식)
+  - `CalendarConcertScope` (`.all` / `.my`) → `CalendarConcertTypeFilter` (`.all` / `.interest`) — 이름 비공유, 매핑만
+  - 칩이 **실제로 바뀐 뒤** (예매일/공연일 토글 성공, 전체↔내 공연 전환) **항상** 월별 refetch
+- [ ] `CalendarHomeStore` — `@Injected private var calendarRepository: CalendarRepository` (`HomeStore` 등과 동일)
 - [ ] State
   - `selectedYear` / `selectedMonth` — 초기값 = 기기 오늘
-  - 월별 성공 결과 (`calendarMonth`) — WebView 미전달
-  - `dayScheduleEventList: [CalendarDayEvent]` (기존 itemList 대체)
+  - `calendarMonth: CalendarMonth?` — 월별 성공 결과 (WebView 미전달)
+  - `dayScheduleEventList: [CalendarDayEvent]` (기존 `dayScheduleItemList` 대체)
+  - `isInitialLoading: Bool` — 첫 월별 fetch·실패 후 재시도 중
   - `isLoadFailed` — 월별 실패 시 true / 성공 시 false
+  - `selectedDayTitle: String` — 모달 제목 (`M월 d일 EEEE`, Store/Feature에서 Date 포맷)
+  - 날짜별 실패 토스트: `dayScheduleLoadFailedToastMessage` + `dayScheduleLoadFailedToastTrigger` (선택불가 토스트와 필드 분리)
 - [ ] Intent / 비동기
-  - 탭 진입(appear) · 필터 변경 · `performRefresh` → 월별 refetch
-  - 일자 모달 오픈: `date`로 날짜별 fetch → Feature 정렬 → 모달 present
-  - CancelID로 동일 작업 재요청 시 이전 Task 취소
-- [ ] 월별 실패 → 엠티뷰. 날짜별 실패는 구현 시 모달 미표시 또는 빈 목록 중 하나로 고정·테스트
-- [ ] DEBUG: fixture 주입 제거 → 오늘 date로 날짜별 fetch Intent
-- [ ] Fixture·Sorter·Store·Row/Modal 테스트를 Domain 타입 기준으로 갱신
-- [ ] `CalendarHomeStoreTests` red→green (Mock Repository)
+  - `.onAppear` — `CalendarHomeContentView.onAppear` (관심 탭 `interestAppear`와 대칭) → 월별 fetch
+  - 예매일/공연일 토글 성공 · 전체/내 공연 전환 · `performRefresh` → 월별 refetch
+  - `.dayScheduleRequested(date: Date)` — Store가 날짜별 fetch → 성공 시 정렬 후 모달, 실패 시 모달 없음 + 토스트
+  - `.dayScheduleModalDismissed` — 모달 닫기
+  - 기존 `.dayScheduleModalOpened(dayTitle:itemList:)` **제거** (fixture 주입 경로 삭제)
+  - `CancelID` (`fetchMonth` / `fetchDayEvents`) — 동일 유형 재요청 시 이전 Task 취소 (`InterestConcertListStore` 패턴)
+- [ ] 월별 로딩 UI
+  - 중앙 `ProgressView` + `isInitialLoading`
+  - **첫 로드·실패 후 재시도**에만 ProgressView. 필터 변경/refresh 중에는 이전 성공 화면 유지 + 백그라운드 fetch
+- [ ] 월별 실패 → `LivithEmptyView` + pull-to-refresh 재시도
+- [ ] 날짜별 fetch
+  - **성공 0건** → 엠티 모달 표시
+  - **실패** → 모달 미표시 + `.livithToast(type: .failure)` (`일정을 불러오지 못했어요`)
+  - **fetch 중** → 중간 UI 없음 (완료 후 모달 또는 토스트만)
+- [ ] DEBUG (`#if DEBUG`)
+  - 「일정 모달」만 유지 — 오늘 `date`로 `.dayScheduleRequested`
+  - 「엠티 모달」제거 (0건은 API로 확인)
+- [ ] `CalendarDayScheduleFixture` 제거, Sorter·Store·Row/Modal 테스트 Domain 타입 기준 갱신
+- [ ] `CalendarHomeStoreTests` red→green — Mock `CalendarRepository`는 **HomeFeature Tests**에
 
 ### 4. View 반영 (최소)
-- [ ] `CalendarHomeContentView`: `isLoadFailed` 분기 유지 (성공=WebView 슬롯, 실패=엠티 + refresh)
-- [ ] `CalendarDayScheduleModalView` / `ItemRow`: `CalendarDayEvent` (+ Feature extension) 사용
+- [ ] `CalendarHomeContentView`
+  - `.onAppear { store.send(.onAppear) }`
+  - `isInitialLoading` → 중앙 `ProgressView` (관심 탭 패턴)
+  - `isLoadFailed` 분기 유지 (성공=WebView 슬롯, 실패=엠티 + refresh)
+  - 날짜별 실패 토스트 presentation (선택불가 토스트와 동일 `.livithToast` 패턴, 필드 분리)
+  - DEBUG: 「일정 모달」→ `.dayScheduleRequested(date: Date())`
+- [ ] `CalendarDayScheduleModalView` / `ItemRow`: `CalendarDayEvent` (+ Feature extension)
 - [ ] WebView URL·브릿지·월 데이터 주입 **금지**
 
 ### 5. 검증 · 문서
@@ -163,6 +188,19 @@ Data grill 합의: **Networking(API+DTO) 확정·커밋 후** CalendarData(Mappe
 | Domain→쿼리 변환 | Impl vs Mapper | **`CalendarRepositoryImpl`** | Data grill |
 | Mock Repository 위치 | CalendarData vs HomeFeature Tests | **HomeFeature Tests** (Store 시) | Data grill |
 | 전부 스킵된 Month | 빈 성공 vs invalidResponse | **빈 `CalendarMonth` 성공** | Data grill |
+| Repository 주입 | `@Injected` vs 생성자 | **`@Injected`** | Store grill |
+| 월별 첫 fetch | onAppear vs 탭 선택 | **`CalendarHomeContentView.onAppear` → `.onAppear`** | Store grill |
+| 날짜별 실패 UX | 모달+빈 vs 미표시 | **모달 없음 + failure 토스트** | Store grill |
+| 날짜별 실패 문구 | 짧은 vs 월별 동일 | **`일정을 불러오지 못했어요`** | Store grill |
+| 일자 Intent | 목록 주입 vs fetch | **`.dayScheduleRequested(date:)`**, fixture Intent 제거 | Store grill |
+| 날짜별 0건 | 엠티 모달 vs 토스트 | **엠티 모달** | Store grill |
+| 월별 로딩 UI | 없음 vs 스피너 | **중앙 `ProgressView` + `isInitialLoading`** | Store grill |
+| ProgressView 시점 | 항상 vs 첫/재시도만 | **첫 로드·실패 후 재시도만** | Store grill |
+| 모달 날짜 제목 | `M월 d일 EEEE` vs 기타 | **`M월 d일 EEEE`** | Store grill |
+| DEBUG 버튼 | 일정+엠티 vs 일정만 | **「일정 모달」만 (오늘 date)** | Store grill |
+| Show extension | wrapper vs extension | **`CalendarDayEvent` extension**, Item 제거 | Store grill |
+| 필터 refetch | 칩 변경 시 vs refresh만 | **칩 실제 변경 직후 항상 월별 refetch** | Store grill |
+| 날짜별 fetch 중 UI | 모달 로딩 vs 없음 | **중간 UI 없음** (추천안, Q13 미답 시 기본) | Store grill |
 
 ## 주의 사항
 - **TDD**: Domain 모델·Mapper·Store·Sorter는 `docs/rules/tdd.md` 준수. Tuist/Assembler/순수 배선·API enum은 예외 허용 가능.
@@ -185,10 +223,11 @@ Data grill 합의: **Networking(API+DTO) 확정·커밋 후** CalendarData(Mappe
      `xcodebuild test -workspace "Livith-iOS.xcworkspace" -scheme "<확정된 scheme>" -destination 'platform=iOS Simulator,name=iPhone 17'`  
      (`docs/rules/project-operations.md`)
 - 수동
-  - 홈 → 캘린더: 진입 시 월별 호출(성공 시 WebView 슬롯, 실패 시 엠티)
-  - 필터·전체/내 공연 전환 시 월별 refetch
+  - 홈 → 캘린더: 진입 시 ProgressView → 월별 호출(성공 시 WebView 슬롯, 실패 시 엠티)
+  - 필터·전체/내 공연 전환 시 월별 refetch (화면 깜빡임 없이 백그라운드)
   - pull-to-refresh
-  - DEBUG 일정 모달: Domain 이벤트 기반 목록/엠티
+  - DEBUG 「일정 모달」: 오늘 date fetch → 실데이터 목록 또는 엠티 모달
+  - 날짜별 fetch 실패 시 모달 없음 + `일정을 불러오지 못했어요` 토스트
   - 관심 ↔ 캘린더 전환 회귀, 필터 유지
 
 ## 비범위 (후속)
