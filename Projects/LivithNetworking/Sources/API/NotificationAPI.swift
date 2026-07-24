@@ -33,6 +33,15 @@ public enum NotificationAPI {
         )
     }
 
+    public static func markAllAsRead() -> NetworkEndpoint {
+        NetworkEndpoint(
+            path: "/notifications/read-all",
+            method: .patch,
+            task: .plain,
+            authentication: .required
+        )
+    }
+
     public static func fetchUnreadCount() -> NetworkEndpoint {
         NetworkEndpoint(
             path: "/notifications/unread-count",

@@ -94,7 +94,7 @@ private extension NoticeView {
 
     var emptyView: some View {
         VStack(spacing: 0) {
-            infoText
+            infoText(showsMarkAllAsReadButton: false)
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
 
@@ -106,19 +106,25 @@ private extension NoticeView {
         }
     }
 
-    var infoText: some View {
+    func infoText(showsMarkAllAsReadButton: Bool) -> some View {
         HStack {
             Text(Literals.infoMessage)
                 .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.black30))
 
             Spacer()
+
+            if showsMarkAllAsReadButton {
+                LivithTextButton(Literals.markAllAsReadButton, color: .livithColor(.white100)) {
+                    store.send(.markAllAsRead)
+                }
+            }
         }
     }
 
     var noticeList: some View {
         ScrollView {
-            infoText
+            infoText(showsMarkAllAsReadButton: true)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 10)
 
@@ -213,6 +219,7 @@ private extension NoticeView {
     enum Literals {
         static let title = "알림"
         static let settingButton = "알림 설정"
+        static let markAllAsReadButton = "전체 읽기"
         static let infoMessage = "알림은 90일 이후 순차적으로 삭제돼요."
         static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
     }
