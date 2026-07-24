@@ -50,6 +50,12 @@ struct NotificationRepositoryImpl: NotificationRepository {
     }
 
     func fetchEntryAlerts() async throws(NotificationError) -> [InterestEntryAlert] {
+        #if DEBUG
+        // 스킴 "Livith-iOS-EntryAlertsTest" 실행 시(STUB_ENTRY_ALERTS 런치 인자) 실 서버 대신 스텁 반환.
+        if ProcessInfo.processInfo.arguments.contains("STUB_ENTRY_ALERTS") {
+            return Self.debugEntryAlertStubList
+        }
+        #endif
         do {
             let response: DTO.Response.FetchEntryAlerts = try await networkClient.request(
                 NotificationAPI.fetchEntryAlerts()
@@ -135,6 +141,42 @@ struct NotificationRepositoryImpl: NotificationRepository {
         transform(&user)
         try? userdefaultsStorage.save(user, for: .currentUser)
     }
+
+    #if DEBUG
+    /// FR-06 결과 시트 UI 확인용 스텁. 자동 정리 2건 + 요청 결과 3건 = 5건.
+    static let debugEntryAlertStubList: [InterestEntryAlert] = [
+        InterestEntryAlert(
+            kind: .autoRemovedCompleted,
+            title: "자동 정리된 공연 3",
+            content: "원 오크 록 내한 공연 외 2건이 자동 정리 됐어요",
+            concertID: nil
+        ),
+        InterestEntryAlert(
+            kind: .autoRemovedCanceled,
+            title: "취소된 공연 1",
+            content: "원 오크 록 내한 공연이 취소되어 자동 정리 됐어요",
+            concertID: nil
+        ),
+        InterestEntryAlert(
+            kind: .requestRegistered,
+            title: "테일러 스위프트 내한 콘서트",
+            content: "나의 관심 콘서트에 추가됐어요",
+            concertID: 1
+        ),
+        InterestEntryAlert(
+            kind: .requestFailed,
+            title: "오아시스 내한 공연",
+            content: "정확한 정보가 부족하여 추가되지 않았어요",
+            concertID: nil
+        ),
+        InterestEntryAlert(
+            kind: .requestFailed,
+            title: "콜드플레이 지난 공연",
+            content: "지난 공연으로 관심 콘서트에 추가되지 않았어요",
+            concertID: nil
+        )
+    ]
+    #endif
 
     func fetchNotificationSettings() async throws(NotificationError) -> NotificationSettings {
         do {
