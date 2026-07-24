@@ -30,6 +30,7 @@ struct LivithMainTabView: View {
     @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
     @State private var deepLinkInitialSection: ConcertInfoSection?
     @State private var deepLinkShowInterest: Bool = false
+    @State private var deepLinkInstagramURL: URL?
 
     // MARK: - LifeCycle
 
@@ -45,7 +46,8 @@ struct LivithMainTabView: View {
                 deepLinkConcertID: $deepLinkConcertID,
                 deepLinkInitialTab: $deepLinkInitialTab,
                 deepLinkInitialSection: $deepLinkInitialSection,
-                deepLinkShowInterest: $deepLinkShowInterest
+                deepLinkShowInterest: $deepLinkShowInterest,
+                deepLinkInstagramURL: $deepLinkInstagramURL
             )
             .tag(Tab.home)
             .tabItem {
@@ -92,6 +94,19 @@ struct LivithMainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openInterestConcert)) { _ in
             selectedTab = .home
             deepLinkShowInterest = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openInstagramMatch)) { notification in
+            if let sourceURL = notification.userInfo?["sourceURL"] as? URL {
+                _ = DeepLinkService.shared.consumePendingInstagramURL()
+                selectedTab = .home
+                deepLinkInstagramURL = sourceURL
+            }
+        }
+        .onAppear {
+            if let sourceURL = DeepLinkService.shared.consumePendingInstagramURL() {
+                selectedTab = .home
+                deepLinkInstagramURL = sourceURL
+            }
         }
     }
 }

@@ -55,12 +55,14 @@ struct HomeView: View {
             detents: [.height(interestResultSheetHeight)],
             background: .livithColor(.black90)
         ) {
-            if let content = store.state.interestResultSheetContent {
+            if store.state.shouldShowInterestResultSheet {
                 InterestConcertResultSheetView(
-                    content: content,
+                    alertList: store.state.interestResultAlertList,
                     sheetHeight: $interestResultSheetHeight,
                     onConfirm: { store.send(.onInterestResultSheetDismiss) },
+                    // TODO: 확인하기 — concertID로 콘서트 상세 이동
                     onCheckTap: {},
+                    // TODO: 재요청 — 콘서트 요청 페이지로 이동
                     onRetryTap: {}
                 )
             }

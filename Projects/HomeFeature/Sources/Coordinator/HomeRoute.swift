@@ -21,6 +21,8 @@ enum HomeRoute: Hashable {
     case recommendedConcertList(concertList: [Concert])
     case preferredGenreUpdate
     case preferredArtistUpdate(selectedGenreList: [PreferredGenre])
+    case instagramMatchConfirm(sourceURL: URL)
+    case instagramManualSearch(context: InstagramManualSearchContext)
     case concertDetail(
         concertID: Int,
         initialTab: SegmentedTabBarType.DetailTab,

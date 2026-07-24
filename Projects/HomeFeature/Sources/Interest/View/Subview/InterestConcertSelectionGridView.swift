@@ -47,7 +47,7 @@ private extension InterestConcertSelectionGridView {
     var gridView: some View {
         LazyVGrid(
             columns: gridItems,
-            spacing: Constants.gridSpacing
+            spacing: Constants.rowSpacing
         ) {
             ForEach(concertList) { concert in
                 concertCard(for: concert)
@@ -73,6 +73,7 @@ private extension InterestConcertSelectionGridView {
             secondaryText: concert.artist,
             badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
             isSelected: selectedConcertIDList.contains(concert.id),
+            isFlexible: true,
             onTap: { onConcertTap(concert.id) }
         )
         .onAppear {
@@ -86,7 +87,7 @@ private extension InterestConcertSelectionGridView {
 private extension InterestConcertSelectionGridView {
     var gridItems: [GridItem] {
         Array(
-            repeating: GridItem(.flexible(), spacing: Constants.gridSpacing, alignment: .top),
+            repeating: GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .top),
             count: Constants.gridColumns
         )
     }
@@ -95,6 +96,7 @@ private extension InterestConcertSelectionGridView {
 private extension InterestConcertSelectionGridView {
     enum Constants {
         static let gridColumns = 3
-        static let gridSpacing: CGFloat = 12
+        static let columnSpacing: CGFloat = 10
+        static let rowSpacing: CGFloat = 24
     }
 }

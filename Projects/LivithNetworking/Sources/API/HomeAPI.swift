@@ -50,9 +50,9 @@ public enum HomeAPI {
 
     public static func updateInterestedConcert(concertID: Int) -> NetworkEndpoint {
         NetworkEndpoint(
-            path: "/users/interest-concert",
+            path: "/users/interest-concert/\(concertID)",
             method: .post,
-            task: .body(DTO.Request.UpdateUserInterestConcert(concertID: concertID)),
+            task: .plain,
             authentication: .required
         )
     }
@@ -84,19 +84,10 @@ public enum HomeAPI {
         )
     }
 
-    public static func fetchInterestConcertToast() -> NetworkEndpoint {
+    public static func fetchInterestConcertEntryAlerts() -> NetworkEndpoint {
         NetworkEndpoint(
-            path: "/users/interest-concerts/toast",
-            method: .get,
-            task: .plain,
-            authentication: .required
-        )
-    }
-
-    public static func markInterestConcertToastShown() -> NetworkEndpoint {
-        NetworkEndpoint(
-            path: "/users/interest-concerts/toast",
-            method: .patch,
+            path: "/notifications/entry-alerts",
+            method: .post,
             task: .plain,
             authentication: .required
         )

@@ -131,29 +131,14 @@ struct UserRepositoryImpl: UserRepository {
         }
     }
 
-    func fetchInterestConcertCleanupPolicy() async throws(UserError) -> InterestConcertCleanupPolicy {
+    func fetchInterestConcertEntryAlerts() async throws(UserError) -> [InterestConcertEntryAlert] {
         do {
-            let response: DTO.Response.FetchInterestConcertToast = try await networkClient.request(
-                HomeAPI.fetchInterestConcertToast()
+            let response: DTO.Response.FetchInterestConcertEntryAlerts = try await networkClient.request(
+                HomeAPI.fetchInterestConcertEntryAlerts()
             )
-            guard let policy = mapper.toDomain(from: response) else {
-                throw UserError.invalidResponse
-            }
-
-            return policy
+            return mapper.toDomain(from: response)
         } catch let error as UserError {
             throw error
-        } catch {
-            let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError
-        }
-    }
-
-    func markInterestConcertToastShown() async throws(UserError) {
-        do {
-            let _: DTO.Response.UpdateInterestConcertToast = try await networkClient.request(
-                HomeAPI.markInterestConcertToastShown()
-            )
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError

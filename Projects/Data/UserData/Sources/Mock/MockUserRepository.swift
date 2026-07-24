@@ -65,11 +65,9 @@ public struct MockUserRepository: UserRepository {
 
     public func deleteInterestedConcert() async throws(UserError) {}
 
-    public func fetchInterestConcertCleanupPolicy() async throws(UserError) -> InterestConcertCleanupPolicy {
-        .none
+    public func fetchInterestConcertEntryAlerts() async throws(UserError) -> [InterestConcertEntryAlert] {
+        []
     }
-
-    public func markInterestConcertToastShown() async throws(UserError) {}
 }
 
 private extension MockUserRepository {

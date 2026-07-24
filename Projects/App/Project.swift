@@ -37,12 +37,24 @@ let project = Project.make(
                 .data(.preferenceData),
                 .data(.calendarData),
                 .livithNetworking(.livithNetworking),
-                .core(.amplitude)
+                .core(.amplitude),
+                .target(name: Constants.shareExtensionName)
             ],
             settings: .settings(
                 base: ["OTHER_LDFLAGS": ["$(inherited)", "-ObjC"]]
             )
+        ),
+        .make(
+            name: Constants.shareExtensionName,
+            product: .appExtension,
+            bundleID: "\(BuildConfiguration.baseBundleID).shareextension",
+            infoPlist: .file(path: "ShareExtension/Resources/ShareExtension-Info.plist"),
+            sources: ["ShareExtension/Sources/**"]
         )
     ],
     schemes: Scheme.makeAppSchemes(name: BuildConfiguration.appName)
 )
+
+private enum Constants {
+    static let shareExtensionName = "LivithShareExtension"
+}
