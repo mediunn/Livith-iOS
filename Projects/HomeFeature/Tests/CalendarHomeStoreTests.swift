@@ -228,6 +228,34 @@ struct CalendarHomeStoreTests {
         #expect(sut.state.concertScope == .my)
     }
 
+    @Test("새로고침 중 필터 변경 시 이전 월별 fetch는 취소되고 최신 요청만 반영되어야 한다")
+    func 새로고침_중_필터_변경_시_이전_월별_fetch는_취소되고_최신_요청만_반영되어야_한다() async throws {
+        // Given
+        container.calendarRepository.fetchMonthResultQueue = [
+            .success(makeMonth()),
+            .success(makeMonth()),
+            .success(makeMonth())
+        ]
+        let sut = CalendarHomeStore()
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+
+        container.calendarRepository.fetchMonthDelayNanoseconds = 200_000_000
+
+        // When
+        let refreshTask = Task { await sut.performRefresh() }
+        try await Task.sleep(nanoseconds: 50_000_000)
+        sut.send(.myConcertsTapped)
+        try await Task.sleep(nanoseconds: 250_000_000)
+        await refreshTask.value
+
+        // Then
+        #expect(container.calendarRepository.fetchMonthParameterList.last?.concertType == .interest)
+        #expect(sut.state.concertScope == .my)
+        #expect(!sut.state.isLoadFailed)
+        #expect(!sut.state.isInitialLoading)
+    }
+
     @Test("dayScheduleRequested 성공 시 정렬된 목록과 모달이 표시되어야 한다")
     func dayScheduleRequested_성공_시_정렬된_목록과_모달이_표시되어야_한다() async throws {
         // Given

@@ -47,3 +47,18 @@
 ### 조치
 - Domain 공개 API에 대한 `CalendarDomainModelTests` 행동 테스트로 합성 id·Detail 정렬·Time 비교·MonthDay id·sparse month를 검증한다.
 - Mapper/Store 구간은 다시 엄격한 red→green을 적용한다.
+
+## 2026-07-24 PR 리뷰: refresh·fetchMonth 취소 경로 통합
+
+### 상황
+- `performRefresh()`는 `fetchMonthResult()`를 직접 await하고, `performFetchMonth()`는 `cancellables[.fetchMonth]` Task를 사용해 취소 경로가 달랐다.
+- 리뷰어(`youz2me`) 피드백: refresh와 filter가 동시에 일어나면 중복 API 호출 가능.
+
+### 조치
+- `scheduleFetchMonth(showInitialLoading:)`로 월별 fetch 스케줄링을 통합. refresh·filter 모두 동일한 cancellable Task 경로 사용.
+- 취소된 Task는 `Task.isCancelled` 확인 후 `_fetchMonthResult` 미전송.
+- 동시성 테스트: Mock에 `fetchMonthDelayNanoseconds` 추가, refresh 중 filter 변경 시 최신 `.interest` 요청만 반영 검증.
+
+### 부수 이슈
+- Mock에서 `Task.checkCancellation()`은 `throws(CalendarError)`와 타입 불일치 → `Task.sleep` catch 후 `CalendarError.cancelled` throw로 대체.
+- delay를 onAppear 전에 설정하면 초기 로드가 100ms wait에 끝나지 않아 테스트가 flaky → onAppear 완료 후 delay 설정.

@@ -29,6 +29,7 @@ final class MockCalendarRepository: CalendarRepository {
 
     var fetchMonthCallCount = 0
     var fetchMonthParameterList: [FetchMonthParameters] = []
+    var fetchMonthDelayNanoseconds: UInt64 = 0
 
     var fetchDayEventsCallCount = 0
     var fetchDayEventsParameterList: [FetchDayEventsParameters] = []
@@ -48,6 +49,18 @@ final class MockCalendarRepository: CalendarRepository {
                 concertType: concertType
             )
         )
+
+        if fetchMonthDelayNanoseconds > 0 {
+            do {
+                try await Task.sleep(nanoseconds: fetchMonthDelayNanoseconds)
+            } catch {
+                throw CalendarError.cancelled
+            }
+
+            if Task.isCancelled {
+                throw CalendarError.cancelled
+            }
+        }
 
         if !fetchMonthResultQueue.isEmpty {
             let result = fetchMonthResultQueue.removeFirst()

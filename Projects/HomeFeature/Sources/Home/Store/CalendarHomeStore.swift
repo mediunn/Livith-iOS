@@ -166,24 +166,15 @@ final class CalendarHomeStore: ObservableObject {
 
     func performRefresh() async {
         let showInitialLoading = state.isLoadFailed || state.calendarMonth == nil
-        cancellables[.fetchMonth]?.cancel()
-
-        monthRequestID += 1
-        let requestID = monthRequestID
-
-        if showInitialLoading {
-            state.isInitialLoading = true
-        }
-
-        let result = await fetchMonthResult()
-        send(._fetchMonthResult(result, requestID: requestID))
+        await scheduleFetchMonth(showInitialLoading: showInitialLoading).value
     }
 }
 
 // MARK: - Private Helpers
 
 private extension CalendarHomeStore {
-    func performFetchMonth(showInitialLoading: Bool) {
+    @discardableResult
+    func scheduleFetchMonth(showInitialLoading: Bool) -> Task<Void, Never> {
         cancellables[.fetchMonth]?.cancel()
 
         monthRequestID += 1
@@ -193,10 +184,18 @@ private extension CalendarHomeStore {
             state.isInitialLoading = true
         }
 
-        cancellables[.fetchMonth] = Task {
+        let task = Task {
             let result = await fetchMonthResult()
+            guard !Task.isCancelled else { return }
+
             send(._fetchMonthResult(result, requestID: requestID))
         }
+        cancellables[.fetchMonth] = task
+        return task
+    }
+
+    func performFetchMonth(showInitialLoading: Bool) {
+        _ = scheduleFetchMonth(showInitialLoading: showInitialLoading)
     }
 
     func performFetchDayEvents(date: Date) {
