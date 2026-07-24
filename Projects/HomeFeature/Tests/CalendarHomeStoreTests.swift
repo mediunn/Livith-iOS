@@ -6,13 +6,26 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
+import Foundation
+
 import Testing
+
+import DIContainer
+import Domain
+import LivithFoundation
 
 @testable import HomeFeature
 
 @MainActor
 @Suite("CalendarHomeStore")
 struct CalendarHomeStoreTests {
+
+    let container: MockDIContainer
+
+    init() {
+        self.container = MockDIContainer()
+        self.container.registerDependencies()
+    }
 
     @Test("초기 상태에서 예매일·공연일은 on이고 공연 범위는 전체 공연이어야 한다")
     func 초기_상태에서_예매일_공연일은_on이고_공연_범위는_전체_공연이어야_한다() {
@@ -24,35 +37,42 @@ struct CalendarHomeStoreTests {
         #expect(sut.state.isPerformanceDateSelected)
         #expect(sut.state.concertScope == .all)
         #expect(sut.state.selectionBlockedToastMessage.isEmpty)
-        #expect(sut.state.isLoadFailed)
+        #expect(!sut.state.isLoadFailed)
+        #expect(!sut.state.isInitialLoading)
     }
 
     @Test("예매일 칩 탭 시 예매일 선택 상태가 토글되어야 한다")
-    func 예매일_칩_탭_시_예매일_선택_상태가_토글되어야_한다() {
+    func 예매일_칩_탭_시_예매일_선택_상태가_토글되어야_한다() async throws {
         // Given
+        container.calendarRepository.fetchMonthResultQueue = [.success(makeMonth())]
         let sut = CalendarHomeStore()
 
         // When
         sut.send(.ticketingDateTapped)
+        try await waitForAsyncTask()
 
         // Then
         #expect(!sut.state.isTicketingDateSelected)
         #expect(sut.state.isPerformanceDateSelected)
         #expect(sut.state.selectionBlockedToastMessage.isEmpty)
+        #expect(container.calendarRepository.fetchMonthCallCount == 1)
     }
 
     @Test("공연일 칩 탭 시 공연일 선택 상태가 토글되어야 한다")
-    func 공연일_칩_탭_시_공연일_선택_상태가_토글되어야_한다() {
+    func 공연일_칩_탭_시_공연일_선택_상태가_토글되어야_한다() async throws {
         // Given
+        container.calendarRepository.fetchMonthResultQueue = [.success(makeMonth())]
         let sut = CalendarHomeStore()
 
         // When
         sut.send(.performanceDateTapped)
+        try await waitForAsyncTask()
 
         // Then
         #expect(sut.state.isTicketingDateSelected)
         #expect(!sut.state.isPerformanceDateSelected)
         #expect(sut.state.selectionBlockedToastMessage.isEmpty)
+        #expect(container.calendarRepository.fetchMonthCallCount == 1)
     }
 
     @Test("마지막 on인 예매일 칩 off 시도 시 상태는 유지되고 선택 불가 토스트가 설정되어야 한다")
@@ -86,28 +106,38 @@ struct CalendarHomeStoreTests {
     }
 
     @Test("전체 공연 칩 탭 시 공연 범위가 전체 공연으로 전환되어야 한다")
-    func 전체_공연_칩_탭_시_공연_범위가_전체_공연으로_전환되어야_한다() {
+    func 전체_공연_칩_탭_시_공연_범위가_전체_공연으로_전환되어야_한다() async throws {
         // Given
+        container.calendarRepository.fetchMonthResultQueue = [
+            .success(makeMonth()),
+            .success(makeMonth())
+        ]
         let sut = CalendarHomeStore()
         sut.send(.myConcertsTapped)
+        try await waitForAsyncTask()
 
         // When
         sut.send(.allConcertsTapped)
+        try await waitForAsyncTask()
 
         // Then
         #expect(sut.state.concertScope == .all)
     }
 
     @Test("내 공연 칩 탭 시 공연 범위가 내 공연으로 전환되어야 한다")
-    func 내_공연_칩_탭_시_공연_범위가_내_공연으로_전환되어야_한다() {
+    func 내_공연_칩_탭_시_공연_범위가_내_공연으로_전환되어야_한다() async throws {
         // Given
+        container.calendarRepository.fetchMonthResultQueue = [.success(makeMonth())]
         let sut = CalendarHomeStore()
 
         // When
         sut.send(.myConcertsTapped)
+        try await waitForAsyncTask()
 
         // Then
         #expect(sut.state.concertScope == .my)
+        #expect(container.calendarRepository.fetchMonthCallCount == 1)
+        #expect(container.calendarRepository.fetchMonthParameterList.last?.concertType == .interest)
     }
 
     @Test("선택 불가 토스트 dismiss 시 메시지가 클리어되어야 한다")
@@ -141,12 +171,53 @@ struct CalendarHomeStoreTests {
         #expect(sut.state.selectionBlockedToastTrigger == firstTrigger + 1)
     }
 
-    @Test("새로고침 시 필터 선택 상태는 유지되어야 한다")
-    func 새로고침_시_필터_선택_상태는_유지되어야_한다() async {
+    @Test("onAppear 시 월별 조회를 수행하고 성공하면 로딩이 종료되어야 한다")
+    func onAppear_시_월별_조회를_수행하고_성공하면_로딩이_종료되어야_한다() async throws {
         // Given
+        let month = makeMonth()
+        container.calendarRepository.fetchMonthResultQueue = [.success(month)]
         let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(container.calendarRepository.fetchMonthCallCount == 1)
+        #expect(sut.state.calendarMonth == month)
+        #expect(!sut.state.isInitialLoading)
+        #expect(!sut.state.isLoadFailed)
+    }
+
+    @Test("onAppear 시 월별 조회 실패하면 isLoadFailed가 true여야 한다")
+    func onAppear_시_월별_조회_실패하면_isLoadFailed가_true여야_한다() async throws {
+        // Given
+        container.calendarRepository.fetchMonthResultQueue = [.failure(.serverError)]
+        let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.isLoadFailed)
+        #expect(!sut.state.isInitialLoading)
+    }
+
+    @Test("새로고침 시 필터 선택 상태는 유지되어야 한다")
+    func 새로고침_시_필터_선택_상태는_유지되어야_한다() async throws {
+        // Given
+        container.calendarRepository.fetchMonthResultQueue = [
+            .success(makeMonth()),
+            .success(makeMonth())
+        ]
+        let sut = CalendarHomeStore()
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
         sut.send(.performanceDateTapped)
+        try await waitForAsyncTask()
         sut.send(.myConcertsTapped)
+        try await waitForAsyncTask()
 
         // When
         await sut.performRefresh()
@@ -157,41 +228,113 @@ struct CalendarHomeStoreTests {
         #expect(sut.state.concertScope == .my)
     }
 
-    @Test("일자 일정 모달 오픈 시 정렬된 목록과 presented 상태가 true여야 한다")
-    func 일자_일정_모달_오픈_시_정렬된_목록과_presented_상태가_true여야_한다() {
+    @Test("새로고침 중 필터 변경 시 이전 월별 fetch는 취소되고 최신 요청만 반영되어야 한다")
+    func 새로고침_중_필터_변경_시_이전_월별_fetch는_취소되고_최신_요청만_반영되어야_한다() async throws {
         // Given
+        container.calendarRepository.fetchMonthResultQueue = [
+            .success(makeMonth()),
+            .success(makeMonth()),
+            .success(makeMonth())
+        ]
         let sut = CalendarHomeStore()
-        let cancelled = CalendarDayScheduleItem(
-            id: "c",
-            kind: .ticketing,
-            title: "취소",
-            subtitle: "NOL",
-            time: .init(hour: 10, minute: 0),
-            isCancelled: true
-        )
-        let timed = CalendarDayScheduleItem(
-            id: "t",
-            kind: .performance,
-            title: "정상",
-            subtitle: "잠실",
-            time: .init(hour: 18, minute: 0),
-            isCancelled: false
-        )
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+
+        container.calendarRepository.fetchMonthDelayNanoseconds = 200_000_000
 
         // When
-        sut.send(.dayScheduleModalOpened(dayTitle: "6월 20일 수요일", itemList: [cancelled, timed]))
+        let refreshTask = Task { await sut.performRefresh() }
+        try await Task.sleep(nanoseconds: 50_000_000)
+        sut.send(.myConcertsTapped)
+        try await Task.sleep(nanoseconds: 250_000_000)
+        await refreshTask.value
+
+        // Then
+        #expect(container.calendarRepository.fetchMonthParameterList.last?.concertType == .interest)
+        #expect(sut.state.concertScope == .my)
+        #expect(!sut.state.isLoadFailed)
+        #expect(!sut.state.isInitialLoading)
+    }
+
+    @Test("dayScheduleRequested 성공 시 정렬된 목록과 모달이 표시되어야 한다")
+    func dayScheduleRequested_성공_시_정렬된_목록과_모달이_표시되어야_한다() async throws {
+        // Given
+        let date = makeDate()
+        let cancelled = makeEvent(
+            concertID: 2,
+            title: "취소",
+            time: .init(hour: 10, minute: 0),
+            status: .cancelled
+        )
+        let timed = makeEvent(
+            concertID: 1,
+            title: "정상",
+            time: .init(hour: 18, minute: 0)
+        )
+        container.calendarRepository.fetchDayEventsResultQueue = [
+            .success(CalendarDaySchedule(date: date, eventList: [cancelled, timed]))
+        ]
+        let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.dayScheduleRequested(date: date))
+        try await waitForAsyncTask()
 
         // Then
         #expect(sut.state.isDayScheduleModalPresented)
-        #expect(sut.state.selectedDayTitle == "6월 20일 수요일")
-        #expect(sut.state.dayScheduleItemList.map(\.id) == ["t", "c"])
+        #expect(
+            sut.state.selectedDayTitle == DateFormatterService.string(from: date, type: .koreanMonthDayWeekday)
+        )
+        #expect(sut.state.dayScheduleEventList.map(\.concertID) == [1, 2])
+    }
+
+    @Test("dayScheduleRequested 성공 0건이면 빈 목록 모달이 표시되어야 한다")
+    func dayScheduleRequested_성공_0건이면_빈_목록_모달이_표시되어야_한다() async throws {
+        // Given
+        let date = makeDate()
+        container.calendarRepository.fetchDayEventsResultQueue = [
+            .success(CalendarDaySchedule(date: date, eventList: []))
+        ]
+        let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.dayScheduleRequested(date: date))
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.isDayScheduleModalPresented)
+        #expect(sut.state.dayScheduleEventList.isEmpty)
+    }
+
+    @Test("dayScheduleRequested 실패 시 모달 없이 실패 토스트가 설정되어야 한다")
+    func dayScheduleRequested_실패_시_모달_없이_실패_토스트가_설정되어야_한다() async throws {
+        // Given
+        container.calendarRepository.fetchDayEventsResultQueue = [.failure(.serverError)]
+        let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.dayScheduleRequested(date: makeDate()))
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(!sut.state.isDayScheduleModalPresented)
+        #expect(
+            sut.state.dayScheduleLoadFailedToastMessage
+                == CalendarHomeStore.Constants.dayScheduleLoadFailedToastMessage
+        )
+        #expect(sut.state.dayScheduleLoadFailedToastTrigger == 1)
     }
 
     @Test("일자 일정 모달 dismiss 시 presented가 false여야 한다")
-    func 일자_일정_모달_dismiss_시_presented가_false여야_한다() {
+    func 일자_일정_모달_dismiss_시_presented가_false여야_한다() async throws {
         // Given
+        let date = makeDate()
+        container.calendarRepository.fetchDayEventsResultQueue = [
+            .success(CalendarDaySchedule(date: date, eventList: []))
+        ]
         let sut = CalendarHomeStore()
-        sut.send(.dayScheduleModalOpened(dayTitle: "6월 20일 수요일", itemList: []))
+        sut.send(.dayScheduleRequested(date: date))
+        try await waitForAsyncTask()
 
         // When
         sut.send(.dayScheduleModalDismissed)
@@ -199,17 +342,37 @@ struct CalendarHomeStoreTests {
         // Then
         #expect(!sut.state.isDayScheduleModalPresented)
     }
+}
 
-    @Test("빈 일정으로 모달 오픈 시 dayScheduleItemList가 비어 있어야 한다")
-    func 빈_일정으로_모달_오픈_시_dayScheduleItemList가_비어_있어야_한다() {
-        // Given
-        let sut = CalendarHomeStore()
+// MARK: - Helpers
 
-        // When
-        sut.send(.dayScheduleModalOpened(dayTitle: "6월 20일 수요일", itemList: []))
+private extension CalendarHomeStoreTests {
+    func waitForAsyncTask() async throws {
+        try await Task.sleep(nanoseconds: 100_000_000)
+    }
 
-        // Then
-        #expect(sut.state.isDayScheduleModalPresented)
-        #expect(sut.state.dayScheduleItemList.isEmpty)
+    func makeMonth() -> CalendarMonth {
+        CalendarMonth(year: 2_026, month: 7, dayList: [])
+    }
+
+    func makeDate() -> Date {
+        Calendar.current.date(from: DateComponents(year: 2_026, month: 6, day: 20))!
+    }
+
+    func makeEvent(
+        concertID: Int,
+        title: String,
+        time: CalendarEventTime?,
+        status: CalendarDayEventStatus = .upcoming,
+        type: CalendarDayEventType = .generalTicketing
+    ) -> CalendarDayEvent {
+        CalendarDayEvent(
+            concertID: concertID,
+            title: title,
+            type: type,
+            status: status,
+            time: time,
+            detail: .ticketOffice("NOL 티켓")
+        )
     }
 }

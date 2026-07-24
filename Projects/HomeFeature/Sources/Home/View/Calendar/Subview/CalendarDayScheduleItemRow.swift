@@ -8,13 +8,14 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 
 struct CalendarDayScheduleItemRow: View {
 
     // MARK: - Properties
 
-    let item: CalendarDayScheduleItem
+    let event: CalendarDayEvent
 
     // MARK: - Body
 
@@ -22,7 +23,7 @@ struct CalendarDayScheduleItemRow: View {
         VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
             timeHeader
 
-            if item.isCancelled {
+            if event.isCancelled {
                 cardLabel
                     .background(Color.livithColor(.black80))
                     .clipShape(RoundedRectangle(cornerRadius: Layout.cardCornerRadius))
@@ -46,7 +47,7 @@ private extension CalendarDayScheduleItemRow {
                 .fill(timeBarColor)
                 .frame(width: Layout.timeBarWidth, height: Layout.timeBarHeight)
 
-            Text(item.timeLabel)
+            Text(event.timeLabel)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black5))
         }
@@ -57,14 +58,14 @@ private extension CalendarDayScheduleItemRow {
             VStack(alignment: .leading, spacing: Layout.cardInnerSpacing) {
                 kindChip
 
-                Text(item.title)
+                Text(event.displayTitle)
                     .notosans(.body2Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text(item.subtitle)
+                Text(event.detailText)
                     .notosans(.body4Regular)
                     .foregroundStyle(Color.livithColor(.black50))
                     .lineLimit(1)
@@ -72,7 +73,7 @@ private extension CalendarDayScheduleItemRow {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if !item.isCancelled {
+            if !event.isCancelled {
                 Image.livithIcon(.rightLineDefault)
                     .resizable()
                     .scaledToFit()
@@ -84,7 +85,7 @@ private extension CalendarDayScheduleItemRow {
     }
 
     var kindChip: some View {
-        Text(kindTitle)
+        Text(event.kindTitle)
             .notosans(.caption1Bold)
             .foregroundStyle(Color.livithColor(.black50))
             .padding(.horizontal, Layout.chipHorizontalPadding)
@@ -93,18 +94,11 @@ private extension CalendarDayScheduleItemRow {
             .clipShape(Capsule())
     }
 
-    var kindTitle: String {
-        switch item.kind {
-        case .ticketing: return "예매일"
-        case .performance: return "공연일"
-        }
-    }
-
     var timeBarColor: Color {
-        if item.isCancelled {
+        if event.isCancelled {
             return Color.livithColor(.black50)
         }
-        switch item.kind {
+        switch event.scheduleKind {
         case .ticketing: return Color.livithColor(.translation)
         case .performance: return Color.livithColor(.original)
         }

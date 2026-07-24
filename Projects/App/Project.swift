@@ -35,6 +35,7 @@ let project = Project.make(
                 .data(.userData),
                 .user(.userFeature),
                 .data(.preferenceData),
+                .data(.calendarData),
                 .livithNetworking(.livithNetworking),
                 .core(.amplitude),
                 .target(name: Constants.shareExtensionName)
