@@ -26,27 +26,21 @@ struct CalendarHomeContentView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ScrollView {
-                VStack(spacing: .zero) {
-                    if showsFilterBar {
-                        CalendarFilterBarView(store: store)
-                    }
-
-                    calendarBody
+        ScrollView {
+            VStack(spacing: .zero) {
+                if showsFilterBar {
+                    CalendarFilterBarView(store: store)
                 }
-            }
-            .scrollIndicators(.never)
-            .refreshable {
-                await store.performRefresh()
-            }
-            .onAppear {
-                store.send(.onAppear)
-            }
 
-            #if DEBUG
-            debugModalTriggers
-            #endif
+                calendarBody
+            }
+        }
+        .scrollIndicators(.never)
+        .refreshable {
+            await store.performRefresh()
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
@@ -133,19 +127,6 @@ private extension CalendarHomeContentView {
         .frame(maxWidth: .infinity)
         .containerRelativeFrame(.vertical)
     }
-
-    #if DEBUG
-    var debugModalTriggers: some View {
-        Button("일정 모달") {
-            store.send(.dayScheduleRequested(date: Date()))
-        }
-        .notosans(.caption1Bold)
-        .padding(12)
-        .background(Color.livithColor(.black80))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .padding(16)
-    }
-    #endif
 }
 
 // MARK: - Computed Properties
