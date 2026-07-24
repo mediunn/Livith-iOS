@@ -21,13 +21,12 @@ struct CalendarHomeContentView: View {
 
     @State private var showSelectionBlockedToast = false
     @State private var showDayScheduleLoadFailedToast = false
+    @State private var webViewContentHeight = Layout.webViewFallbackHeight
 
     // MARK: - Body
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            // TODO: WebView·래퍼 ScrollView 스크롤 충돌·높이 문제 해결
-            // (남은 화면 채우기 + pull-to-refresh: VStack+UIRefreshControl 등)
             ScrollView {
                 VStack(spacing: .zero) {
                     if showsFilterBar {
@@ -102,11 +101,12 @@ private extension CalendarHomeContentView {
             CalendarWebView(
                 url: calendarWebConfig.url,
                 calendarMonth: store.state.calendarMonth,
+                contentHeight: $webViewContentHeight,
                 onDateSelected: { date in
                     store.send(.dayScheduleRequested(date: date))
                 }
             )
-                .frame(minHeight: Layout.webViewMinHeight)
+            .frame(height: webViewContentHeight)
         }
     }
 
@@ -200,7 +200,7 @@ private extension CalendarHomeContentView {
 
 private extension CalendarHomeContentView {
     enum Layout {
-        static let webViewMinHeight: CGFloat = 500
+        static let webViewFallbackHeight: CGFloat = 700
         static let loadingMinHeight: CGFloat = 200
     }
 }
