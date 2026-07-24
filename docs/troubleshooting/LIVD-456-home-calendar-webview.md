@@ -2,6 +2,25 @@
 
 ## 기록
 
+### 2026-07-25 - xcodebuild destination (iPhone 16)
+
+**상황**
+- 일자 일정 → 콘서트 상세 연결 후 `Livith-iOS-Dev` 빌드 검증.
+
+**문제**
+- `destination 'name=iPhone 16'` 에서 device matching 실패.
+
+**원인**
+- 로컬 시뮬레이터에 iPhone 16 없음 (iPhone 17 / OS 26.5 등만 존재).
+
+**해결**
+- `-destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5'` 로 재빌드 성공.
+
+**교훈**
+- 검증 전 `xcodebuild -showdestinations` 또는 사용 가능 기기 목록을 확인한다.
+
+---
+
 ### 2026-07-24 - calendarMonthChanged 월 변경 브릿지
 
 **상황**

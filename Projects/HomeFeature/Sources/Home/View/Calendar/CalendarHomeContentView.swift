@@ -80,6 +80,14 @@ struct CalendarHomeContentView: View {
                 onInterestSettingTap: {
                     store.send(.dayScheduleModalDismissed)
                     homeRouter.push(.interestConcertSetting(mode: .update))
+                },
+                onEventTap: { event in
+                    store.send(.dayScheduleModalDismissed)
+                    homeRouter.push(.concertDetail(
+                        concertID: event.concertID,
+                        initialTab: .artistDetail,
+                        initialSection: nil
+                    ))
                 }
             )
         }

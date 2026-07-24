@@ -19,6 +19,7 @@ struct CalendarDayScheduleModalView: View {
     let eventList: [CalendarDayEvent]
     let onDismiss: () -> Void
     let onInterestSettingTap: () -> Void
+    let onEventTap: (CalendarDayEvent) -> Void
 
     // MARK: - Body
 
@@ -74,7 +75,9 @@ private extension CalendarDayScheduleModalView {
         ScrollView {
             LazyVStack(spacing: Layout.listSpacing) {
                 ForEach(eventList) { event in
-                    CalendarDayScheduleItemRow(event: event)
+                    CalendarDayScheduleItemRow(event: event) {
+                        onEventTap(event)
+                    }
                 }
             }
         }
