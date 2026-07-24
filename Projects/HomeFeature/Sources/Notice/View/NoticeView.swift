@@ -133,7 +133,7 @@ private extension NoticeView {
                             trackNotificationCellTap(type: notification.type)
                             store.send(.markAsRead(id: notification.id))
                             didNavigateToDetail = true
-                            if notification.type == .interestConcert {
+                            if notification.type == .interestConcert || notification.type == .userInterestConcert {
                                 onInterestTap()
                             } else if let targetID = notification.targetID {
                                 let (initialTab, initialSection) = mapNotificationTypeToTabAndSection(notification.type)
@@ -180,11 +180,12 @@ private extension NoticeView {
 
     func trackNotificationCellTap(type: NotificationType) {
         switch type {
-        case .interestConcert:
+        case .interestConcert, .userInterestConcert:
             AmplitudeService.shared.trackEvent(tag: .click(.interestConcertNotification))
-        case .preTicketingOpen, .preTicketing1D, .preTicketing30M:
+        case .preTicketingOpen, .preTicketing1D, .preTicketing30M, .preTicketing10M:
             AmplitudeService.shared.trackEvent(tag: .click(.preBookingScheduleNotification))
-        case .generalTicketingOpen, .generalTicketing1D, .generalTicketing30M:
+        case .generalTicketingOpen, .generalTicketing1D, .generalTicketing30M, .generalTicketing10M,
+             .addTicketing1D, .addTicketing30M, .addTicketing10M:
             AmplitudeService.shared.trackEvent(tag: .click(.bookingScheduleNotification))
         case .concertInfoUpdateSetlist:
             AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateSetlistNotification))
@@ -200,6 +201,8 @@ private extension NoticeView {
             AmplitudeService.shared.trackEvent(tag: .click(.favoriteArtistConcertOpenNotification))
         case .recommend:
             AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertNotification))
+        case .unknown:
+            break
         }
     }
 }

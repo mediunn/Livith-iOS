@@ -36,7 +36,7 @@ struct NotificationMapper {
         let createdAt = DateFormatterService.date(from: dto.createdAt, type: .dotDateTime) ?? Date()
         return NotificationItem(
             id: dto.id,
-            type: NotificationType(rawValue: dto.type)!,
+            type: NotificationType(rawValue: dto.type) ?? .unknown,
             title: dto.title,
             content: dto.content,
             targetID: dto.targetID.flatMap { Int($0) },
