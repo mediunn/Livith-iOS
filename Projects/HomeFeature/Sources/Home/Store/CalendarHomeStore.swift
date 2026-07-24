@@ -88,7 +88,8 @@ final class CalendarHomeStore: ObservableObject {
     func send(_ intent: CalendarHomeIntent) {
         switch intent {
         case .onAppear:
-            performFetchMonth(showInitialLoading: true)
+            let shouldShowInitialLoading = state.calendarMonth == nil || state.isLoadFailed
+            performFetchMonth(showInitialLoading: shouldShowInitialLoading)
 
         case .ticketingDateTapped:
             let didChange = toggleDateFilter(

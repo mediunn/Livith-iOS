@@ -93,6 +93,7 @@ extension CalendarWebView {
         var hasLoadedCalendarURL = false
         var pendingPayloadJSON: String?
         var lastInjectedPayloadJSON: String?
+        var monthChangeGate = CalendarWebMonthChangeGate()
 
         private var contentHeightBinding: Binding<CGFloat>?
         private var contentHeightMeasureGeneration = 0
@@ -144,6 +145,7 @@ extension CalendarWebView {
 
                 if error == nil {
                     self.lastInjectedPayloadJSON = injectingPayloadJSON
+                    self.monthChangeGate.markInjectSucceeded()
                 }
                 self.scheduleContentHeightMeasurement(of: webView)
             }
@@ -201,6 +203,7 @@ extension CalendarWebView {
                 }
 
             case Constants.monthChangedHandlerName:
+                guard monthChangeGate.shouldAcceptMonthChanged else { return }
                 guard let yearMonth = CalendarMonthChangedMessageParser.yearMonth(from: message.body) else {
                     return
                 }
@@ -221,6 +224,7 @@ private extension CalendarWebView.Coordinator {
     func handleLoadFailure(on webView: WKWebView) {
         hasLoadedCalendarURL = false
         lastInjectedPayloadJSON = nil
+        monthChangeGate.reset()
         guard let blankURL = Constants.blankURL else { return }
         webView.load(URLRequest(url: blankURL))
     }

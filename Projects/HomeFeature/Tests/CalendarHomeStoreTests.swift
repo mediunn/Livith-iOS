@@ -204,6 +204,71 @@ struct CalendarHomeStoreTests {
         #expect(!sut.state.isInitialLoading)
     }
 
+    @Test("로드된 뒤 onAppear는 초기 로딩 없이 같은 월을 soft refresh해야 한다")
+    func 로드된_뒤_onAppear는_초기_로딩_없이_같은_월을_soft_refresh해야_한다() async throws {
+        // Given
+        let augustMonth = CalendarMonth(year: 2026, month: 8, dayList: [])
+        let refreshedAugust = CalendarMonth(
+            year: 2026,
+            month: 8,
+            dayList: [
+                CalendarMonthDay(
+                    date: makeDate(),
+                    eventList: [
+                        CalendarMonthEvent(concertID: 1, artist: "A", type: .concert)
+                    ]
+                )
+            ]
+        )
+        container.calendarRepository.fetchMonthResultQueue = [
+            .success(makeMonth()),
+            .success(augustMonth),
+            .success(refreshedAugust)
+        ]
+        let sut = CalendarHomeStore()
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+        sut.send(.monthChanged(year: 2026, month: 8))
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.onAppear)
+
+        // Then
+        #expect(!sut.state.isInitialLoading)
+        try await waitForAsyncTask()
+        #expect(container.calendarRepository.fetchMonthCallCount == 3)
+        #expect(sut.state.selectedYear == 2026)
+        #expect(sut.state.selectedMonth == 8)
+        #expect(sut.state.calendarMonth == refreshedAugust)
+        #expect(!sut.state.isInitialLoading)
+        let lastParameters = container.calendarRepository.fetchMonthParameterList.last
+        #expect(lastParameters?.year == 2026)
+        #expect(lastParameters?.month == 8)
+    }
+
+    @Test("로드 실패 후 onAppear는 초기 로딩과 함께 다시 조회해야 한다")
+    func 로드_실패_후_onAppear는_초기_로딩과_함께_다시_조회해야_한다() async throws {
+        // Given
+        container.calendarRepository.fetchMonthResultQueue = [
+            .failure(.serverError),
+            .success(makeMonth())
+        ]
+        let sut = CalendarHomeStore()
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.onAppear)
+
+        // Then
+        #expect(sut.state.isInitialLoading)
+        try await waitForAsyncTask()
+        #expect(sut.state.calendarMonth == makeMonth())
+        #expect(!sut.state.isInitialLoading)
+        #expect(!sut.state.isLoadFailed)
+    }
+
     @Test("새로고침 시 필터 선택 상태는 유지되어야 한다")
     func 새로고침_시_필터_선택_상태는_유지되어야_한다() async throws {
         // Given
