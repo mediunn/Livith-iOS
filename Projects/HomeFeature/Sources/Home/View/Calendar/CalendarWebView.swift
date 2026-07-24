@@ -11,7 +11,6 @@ import WebKit
 
 import Domain
 import LivithDesignSystem
-import LivithFoundation
 
 struct CalendarWebView: UIViewRepresentable {
 
@@ -31,7 +30,6 @@ struct CalendarWebView: UIViewRepresentable {
         let userContentController = WKUserContentController()
         let proxy = WeakScriptMessageHandlerProxy(target: context.coordinator)
         userContentController.add(proxy, name: Constants.dateSelectedHandlerName)
-        context.coordinator.messageHandlerProxy = proxy
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = userContentController
@@ -67,7 +65,6 @@ struct CalendarWebView: UIViewRepresentable {
     static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
         uiView.configuration.userContentController
             .removeScriptMessageHandler(forName: Constants.dateSelectedHandlerName)
-        coordinator.messageHandlerProxy = nil
     }
 }
 
@@ -79,7 +76,6 @@ extension CalendarWebView {
         var calendarURL: URL?
         var hasLoadedCalendarURL = false
         var pendingPayloadJSON: String?
-        fileprivate var messageHandlerProxy: WeakScriptMessageHandlerProxy?
 
         init(onDateSelected: @escaping (Date) -> Void) {
             self.onDateSelected = onDateSelected
@@ -130,12 +126,15 @@ extension CalendarWebView {
             didReceive message: WKScriptMessage
         ) {
             guard message.name == Constants.dateSelectedHandlerName,
-                  let date = Self.parseSelectedDate(from: message.body)
+                  let date = CalendarDateSelectedMessageParser.date(from: message.body)
             else {
                 return
             }
 
-            onDateSelected(date)
+            // WKScriptMessageHandler는 메인 스레드가 아닐 수 있음 → @MainActor Store 호출 보장
+            Task { @MainActor in
+                onDateSelected(date)
+            }
         }
     }
 }
@@ -155,22 +154,6 @@ private extension CalendarWebView.Coordinator {
             return nil
         }
         return String(data: data, encoding: .utf8)
-    }
-
-    static func parseSelectedDate(from body: Any) -> Date? {
-        let dateString: String?
-        if let dictionary = body as? [String: Any] {
-            dateString = dictionary["date"] as? String
-        } else if let string = body as? String,
-                  let data = string.data(using: .utf8),
-                  let dictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            dateString = dictionary["date"] as? String
-        } else {
-            dateString = nil
-        }
-
-        guard let dateString else { return nil }
-        return DateFormatterService.date(from: dateString, type: .dashDate)
     }
 }
 

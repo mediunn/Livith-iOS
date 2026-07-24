@@ -13,11 +13,7 @@ import LivithFoundation
 
 enum CalendarWebMonthPayloadMapper {
 
-    private static let encoder: JSONEncoder = {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        return encoder
-    }()
+    private static let encoder = JSONEncoder()
 
     static func jsonString(from month: CalendarMonth) -> String? {
         let payload = Payload(
