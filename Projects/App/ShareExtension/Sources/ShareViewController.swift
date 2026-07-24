@@ -38,23 +38,29 @@ private extension ShareViewController {
             }
 
             await MainActor.run {
-                openMainApp(with: deepLink)
-                finish()
+                openMainApp(with: deepLink) { [weak self] in
+                    self?.finish()
+                }
             }
         }
     }
 
-    func openMainApp(with url: URL) {
+    // 익스텐션이 open 완료 전에 종료되면 딥링크 전달이 유실될 수 있어 completion에서 finish한다.
+    func openMainApp(with url: URL, completion: @escaping () -> Void) {
         var responder: UIResponder? = self
 
         while let current = responder {
             if let application = current as? UIApplication {
-                application.open(url, options: [:], completionHandler: nil)
+                application.open(url, options: [:]) { _ in
+                    completion()
+                }
                 return
             }
 
             responder = current.next
         }
+
+        completion()
     }
 
     func finish() {
