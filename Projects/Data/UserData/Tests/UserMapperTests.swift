@@ -599,8 +599,8 @@ struct UserErrorMapperTests {
         }
     }
 
-    @Test("FetchInterestConcertEntryAlerts는 4가지 kind와 선택적 concertId를 Domain으로 변환해야 한다")
-    func fetchInterestConcertEntryAlerts는_4가지_kind와_선택적_concertId를_Domain으로_변환해야_한다() throws {
+    @Test("FetchInterestConcertEntryAlerts는 4가지 kind와 선택적 concertID를 Domain으로 변환해야 한다")
+    func fetchInterestConcertEntryAlerts는_4가지_kind와_선택적_concertID를_Domain으로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let json = """
@@ -643,25 +643,25 @@ struct UserErrorMapperTests {
                 kind: .autoRemovedCompleted,
                 title: "자동 정리된 공연 1",
                 content: "원 오크 록 내한 공연이 자동 정리 됐어요",
-                concertId: 101
+                concertID: 101
             ),
             InterestConcertEntryAlert(
                 kind: .autoRemovedCanceled,
                 title: "취소된 공연 1",
                 content: "원 오크 록 내한 공연이 취소되어 자동 정리 됐어요",
-                concertId: 102
+                concertID: 102
             ),
             InterestConcertEntryAlert(
                 kind: .requestRegistered,
                 title: "[19자 내 공연명 이후 말줄임..] 콘서트",
                 content: "나의 관심 콘서트에 추가됐어요",
-                concertId: 201
+                concertID: 201
             ),
             InterestConcertEntryAlert(
                 kind: .requestFailed,
                 title: "[19자 내 공연명 이후 말줄임..] 콘서트",
                 content: "지난 공연으로 관심 콘서트에 추가되지 않았어요",
-                concertId: nil
+                concertID: nil
             )
         ])
     }
@@ -698,7 +698,7 @@ struct UserErrorMapperTests {
                 kind: .requestRegistered,
                 title: "추가 완료",
                 content: "나의 관심 콘서트에 추가됐어요",
-                concertId: 301
+                concertID: 301
             )
         ])
     }

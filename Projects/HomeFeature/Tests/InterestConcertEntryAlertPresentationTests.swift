@@ -46,19 +46,19 @@ struct InterestConcertEntryAlertPresentationTests {
             kind: .requestRegistered,
             title: longTitle,
             content: "나의 관심 콘서트에 추가됐어요",
-            concertId: 1
+            concertID: 1
         )
         let shortAlert = InterestConcertEntryAlert(
             kind: .requestFailed,
             title: shortTitle,
             content: "장르가 없어 관심 콘서트에 추가되지 않았어요",
-            concertId: nil
+            concertID: nil
         )
         let autoCleanupAlert = InterestConcertEntryAlert(
             kind: .autoRemovedCompleted,
             title: longTitle,
             content: "원 오크 록 내한 공연이 자동 정리 됐어요",
-            concertId: nil
+            concertID: nil
         )
 
         // When / Then
@@ -75,19 +75,19 @@ struct InterestConcertEntryAlertPresentationTests {
                 kind: .autoRemovedCompleted,
                 title: "자동 정리된 공연 1",
                 content: "원 오크 록 내한 공연이 자동 정리 됐어요",
-                concertId: nil
+                concertID: nil
             ),
             InterestConcertEntryAlert(
                 kind: .requestRegistered,
                 title: "natori 콘서트",
                 content: "나의 관심 콘서트에 추가됐어요",
-                concertId: 55
+                concertID: 55
             ),
             InterestConcertEntryAlert(
                 kind: .autoRemovedCanceled,
                 title: "취소된 공연 1",
                 content: "원 오크 록 내한 공연이 취소되어 자동 정리 됐어요",
-                concertId: nil
+                concertID: nil
             )
         ]
 

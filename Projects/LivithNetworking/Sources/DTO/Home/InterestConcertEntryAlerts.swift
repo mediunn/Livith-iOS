@@ -18,7 +18,12 @@ public extension DTO.Response {
             public let kind: String
             public let title: String
             public let content: String
-            public let concertId: Int?
+            public let concertID: Int?
+
+            enum CodingKeys: String, CodingKey {
+                case kind, title, content
+                case concertID = "concertId"
+            }
         }
     }
 }

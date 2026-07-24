@@ -918,13 +918,13 @@ private extension HomeStoreTests {
                 kind: .autoRemovedCompleted,
                 title: "자동 정리된 공연 1",
                 content: "원 오크 록 내한 공연이 자동 정리 됐어요",
-                concertId: nil
+                concertID: nil
             ),
             InterestConcertEntryAlert(
                 kind: .requestRegistered,
                 title: "natori 콘서트",
                 content: "나의 관심 콘서트에 추가됐어요",
-                concertId: 55
+                concertID: 55
             )
         ]
     }

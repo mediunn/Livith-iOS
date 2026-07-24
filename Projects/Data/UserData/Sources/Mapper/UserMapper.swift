@@ -93,7 +93,7 @@ private extension UserMapper {
             kind: kind,
             title: dto.title,
             content: dto.content,
-            concertId: dto.concertId
+            concertID: dto.concertID
         )
     }
 

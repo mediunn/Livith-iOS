@@ -26,7 +26,7 @@ public struct InterestConcertEntryAlert: Equatable {
     public let kind: InterestConcertEntryAlertKind
     public let title: String
     public let content: String
-    public let concertId: Int?
+    public let concertID: Int?
 
     // MARK: - Initializer
 
@@ -34,11 +34,11 @@ public struct InterestConcertEntryAlert: Equatable {
         kind: InterestConcertEntryAlertKind,
         title: String,
         content: String,
-        concertId: Int?
+        concertID: Int?
     ) {
         self.kind = kind
         self.title = title
         self.content = content
-        self.concertId = concertId
+        self.concertID = concertID
     }
 }
