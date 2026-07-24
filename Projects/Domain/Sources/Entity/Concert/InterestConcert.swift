@@ -77,10 +77,3 @@ public enum InterestConcertSort: Hashable {
     case concert
     case ticketing
 }
-
-public enum InterestConcertCleanupPolicy: CaseIterable, Equatable {
-    case none
-    case canceled
-    case completed
-    case both
-}

@@ -92,13 +92,18 @@ struct ConcertDomainModelTests {
         #expect(filter.nextToken == nil)
     }
 
-    @Test("InterestConcertCleanupPolicy는 없음, 취소, 완료, 혼합 정책을 표현해야 한다")
-    func interestConcertCleanupPolicy는_없음_취소_완료_혼합_정책을_표현해야_한다() {
+    @Test("InterestConcertEntryAlertKind는 4가지 엔트리 알림 종류를 표현해야 한다")
+    func interestConcertEntryAlertKind는_4가지_엔트리_알림_종류를_표현해야_한다() {
         // When
-        let policyList = InterestConcertCleanupPolicy.allCases
+        let kindList = InterestConcertEntryAlertKind.allCases
 
         // Then
-        #expect(policyList == [.none, .canceled, .completed, .both])
+        #expect(kindList == [
+            .autoRemovedCompleted,
+            .autoRemovedCanceled,
+            .requestRegistered,
+            .requestFailed
+        ])
     }
 
     @Test("ListResult는 관심 콘서트 목록과 다음 token을 보관해야 한다")

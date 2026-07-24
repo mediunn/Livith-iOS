@@ -126,11 +126,9 @@ final class MockUserRepository: UserRepository {
 
     func deleteInterestedConcert() async throws(UserError) {}
 
-    func fetchInterestConcertCleanupPolicy() async throws(UserError) -> InterestConcertCleanupPolicy {
-        .none
+    func fetchInterestConcertEntryAlerts() async throws(UserError) -> [InterestConcertEntryAlert] {
+        []
     }
-
-    func markInterestConcertToastShown() async throws(UserError) {}
 }
 
 // MARK: - Tests
