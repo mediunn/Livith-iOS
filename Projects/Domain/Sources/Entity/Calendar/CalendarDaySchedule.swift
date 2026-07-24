@@ -61,7 +61,7 @@ public struct CalendarDayEvent: Hashable, Identifiable, Sendable {
         time: CalendarEventTime?,
         detail: CalendarEventDetail?
     ) {
-        self.id = CalendarEventID(concertID: concertID, type: type)
+        self.id = CalendarEventID(concertID: concertID, type: type, time: time)
         self.concertID = concertID
         self.title = title
         self.type = type

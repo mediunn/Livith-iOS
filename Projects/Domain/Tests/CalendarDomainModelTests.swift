@@ -24,6 +24,24 @@ struct CalendarDomainModelTests {
         #expect(ticketing != concert)
     }
 
+    @Test("CalendarEventID는 같은 concertID·type이라도 time이 다르면 달라야 한다")
+    func calendarEventID는_같은_concertID_type이라도_time이_다르면_달라야_한다() {
+        // Given
+        let noon = CalendarEventID(
+            concertID: 1978,
+            type: CalendarDayEventType.concert,
+            time: CalendarEventTime(hour: 12, minute: 20)
+        )
+        let evening = CalendarEventID(
+            concertID: 1978,
+            type: CalendarDayEventType.concert,
+            time: CalendarEventTime(hour: 17, minute: 0)
+        )
+
+        // Then
+        #expect(noon != evening)
+    }
+
     @Test("CalendarEventDetail는 티켓오피스와 공연장소를 구분해야 한다")
     func calendarEventDetail는_티켓오피스와_공연장소를_구분해야_한다() {
         // Given
@@ -61,8 +79,8 @@ struct CalendarDomainModelTests {
         #expect(laterSameHour < laterHour)
     }
 
-    @Test("CalendarDayEvent의 id는 concertID와 type으로 합성되어야 한다")
-    func calendarDayEvent의_id는_concertID와_type으로_합성되어야_한다() {
+    @Test("CalendarDayEvent의 id는 concertID·type·time으로 합성되어야 한다")
+    func calendarDayEvent의_id는_concertID_type_time으로_합성되어야_한다() {
         // Given
         let event = CalendarDayEvent(
             concertID: 1903,
@@ -74,10 +92,41 @@ struct CalendarDomainModelTests {
         )
 
         // Then
-        #expect(event.id == CalendarEventID(concertID: 1903, type: .generalTicketing))
+        #expect(
+            event.id == CalendarEventID(
+                concertID: 1903,
+                type: .generalTicketing,
+                time: CalendarEventTime(hour: 14, minute: 0)
+            )
+        )
         #expect(event.concertID == 1903)
         #expect(event.title == "라이빗 공연2")
         #expect(event.status.isCancelled == false)
+    }
+
+    @Test("같은 concertID·type·다른 time인 CalendarDayEvent는 id가 달라야 한다")
+    func 같은_concertID_type_다른_time인_CalendarDayEvent는_id가_달라야_한다() {
+        // Given
+        let first = CalendarDayEvent(
+            concertID: 1978,
+            title: "조인트 콘서트",
+            type: .concert,
+            status: .upcoming,
+            time: CalendarEventTime(hour: 12, minute: 20),
+            detail: .venue("퍼플노이즈 라이브홀")
+        )
+        let second = CalendarDayEvent(
+            concertID: 1978,
+            title: "조인트 콘서트",
+            type: .concert,
+            status: .upcoming,
+            time: CalendarEventTime(hour: 17, minute: 0),
+            detail: .venue("퍼플노이즈 라이브홀")
+        )
+
+        // Then
+        #expect(first.id != second.id)
+        #expect(Set([first.id, second.id]).count == 2)
     }
 
     @Test("CalendarDayEventStatus cancelled는 isCancelled가 true여야 한다")
