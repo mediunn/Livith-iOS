@@ -79,7 +79,8 @@
 - [ ] `tuist generate --no-open` (plist/xcconfig/의존·Swift 파일 추가/이동/삭제 시)
 - [ ] **빌드·테스트는 XcodeBuildMCP 우선** (`docs/rules/project-operations.md`와 병행)
   - `session_show_defaults`로 workspace/scheme/simulator 확인 (미설정 시 `session_set_defaults`)
-  - scheme: **`Livith-iOS-Dev`**, simulator: **iPhone 17** (Available destinations 기준)
+  - scheme: **`Livith-iOS-Dev`** (`build_sim`), 단위 테스트는 **`HomeFeature`** (`test_sim` — Dev 스킴에 test action 없음)
+  - simulator: **iPhone 17** (Available destinations 기준)
   - 매퍼·Store 테스트: XcodeBuildMCP `test_sim` (`-only-testing`로 범위 한정 가능)
   - 배선·App 변경 컴파일: 필요 시 `build_sim` (앱 실행은 `build_run_sim` — 수동 요청 시에만)
   - 셸 `xcodebuild test`는 MCP 불가/지속 실패 시에만 fallback
@@ -130,7 +131,7 @@
 | DEBUG 일정 모달 | 브릿지 검증용 vs 아님 | **브릿지 검증 경로 아님** (유지) | 스펙 리뷰 |
 | 실 URL 공개 | 이슈/문서 기재 vs 금지 | **금지** (키 이름만) | 보안 · xcconfig |
 | 검증 도구 | 셸 xcodebuild vs XcodeBuildMCP | **XcodeBuildMCP 우선** (`test_sim` / `build_sim`) | 유저 지정 · LIVD-447 관례 |
-| 검증 scheme | HomeFeature 등 vs 앱 | **`Livith-iOS-Dev`** | 유저 지정 |
+| 검증 scheme | 앱만 vs Feature | **`Livith-iOS-Dev` 빌드 + `HomeFeature` 테스트** | Dev에 test action 없음 |
 
 ## 주의 사항
 - **TDD**: 페이로드 매퍼는 `docs/rules/tdd.md`. WKWebView·delegate·JS 배선은 예외 허용, 최종 보고에 대상·이유 명시.
@@ -146,7 +147,9 @@
 ## 검증 방법
 - 자동화 (**XcodeBuildMCP**)
   1. `tuist generate --no-open` (Swift/설정 변경 시)
-  2. `session_show_defaults` → 필요 시 `session_set_defaults` (scheme **`Livith-iOS-Dev`**, simulator **iPhone 17**)
+  2. `session_show_defaults` → 필요 시 `session_set_defaults`
+     - 빌드: scheme **`Livith-iOS-Dev`**, simulator **iPhone 17** → `build_sim`
+     - 테스트: scheme **`HomeFeature`**, simulator **iPhone 17** → `test_sim` (Dev 스킴에 test action 없음)
   3. 페이로드 매퍼 테스트: `test_sim` 실패→통과 (`id` Int, 특수문자 artist, 빈 days)
   4. 기존 CalendarHomeStore 등 관련 테스트: `test_sim` 회귀
   5. App/배선 컴파일 필요 시 `build_sim` (실행은 수동 요청 시에만 `build_run_sim`)

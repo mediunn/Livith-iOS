@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import DIContainer
 import LivithDesignSystem
 
 struct CalendarHomeContentView: View {
@@ -16,6 +17,7 @@ struct CalendarHomeContentView: View {
 
     @EnvironmentObject private var homeRouter: HomeRouter
     @ObservedObject var store: CalendarHomeStore
+    @Injected private var calendarWebConfig: CalendarWebConfig
 
     @State private var showSelectionBlockedToast = false
     @State private var showDayScheduleLoadFailedToast = false
@@ -24,6 +26,8 @@ struct CalendarHomeContentView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
+            // TODO: WebView·래퍼 ScrollView 스크롤 충돌·높이 문제 해결
+            // (남은 화면 채우기 + pull-to-refresh: VStack+UIRefreshControl 등)
             ScrollView {
                 VStack(spacing: .zero) {
                     if showsFilterBar {
@@ -95,7 +99,13 @@ private extension CalendarHomeContentView {
                 .frame(maxWidth: .infinity)
                 .containerRelativeFrame(.vertical)
         } else {
-            CalendarWebView()
+            CalendarWebView(
+                url: calendarWebConfig.url,
+                calendarMonth: store.state.calendarMonth,
+                onDateSelected: { date in
+                    store.send(.dayScheduleRequested(date: date))
+                }
+            )
                 .frame(minHeight: Layout.webViewMinHeight)
         }
     }

@@ -20,10 +20,12 @@ import SongData
 import UserData
 import PreferenceData
 import CalendarData
+import HomeFeature
 
 extension LivithApp {
     func registerDependency() {
         registerNetworkingClient()
+        registerCalendarWebConfig()
 
         DIContainer.shared.register(
             assemblers: [
@@ -68,5 +70,15 @@ private extension LivithApp {
         )
         DIContainer.shared.register(client, for: NetworkClient.self)
         DIContainer.shared.register(tokenManager, for: TokenManager.self)
+    }
+
+    func registerCalendarWebConfig() {
+        let urlString = Bundle.main.infoDictionary?["CALENDAR_WEB_URL"] as? String
+        let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let url = trimmed.flatMap { value -> URL? in
+            guard !value.isEmpty else { return nil }
+            return URL(string: value)
+        }
+        DIContainer.shared.register(CalendarWebConfig(url: url), for: CalendarWebConfig.self)
     }
 }
