@@ -19,6 +19,7 @@ public struct UserDataAssembler: DependencyAssembler {
     public func assemble(to container: any DependencyContainer) {
         registerPersistence(to: container)
         registerUserRepository(to: container)
+        registerConcertMatchingRepository(to: container)
     }
 }
 
@@ -33,6 +34,14 @@ private extension UserDataAssembler {
         )
         
         container.register(userRepo, for: UserRepository.self)
+    }
+
+    func registerConcertMatchingRepository(to container: any DependencyContainer) {
+        let client = container.resolve(NetworkClient.self)
+        container.register(
+            ConcertMatchingRepositoryImpl(networkClient: client),
+            for: ConcertMatchingRepository.self
+        )
     }
 }
 

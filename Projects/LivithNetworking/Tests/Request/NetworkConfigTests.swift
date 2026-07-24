@@ -14,13 +14,13 @@ import Testing
 
 @Suite("NetworkConfig")
 struct NetworkConfigTests {
-    @Test("baseURL에 /api/v6 prefix가 자동으로 추가되어야 한다")
+    @Test("baseURL에 api 버전 prefix가 자동으로 추가되어야 한다")
     func baseURL에_api_version_prefix가_자동_추가되어야_한다() throws {
         let baseURL = try #require(URL(string: "https://api.livith.com"))
 
         let sut = NetworkConfig(baseURL: baseURL)
 
-        #expect(sut.baseURL == URL(string: "https://api.livith.com/api/v6")!)
+        #expect(sut.baseURL == URL(string: "https://api.livith.com/\(TestAPIVersion.path)")!)
     }
 
     @Test("비동기 요청 흐름에서 전달할 수 있도록 Sendable이어야 한다")

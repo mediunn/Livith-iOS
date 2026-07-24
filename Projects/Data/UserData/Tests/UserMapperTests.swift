@@ -490,6 +490,43 @@ struct UserMapperTests {
         #expect(result.introduction == "무료로 즐기는 버스킹 공연")
         #expect(result.label == nil)
     }
+
+    @Test("명세상 null 허용 필드가 모두 비어도 UpdateUserInterestConcert가 Concert로 변환되어야 한다")
+    func 명세상_null_허용_필드가_모두_비어도_Concert로_변환되어야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "id": 11,
+            "code": null,
+            "title": null,
+            "startDate": null,
+            "endDate": null,
+            "status": "UPCOMING",
+            "poster": null,
+            "artist": "아티스트",
+            "daysLeft": -3,
+            "ticketSite": null,
+            "ticketUrl": null,
+            "venue": null,
+            "introduction": "소개",
+            "label": null
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.UpdateUserInterestConcert.self, from: json)
+
+        // When
+        let result = try #require(sut.toDomain(from: dto))
+
+        // Then
+        #expect(result.id == 11)
+        #expect(result.title == nil)
+        #expect(result.startDate == nil)
+        #expect(result.endDate == nil)
+        #expect(result.posterURL == nil)
+        #expect(result.venue == nil)
+        #expect(result.daysLeft == -3)
+    }
 }
 
 private func dateString(_ date: Date?) -> String? {

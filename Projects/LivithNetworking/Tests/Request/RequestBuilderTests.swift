@@ -22,7 +22,7 @@ struct RequestBuilderTests {
 
         let request = try sut.make(endpoint: endpoint, config: config)
 
-        #expect(request.url?.absoluteString == "https://api.example.com/api/v6/concerts")
+        #expect(request.url?.absoluteString == "https://api.example.com/\(TestAPIVersion.path)/concerts")
     }
 
     @Test("query task는 URL query에 반영해야 한다")
@@ -39,7 +39,7 @@ struct RequestBuilderTests {
         let url = try #require(request.url)
         let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
 
-        #expect(components.path == "/api/v6/search/concerts")
+        #expect(components.path == "/\(TestAPIVersion.path)/search/concerts")
         #expect(components.queryItems == [URLQueryItem(name: "keyword", value: "livith")])
     }
 

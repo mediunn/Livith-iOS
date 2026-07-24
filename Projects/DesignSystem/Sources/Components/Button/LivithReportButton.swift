@@ -24,6 +24,24 @@ public enum LivithReportButtonVariant {
             return .livithColor(.black100)
         }
     }
+
+    var foreground: Color {
+        switch self {
+        case .default:
+            return .livithColor(.black80)
+        case .info:
+            return .livithColor(.black50)
+        }
+    }
+
+    var borderColor: Color {
+        switch self {
+        case .default:
+            return .clear
+        case .info:
+            return .livithColor(.black90)
+        }
+    }
 }
 
 // MARK: - LivithReportButton
@@ -55,7 +73,7 @@ public struct LivithReportButton: View {
             Text(title)
                 .notosans(.caption1Semibold)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 4)
+                .frame(height: 24)
         }
         .buttonStyle(LivithReportButtonStyle(variant: variant))
     }
@@ -71,7 +89,7 @@ private struct LivithReportButtonStyle: ButtonStyle {
             .foregroundStyle(
                 configuration.isPressed
                     ? Color.livithColor(.black50)
-                    : Color.livithColor(.black80)
+                    : variant.foreground
             )
             .background(
                 configuration.isPressed
@@ -79,6 +97,7 @@ private struct LivithReportButtonStyle: ButtonStyle {
                     : Color.livithColor(.black100)
             )
             .clipShape(Capsule())
+            .overlay(Capsule().strokeBorder(variant.borderColor, lineWidth: 1))
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
