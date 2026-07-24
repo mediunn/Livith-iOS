@@ -65,10 +65,10 @@
 - [x] 요청 성공 토스트: 홈 복귀 후 `정보가 요청되었어요` 표시 (FR-06 #9) — `HomeCoordinatorView` `@State` + 기존 `livithToast` 재사용 (순수 화면 연출이라 Store 상태 불필요, 구현 시 조정)
 
 ### 6. 검증 + 마무리
-- [ ] `tuist generate` + 전체 빌드
-- [ ] 변경 모듈 테스트: NotificationData·HomeFeature·ShareFeature(신설 테스트 타깃)·ConcertData
-- [ ] 노션 API 명세서 iOS 연결 상태 갱신(55·60·63·64 → Done) — 각 변경 전 사용자 확인
-- [ ] plan·troubleshooting 문서 `docs/archives/` 이동
+- [x] `tuist generate` + 전체 빌드 (Livith-iOS-Dev BUILD SUCCEEDED)
+- [x] 변경 모듈 테스트: NotificationData(매퍼 5)·HomeFeature(124 전체 통과)·ShareFeature(Store 5) — 모두 통과
+- [x] 노션 API 명세서 iOS 연결 상태 갱신(55·60·63·64 → Done)
+- [x] plan·troubleshooting 문서 `docs/archives/` 이동
 
 ## 영향 범위
 - `Projects/Domain`: `NotificationType`(케이스 추가), `NotificationRepository`·`ConcertRepository`(메서드 추가), `InterestEntryAlert`(신규)
