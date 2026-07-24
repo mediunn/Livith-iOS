@@ -57,6 +57,7 @@ final class InstagramMatchConfirmStore: ObservableObject {
     @Injected private var userRepository: UserRepository
 
     private let sourceURL: URL
+    private var fetchMatchTask: Task<Void, Never>?
 
     // MARK: - Initializer
 
@@ -65,6 +66,10 @@ final class InstagramMatchConfirmStore: ObservableObject {
         self.state = InstagramMatchConfirmState()
 
         performFetchMatchedConcertList()
+    }
+
+    deinit {
+        fetchMatchTask?.cancel()
     }
 
     // MARK: - Public Interface
@@ -132,12 +137,12 @@ private extension InstagramMatchConfirmStore {
         let repository = concertMatchingRepository
         let sourceURL = sourceURL
 
-        Task {
+        fetchMatchTask = Task { [weak self] in
             do {
                 let concertList = try await repository.fetchMatchedConcertList(sourceURL: sourceURL)
-                send(._fetchMatchResult(.success(concertList)))
+                self?.send(._fetchMatchResult(.success(concertList)))
             } catch {
-                send(._fetchMatchResult(.failure(error)))
+                self?.send(._fetchMatchResult(.failure(error)))
             }
         }
     }

@@ -14,6 +14,8 @@ final class MockConcertMatchingRepository: ConcertMatchingRepository {
     var matchedConcertListResultQueue: [Result<[Concert], ConcertMatchingError>] = []
     var fetchMatchedConcertListCallCount: Int = 0
     var fetchMatchedConcertListSourceURLList: [URL] = []
+    var fetchDelayNanoseconds: UInt64 = 0
+    var fetchCancelledCount: Int = 0
 
     func fetchMatchedConcertList(sourceURL: URL) async throws(ConcertMatchingError) -> [Concert] {
         let queuedResult: Result<[Concert], ConcertMatchingError>? = await MainActor.run {
@@ -23,6 +25,15 @@ final class MockConcertMatchingRepository: ConcertMatchingRepository {
             guard !matchedConcertListResultQueue.isEmpty else { return nil }
 
             return matchedConcertListResultQueue.removeFirst()
+        }
+
+        if fetchDelayNanoseconds > 0 {
+            try? await Task.sleep(nanoseconds: fetchDelayNanoseconds)
+
+            if Task.isCancelled {
+                await MainActor.run { fetchCancelledCount += 1 }
+                throw ConcertMatchingError.cancelled
+            }
         }
 
         guard let queuedResult else {

@@ -49,6 +49,23 @@ struct InstagramMatchConfirmStoreTests {
         #expect(!sut.state.shouldNavigateToSearch)
     }
 
+    @Test("추출 요청이 진행 중이어도 Store가 해제되면 요청이 취소되어야 한다")
+    func 추출_요청이_진행_중이어도_Store가_해제되면_요청이_취소되어야_한다() async throws {
+        // Given
+        container.concertMatchingRepository.fetchDelayNanoseconds = 5_000_000_000
+        var sut: InstagramMatchConfirmStore? = InstagramMatchConfirmStore(sourceURL: makeSourceURL())
+        weak var weakStore = sut
+        try await waitForAsyncTask()
+
+        // When
+        sut = nil
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(weakStore == nil)
+        #expect(container.concertMatchingRepository.fetchCancelledCount == 1)
+    }
+
     @Test("매칭 결과가 3개를 넘으면 앞의 3개만 노출해야 한다")
     func 매칭_결과가_3개를_넘으면_앞의_3개만_노출해야_한다() async throws {
         // Given
