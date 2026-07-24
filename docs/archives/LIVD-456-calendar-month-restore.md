@@ -22,7 +22,7 @@
 - [x] 필요 시 Coordinator 단위로 “inject 전 monthChanged 무시”를 검증할 수 있는 순수 헬퍼/플래그 로직 분리 (UIViewRepresentable 직접 테스트 부담을 줄임)
 - [x] 트러블슈팅 기록 (`docs/troubleshooting/LIVD-456-home-calendar-webview.md`)
 - [x] 검증: Store 테스트 + `Livith-iOS-Dev` 빌드
-- [ ] 수동: 8월 → 상세 → 복귀 시 8월 유지 확인
+- [x] 수동: 8월 → 상세 → 복귀 시 8월 유지 확인
 
 ## 영향 범위
 - `Projects/HomeFeature/Sources/Home/Store/CalendarHomeStore.swift`

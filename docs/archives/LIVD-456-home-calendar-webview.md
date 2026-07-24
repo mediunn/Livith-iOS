@@ -20,71 +20,71 @@
 ## 작업 항목
 
 ### 1. URL 설정 · App 주입
-- [ ] `App-Info.plist`에 `CALENDAR_WEB_URL` = `$(CALENDAR_WEB_URL)` 추가
-- [ ] `Tuist/Config/*.xcconfig`에 `CALENDAR_WEB_URL` 키 추가 (실값은 로컬/비공개 설정, 문서·커밋·이슈에 URL 원문 금지)
-- [ ] `CalendarWebConfig` 값 타입 추가 (`url: URL?`)
+- [x] `App-Info.plist`에 `CALENDAR_WEB_URL` = `$(CALENDAR_WEB_URL)` 추가
+- [x] `Tuist/Config/*.xcconfig`에 `CALENDAR_WEB_URL` 키 추가 (실값은 로컬/비공개 설정, 문서·커밋·이슈에 URL 원문 금지)
+- [x] `CalendarWebConfig` 값 타입 추가 (`url: URL?`)
   - App 기동 시 `Bundle.main`에서 읽어 **항상** `DIContainer.register` (`resolve` 미등록 `fatalError` 방지)
   - 없/파싱 실패 → `CalendarWebConfig(url: nil)` — **`fatalError` 금지**
-- [ ] HomeFeature는 `Bundle.main`을 직접 읽지 않는다
+- [x] HomeFeature는 `Bundle.main`을 직접 읽지 않는다
   - URL은 `@Injected` `CalendarWebConfig` 또는 View prop으로만 수신 (둘 중 하나로 통일: **prop 우선** — ContentView가 Config/`url`을 WebView에 전달)
 
 ### 2. Web 계약 페이로드 매핑 (TDD)
-- [ ] `CalendarMonth` → 웹 `setCalendarData`용 JSON 직렬화 (순수 매퍼/인코더)
+- [x] `CalendarMonth` → 웹 `setCalendarData`용 JSON 직렬화 (순수 매퍼/인코더)
   - 스키마: `{ year, month, days: [{ date: "yyyy-MM-dd", events: [{ id, artist, type }] }] }`
   - Domain `dayList`/`eventList`/`concertID` → 웹 `days`/`events`/`id` (**`id`는 Int `concertID`**, `CalendarEventID` 직렬화 금지)
   - `date`: `DateFormatType.dashDate` (`yyyy-MM-dd`)
   - `type`: `CalendarMonthEventType.rawValue` (`CONCERT` | `TICKETING`)
   - `days: []`도 유효 페이로드 (year/month 유지)
-- [ ] 매퍼 단위 테스트
+- [x] 매퍼 단위 테스트
   - 필드명·날짜 문자열·type·빈 days·`id` Int
   - `artist`에 `"`, `\`, 개행 포함 시 **유효 JSON** 출력
 
 ### 3. WebView · 브릿지 배선
-- [ ] `CalendarWebView` + Coordinator 상태
+- [x] `CalendarWebView` + Coordinator 상태
   - `hasLoadedCalendarURL: Bool` — 실 URL load 성공 완료 여부
   - `pendingPayloadJSON: String?` — 최신 월 데이터 JSON (미주입분)
   - inject 조건: **`hasLoadedCalendarURL == true` ∧ `pendingPayloadJSON != nil`**
   - `url == nil` / `about:blank` / 로드 실패 폴백 후에는 **inject 스킵** (`setCalendarData` 미호출)
-- [ ] URL load
+- [x] URL load
   - `makeUIView`(또는 URL 최초 반영 1회): `url != nil`이면 `load(URLRequest)`, 아니면 `about:blank`
   - **`updateUIView`에서 URL `load` 재호출 금지** (SwiftUI가 month/필터마다 update 호출)
   - `calendarMonth` 변경 → pending JSON만 갱신 → inject 조건이면 `setCalendarData`만 재호출
   - 탭 전환 remount(`CalendarHomeContentView` 재생성) 시 WebView가 다시 만들어지므로 **재 load + 재 inject** (정상)
   - `isInitialLoading`으로 ProgressView 교체 시 WebView destroy → 복귀 시 remount와 동일
-- [ ] Navigation
+- [x] Navigation
   - `WKNavigationDelegate.didFinish`: 실 캘린더 URL navigation일 때만 `hasLoadedCalendarURL = true` 후 inject 시도
   - `didFail` / `didFailProvisionalNavigation`: `about:blank` 폴백, `hasLoadedCalendarURL = false`, pending 유지하되 inject 안 함
-- [ ] JS 호출 (웹은 **객체 인자** 계약)
+- [x] JS 호출 (웹은 **객체 인자** 계약)
   - `JSONEncoder`로 payload UTF-8 string 생성
   - `evaluateJavaScript`는 JSON을 **한 번 더 문자열 리터럴로 인코딩**한 뒤 `JSON.parse`로 객체화:
     - `window.setCalendarData(JSON.parse(<jsonStringLiteral>))`
   - 예: payload JSON이 `{"year":2026,...}`이면 JS 쪽은 `JSON.parse("{\"year\":2026,...}")` 형태 (특수문자·따옴표 안전)
-- [ ] `calendarDateSelected` 핸들러
+- [x] `calendarDateSelected` 핸들러
   - weak proxy로 등록 (Coordinator가 자기 자신을 강하게 add하지 않음 — retain cycle 방지)
   - WebView/Coordinator 해제 시 `removeScriptMessageHandler(forName: "calendarDateSelected")`
   - body가 `String`(JSON) 또는 `NSDictionary` 모두 수용 → `date`(`yyyy-MM-dd`) 파싱 → `Date` → 콜백
   - 파싱 실패 시 무시 (모달·토스트 없음)
-- [ ] `CalendarHomeContentView`: `calendarMonth` / URL / `.dayScheduleRequested` 연결
+- [x] `CalendarHomeContentView`: `calendarMonth` / URL / `.dayScheduleRequested` 연결
   - DEBUG 「일정 모달」은 브릿지 E2E 검증 경로가 **아님** (유지, 웹 탭으로 수동 검증)
-- [ ] WKWebView/delegate/메시지 핸들러 배선은 TDD **예외 허용** (`docs/rules/tdd.md` 연결 구간). 페이로드 매퍼는 TDD 유지. Store Intent 변경이 없으면 Store 추가 테스트 강제하지 않음
+- [x] WKWebView/delegate/메시지 핸들러 배선은 TDD **예외 허용** (`docs/rules/tdd.md` 연결 구간). 페이로드 매퍼는 TDD 유지. Store Intent 변경이 없으면 Store 추가 테스트 강제하지 않음
 
 ### 4. Store · Intent (필요 최소)
-- [ ] Web 날짜 탭은 기존 `.dayScheduleRequested(date:)` 재사용 (신규 fetch 경로 만들지 않음)
-- [ ] Store에 WebView 전용 year/month 변경 Intent **추가하지 않음** (월 이동 후속)
-- [ ] 기존 월별 fetch·필터·PTR·날짜별 모달/토스트 회귀 유지
+- [x] Web 날짜 탭은 기존 `.dayScheduleRequested(date:)` 재사용 (신규 fetch 경로 만들지 않음)
+- [x] Store에 WebView 전용 year/month 변경 Intent **추가하지 않음** (월 이동 후속)
+- [x] 기존 월별 fetch·필터·PTR·날짜별 모달/토스트 회귀 유지
 
 ### 5. 검증 · 문서
-- [ ] 페이로드 매퍼 테스트 red → green
-- [ ] 기존 `CalendarHomeStoreTests` 등 회귀 통과
-- [ ] `tuist generate --no-open` (plist/xcconfig/의존·Swift 파일 추가/이동/삭제 시)
-- [ ] **빌드·테스트는 XcodeBuildMCP 우선** (`docs/rules/project-operations.md`와 병행)
+- [x] 페이로드 매퍼 테스트 red → green
+- [x] 기존 `CalendarHomeStoreTests` 등 회귀 통과
+- [x] `tuist generate --no-open` (plist/xcconfig/의존·Swift 파일 추가/이동/삭제 시)
+- [x] **빌드·테스트는 XcodeBuildMCP 우선** (`docs/rules/project-operations.md`와 병행)
   - `session_show_defaults`로 workspace/scheme/simulator 확인 (미설정 시 `session_set_defaults`)
   - scheme: **`Livith-iOS-Dev`** (`build_sim`), 단위 테스트는 **`HomeFeature`** (`test_sim` — Dev 스킴에 test action 없음)
   - simulator: **iPhone 17** (Available destinations 기준)
   - 매퍼·Store 테스트: XcodeBuildMCP `test_sim` (`-only-testing`로 범위 한정 가능)
   - 배선·App 변경 컴파일: 필요 시 `build_sim` (앱 실행은 `build_run_sim` — 수동 요청 시에만)
   - 셸 `xcodebuild test`는 MCP 불가/지속 실패 시에만 fallback
-- [ ] 수동
+- [x] 수동
   - 유효 `CALENDAR_WEB_URL`: 캘린더 그리드 로드
   - URL 없/무효: `about:blank` + 크래시 없음 + **`setCalendarData` 미호출**
   - 유효 URL **로드 실패**(오프라인/잘못된 호스트): blank 폴백 + 크래시 없음 + inject 스킵
@@ -93,8 +93,8 @@
   - **웹 날짜 탭**(DEBUG 버튼 아님) → 모달 (성공 목록 / 0건 엠티 / 실패 토스트)
   - 관심 ↔ 캘린더 전환 후 그리드·날짜 탭 재동작 (remount)
   - (가능하면) `artist`에 `"` 포함 fixture로 그리드 깨짐 없는지
-- [ ] 완료 후 계획·트러블슈팅을 `docs/archives/`로 이동
-- [ ] TDD 예외 사용 시 최종 보고에 대상·이유 명시
+- [x] 완료 후 계획·트러블슈팅을 `docs/archives/`로 이동
+- [x] TDD 예외 사용 시 최종 보고에 대상·이유 명시
 
 ## 영향 범위
 - `Tuist/Config/*.xcconfig` — `CALENDAR_WEB_URL` 키 (값 본문은 응답/문서에 인용 금지)

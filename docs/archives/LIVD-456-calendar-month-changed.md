@@ -40,8 +40,8 @@
 - [x] 파서·Store 테스트 red → green
 - [x] `tuist generate --no-open` (파일 추가 시)
 - [x] `HomeFeature` 테스트 + `Livith-iOS-Dev` 빌드
-- [ ] 수동: 웹 ◀▶ / 오늘 → 월 데이터·점 갱신, 날짜 탭 모달, 동일월 연타 no-op
-- [ ] 기존 LIVD-456 계획·트러블슈팅에 월 변경 반영 후, 이슈 완료 시 함께 `docs/archives/` 이동
+- [x] 수동: 웹 ◀▶ / 오늘 → 월 데이터·점 갱신, 날짜 탭 모달, 동일월 연타 no-op
+- [x] 기존 LIVD-456 계획·트러블슈팅에 월 변경 반영 후, 이슈 완료 시 함께 `docs/archives/` 이동
 
 ## 영향 범위
 - `Projects/HomeFeature/`

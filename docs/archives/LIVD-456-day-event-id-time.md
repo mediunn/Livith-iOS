@@ -15,7 +15,7 @@
 - [x] Mapper 테스트: 동일 id CONCERT 두 시각 + 다른 콘서트 → eventList.count == 3
 - [x] 기존 CalendarEventID/DayEvent 생성부·테스트 컴파일 맞춤
 - [x] 검증: Domain/CalendarData 관련 테스트 + Dev 빌드
-- [ ] 수동: 7/26 모달에 12:20·17:00·18:00 세 행
+- [x] 수동: 7/26 모달에 12:20·17:00·18:00 세 행
 
 ## 영향 범위
 - `Projects/Domain/Sources/Entity/Calendar/CalendarEvent.swift`
