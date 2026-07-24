@@ -17,7 +17,16 @@ import LivithDesignSystem
 final class DeepLinkService {
     static let shared = DeepLinkService()
 
+    @MainActor private var pendingInstagramURL: URL?
+
     private init() {}
+
+    @MainActor
+    func consumePendingInstagramURL() -> URL? {
+        defer { pendingInstagramURL = nil }
+
+        return pendingInstagramURL
+    }
 
     @MainActor
     func handle(url: URL) {
@@ -89,17 +98,39 @@ final class DeepLinkService {
 // MARK: - Deep Link Handling
 
 private extension DeepLinkService {
+    @MainActor
     func handleDeepLink(_ url: URL) {
         guard let host = url.host else { return }
 
         switch host {
         case "concert":
             handleConcertDeepLink(url)
+        case "instagram":
+            handleInstagramDeepLink(url)
         case "home":
             break
         default:
             break
         }
+    }
+
+    @MainActor
+    func handleInstagramDeepLink(_ url: URL) {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let sourceURLString = components.queryItems?.first(where: { $0.name == "url" })?.value,
+              let sourceURL = URL(string: sourceURLString)
+        else {
+            return
+        }
+
+        // 콜드 런치 시 메인 탭이 아직 구독 전이라 알림이 유실되므로, 탭 진입 시 소비하도록 보관한다
+        pendingInstagramURL = sourceURL
+
+        NotificationCenter.default.post(
+            name: .openInstagramMatch,
+            object: nil,
+            userInfo: ["sourceURL": sourceURL]
+        )
     }
 
     func handleConcertDeepLink(_ url: URL) {
@@ -160,4 +191,5 @@ private extension DeepLinkService {
 public extension Notification.Name {
     static let openConcertDetail = Notification.Name("openConcertDetail")
     static let openInterestConcert = Notification.Name("openInterestConcert")
+    static let openInstagramMatch = Notification.Name("openInstagramMatch")
 }

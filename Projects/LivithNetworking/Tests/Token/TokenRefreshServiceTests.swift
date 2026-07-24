@@ -44,7 +44,7 @@ struct TokenRefreshServiceTests {
         let body = try JSONDecoder().decode(RefreshRequestBody.self, from: try #require(request.httpBody))
 
         #expect(request.httpMethod == "POST")
-        #expect(components.path == "/api/v6/auth/refresh")
+        #expect(components.path == "/\(TestAPIVersion.path)/auth/refresh")
         #expect(components.queryItems == [URLQueryItem(name: "client", value: "mobile")])
         #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
         #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")

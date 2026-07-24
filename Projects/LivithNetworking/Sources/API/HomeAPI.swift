@@ -50,9 +50,9 @@ public enum HomeAPI {
 
     public static func updateInterestedConcert(concertID: Int) -> NetworkEndpoint {
         NetworkEndpoint(
-            path: "/users/interest-concert",
+            path: "/users/interest-concert/\(concertID)",
             method: .post,
-            task: .body(DTO.Request.UpdateUserInterestConcert(concertID: concertID)),
+            task: .plain,
             authentication: .required
         )
     }
