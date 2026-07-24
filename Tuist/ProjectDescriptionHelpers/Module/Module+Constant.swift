@@ -77,6 +77,7 @@ public enum SongModule: String {
 
 public enum ShareModule: String {
     case shareFeature = "ShareFeature"
+    case shareFeatureTests = "ShareFeatureTests"
 }
 
 // MARK: - Widget Module

@@ -168,6 +168,26 @@ struct ConcertRepositoryImpl: ConcertRepository {
             throw errorMapper.mapToConcertError(error)
         }
     }
+
+    func requestConcert(
+        title: String,
+        url: String?,
+        autoRegister: Bool,
+        requestContent: String?
+    ) async throws(ConcertError) {
+        do {
+            try await networkClient.request(
+                ConcertAPI.requestConcert(
+                    title: title,
+                    url: url,
+                    autoRegister: autoRegister,
+                    requestContent: requestContent
+                )
+            )
+        } catch {
+            throw errorMapper.mapToConcertError(error)
+        }
+    }
 }
 
 // MARK: - Helpers

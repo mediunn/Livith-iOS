@@ -79,8 +79,8 @@ public enum TargetID {
             return homeSourcePath(module)
         case .user:
             return ["Sources/**"]
-        case .share:
-            return ["Sources/**"]
+        case .share(let module):
+            return shareSourcePath(module)
         case .widget:
             return ["Sources/**"]
         case .domain:
@@ -168,6 +168,15 @@ private extension TargetID {
         case .homeFeature:
             return ["Sources/**"]
         case .homeFeatureTests:
+            return ["Tests/**"]
+        }
+    }
+
+    func shareSourcePath(_ module: ShareModule) -> SourceFilesList {
+        switch module {
+        case .shareFeature:
+            return ["Sources/**"]
+        case .shareFeatureTests:
             return ["Tests/**"]
         }
     }

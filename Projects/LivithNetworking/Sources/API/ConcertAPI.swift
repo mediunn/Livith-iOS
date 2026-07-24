@@ -71,4 +71,23 @@ public enum ConcertAPI {
             authentication: .none
         )
     }
+
+    public static func requestConcert(
+        title: String,
+        url: String?,
+        autoRegister: Bool,
+        requestContent: String?
+    ) -> NetworkEndpoint {
+        NetworkEndpoint(
+            path: "/concerts/requests",
+            method: .post,
+            task: .body(DTO.Request.RequestConcert(
+                title: title,
+                url: url,
+                autoRegister: autoRegister,
+                requestContent: requestContent
+            )),
+            authentication: .required
+        )
+    }
 }

@@ -155,4 +155,15 @@ final class MockConcertRepository: ConcertRepository {
         }
         return recommendedConcertListStub
     }
+
+    func requestConcert(
+        title: String,
+        url: String?,
+        autoRegister: Bool,
+        requestContent: String?
+    ) async throws(ConcertError) {
+        if let error = errorStub {
+            throw error
+        }
+    }
 }
