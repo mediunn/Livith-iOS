@@ -1,5 +1,5 @@
 //
-//  InstagramMatchSearchStoreTests.swift
+//  InstagramManualSearchStoreTests.swift
 //  HomeFeatureTests
 //
 //  Created by youz2me on 7/8/26.
@@ -15,7 +15,7 @@ import DIContainer
 import Domain
 
 @MainActor
-struct InstagramMatchSearchStoreTests {
+struct InstagramManualSearchStoreTests {
 
     // MARK: - Properties
 
@@ -38,7 +38,7 @@ struct InstagramMatchSearchStoreTests {
         ]
 
         // When
-        let sut = InstagramMatchSearchStore(context: .matchFailed)
+        let sut = InstagramManualSearchStore(context: .matchFailed)
         try await waitForAsyncTask()
 
         // Then
@@ -197,12 +197,12 @@ struct InstagramMatchSearchStoreTests {
 
 // MARK: - Helpers
 
-private extension InstagramMatchSearchStoreTests {
-    func makeLoadedStore(concertIDList: [Int]) async throws -> InstagramMatchSearchStore {
+private extension InstagramManualSearchStoreTests {
+    func makeLoadedStore(concertIDList: [Int]) async throws -> InstagramManualSearchStore {
         container.concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList(concertIDList), nextToken: nil))
         ]
-        let store = InstagramMatchSearchStore(context: .matchFailed)
+        let store = InstagramManualSearchStore(context: .matchFailed)
         try await waitForAsyncTask()
         return store
     }

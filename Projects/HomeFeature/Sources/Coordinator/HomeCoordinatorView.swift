@@ -127,8 +127,8 @@ public struct HomeCoordinatorView: View {
             )
         case .instagramMatchConfirm(let sourceURL):
             InstagramMatchConfirmView(sourceURL: sourceURL)
-        case .instagramMatchSearch(let context):
-            InstagramMatchSearchView(context: context)
+        case .instagramManualSearch(let context):
+            InstagramManualSearchView(context: context)
         }
     }
 }

@@ -1,5 +1,5 @@
 //
-//  InstagramMatchSearchView.swift
+//  InstagramManualSearchView.swift
 //  HomeFeature
 //
 //  Created by youz2me on 7/8/26.
@@ -11,20 +11,20 @@ import SwiftUI
 import Domain
 import LivithDesignSystem
 
-struct InstagramMatchSearchView: View {
+struct InstagramManualSearchView: View {
 
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @StateObject private var store: InstagramMatchSearchStore
+    @StateObject private var store: InstagramManualSearchStore
     @State private var showErrorToast: Bool = false
     @State private var showSuccessToast: Bool = false
 
     // MARK: - Initializer
 
-    init(context: InstagramMatchSearchContext) {
+    init(context: InstagramManualSearchContext) {
         _store = StateObject(
-            wrappedValue: InstagramMatchSearchStore(context: context)
+            wrappedValue: InstagramManualSearchStore(context: context)
         )
     }
 
@@ -98,7 +98,7 @@ struct InstagramMatchSearchView: View {
 
 // MARK: - UIComponents
 
-private extension InstagramMatchSearchView {
+private extension InstagramManualSearchView {
     var navigationBar: some View {
         HStack(spacing: .zero) {
             if store.state.context == .manualSearch {
@@ -263,7 +263,7 @@ private struct TooltipArrowShape: Shape {
 
 // MARK: - Helpers
 
-private extension InstagramMatchSearchView {
+private extension InstagramManualSearchView {
     var selectedConcertIDList: [Int] {
         guard let selectedConcertID = store.state.selectedConcertID else { return [] }
 
@@ -294,7 +294,7 @@ private extension InstagramMatchSearchView {
 
 // MARK: - Constants
 
-private extension InstagramMatchSearchView {
+private extension InstagramManualSearchView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
         static let navigationBarHeight: CGFloat = 66

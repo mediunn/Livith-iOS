@@ -94,7 +94,7 @@ struct InstagramMatchConfirmView: View {
         .onChange(of: store.state.shouldNavigateToSearch) { _, shouldNavigate in
             if shouldNavigate {
                 homeRouter.pop()
-                homeRouter.push(.instagramMatchSearch(context: .matchFailed))
+                homeRouter.push(.instagramManualSearch(context: .matchFailed))
             }
         }
     }
@@ -162,7 +162,7 @@ private extension InstagramMatchConfirmView {
 
     var searchDirectlyButton: some View {
         Button {
-            homeRouter.push(.instagramMatchSearch(context: .manualSearch))
+            homeRouter.push(.instagramManualSearch(context: .manualSearch))
         } label: {
             VStack(spacing: 6) {
                 Text(Literals.searchDirectlyTitle)

@@ -1,5 +1,5 @@
 //
-//  InstagramMatchSearchStore.swift
+//  InstagramManualSearchStore.swift
 //  HomeFeature
 //
 //  Created by youz2me on 7/8/26.
@@ -14,8 +14,8 @@ import Domain
 
 // MARK: - State
 
-struct InstagramMatchSearchState {
-    let context: InstagramMatchSearchContext
+struct InstagramManualSearchState {
+    let context: InstagramManualSearchContext
     var displayedConcertList: [Concert] = []
     var searchText: String = ""
     var isSearchFocused: Bool = false
@@ -35,7 +35,7 @@ struct InstagramMatchSearchState {
     }
 }
 
-enum InstagramMatchSearchContext: Hashable {
+enum InstagramManualSearchContext: Hashable {
     case matchFailed
     case manualSearch
 
@@ -51,7 +51,7 @@ enum InstagramMatchSearchContext: Hashable {
 
 // MARK: - Intent
 
-enum InstagramMatchSearchIntent {
+enum InstagramManualSearchIntent {
     case updateSearchText(String)
     case clearSearchText
     case setSearchFocused(Bool)
@@ -72,11 +72,11 @@ enum InstagramMatchSearchIntent {
 // MARK: - Store
 
 @MainActor
-final class InstagramMatchSearchStore: ObservableObject {
+final class InstagramManualSearchStore: ObservableObject {
 
     // MARK: - Properties
 
-    @Published private(set) var state: InstagramMatchSearchState
+    @Published private(set) var state: InstagramManualSearchState
 
     @Injected private var concertRepository: ConcertRepository
     @Injected private var searchRepository: SearchRepository
@@ -91,19 +91,19 @@ final class InstagramMatchSearchStore: ObservableObject {
 
     // MARK: - Initializer
 
-    init(context: InstagramMatchSearchContext) {
+    init(context: InstagramManualSearchContext) {
         self.baseConcertList = []
         self.concertByID = [:]
         self.baseNextToken = nil
         self.searchCursor = nil
-        self.state = InstagramMatchSearchState(context: context)
+        self.state = InstagramManualSearchState(context: context)
 
         performFetchFirstPage()
     }
 
     // MARK: - Public Interface
 
-    func send(_ intent: InstagramMatchSearchIntent) {
+    func send(_ intent: InstagramManualSearchIntent) {
         switch intent {
         case .updateSearchText(let text):
             state.searchText = text
@@ -227,7 +227,7 @@ final class InstagramMatchSearchStore: ObservableObject {
 
 // MARK: - Helpers
 
-private extension InstagramMatchSearchStore {
+private extension InstagramManualSearchStore {
     func performFetchFirstPage() {
         let repository = concertRepository
 
@@ -361,7 +361,7 @@ private extension InstagramMatchSearchStore {
     }
 }
 
-private extension InstagramMatchSearchStore {
+private extension InstagramManualSearchStore {
     enum Constants {
         static let pageSize = 12
         static let searchDebounceDuration: Duration = .milliseconds(300)
