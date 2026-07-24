@@ -2,6 +2,23 @@
 
 ## 기록
 
+### 2026-07-23 - PR #291 리뷰 반영 (버그성 3건)
+
+**상황**
+- 리뷰어가 Approve와 함께 버그성 지적 3건을 남겼다.
+
+**문제**
+- ① Share Extension이 `UIApplication.open`(비동기) 직후 `finish()`를 호출해 익스텐션 조기 종료 시 딥링크가 간헐 유실될 수 있음. ② `InstagramMatchConfirmStore`가 추출 요청 Task를 보관·취소하지 않고 Task가 self를 강참조해 화면 이탈 후에도 Store가 살아 있음. ③ 다음 페이지 로딩 중 검색어를 지우면 `cancelSearchTasks()`가 `isLoadingMore`를 리셋하지 않아 true로 고착.
+
+**해결**
+- ①은 `open`의 completionHandler에서 `finish()` 호출로 변경(UIApplication 미발견 시 즉시 완료). ②는 red 테스트(Store 해제·취소 전파 검증) 후 `fetchMatchTask` 보관 + `[weak self]` + `deinit` 취소로 수정. ③은 red 재현 테스트 후 `cancelSearchTasks()`에 `isLoadingMore = false` 추가. 신규 테스트 2건 포함 HomeFeature 123/123, 앱(Share Extension 포함) 빌드 통과.
+- ①은 시스템 API 배선이라 TDD 예외 적용(자동화 테스트 불가 구간).
+
+**교훈**
+- 비동기 시스템 콜백 직후의 종료 처리(completeRequest 등)는 completion 시점으로 미룬다. fire-and-forget Task는 보관·취소와 weak 캡처를 기본값으로 한다.
+
+---
+
 ### 2026-07-22 - 등록하기 버튼 로딩 프로그레스 제거 피드백
 
 **상황**
