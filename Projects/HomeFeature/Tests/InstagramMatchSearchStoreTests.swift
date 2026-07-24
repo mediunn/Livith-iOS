@@ -84,6 +84,25 @@ struct InstagramMatchSearchStoreTests {
         #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
     }
 
+    @Test("다음 페이지 로딩 중 검색어를 지우면 로딩 상태가 해제되어야 한다")
+    func 다음_페이지_로딩_중_검색어를_지우면_로딩_상태가_해제되어야_한다() async throws {
+        // Given
+        let sut = try await makeLoadedStore(concertIDList: [1, 2])
+        container.searchRepository.searchResultQueue = [
+            .success(SearchResult(concerts: makeConcertList([5]), cursor: 5, totalCount: 2))
+        ]
+        sut.send(.updateSearchText("원 오크 록"))
+        try await waitForDebounceTask()
+        container.searchRepository.fetchFilterSearchResultDelayQueue = [1_000_000_000]
+        sut.send(.loadNextPage)
+
+        // When
+        sut.send(.clearSearchText)
+
+        // Then
+        #expect(!sut.state.isLoadingMore)
+    }
+
     @Test("콘서트는 한 개만 선택되어야 한다")
     func 콘서트는_한_개만_선택되어야_한다() async throws {
         // Given

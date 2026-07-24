@@ -352,6 +352,7 @@ private extension InstagramMatchSearchStore {
         searchFetchTask = nil
         searchCursor = nil
         state.isSearchLoading = false
+        state.isLoadingMore = false
     }
 
     func restoreBaseConcertList() {
