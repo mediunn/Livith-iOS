@@ -11,6 +11,7 @@ import SwiftUI
 import ConcertFeature
 import Coordinator
 import LivithDesignSystem
+import ShareFeature
 import UserFeature
 
 // MARK: - HomeRouter
@@ -24,6 +25,8 @@ public struct HomeCoordinatorView: View {
     // MARK: - Property
 
     @StateObject private var router: HomeRouter
+
+    @State private var showConcertRequestSuccessToast: Bool = false
 
     @Binding private var deepLinkConcertID: Int?
     @Binding private var deepLinkInitialTab: SegmentedTabBarType.DetailTab
@@ -60,6 +63,11 @@ public struct HomeCoordinatorView: View {
         }
         .environmentObject(router)
         .ignoresSafeArea()
+        .livithToast(
+            isPresented: $showConcertRequestSuccessToast,
+            type: .success,
+            message: Literals.concertRequestSuccessToast
+        )
         .onChange(of: deepLinkConcertID) { newValue in
             if let concertID = newValue {
                 router.popToRoot()
@@ -129,6 +137,22 @@ public struct HomeCoordinatorView: View {
             InstagramMatchConfirmView(sourceURL: sourceURL)
         case .instagramManualSearch(let context):
             InstagramManualSearchView(context: context)
+        case .concertRequest:
+            ConcertRequestView(
+                onDismiss: { router.pop() },
+                onRequestSuccess: {
+                    router.popToRoot()
+                    showConcertRequestSuccessToast = true
+                }
+            )
         }
+    }
+}
+
+// MARK: - Literals
+
+private extension HomeCoordinatorView {
+    enum Literals {
+        static let concertRequestSuccessToast = "정보가 요청되었어요"
     }
 }

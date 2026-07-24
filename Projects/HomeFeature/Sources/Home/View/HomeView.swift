@@ -60,8 +60,18 @@ struct HomeView: View {
                     content: content,
                     sheetHeight: $interestResultSheetHeight,
                     onConfirm: { store.send(.onInterestResultSheetDismiss) },
-                    onCheckTap: {},
-                    onRetryTap: {}
+                    onCheckTap: { concertID in
+                        store.send(.onInterestResultSheetDismiss)
+                        homeRouter.push(.concertDetail(
+                            concertID: concertID,
+                            initialTab: .artistDetail,
+                            initialSection: nil
+                        ))
+                    },
+                    onRetryTap: {
+                        store.send(.onInterestResultSheetDismiss)
+                        homeRouter.push(.concertRequest)
+                    }
                 )
             }
         }

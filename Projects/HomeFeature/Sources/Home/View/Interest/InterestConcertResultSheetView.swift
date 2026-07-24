@@ -17,7 +17,7 @@ struct InterestConcertResultSheetView: View {
     let content: InterestConcertResultSheetContent
     @Binding var sheetHeight: CGFloat
     let onConfirm: () -> Void
-    let onCheckTap: () -> Void
+    let onCheckTap: (Int) -> Void
     let onRetryTap: () -> Void
 
     @State private var scrollContentHeight: CGFloat = 0
@@ -172,7 +172,9 @@ private extension InterestConcertResultSheetView {
             Button {
                 switch item.outcome {
                 case .added:
-                    onCheckTap()
+                    if let concertID = item.concertID {
+                        onCheckTap(concertID)
+                    }
                 case .failed:
                     onRetryTap()
                 }
