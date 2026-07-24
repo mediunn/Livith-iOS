@@ -104,6 +104,9 @@ private extension CalendarHomeContentView {
                 contentHeight: $webViewContentHeight,
                 onDateSelected: { date in
                     store.send(.dayScheduleRequested(date: date))
+                },
+                onMonthChanged: { year, month in
+                    store.send(.monthChanged(year: year, month: month))
                 }
             )
             .frame(height: webViewContentHeight)

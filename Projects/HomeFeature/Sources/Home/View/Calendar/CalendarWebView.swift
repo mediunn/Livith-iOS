@@ -20,17 +20,19 @@ struct CalendarWebView: UIViewRepresentable {
     let calendarMonth: CalendarMonth?
     @Binding var contentHeight: CGFloat
     let onDateSelected: (Date) -> Void
+    let onMonthChanged: (Int, Int) -> Void
 
     // MARK: - UIViewRepresentable
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onDateSelected: onDateSelected)
+        Coordinator(onDateSelected: onDateSelected, onMonthChanged: onMonthChanged)
     }
 
     func makeUIView(context: Context) -> WKWebView {
         let userContentController = WKUserContentController()
         let proxy = WeakScriptMessageHandlerProxy(target: context.coordinator)
         userContentController.add(proxy, name: Constants.dateSelectedHandlerName)
+        userContentController.add(proxy, name: Constants.monthChangedHandlerName)
         userContentController.addUserScript(
             WKUserScript(
                 source: Constants.unlockViewportHeightScript,
@@ -67,6 +69,7 @@ struct CalendarWebView: UIViewRepresentable {
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
         context.coordinator.onDateSelected = onDateSelected
+        context.coordinator.onMonthChanged = onMonthChanged
         context.coordinator.bindContentHeight($contentHeight)
         context.coordinator.updatePendingPayload(from: calendarMonth)
         context.coordinator.reloadCalendarURLIfNeeded(into: uiView)
@@ -74,8 +77,9 @@ struct CalendarWebView: UIViewRepresentable {
     }
 
     static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
-        uiView.configuration.userContentController
-            .removeScriptMessageHandler(forName: Constants.dateSelectedHandlerName)
+        let userContentController = uiView.configuration.userContentController
+        userContentController.removeScriptMessageHandler(forName: Constants.dateSelectedHandlerName)
+        userContentController.removeScriptMessageHandler(forName: Constants.monthChangedHandlerName)
     }
 }
 
@@ -84,6 +88,7 @@ struct CalendarWebView: UIViewRepresentable {
 extension CalendarWebView {
     final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         var onDateSelected: (Date) -> Void
+        var onMonthChanged: (Int, Int) -> Void
         var calendarURL: URL?
         var hasLoadedCalendarURL = false
         var pendingPayloadJSON: String?
@@ -93,8 +98,12 @@ extension CalendarWebView {
         private var contentHeightMeasureGeneration = 0
         private var lastReloadAttemptDate: Date?
 
-        init(onDateSelected: @escaping (Date) -> Void) {
+        init(
+            onDateSelected: @escaping (Date) -> Void,
+            onMonthChanged: @escaping (Int, Int) -> Void
+        ) {
             self.onDateSelected = onDateSelected
+            self.onMonthChanged = onMonthChanged
         }
 
         func bindContentHeight(_ binding: Binding<CGFloat>) {
@@ -182,14 +191,25 @@ extension CalendarWebView {
             _ userContentController: WKUserContentController,
             didReceive message: WKScriptMessage
         ) {
-            guard message.name == Constants.dateSelectedHandlerName,
-                  let date = CalendarDateSelectedMessageParser.date(from: message.body)
-            else {
-                return
-            }
+            switch message.name {
+            case Constants.dateSelectedHandlerName:
+                guard let date = CalendarDateSelectedMessageParser.date(from: message.body) else {
+                    return
+                }
+                Task { @MainActor in
+                    onDateSelected(date)
+                }
 
-            Task { @MainActor in
-                onDateSelected(date)
+            case Constants.monthChangedHandlerName:
+                guard let yearMonth = CalendarMonthChangedMessageParser.yearMonth(from: message.body) else {
+                    return
+                }
+                Task { @MainActor in
+                    onMonthChanged(yearMonth.year, yearMonth.month)
+                }
+
+            default:
+                return
             }
         }
     }
@@ -273,6 +293,7 @@ fileprivate final class WeakScriptMessageHandlerProxy: NSObject, WKScriptMessage
 private enum Constants {
     static let blankURL = URL(string: "about:blank")
     static let dateSelectedHandlerName = "calendarDateSelected"
+    static let monthChangedHandlerName = "calendarMonthChanged"
     static let reloadCooldownInterval: TimeInterval = 2
     static let contentHeightMeasureDelayList: [TimeInterval] = [0.25, 0.5]
     static let unlockViewportHeightScript = """

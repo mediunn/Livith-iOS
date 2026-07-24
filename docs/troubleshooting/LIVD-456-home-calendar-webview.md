@@ -2,6 +2,25 @@
 
 ## 기록
 
+### 2026-07-24 - calendarMonthChanged 월 변경 브릿지
+
+**상황**
+- 웹이 `calendarMonthChanged` + `{year, month}` 계약을 제공.
+
+**문제**
+- iOS `selectedYear`/`selectedMonth`가 웹 월 이동과 동기화되지 않음.
+
+**원인**
+- 초기 LIVD-456 범위에서 월 이동 브릿지 비범위.
+
+**해결**
+- 파서 + `monthChanged` Intent(모달 닫기·일자 fetch 취소·월 fetch). 실패는 기존 `isLoadFailed` 엠티뷰. WebView 핸들러 등록.
+
+**교훈**
+- 월/일자 비동기 요청은 requestID·Task 취소로 레이스를 끊는다.
+
+---
+
 ### 2026-07-24 - WebView 높이 (maxBottom)
 
 **상황**
