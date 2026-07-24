@@ -391,11 +391,11 @@ struct HomeStoreTests {
 
     // MARK: - InterestConcertResultSheet 테스트
 
-    @Test("섹션 로드 CancellationError는 결과 시트 정책 조회 예약을 소진하지 않아야 한다")
-    func testSectionLoadCancellationDoesNotConsumeInterestResultPolicyFetch() async throws {
-        // Given: 초기 섹션 로드가 진행 중이라 정책 조회가 예약된 상태
+    @Test("섹션 로드 CancellationError는 결과 알림 조회 예약을 소진하지 않아야 한다")
+    func testSectionLoadCancellationDoesNotConsumeEntryAlertsFetch() async throws {
+        // Given: 초기 섹션 로드가 진행 중이라 결과 알림 조회가 예약된 상태
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
-        container.userRepository.interestConcertCleanupPolicyStub = .completed
+        container.notificationRepository.entryAlertsStub = [makeEntryAlert(kind: .autoRemovedCompleted)]
         container.notificationRepository.unreadNotificationCountStub = 1
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
         container.concertRepository.fetchHomeConcertSectionListDelay = 5_000_000_000
@@ -405,7 +405,7 @@ struct HomeStoreTests {
         sut.send(.interestAppear)
         try await Task.sleep(nanoseconds: 50_000_000)
         #expect(sut.state.isSectionLoading)
-        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
+        #expect(container.notificationRepository.fetchEntryAlertsCallCount == 0)
 
         // When: 취소된 섹션 Task가 failure를 보내고, 이어서 성공 결과가 도착한다
         sut.send(._sectionLoadResult(.failure(CancellationError())))
@@ -415,18 +415,19 @@ struct HomeStoreTests {
         ))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        // Then: 취소 failure에 예약이 소진되지 않아 성공 로드 후 정책을 조회한다
-        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
+        // Then: 취소 failure에 예약이 소진되지 않아 성공 로드 후 결과 알림을 조회한다
+        #expect(container.notificationRepository.fetchEntryAlertsCallCount == 1)
         #expect(sut.state.shouldShowInterestResultSheet)
         #expect(sut.state.concertSectionList.count == 1)
     }
 
-    @Test("homeAppear·interestAppear 시 관심 콘서트 결과 노출이 필요하면 시트를 띄우고 dismiss 전에는 mark하지 않아야 한다")
-    func testOnAppearShowsInterestResultSheetWithoutMarkingUntilDismiss() async throws {
+    @Test("homeAppear·interestAppear 시 결과 알림이 있으면 시트를 띄우고 별도 mark는 호출하지 않아야 한다")
+    func testOnAppearShowsInterestResultSheetWithoutMarking() async throws {
         // Given
+        let alerts = [makeEntryAlert(kind: .requestRegistered, concertID: 55)]
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
-        container.userRepository.interestConcertCleanupPolicyStub = .completed
+        container.notificationRepository.entryAlertsStub = alerts
         container.notificationRepository.unreadNotificationCountStub = 3
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
 
@@ -438,38 +439,34 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
-        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
+        #expect(container.notificationRepository.fetchEntryAlertsCallCount == 1)
         #expect(sut.state.shouldShowInterestResultSheet)
-        #expect(sut.state.interestResultSheetContent == .stub)
+        #expect(sut.state.interestResultSheetContent == InterestConcertResultSheetContent(alerts: alerts))
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("관심 콘서트 정리 정책이 none이 아니면 stub 시트를 띄워야 한다")
-    func testInterestConcertCleanupPolicyShowsStubSheetWhenNeeded() async throws {
+    @Test("결과 알림 항목이 있으면 서버 카피로 시트 콘텐츠를 구성해야 한다")
+    func testEntryAlertsResultShowsSheetWithServerContent() async throws {
         // Given
+        let alerts = [
+            makeEntryAlert(kind: .autoRemovedCompleted),
+            makeEntryAlert(kind: .requestFailed)
+        ]
         let sut = HomeStore()
 
-        // When & Then
-        sut.send(._interestResultPolicyResult(.success(.canceled)))
-        #expect(sut.state.shouldShowInterestResultSheet)
-        #expect(sut.state.interestResultSheetContent == .stub)
+        // When
+        sut.send(._entryAlertsResult(.success(alerts)))
 
-        sut.send(.onInterestResultSheetDismiss)
-        sut.send(._interestResultPolicyResult(.success(.completed)))
+        // Then
         #expect(sut.state.shouldShowInterestResultSheet)
-        #expect(sut.state.interestResultSheetContent == .stub)
-
-        sut.send(.onInterestResultSheetDismiss)
-        sut.send(._interestResultPolicyResult(.success(.both)))
-        #expect(sut.state.shouldShowInterestResultSheet)
-        #expect(sut.state.interestResultSheetContent == .stub)
+        #expect(sut.state.interestResultSheetContent == InterestConcertResultSheetContent(alerts: alerts))
     }
 
-    @Test("homeAppear·interestAppear 시 관심 콘서트 결과 노출이 필요하지 않으면 시트를 띄우지 않아야 한다")
-    func testOnAppearSkipsInterestResultSheetWhenNotNeeded() async throws {
+    @Test("결과 알림이 비어 있으면 시트를 띄우지 않아야 한다")
+    func testOnAppearSkipsInterestResultSheetWhenNoAlerts() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
-        container.userRepository.interestConcertCleanupPolicyStub = .none
+        container.notificationRepository.entryAlertsStub = []
         container.notificationRepository.unreadNotificationCountStub = 3
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
 
@@ -481,18 +478,19 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
-        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
+        #expect(container.notificationRepository.fetchEntryAlertsCallCount == 1)
         #expect(!sut.state.shouldShowInterestResultSheet)
         #expect(sut.state.interestResultSheetContent == nil)
         #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("홈 섹션 데이터 반영 전에는 관심 콘서트 결과 정책을 조회하지 않아야 한다")
-    func testInterestResultPolicyIsFetchedAfterHomeSectionDataIsLoaded() async throws {
+    @Test("홈 섹션 데이터 반영 전에는 결과 알림을 조회하지 않아야 한다")
+    func testEntryAlertsAreFetchedAfterHomeSectionDataIsLoaded() async throws {
         // Given
+        let alerts = [makeEntryAlert(kind: .autoRemovedCompleted)]
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
-        container.userRepository.interestConcertCleanupPolicyStub = .completed
+        container.notificationRepository.entryAlertsStub = alerts
         container.notificationRepository.unreadNotificationCountStub = 3
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
         container.concertRepository.fetchHomeConcertSectionListDelay = 300_000_000
@@ -507,25 +505,23 @@ struct HomeStoreTests {
         // Then
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(sut.state.concertSectionList.isEmpty)
-        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
+        #expect(container.notificationRepository.fetchEntryAlertsCallCount == 0)
         #expect(!sut.state.shouldShowInterestResultSheet)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
 
         try await Task.sleep(nanoseconds: 300_000_000)
 
         #expect(sut.state.concertSectionList.count == 1)
-        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 1)
+        #expect(container.notificationRepository.fetchEntryAlertsCallCount == 1)
         #expect(sut.state.shouldShowInterestResultSheet)
-        #expect(sut.state.interestResultSheetContent == .stub)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
+        #expect(sut.state.interestResultSheetContent == InterestConcertResultSheetContent(alerts: alerts))
     }
 
-    @Test("홈 섹션 데이터 조회가 실패하면 관심 콘서트 결과 정책을 조회하지 않아야 한다")
-    func testInterestResultPolicyIsNotFetchedWhenHomeSectionDataFails() async throws {
+    @Test("홈 섹션 데이터 조회가 실패하면 결과 알림을 조회하지 않아야 한다")
+    func testEntryAlertsAreNotFetchedWhenHomeSectionDataFails() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
-        container.userRepository.interestConcertCleanupPolicyStub = .completed
+        container.notificationRepository.entryAlertsStub = [makeEntryAlert(kind: .autoRemovedCompleted)]
         container.notificationRepository.unreadNotificationCountStub = 3
         container.concertRepository.errorStub = .serverError
 
@@ -538,16 +534,15 @@ struct HomeStoreTests {
 
         // Then
         #expect(!sut.state.errorMessage.isEmpty)
-        #expect(container.userRepository.fetchInterestConcertCleanupPolicyCallCount == 0)
+        #expect(container.notificationRepository.fetchEntryAlertsCallCount == 0)
         #expect(!sut.state.shouldShowInterestResultSheet)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("관심 콘서트 결과 정책 조회 실패는 홈 초기 로딩과 오류 메시지로 전파하지 않아야 한다")
-    func testInterestResultPolicyFetchFailureDoesNotFailInitialHomeData() async throws {
+    @Test("결과 알림 조회 실패는 홈 초기 로딩과 오류 메시지로 전파하지 않아야 한다")
+    func testEntryAlertsFetchFailureDoesNotFailInitialHomeData() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
-        container.userRepository.fetchInterestConcertToastErrorStub = .serverError
+        container.notificationRepository.fetchEntryAlertsErrorStub = .serverError
         container.notificationRepository.unreadNotificationCountStub = 3
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
 
@@ -562,10 +557,9 @@ struct HomeStoreTests {
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.errorMessage.isEmpty)
         #expect(!sut.state.shouldShowInterestResultSheet)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("오류 메시지가 있으면 관심 콘서트 결과 시트를 폐기하고 mark하지 않아야 한다")
+    @Test("오류 메시지가 있으면 관심 콘서트 결과 시트를 폐기해야 한다")
     func testInterestResultSheetIsDiscardedWhenErrorMessageExists() async throws {
         // Given
         let sut = HomeStore()
@@ -573,19 +567,18 @@ struct HomeStoreTests {
         #expect(!sut.state.errorMessage.isEmpty)
 
         // When
-        sut.send(._interestResultPolicyResult(.success(.completed)))
+        sut.send(._entryAlertsResult(.success([makeEntryAlert(kind: .autoRemovedCompleted)])))
 
         // Then
         #expect(!sut.state.shouldShowInterestResultSheet)
         #expect(sut.state.interestResultSheetContent == nil)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
     @Test("오류가 발생하면 대기 중인 관심 콘서트 결과 시트를 닫아야 한다")
     func testErrorClearsPendingInterestResultSheet() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._interestResultPolicyResult(.success(.completed)))
+        sut.send(._entryAlertsResult(.success([makeEntryAlert(kind: .autoRemovedCompleted)])))
         #expect(sut.state.shouldShowInterestResultSheet)
 
         // When
@@ -597,11 +590,11 @@ struct HomeStoreTests {
         #expect(sut.state.interestResultSheetContent == nil)
     }
 
-    @Test("관심 콘서트 결과 시트 dismiss 시 mark를 호출하고 시트는 닫혀야 한다")
-    func testInterestResultSheetDismissMarksShownAndClosesSheet() async throws {
+    @Test("관심 콘서트 결과 시트 dismiss 시 시트만 닫고 별도 mark는 호출하지 않아야 한다")
+    func testInterestResultSheetDismissClosesSheetWithoutMarking() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._interestResultPolicyResult(.success(.completed)))
+        sut.send(._entryAlertsResult(.success([makeEntryAlert(kind: .autoRemovedCompleted)])))
         #expect(sut.state.shouldShowInterestResultSheet)
 
         // When
@@ -611,40 +604,23 @@ struct HomeStoreTests {
         // Then
         #expect(!sut.state.shouldShowInterestResultSheet)
         #expect(sut.state.interestResultSheetContent == nil)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
+        #expect(container.userRepository.markInterestConcertToastShownCallCount == 0)
     }
 
-    @Test("관심 콘서트 결과 mark 실패는 오류 메시지로 노출하지 않아야 한다")
-    func testInterestResultSheetMarkFailureDoesNotSetErrorMessage() async throws {
-        // Given
-        container.userRepository.markInterestConcertToastShownErrorStub = .serverError
-        let sut = HomeStore()
-        sut.send(._interestResultPolicyResult(.success(.completed)))
-
-        // When
-        sut.send(.onInterestResultSheetDismiss)
-        try await Task.sleep(nanoseconds: 100_000_000)
-
-        // Then
-        #expect(sut.state.errorMessage.isEmpty)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
-    }
-
-    @Test("이미 닫힌 관심 콘서트 결과 시트를 다시 dismiss해도 mark를 중복 호출하지 않아야 한다")
+    @Test("이미 닫힌 관심 콘서트 결과 시트를 다시 dismiss해도 상태가 유지되어야 한다")
     func testInterestResultSheetDismissIsIdempotent() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._interestResultPolicyResult(.success(.completed)))
+        sut.send(._entryAlertsResult(.success([makeEntryAlert(kind: .autoRemovedCompleted)])))
         sut.send(.onInterestResultSheetDismiss)
-        try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
+        #expect(!sut.state.shouldShowInterestResultSheet)
 
         // When
         sut.send(.onInterestResultSheetDismiss)
-        try await Task.sleep(nanoseconds: 50_000_000)
 
         // Then
-        #expect(container.userRepository.markInterestConcertToastShownCallCount == 1)
+        #expect(!sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultSheetContent == nil)
     }
 
     // MARK: - Home Layout Load 테스트
@@ -933,6 +909,18 @@ private extension HomeStoreTests {
             id: id,
             title: "인기 공연",
             concerts: [makeMockConcert()]
+        )
+    }
+
+    func makeEntryAlert(
+        kind: InterestEntryAlert.Kind,
+        concertID: Int? = nil
+    ) -> InterestEntryAlert {
+        InterestEntryAlert(
+            kind: kind,
+            title: "테스트 알림",
+            content: "테스트 알림 내용",
+            concertID: concertID
         )
     }
 

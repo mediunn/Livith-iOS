@@ -45,8 +45,7 @@ enum HomeIntent {
     case _fetchUserResult(Result<User, Error>)
     case _interestListResult(Result<[InterestConcert], Error>)
     case _unreadCountResult(Result<Int, Error>)
-    case _interestResultPolicyResult(Result<InterestConcertCleanupPolicy, Error>)
-    case _markInterestToastResult(Result<Void, Error>)
+    case _entryAlertsResult(Result<[InterestEntryAlert], Error>)
     case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
 
@@ -81,7 +80,7 @@ final class HomeStore: ObservableObject {
     @Injected private var concertRepository: ConcertRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
-    private var pendingInterestResultPolicyFetch = false
+    private var pendingEntryAlertsFetch = false
     private var userAvailability: UserAvailability = .pending
     private var userWaiters: [UserWaiter] = []
 
@@ -97,7 +96,7 @@ final class HomeStore: ObservableObject {
             let loadsSections = state.needsInitialSectionLoad
             if loadsSections {
                 state.isSectionLoading = true
-                pendingInterestResultPolicyFetch = true
+                pendingEntryAlertsFetch = true
             }
             performInterestAppear(loadsSections: loadsSections)
 
@@ -111,9 +110,9 @@ final class HomeStore: ObservableObject {
             state.errorMessage = ""
 
         case .onInterestResultSheetDismiss:
+            // 서버가 entry-alerts POST 시점에 노출 완료 처리하므로 별도 mark 호출은 없다.
             guard state.shouldShowInterestResultSheet else { return }
             clearInterestResultSheet()
-            performMarkInterestToastShown()
 
         case .checkUnreadNotification:
             performFetchUnreadCount()
@@ -131,7 +130,7 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = data.hasNewNotice
                 resolveUserAvailability(with: data.user)
             case .failure(let error):
-                pendingInterestResultPolicyFetch = false
+                pendingEntryAlertsFetch = false
                 state.isSectionLoading = false
                 setError(from: error)
                 resolveUserAvailability(with: nil)
@@ -145,7 +144,7 @@ final class HomeStore: ObservableObject {
 
                 state.isSectionLoading = true
                 state.needsInitialSectionLoad = false
-                pendingInterestResultPolicyFetch = true
+                pendingEntryAlertsFetch = true
                 performFetchSections()
             case .failure(let error):
                 setError(from: error)
@@ -172,10 +171,11 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = false
             }
 
-        case ._interestResultPolicyResult(let result):
+        case ._entryAlertsResult(let result):
             switch result {
-            case .success(let policy):
-                guard shouldPresentInterestResultSheet(for: policy) else {
+            case .success(let alerts):
+                let content = InterestConcertResultSheetContent(alerts: alerts)
+                guard !content.isEmpty else {
                     clearInterestResultSheet()
                     return
                 }
@@ -184,26 +184,23 @@ final class HomeStore: ObservableObject {
                     return
                 }
 
-                state.interestResultSheetContent = .stub
+                state.interestResultSheetContent = content
                 state.shouldShowInterestResultSheet = true
             case .failure:
                 clearInterestResultSheet()
             }
-
-        case ._markInterestToastResult:
-            break
 
         case ._sectionLoadResult(let result):
             if case .failure(let error) = result, isCancellationError(error) {
                 return
             }
 
-            let isInitialLoad = pendingInterestResultPolicyFetch
+            let isInitialLoad = pendingEntryAlertsFetch
             state.isSectionLoading = false
 
             if isInitialLoad {
                 state.needsInitialSectionLoad = false
-                pendingInterestResultPolicyFetch = false
+                pendingEntryAlertsFetch = false
             }
 
             switch result {
@@ -213,7 +210,7 @@ final class HomeStore: ObservableObject {
                 state.recommendedConcertList = data.recommendedConcertList ?? []
                 state.errorMessage = ""
                 if isInitialLoad {
-                    performFetchInterestResultPolicy()
+                    performFetchEntryAlerts()
                 }
             case .failure(let error):
                 setError(from: error)
@@ -387,18 +384,14 @@ private extension HomeStore {
         }
     }
 
-    func fetchInterestResultPolicy() async -> Result<InterestConcertCleanupPolicy, Error> {
-        do {
-            return .success(try await userRepository.fetchInterestConcertCleanupPolicy())
-        } catch {
-            return .failure(error)
-        }
-    }
-
-    func performFetchInterestResultPolicy() {
+    func performFetchEntryAlerts() {
         Task {
-            let result = await fetchInterestResultPolicy()
-            send(._interestResultPolicyResult(result))
+            do {
+                let alerts = try await notificationRepository.fetchEntryAlerts()
+                send(._entryAlertsResult(.success(alerts)))
+            } catch {
+                send(._entryAlertsResult(.failure(error)))
+            }
         }
     }
 
@@ -422,17 +415,6 @@ private extension HomeStore {
         }
     }
 
-    func performMarkInterestToastShown() {
-        Task {
-            do {
-                try await userRepository.markInterestConcertToastShown()
-                send(._markInterestToastResult(.success(())))
-            } catch {
-                send(._markInterestToastResult(.failure(error)))
-            }
-        }
-    }
-    
     func performFetchSections() {
         cancellables[.sections]?.cancel()
         cancellables[.sections] = Task {
@@ -499,9 +481,5 @@ private extension HomeStore {
     func clearInterestResultSheet() {
         state.shouldShowInterestResultSheet = false
         state.interestResultSheetContent = nil
-    }
-
-    func shouldPresentInterestResultSheet(for policy: InterestConcertCleanupPolicy) -> Bool {
-        policy != .none
     }
 }

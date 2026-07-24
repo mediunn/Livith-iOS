@@ -71,6 +71,79 @@ struct NotificationMapperTests {
         #expect(result.targetID == 55)
         #expect(result.isRead == false)
     }
+    @Test("EntryAlerts 응답을 InterestEntryAlert 목록으로 변환해야 한다")
+    func entryAlerts_응답을_InterestEntryAlert_목록으로_변환해야_한다() throws {
+        // Given
+        let sut = NotificationMapper()
+        let json = """
+        {
+            "items": [
+                {
+                    "kind": "AUTO_REMOVED_COMPLETED",
+                    "title": "자동 정리된 공연 2",
+                    "content": "오크 록 내한 공연 외 1건이 자동 정리 됐어요"
+                },
+                {
+                    "kind": "AUTO_REMOVED_CANCELED",
+                    "title": "취소된 공연 1",
+                    "content": "오크 록 내한 공연이 취소되어 자동 정리 됐어요"
+                },
+                {
+                    "kind": "REQUEST_REGISTERED",
+                    "title": "natori ONE-MAN LIVE...콘서트",
+                    "content": "나의 관심 콘서트에 추가됐어요",
+                    "concertId": 55
+                },
+                {
+                    "kind": "REQUEST_FAILED",
+                    "title": "natori ONE-MAN LIVE...콘서트",
+                    "content": "정확한 정보가 부족하여 추가되지 않았어요"
+                }
+            ]
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchEntryAlerts.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+
+        // Then
+        #expect(result.count == 4)
+        #expect(result[0].kind == .autoRemovedCompleted)
+        #expect(result[0].title == "자동 정리된 공연 2")
+        #expect(result[0].content == "오크 록 내한 공연 외 1건이 자동 정리 됐어요")
+        #expect(result[0].concertID == nil)
+        #expect(result[1].kind == .autoRemovedCanceled)
+        #expect(result[2].kind == .requestRegistered)
+        #expect(result[2].concertID == 55)
+        #expect(result[3].kind == .requestFailed)
+        #expect(result[3].concertID == nil)
+    }
+
+    @Test("정의되지 않은 EntryAlert kind는 크래시 없이 unknown으로 매핑해야 한다")
+    func 정의되지_않은_EntryAlert_kind는_크래시_없이_unknown으로_매핑해야_한다() throws {
+        // Given
+        let sut = NotificationMapper()
+        let json = """
+        {
+            "items": [
+                {
+                    "kind": "SOME_FUTURE_KIND",
+                    "title": "제목",
+                    "content": "내용"
+                }
+            ]
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchEntryAlerts.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+
+        // Then
+        #expect(result.count == 1)
+        #expect(result[0].kind == .unknown)
+    }
 }
 
 // MARK: - Helper

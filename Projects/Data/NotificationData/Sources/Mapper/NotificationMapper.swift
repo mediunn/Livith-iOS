@@ -32,6 +32,17 @@ struct NotificationMapper {
         )
     }
 
+    func toDomain(from dto: DTO.Response.FetchEntryAlerts) -> [InterestEntryAlert] {
+        dto.items.map { item in
+            InterestEntryAlert(
+                kind: InterestEntryAlert.Kind(rawValue: item.kind) ?? .unknown,
+                title: item.title,
+                content: item.content,
+                concertID: item.concertID
+            )
+        }
+    }
+
     func toDomain(from dto: DTO.Response.FetchNotificationList) -> NotificationItem {
         let createdAt = DateFormatterService.date(from: dto.createdAt, type: .dotDateTime) ?? Date()
         return NotificationItem(

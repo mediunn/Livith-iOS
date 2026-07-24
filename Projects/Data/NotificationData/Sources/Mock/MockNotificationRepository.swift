@@ -23,6 +23,10 @@ public struct MockNotificationRepository: NotificationRepository {
 
     public func markAllNotificationsAsRead() async throws(NotificationError) {}
 
+    public func fetchEntryAlerts() async throws(NotificationError) -> [InterestEntryAlert] {
+        []
+    }
+
     public func fetchUnreadNotificationCount() async throws(NotificationError) -> Int {
         3
     }

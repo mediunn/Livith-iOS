@@ -13,11 +13,14 @@ import Domain
 final class MockNotificationRepository: NotificationRepository {
     var unreadNotificationCountStub: Int = 0
     var notificationListStub: [NotificationItem] = []
+    var entryAlertsStub: [InterestEntryAlert] = []
     var errorStub: NotificationError?
     var markAllNotificationsAsReadErrorStub: NotificationError?
+    var fetchEntryAlertsErrorStub: NotificationError?
 
     var fetchUnreadNotificationCountCallCount: Int = 0
     var markAllNotificationsAsReadCallCount: Int = 0
+    var fetchEntryAlertsCallCount: Int = 0
 
     func fetchNotificationList(cursor: Int?, size: Int) async throws(NotificationError) -> [NotificationItem] {
         if let error = errorStub {
@@ -37,6 +40,14 @@ final class MockNotificationRepository: NotificationRepository {
         if let error = markAllNotificationsAsReadErrorStub {
             throw error
         }
+    }
+
+    func fetchEntryAlerts() async throws(NotificationError) -> [InterestEntryAlert] {
+        fetchEntryAlertsCallCount += 1
+        if let error = fetchEntryAlertsErrorStub {
+            throw error
+        }
+        return entryAlertsStub
     }
 
     func fetchUnreadNotificationCount() async throws(NotificationError) -> Int {

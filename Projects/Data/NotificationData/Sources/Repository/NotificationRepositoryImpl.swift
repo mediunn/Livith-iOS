@@ -49,6 +49,18 @@ struct NotificationRepositoryImpl: NotificationRepository {
         }
     }
 
+    func fetchEntryAlerts() async throws(NotificationError) -> [InterestEntryAlert] {
+        do {
+            let response: DTO.Response.FetchEntryAlerts = try await networkClient.request(
+                NotificationAPI.fetchEntryAlerts()
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            let notificationError: NotificationError = errorMapper.mapToNotificationError(error)
+            throw notificationError
+        }
+    }
+
     func markAllNotificationsAsRead() async throws(NotificationError) {
         do {
             try await networkClient.request(

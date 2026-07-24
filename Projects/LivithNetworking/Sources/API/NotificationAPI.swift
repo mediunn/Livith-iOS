@@ -33,6 +33,16 @@ public enum NotificationAPI {
         )
     }
 
+    /// 관심 콘서트 결과 알림 목록. POST 호출 자체가 서버의 노출 완료 처리를 겸한다.
+    public static func fetchEntryAlerts() -> NetworkEndpoint {
+        NetworkEndpoint(
+            path: "/notifications/entry-alerts",
+            method: .post,
+            task: .plain,
+            authentication: .required
+        )
+    }
+
     public static func markAllAsRead() -> NetworkEndpoint {
         NetworkEndpoint(
             path: "/notifications/read-all",
