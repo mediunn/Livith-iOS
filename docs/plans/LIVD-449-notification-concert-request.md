@@ -18,51 +18,51 @@
 ## 작업 항목
 
 ### 1. [55] 알림 타입 확장 + 매퍼 크래시 수정 (TDD)
-- [ ] `NotificationType`에 신규 케이스 추가: `PRE_TICKETING_10MIN`, `GENERAL_TICKETING_10MIN`, `ADD_TICKETING_10MIN`, `ADD_TICKETING_30MIN`, `ADD_TICKETING_1D`, `USER_INTEREST_CONCERT`, `unknown`(폴백)
+- [x] `NotificationType`에 신규 케이스 추가: `PRE_TICKETING_10MIN`, `GENERAL_TICKETING_10MIN`, `ADD_TICKETING_10MIN`, `ADD_TICKETING_30MIN`, `ADD_TICKETING_1D`, `USER_INTEREST_CONCERT`, `unknown`(폴백)
   - 기존 `PRE_TICKETING_OPEN`/`GENERAL_TICKETING_OPEN`은 구서버 호환 위해 유지
-- [ ] 재현 테스트(red): 미지의 rawValue 디코딩 시 크래시 없이 `.unknown` 매핑
-- [ ] `NotificationMapper.toDomain` 강제 언래핑 제거 → `NotificationType(rawValue:) ?? .unknown`
-- [ ] `NoticeView`의 exhaustive switch(트래킹·탭 라우팅)에 신규 케이스 반영
+- [x] 재현 테스트(red): 미지의 rawValue 디코딩 시 크래시 없이 `.unknown` 매핑
+- [x] `NotificationMapper.toDomain` 강제 언래핑 제거 → `NotificationType(rawValue:) ?? .unknown`
+- [x] `NoticeView`의 exhaustive switch(트래킹·탭 라우팅)에 신규 케이스 반영
   - `USER_INTEREST_CONCERT`는 `INTEREST_CONCERT`와 동일하게 관심 탭 이동 처리
   - `isTicketType`에 신규 티케팅 타입 포함
 
 ### 2. [60] 전체 읽기 end-to-end (TDD)
-- [ ] `NotificationAPI.markAllAsRead()` — `PATCH /notifications/read-all`, `.plain`, `.required`
-- [ ] `NotificationRepository`에 `markAllNotificationsAsRead()` 추가 (Void, `markNotificationAsRead` 패턴 복제), Impl + Mock 2곳 stub
-- [ ] `NoticeStore`에 `.markAllAsRead` intent: 성공 시 `state.notifications` 전체 `isRead = true` 갱신 (테스트 먼저)
-- [ ] `NoticeView`에 전체 읽기 액션 UI 추가 (네비게이션 우측 영역, 기존 "알림 설정"과 병치)
+- [x] `NotificationAPI.markAllAsRead()` — `PATCH /notifications/read-all`, `.plain`, `.required`
+- [x] `NotificationRepository`에 `markAllNotificationsAsRead()` 추가 (Void, `markNotificationAsRead` 패턴 복제), Impl + Mock 2곳 stub
+- [x] `NoticeStore`에 `.markAllAsRead` intent: 성공 시 `state.notifications` 전체 `isRead = true` 갱신 (테스트 먼저)
+- [x] `NoticeView`에 전체 읽기 액션 UI 추가 (네비게이션 우측 영역, 기존 "알림 설정"과 병치)
 
 ### 3. [64] entry-alerts 연동 — FR-06 시트 실데이터 (TDD)
-- [ ] DTO: `DTO.Response.FetchEntryAlerts { items: [AlertItem] }`, `AlertItem { kind, title, content, concertId? }`
-- [ ] `NotificationAPI.fetchEntryAlerts()` — `POST /notifications/entry-alerts`, `.plain`, `.required`
-- [ ] Domain 엔티티 `InterestEntryAlert` — `kind`(AUTO_REMOVED_COMPLETED / AUTO_REMOVED_CANCELED / REQUEST_REGISTERED / REQUEST_FAILED + unknown 폴백), `title`, `content`, `concertID?`
-- [ ] `NotificationRepository.fetchEntryAlerts() -> [InterestEntryAlert]` + mapper (테스트 먼저)
-- [ ] `InterestConcertResultSheetContent`를 서버 카피 기반으로 재구성
+- [x] DTO: `DTO.Response.FetchEntryAlerts { items: [AlertItem] }`, `AlertItem { kind, title, content, concertId? }`
+- [x] `NotificationAPI.fetchEntryAlerts()` — `POST /notifications/entry-alerts`, `.plain`, `.required`
+- [x] Domain 엔티티 `InterestEntryAlert` — `kind`(AUTO_REMOVED_COMPLETED / AUTO_REMOVED_CANCELED / REQUEST_REGISTERED / REQUEST_FAILED + unknown 폴백), `title`, `content`, `concertID?`
+- [x] `NotificationRepository.fetchEntryAlerts() -> [InterestEntryAlert]` + mapper (테스트 먼저)
+- [x] `InterestConcertResultSheetContent`를 서버 카피 기반으로 재구성
   - 클라 카피 조합 로직(`Kind.description` 등) 제거, 서버 `title`/`content` 그대로 표시
   - kind 기준 섹션 분류: `AUTO_REMOVED_*` → 자동 정리 섹션, `REQUEST_*` → 요청한 공연 섹션
   - `RequestResultItem`에 `concertID?` 추가 (확인하기 이동용)
-- [ ] `HomeStore` 게이트 교체: toast policy(GET) + mark(PATCH) 흐름 제거 → 홈 섹션 초기 로드 성공 후 `fetchEntryAlerts()` 1회 호출, `items` 비어있지 않으면 시트 표시
+- [x] `HomeStore` 게이트 교체: toast policy(GET) + mark(PATCH) 흐름 제거 → 홈 섹션 초기 로드 성공 후 `fetchEntryAlerts()` 1회 호출, `items` 비어있지 않으면 시트 표시
   - dismiss 시 별도 mark 호출 없음 (서버가 POST 시점에 노출 완료 처리)
   - 기존 `HomeStoreTests` FR-06 관련 12개 테스트를 새 흐름 기준으로 재작성
-- [ ] `InterestConcertResultSheetContentTests` stub 카피 테스트를 새 모델 기준으로 갱신
+- [x] `InterestConcertResultSheetContentTests` stub 카피 테스트를 새 모델 기준으로 갱신
 
 ### 4. [63] 콘서트 정보 요청 API 연결 (TDD)
-- [ ] DTO: `DTO.Request.RequestConcert { title, url?, autoRegister, requestContent? }` (응답 모델은 프론트 미사용 확인 → Void 처리)
-- [ ] `ConcertAPI.requestConcert(...)` — `POST /concerts/requests`, `.body(...)`, `.required`
-- [ ] `ConcertRepository.requestConcert(title:url:autoRegister:requestContent:)` (Void, typed throws `ConcertError`) + Impl + Mock (테스트 먼저)
-- [ ] `ShareFeature`에 `ConcertRequestStore` 신설 (MVI, `@Injected ConcertRepository`, 테스트 먼저)
+- [x] DTO: `DTO.Request.RequestConcert { title, url?, autoRegister, requestContent? }` (응답 모델은 프론트 미사용 확인 → Void 처리)
+- [x] `ConcertAPI.requestConcert(...)` — `POST /concerts/requests`, `.body(...)`, `.required`
+- [x] `ConcertRepository.requestConcert(title:url:autoRegister:requestContent:)` (Void, typed throws `ConcertError`) + Impl + Mock (테스트 먼저)
+- [x] `ShareFeature`에 `ConcertRequestStore` 신설 (MVI, `@Injected ConcertRepository`, 테스트 먼저)
   - intent: `.submit(autoRegister: Bool)` — 바텀시트 `등록할래요`=true / `괜찮아요`=false
   - 성공 → `onRequestSuccess` 위임(홈 복귀 + 성공 토스트), 실패 → 시트 유지 + 실패 토스트
   - 중복 제출 방지(isSubmitting)
-- [ ] `ConcertRequestView` 배선 교체: `handleBottomSheetAction` 스텁 제거 → store 제출 호출
+- [x] `ConcertRequestView` 배선 교체: `handleBottomSheetAction` 스텁 제거 → store 제출 호출
   - public init에 `onRequestSuccess: () -> Void` 추가
-- [ ] `ShareFeature/Project.swift` 의존성 추가: `Domain`, `DIContainer`
+- [x] `ShareFeature/Project.swift` 의존성 추가: `Domain`, `DIContainer`
 
 ### 5. 네비게이션 연결 + 성공 토스트
-- [ ] `HomeFeature/Project.swift`에 `.share(.shareFeature)` 의존 추가 (기존 ConcertFeature 선례 준용)
-- [ ] `HomeRoute`에 `.concertRequest` 추가, `HomeCoordinatorView.destinationView`에서 `ConcertRequestView(onDismiss: pop, onRequestSuccess: 홈 복귀+토스트)` 렌더
-- [ ] `HomeView` 시트 콜백 배선: `onCheckTap`(concertID 있으면 `.concertDetail` push + 시트 dismiss), `onRetryTap`(`.concertRequest` push + 시트 dismiss)
-- [ ] 요청 성공 토스트: 홈 복귀 후 `정보가 요청되었어요` 표시 (FR-06 #9) — HomeStore에 성공 토스트 상태 추가, 기존 토스트 컴포넌트 재사용
+- [x] `HomeFeature/Project.swift`에 `.share(.shareFeature)` 의존 추가 (기존 ConcertFeature 선례 준용)
+- [x] `HomeRoute`에 `.concertRequest` 추가, `HomeCoordinatorView.destinationView`에서 `ConcertRequestView(onDismiss: pop, onRequestSuccess: 홈 복귀+토스트)` 렌더
+- [x] `HomeView` 시트 콜백 배선: `onCheckTap`(concertID 있으면 `.concertDetail` push + 시트 dismiss), `onRetryTap`(`.concertRequest` push + 시트 dismiss)
+- [x] 요청 성공 토스트: 홈 복귀 후 `정보가 요청되었어요` 표시 (FR-06 #9) — `HomeCoordinatorView` `@State` + 기존 `livithToast` 재사용 (순수 화면 연출이라 Store 상태 불필요, 구현 시 조정)
 
 ### 6. 검증 + 마무리
 - [ ] `tuist generate` + 전체 빌드
@@ -90,7 +90,7 @@
 | 63 응답 처리 | 응답 DTO 디코딩 vs Void | **Void** | 명세서 댓글로 프론트 미사용 확인 |
 | ConcertRequest 상태 관리 | View `@State` 유지+`@Injected` vs Store 신설 | **Store 신설** | API 호출·성공/실패 분기·중복 제출 방지는 상태 변경 로직 → 프로젝트 MVI·TDD 규칙 대상 |
 | Home→ShareFeature 연결 | App 레벨 조립 vs HomeFeature 직접 의존 | **HomeFeature 직접 의존** | ConcertFeature가 HomeRoute에서 직접 참조되는 기존 선례와 일관. `ConcertRequestView`는 closure 인터페이스 유지로 Router 비결합 |
-| 성공 토스트 표시 위치 | ShareFeature 내부 vs 홈 복귀 후 HomeStore | **홈 복귀 후 HomeStore** | FR-06 #9 명세(홈 이동 후 토스트). 화면 전환 후 토스트는 홈 소유 |
+| 성공 토스트 표시 위치 | ShareFeature 내부 vs 홈 복귀 후 홈 소유 | **홈 복귀 후 `HomeCoordinatorView` `@State`** | FR-06 #9 명세(홈 이동 후 토스트). 순수 화면 연출이라 Store 상태 대신 CoordinatorView 로컬 상태로 처리 |
 
 ## 주의 사항
 - **entry-alerts는 호출 즉시 서버가 소비 처리**한다. 시트를 실제로 띄울 수 있는 시점(홈 섹션 로드 성공 후)에만 호출하고, 실패·에러 토스트 존재 시 기존 정책(관심 안내 미노출)을 유지한다. FR-06 명세의 "닫지 않고 이탈 시 재등장"은 서버 소비 정책에 종속되므로 클라에서 별도 보장하지 않는다(백엔드 합의 사항).
