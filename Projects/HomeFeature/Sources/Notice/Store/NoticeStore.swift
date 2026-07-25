@@ -19,6 +19,7 @@ struct NoticeState {
     var hasMorePages: Bool = true
     var isLoading: Bool = false
     var isLoadingMore: Bool = false
+    var isMarkingAllAsRead: Bool = false
 }
 
 // MARK: - Intent
@@ -28,7 +29,9 @@ enum NoticeIntent {
     case refresh
     case loadNextPage
     case markAsRead(id: Int)
+    case markAllAsRead
     case _fetchNotificationListResult(Result<[NotificationItem], Error>, isRefresh: Bool)
+    case _markAllAsReadResult(Result<Void, Error>)
 }
 
 // MARK: - Store
@@ -61,6 +64,27 @@ final class NoticeStore: ObservableObject {
 
         case .markAsRead(let id):
             performMarkNotificationAsRead(id: id)
+
+        case .markAllAsRead:
+            guard !state.isMarkingAllAsRead else { return }
+            state.isMarkingAllAsRead = true
+            performMarkAllNotificationsAsRead()
+
+        case ._markAllAsReadResult(let result):
+            state.isMarkingAllAsRead = false
+            if case .success = result {
+                state.notifications = state.notifications.map { notification in
+                    NotificationItem(
+                        id: notification.id,
+                        type: notification.type,
+                        title: notification.title,
+                        content: notification.content,
+                        targetID: notification.targetID,
+                        isRead: true,
+                        createdAt: notification.createdAt
+                    )
+                }
+            }
 
         case ._fetchNotificationListResult(let result, let isRefresh):
             state.isLoading = false
@@ -125,6 +149,21 @@ private extension NoticeStore {
     func performMarkNotificationAsRead(id: Int) {
         Task {
             try? await notificationRepository.markNotificationAsRead(id: id)
+        }
+    }
+
+    func performMarkAllNotificationsAsRead() {
+        Task {
+            do {
+                try await notificationRepository.markAllNotificationsAsRead()
+                await MainActor.run {
+                    send(._markAllAsReadResult(.success(())))
+                }
+            } catch {
+                await MainActor.run {
+                    send(._markAllAsReadResult(.failure(error)))
+                }
+            }
         }
     }
 }

@@ -13,7 +13,16 @@ let project = Project.make(
             target: .share(.shareFeature),
             product: .framework,
             dependencies: [
-                .designSystem(.designSystem)
+                .domain(.domain),
+                .designSystem(.designSystem),
+                .core(.diContainer)
+            ]
+        ),
+        .make(
+            target: .share(.shareFeatureTests),
+            product: .unitTests,
+            dependencies: [
+                .share(.shareFeature)
             ]
         )
     ]

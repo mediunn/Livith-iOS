@@ -28,4 +28,5 @@ enum HomeRoute: Hashable {
         initialTab: SegmentedTabBarType.DetailTab,
         initialSection: ConcertInfoSection?
     )
+    case concertRequest
 }

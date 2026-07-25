@@ -15,6 +15,7 @@ let project = Project.make(
             dependencies: [
                 .domain(.domain),
                 .concert(.concertFeature),
+                .share(.shareFeature),
                 .user(.userFeature),
                 .designSystem(.designSystem),
                 .shared(.displaySupport),

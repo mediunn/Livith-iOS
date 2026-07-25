@@ -14,6 +14,8 @@ public struct ConcertRequestView: View {
 
     // MARK: - Properties
 
+    @StateObject private var store = ConcertRequestStore()
+
     @State private var concertName: String
     @State private var urlText: String
     @State private var additionalNote: String
@@ -22,20 +24,23 @@ public struct ConcertRequestView: View {
     @State private var isAdditionalNoteFocused: Bool = false
     @State private var isBottomSheetPresented: Bool
     @State private var isCancelModalPresented: Bool
-    @State private var showFailureToast: Bool
 
     private let onDismiss: () -> Void
+    private let onRequestSuccess: () -> Void
 
     // MARK: - Initializer
 
-    public init(onDismiss: @escaping () -> Void) {
+    public init(
+        onDismiss: @escaping () -> Void,
+        onRequestSuccess: @escaping () -> Void
+    ) {
         self.onDismiss = onDismiss
+        self.onRequestSuccess = onRequestSuccess
         self._concertName = State(initialValue: "")
         self._urlText = State(initialValue: "")
         self._additionalNote = State(initialValue: "")
         self._isBottomSheetPresented = State(initialValue: false)
         self._isCancelModalPresented = State(initialValue: false)
-        self._showFailureToast = State(initialValue: false)
     }
 
     init(
@@ -44,16 +49,16 @@ public struct ConcertRequestView: View {
         additionalNote: String = "",
         isBottomSheetPresented: Bool = false,
         isCancelModalPresented: Bool = false,
-        showFailureToast: Bool = false,
-        onDismiss: @escaping () -> Void = {}
+        onDismiss: @escaping () -> Void = {},
+        onRequestSuccess: @escaping () -> Void = {}
     ) {
         self.onDismiss = onDismiss
+        self.onRequestSuccess = onRequestSuccess
         self._concertName = State(initialValue: concertName)
         self._urlText = State(initialValue: urlText)
         self._additionalNote = State(initialValue: additionalNote)
         self._isBottomSheetPresented = State(initialValue: isBottomSheetPresented)
         self._isCancelModalPresented = State(initialValue: isCancelModalPresented)
-        self._showFailureToast = State(initialValue: showFailureToast)
     }
 
     // MARK: - Body
@@ -105,14 +110,19 @@ public struct ConcertRequestView: View {
             detents: [.fraction(InterestConcertBottomSheet.Constants.sheetFraction)]
         ) {
             InterestConcertBottomSheet(
-                onDecline: handleBottomSheetAction,
-                onAccept: handleBottomSheetAction
+                onDecline: { submit(shouldAutoRegister: false) },
+                onAccept: { submit(shouldAutoRegister: true) }
             )
             .livithToast(
-                isPresented: $showFailureToast,
+                isPresented: failureToastBinding,
                 type: .failure,
                 message: Literals.failureToast
             )
+        }
+        .onChange(of: store.state.didSubmitSucceed) { _, didSucceed in
+            guard didSucceed else { return }
+            isBottomSheetPresented = false
+            onRequestSuccess()
         }
         .crossDissolve(
             isPresented: $isCancelModalPresented,
@@ -145,6 +155,17 @@ private extension ConcertRequestView {
 
     var isSubmitEnabled: Bool {
         !trimmed(concertName).isEmpty
+    }
+
+    var failureToastBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.showFailureToast },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.onFailureToastDisappear)
+                }
+            }
+        )
     }
 }
 
@@ -280,9 +301,15 @@ private extension ConcertRequestView {
         }
     }
 
-    func handleBottomSheetAction() {
-        // UI-only 실패 스텁: 시트는 유지하고 실패 토스트만 표시
-        showFailureToast = true
+    func submit(shouldAutoRegister: Bool) {
+        let url = trimmed(urlText)
+        let note = trimmed(additionalNote)
+        store.send(.submit(
+            title: trimmed(concertName),
+            url: url.isEmpty ? nil : url,
+            shouldAutoRegister: shouldAutoRegister,
+            requestContent: note.isEmpty ? nil : note
+        ))
     }
 }
 
@@ -323,7 +350,7 @@ private extension ConcertRequestView {
 // MARK: - Preview
 
 #Preview("빈 폼") {
-    ConcertRequestView(onDismiss: {})
+    ConcertRequestView(onDismiss: {}, onRequestSuccess: {})
 }
 
 #Preview("공연명 입력") {
@@ -343,13 +370,5 @@ private extension ConcertRequestView {
     ConcertRequestView(
         concertName: "테스트 공연",
         isCancelModalPresented: true
-    )
-}
-
-#Preview("실패 토스트") {
-    ConcertRequestView(
-        concertName: "테스트 공연",
-        isBottomSheetPresented: true,
-        showFailureToast: true
     )
 }

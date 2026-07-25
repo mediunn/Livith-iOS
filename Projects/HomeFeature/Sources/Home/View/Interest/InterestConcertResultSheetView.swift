@@ -18,7 +18,7 @@ struct InterestConcertResultSheetView: View {
     let alertList: [InterestConcertEntryAlert]
     @Binding var sheetHeight: CGFloat
     let onConfirm: () -> Void
-    let onCheckTap: () -> Void
+    let onCheckTap: (Int?) -> Void
     let onRetryTap: () -> Void
 
     @State private var scrollContentHeight: CGFloat = 0
@@ -177,7 +177,7 @@ private extension InterestConcertResultSheetView {
                     if item.kind.isFailure {
                         onRetryTap()
                     } else {
-                        onCheckTap()
+                        onCheckTap(item.concertID)
                     }
                 } label: {
                     HStack(spacing: 0) {
