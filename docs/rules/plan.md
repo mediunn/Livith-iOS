@@ -16,7 +16,7 @@
 - `슬러그`: 파일명에서 이슈번호 다음 구간. 브랜치명 `type/LIVD-XXX-슬러그`의 설명부와 맞춘다
 - `컴파운딩 게이트`: 교훈 분류 → rules 변경안·압축 archive 초안 제시 → 유저 승인 → 반영·저장·원본 제거
 - `기능 완료 선언`: 유저가 해당 이슈의 구현이 끝났다고 명시한 발화. 예: 「완료」「다 됐어」「이슈 닫자」「머지해도 돼」「PR 올려」「아카이브해」「계획 종료」
-- `기본 승격 규칙`: `plan.md`, `project-operations.md`, `git.md`, `tdd.md`, `code-convention.md`
+- `기본 승격 규칙`: `plan.md`, `project-operations.md`, `git.md`, `tdd.md`, `code-convention.md`, `documentation.md`
 - `분리 확인 규칙`: `architecture.md`, `security.md`
 
 ## Do

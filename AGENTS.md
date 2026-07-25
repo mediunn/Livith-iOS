@@ -36,6 +36,7 @@
 | xcconfig · tokens · push · deeplink | `security.md` |
 | 2+ modules · API/domain contracts · open design choices | `plan.md` (+ rules above as applicable) |
 | Feature complete · archive · lesson promotion | `plan.md`, `docs/templates/archive.md` |
+| Editing `AGENTS.md`, rules, or templates | `documentation.md` |
 
 - Planning multi-step or cross-module changes, troubleshooting, compounding archive: `docs/rules/plan.md`
 - Test-driven development: `docs/rules/tdd.md`
@@ -44,6 +45,7 @@
 - Swift file conventions: `docs/rules/code-convention.md`
 - Git branches, commits, PRs: `docs/rules/git.md`
 - Tuist generate, build, test: `docs/rules/project-operations.md`
+- Harness/docs authoring language and placement: `docs/rules/documentation.md`
 
 ## Workflow Reminder
 - Choose the relevant rule document before editing code, tests, or documents.
