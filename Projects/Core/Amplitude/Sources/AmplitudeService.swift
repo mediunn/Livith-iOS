@@ -118,7 +118,6 @@ public extension AmplitudeService {
         case reportSong = "click_report_song"
 
         // 추천 콘서트
-        case interestRecommendedConcert = "click_interest_recommended_concert"
         case recommendedConcertCell = "click_recommended_concert_cell"
 
         // 취향 설정
@@ -161,6 +160,29 @@ public extension AmplitudeService {
 
         // 알림 설정
         case iosNotificationSettings = "click_ios_notification_settings"
+
+        // 홈 탭
+        case interestConcertTab = "click_interest_concert_tab"
+        case interestCalendarTab = "click_interest_calendar_tab"
+
+        // 캘린더 필터
+        case calendarChipConcertDate = "click_chip_concert_date"
+        case calendarChipBookingDate = "click_chip_booking_date"
+        case calendarToggleAllConcert = "click_toggle_all_concert"
+        case calendarToggleMyConcerts = "click_toggle_my_concerts"
+
+        // 인스타 파싱
+        case igParsingSuccess = "click_ios_ig_parsing_success"
+        case igParsingFail = "click_ios_ig_parsing_fail"
+        case igSearch = "click_ios_ig_search"
+        case igSearchSuccess = "click_ios_ig_search_success"
+
+        // 공연 요청
+        case concertRequest = "click_concert_request"
+        // 명세서 원문 오타(comfirm) 유지 — 대시보드 이벤트명과 일치시키기 위함
+        case concertRequestConfirm = "click_concert_request_comfirm"
+        case concertRequestAdded = "click_concert_request_added"
+        case concertRequestRetry = "click_concert_request_retry"
     }
 
     // MARK: - Filter Events

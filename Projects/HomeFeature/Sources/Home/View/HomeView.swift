@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import LivithDesignSystem
 
 struct HomeView: View {
@@ -70,6 +71,7 @@ struct HomeView: View {
                         ))
                     },
                     onRetryTap: {
+                        AmplitudeService.shared.trackEvent(tag: .click(.concertRequestRetry))
                         store.send(.onInterestResultSheetDismiss)
                         homeRouter.push(.concertRequest)
                     }
@@ -116,7 +118,12 @@ private extension HomeView {
     var segmentedTabBar: some View {
         SegmentedTabBar(type: .home(
             selectedTab: store.state.selectedHomeTab,
-            onTabSelected: { store.send(.homeTabSelected($0)) }
+            onTabSelected: { tab in
+                AmplitudeService.shared.trackEvent(
+                    tag: .click(tab == .interestConcert ? .interestConcertTab : .interestCalendarTab)
+                )
+                store.send(.homeTabSelected(tab))
+            }
         ))
     }
 

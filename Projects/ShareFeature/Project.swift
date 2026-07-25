@@ -15,7 +15,8 @@ let project = Project.make(
             dependencies: [
                 .domain(.domain),
                 .designSystem(.designSystem),
-                .core(.diContainer)
+                .core(.diContainer),
+                .core(.amplitude)
             ]
         ),
         .make(
