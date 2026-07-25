@@ -204,6 +204,71 @@ struct CalendarHomeStoreTests {
         #expect(!sut.state.isInitialLoading)
     }
 
+    @Test("로드된 뒤 onAppear는 초기 로딩 없이 같은 월을 soft refresh해야 한다")
+    func 로드된_뒤_onAppear는_초기_로딩_없이_같은_월을_soft_refresh해야_한다() async throws {
+        // Given
+        let augustMonth = CalendarMonth(year: 2026, month: 8, dayList: [])
+        let refreshedAugust = CalendarMonth(
+            year: 2026,
+            month: 8,
+            dayList: [
+                CalendarMonthDay(
+                    date: makeDate(),
+                    eventList: [
+                        CalendarMonthEvent(concertID: 1, artist: "A", type: .concert)
+                    ]
+                )
+            ]
+        )
+        container.calendarRepository.fetchMonthResultQueue = [
+            .success(makeMonth()),
+            .success(augustMonth),
+            .success(refreshedAugust)
+        ]
+        let sut = CalendarHomeStore()
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+        sut.send(.monthChanged(year: 2026, month: 8))
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.onAppear)
+
+        // Then
+        #expect(!sut.state.isInitialLoading)
+        try await waitForAsyncTask()
+        #expect(container.calendarRepository.fetchMonthCallCount == 3)
+        #expect(sut.state.selectedYear == 2026)
+        #expect(sut.state.selectedMonth == 8)
+        #expect(sut.state.calendarMonth == refreshedAugust)
+        #expect(!sut.state.isInitialLoading)
+        let lastParameters = container.calendarRepository.fetchMonthParameterList.last
+        #expect(lastParameters?.year == 2026)
+        #expect(lastParameters?.month == 8)
+    }
+
+    @Test("로드 실패 후 onAppear는 초기 로딩과 함께 다시 조회해야 한다")
+    func 로드_실패_후_onAppear는_초기_로딩과_함께_다시_조회해야_한다() async throws {
+        // Given
+        container.calendarRepository.fetchMonthResultQueue = [
+            .failure(.serverError),
+            .success(makeMonth())
+        ]
+        let sut = CalendarHomeStore()
+        sut.send(.onAppear)
+        try await waitForAsyncTask()
+
+        // When
+        sut.send(.onAppear)
+
+        // Then
+        #expect(sut.state.isInitialLoading)
+        try await waitForAsyncTask()
+        #expect(sut.state.calendarMonth == makeMonth())
+        #expect(!sut.state.isInitialLoading)
+        #expect(!sut.state.isLoadFailed)
+    }
+
     @Test("새로고침 시 필터 선택 상태는 유지되어야 한다")
     func 새로고침_시_필터_선택_상태는_유지되어야_한다() async throws {
         // Given
@@ -341,6 +406,91 @@ struct CalendarHomeStoreTests {
 
         // Then
         #expect(!sut.state.isDayScheduleModalPresented)
+    }
+
+    @Test("monthChanged 동일 월이면 fetch하지 않아야 한다")
+    func monthChanged_동일_월이면_fetch하지_않아야_한다() {
+        // Given
+        let sut = CalendarHomeStore()
+        let year = sut.state.selectedYear
+        let month = sut.state.selectedMonth
+
+        // When
+        sut.send(.monthChanged(year: year, month: month))
+
+        // Then
+        #expect(container.calendarRepository.fetchMonthCallCount == 0)
+    }
+
+    @Test("monthChanged 범위 밖 month면 fetch하지 않아야 한다")
+    func monthChanged_범위_밖_month면_fetch하지_않아야_한다() {
+        // Given
+        let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.monthChanged(year: 2026, month: 13))
+
+        // Then
+        #expect(container.calendarRepository.fetchMonthCallCount == 0)
+    }
+
+    @Test("monthChanged 성공 시 year month와 calendarMonth가 갱신되어야 한다")
+    func monthChanged_성공_시_year_month와_calendarMonth가_갱신되어야_한다() async throws {
+        // Given
+        let month = CalendarMonth(year: 2026, month: 8, dayList: [])
+        container.calendarRepository.fetchMonthResultQueue = [.success(month)]
+        let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.monthChanged(year: 2026, month: 8))
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.selectedYear == 2026)
+        #expect(sut.state.selectedMonth == 8)
+        #expect(sut.state.calendarMonth == month)
+        #expect(!sut.state.isLoadFailed)
+        #expect(container.calendarRepository.fetchMonthParameterList.last?.year == 2026)
+        #expect(container.calendarRepository.fetchMonthParameterList.last?.month == 8)
+    }
+
+    @Test("monthChanged 실패 시 isLoadFailed가 true여야 한다")
+    func monthChanged_실패_시_isLoadFailed가_true여야_한다() async throws {
+        // Given
+        container.calendarRepository.fetchMonthResultQueue = [.failure(.serverError)]
+        let sut = CalendarHomeStore()
+
+        // When
+        sut.send(.monthChanged(year: 2026, month: 8))
+        try await waitForAsyncTask()
+
+        // Then
+        #expect(sut.state.isLoadFailed)
+        #expect(sut.state.selectedYear == 2026)
+        #expect(sut.state.selectedMonth == 8)
+    }
+
+    @Test("monthChanged 시 열린 일자 모달이 닫혀야 한다")
+    func monthChanged_시_열린_일자_모달이_닫혀야_한다() async throws {
+        // Given
+        let date = makeDate()
+        container.calendarRepository.fetchDayEventsResultQueue = [
+            .success(CalendarDaySchedule(date: date, eventList: []))
+        ]
+        container.calendarRepository.fetchMonthResultQueue = [
+            .success(CalendarMonth(year: 2026, month: 8, dayList: []))
+        ]
+        let sut = CalendarHomeStore()
+        sut.send(.dayScheduleRequested(date: date))
+        try await waitForAsyncTask()
+        #expect(sut.state.isDayScheduleModalPresented)
+
+        // When
+        sut.send(.monthChanged(year: 2026, month: 8))
+
+        // Then
+        #expect(!sut.state.isDayScheduleModalPresented)
+        try await waitForAsyncTask()
     }
 }
 

@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import DIContainer
 import LivithDesignSystem
 
 struct CalendarHomeContentView: View {
@@ -16,34 +17,30 @@ struct CalendarHomeContentView: View {
 
     @EnvironmentObject private var homeRouter: HomeRouter
     @ObservedObject var store: CalendarHomeStore
+    @Injected private var calendarWebConfig: CalendarWebConfig
 
     @State private var showSelectionBlockedToast = false
     @State private var showDayScheduleLoadFailedToast = false
+    @State private var webViewContentHeight = CalendarWebContentHeightMeasurer.fallbackHeight
 
     // MARK: - Body
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ScrollView {
-                VStack(spacing: .zero) {
-                    if showsFilterBar {
-                        CalendarFilterBarView(store: store)
-                    }
-
-                    calendarBody
+        ScrollView {
+            VStack(spacing: .zero) {
+                if showsFilterBar {
+                    CalendarFilterBarView(store: store)
                 }
-            }
-            .scrollIndicators(.never)
-            .refreshable {
-                await store.performRefresh()
-            }
-            .onAppear {
-                store.send(.onAppear)
-            }
 
-            #if DEBUG
-            debugModalTriggers
-            #endif
+                calendarBody
+            }
+        }
+        .scrollIndicators(.never)
+        .refreshable {
+            await store.performRefresh()
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
@@ -77,6 +74,14 @@ struct CalendarHomeContentView: View {
                 onInterestSettingTap: {
                     store.send(.dayScheduleModalDismissed)
                     homeRouter.push(.interestConcertSetting(mode: .update))
+                },
+                onEventTap: { event in
+                    store.send(.dayScheduleModalDismissed)
+                    homeRouter.push(.concertDetail(
+                        concertID: event.concertID,
+                        initialTab: .artistDetail,
+                        initialSection: nil
+                    ))
                 }
             )
         }
@@ -95,8 +100,18 @@ private extension CalendarHomeContentView {
                 .frame(maxWidth: .infinity)
                 .containerRelativeFrame(.vertical)
         } else {
-            CalendarWebView()
-                .frame(minHeight: Layout.webViewMinHeight)
+            CalendarWebView(
+                url: calendarWebConfig.url,
+                calendarMonth: store.state.calendarMonth,
+                contentHeight: $webViewContentHeight,
+                onDateSelected: { date in
+                    store.send(.dayScheduleRequested(date: date))
+                },
+                onMonthChanged: { year, month in
+                    store.send(.monthChanged(year: year, month: month))
+                }
+            )
+            .frame(height: webViewContentHeight)
         }
     }
 
@@ -112,19 +127,6 @@ private extension CalendarHomeContentView {
         .frame(maxWidth: .infinity)
         .containerRelativeFrame(.vertical)
     }
-
-    #if DEBUG
-    var debugModalTriggers: some View {
-        Button("일정 모달") {
-            store.send(.dayScheduleRequested(date: Date()))
-        }
-        .notosans(.caption1Bold)
-        .padding(12)
-        .background(Color.livithColor(.black80))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .padding(16)
-    }
-    #endif
 }
 
 // MARK: - Computed Properties
@@ -190,7 +192,6 @@ private extension CalendarHomeContentView {
 
 private extension CalendarHomeContentView {
     enum Layout {
-        static let webViewMinHeight: CGFloat = 500
         static let loadingMinHeight: CGFloat = 200
     }
 }

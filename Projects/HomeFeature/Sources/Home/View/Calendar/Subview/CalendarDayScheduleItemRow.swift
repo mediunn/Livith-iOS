@@ -16,6 +16,7 @@ struct CalendarDayScheduleItemRow: View {
     // MARK: - Properties
 
     let event: CalendarDayEvent
+    let onTap: () -> Void
 
     // MARK: - Body
 
@@ -29,7 +30,7 @@ struct CalendarDayScheduleItemRow: View {
                     .clipShape(RoundedRectangle(cornerRadius: Layout.cardCornerRadius))
                     .opacity(Layout.cancelledOpacity)
             } else {
-                Button(action: {}) {
+                Button(action: onTap) {
                     cardLabel
                 }
                 .buttonStyle(CalendarDayScheduleItemButtonStyle())

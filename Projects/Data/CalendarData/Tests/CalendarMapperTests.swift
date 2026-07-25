@@ -161,6 +161,57 @@ struct CalendarMapperTests {
         #expect(result.eventList[1].detail == .venue("예스24 원더로크홀"))
     }
 
+    @Test("날짜별 응답에서 같은 concertID·다른 time 행은 모두 유지되어야 한다")
+    func 날짜별_응답에서_같은_concertID_다른_time_행은_모두_유지되어야_한다() throws {
+        // Given
+        let sut = CalendarMapper()
+        let json = """
+        {
+          "date": "2026-07-26",
+          "events": [
+            {
+              "id": 1978,
+              "title": "스미다 아이코 & 모치즈키 루카 조인트 콘서트 & OVAL SISTEM in SEOUL",
+              "type": "CONCERT",
+              "status": "UPCOMING",
+              "time": "12:20",
+              "detail": "퍼플노이즈 라이브홀"
+            },
+            {
+              "id": 1978,
+              "title": "스미다 아이코 & 모치즈키 루카 조인트 콘서트 & OVAL SISTEM in SEOUL",
+              "type": "CONCERT",
+              "status": "UPCOMING",
+              "time": "17:00",
+              "detail": "퍼플노이즈 라이브홀"
+            },
+            {
+              "id": 1683,
+              "title": "CUTIE STREET SUMMER Live",
+              "type": "CONCERT",
+              "status": "UPCOMING",
+              "time": "18:00",
+              "detail": "세종대학교 대양홀"
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchCalendarDayEvents.self, from: json)
+
+        // When
+        let result = try #require(sut.toDomain(from: dto))
+
+        // Then
+        #expect(result.eventList.count == 3)
+        #expect(result.eventList.map(\.concertID) == [1978, 1978, 1683])
+        #expect(result.eventList.map(\.time) == [
+            CalendarEventTime(hour: 12, minute: 20),
+            CalendarEventTime(hour: 17, minute: 0),
+            CalendarEventTime(hour: 18, minute: 0)
+        ])
+        #expect(Set(result.eventList.map(\.id)).count == 3)
+    }
+
     @Test("날짜별 응답에서 잘못된 time은 nil로 두고 이벤트는 유지해야 한다")
     func 날짜별_응답에서_잘못된_time은_nil로_두고_이벤트는_유지해야_한다() throws {
         // Given

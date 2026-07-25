@@ -10,14 +10,16 @@ import Foundation
 
 // MARK: - Event ID
 
-/// 캘린더 일정 행 identity. 같은 콘서트라도 type이 다르면 다른 행이다.
+/// 캘린더 일정 행 identity. 같은 콘서트라도 type 또는 time이 다르면 다른 행이다.
 public struct CalendarEventID<EventType: Hashable & Sendable>: Hashable, Sendable {
     public let concertID: Int
     public let type: EventType
+    public let time: CalendarEventTime?
 
-    public init(concertID: Int, type: EventType) {
+    public init(concertID: Int, type: EventType, time: CalendarEventTime? = nil) {
         self.concertID = concertID
         self.type = type
+        self.time = time
     }
 }
 

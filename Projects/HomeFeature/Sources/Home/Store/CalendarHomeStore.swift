@@ -56,6 +56,7 @@ enum CalendarHomeIntent {
     case onDayScheduleLoadFailedToastDisappear
     case dayScheduleRequested(date: Date)
     case dayScheduleModalDismissed
+    case monthChanged(year: Int, month: Int)
     case _fetchMonthResult(Result<CalendarMonth, Error>, requestID: Int)
     case _fetchDayEventsResult(Result<CalendarDaySchedule, Error>, requestID: Int)
 }
@@ -87,7 +88,8 @@ final class CalendarHomeStore: ObservableObject {
     func send(_ intent: CalendarHomeIntent) {
         switch intent {
         case .onAppear:
-            performFetchMonth(showInitialLoading: true)
+            let shouldShowInitialLoading = state.calendarMonth == nil || state.isLoadFailed
+            performFetchMonth(showInitialLoading: shouldShowInitialLoading)
 
         case .ticketingDateTapped:
             let didChange = toggleDateFilter(
@@ -132,6 +134,18 @@ final class CalendarHomeStore: ObservableObject {
 
         case .dayScheduleModalDismissed:
             state.isDayScheduleModalPresented = false
+
+        case .monthChanged(let year, let month):
+            guard (1...12).contains(month) else { return }
+            guard state.selectedYear != year || state.selectedMonth != month else { return }
+
+            state.isDayScheduleModalPresented = false
+            cancellables[.fetchDayEvents]?.cancel()
+            dayEventsRequestID += 1
+
+            state.selectedYear = year
+            state.selectedMonth = month
+            performFetchMonth(showInitialLoading: false)
 
         case ._fetchMonthResult(let result, let requestID):
             guard requestID == monthRequestID else { return }

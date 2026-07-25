@@ -11,6 +11,8 @@ import Foundation
 import DIContainer
 import Domain
 
+@testable import HomeFeature
+
 final class MockDIContainer {
     let userRepository = MockUserRepository()
     let notificationRepository = MockNotificationRepository()
@@ -30,5 +32,6 @@ final class MockDIContainer {
         DIContainer.shared.register(preferenceRepository, for: PreferenceRepository.self)
         DIContainer.shared.register(calendarRepository, for: CalendarRepository.self)
         DIContainer.shared.register(concertMatchingRepository, for: ConcertMatchingRepository.self)
+        DIContainer.shared.register(CalendarWebConfig(url: nil), for: CalendarWebConfig.self)
     }
 }
