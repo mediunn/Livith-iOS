@@ -35,21 +35,21 @@
 ### 2026-07-25 - PR 본문을 템플릿 없이 작성
 
 **상황**
-- LIVD-458 PR(#297)을 생성하면서 본문을 Summary / Test plan 형식으로 작성했다.
+- LIVD-458 PR(#297)을 만들면서 본문을 Summary / Test plan 형식으로 작성했습니다.
 
 **문제**
-- 유저 피드백: `docs/rules/git.md`와 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따라야 한다.
+- 유저 피드백으로, `docs/rules/git.md`와 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따라야 한다는 지적을 받았습니다.
 
 **원인**
-- PR 작성 시 `.github/PULL_REQUEST_TEMPLATE.md`를 읽지 않았다.
-- 당시 `git.md`에도 템플릿 준수 Do가 명시돼 있지 않아, 에이전트 기본 PR 형식에 의존했다.
+- PR을 쓰기 전에 `.github/PULL_REQUEST_TEMPLATE.md`를 확인하지 않았습니다.
+- 그때 `git.md`에도 템플릿을 따르라는 Do가 없어서, 에이전트 기본 PR 형식에 맞춰 작성했습니다.
 
 **해결**
-- PR #297 본문을 `PULL_REQUEST_TEMPLATE.md` 섹션(작업 내용, 주요 코드 설명, 기타, 연결된 이슈)에 맞게 수정했다.
-- `git.md` Pull Request Do·Checklist에 템플릿 준수를 추가했다.
+- PR #297 본문을 `PULL_REQUEST_TEMPLATE.md` 섹션(작업 내용, 주요 코드 설명, 기타, 연결된 이슈)에 맞게 고쳤습니다.
+- `git.md` Pull Request Do와 Checklist에 템플릿 준수를 넣었습니다.
 
 **교훈**
-- [PR을 Cursor/에이전트 기본 Summary 형식으로 올림] → PR 본문은 `.github/PULL_REQUEST_TEMPLATE.md`를 먼저 읽고 그 양식으로 쓴다.
+- [PR을 Cursor/에이전트 기본 Summary 형식으로 올림] → PR 본문은 `.github/PULL_REQUEST_TEMPLATE.md`를 먼저 읽고 그 양식으로 작성합니다.
 - 승격 후보: yes (`git.md`에 반영함)
 
 ## 참조
