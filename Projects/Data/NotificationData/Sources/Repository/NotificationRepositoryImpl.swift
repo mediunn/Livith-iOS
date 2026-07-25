@@ -49,6 +49,17 @@ struct NotificationRepositoryImpl: NotificationRepository {
         }
     }
 
+    func markAllNotificationsAsRead() async throws(NotificationError) {
+        do {
+            try await networkClient.request(
+                NotificationAPI.markAllAsRead()
+            )
+        } catch {
+            let notificationError: NotificationError = errorMapper.mapToNotificationError(error)
+            throw notificationError
+        }
+    }
+
     func fetchUnreadNotificationCount() async throws(NotificationError) -> Int {
         do {
             let response: DTO.Response.FetchUnreadNotificationCount = try await networkClient.request(
@@ -112,6 +123,7 @@ struct NotificationRepositoryImpl: NotificationRepository {
         transform(&user)
         try? userdefaultsStorage.save(user, for: .currentUser)
     }
+
 
     func fetchNotificationSettings() async throws(NotificationError) -> NotificationSettings {
         do {

@@ -113,7 +113,7 @@ private extension InstagramManualSearchView {
             Spacer()
 
             LivithReportButton(Literals.reportButtonTitle, variant: .info) {
-                // TODO: FR-06 공연 정보 요청 페이지 연결 (후속 이슈)
+                homeRouter.push(.concertRequest)
             }
             .padding(.trailing, 16)
         }

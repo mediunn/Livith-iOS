@@ -94,7 +94,7 @@ private extension NoticeView {
 
     var emptyView: some View {
         VStack(spacing: 0) {
-            infoText
+            infoText(showsMarkAllAsReadButton: false)
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
 
@@ -106,19 +106,25 @@ private extension NoticeView {
         }
     }
 
-    var infoText: some View {
+    func infoText(showsMarkAllAsReadButton: Bool) -> some View {
         HStack {
             Text(Literals.infoMessage)
                 .notosans(.body4Semibold)
                 .foregroundStyle(Color.livithColor(.black30))
 
             Spacer()
+
+            if showsMarkAllAsReadButton {
+                LivithTextButton(Literals.markAllAsReadButton, color: .livithColor(.white100)) {
+                    store.send(.markAllAsRead)
+                }
+            }
         }
     }
 
     var noticeList: some View {
         ScrollView {
-            infoText
+            infoText(showsMarkAllAsReadButton: true)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 10)
 
@@ -133,7 +139,7 @@ private extension NoticeView {
                             trackNotificationCellTap(type: notification.type)
                             store.send(.markAsRead(id: notification.id))
                             didNavigateToDetail = true
-                            if notification.type == .interestConcert {
+                            if notification.type == .interestConcert || notification.type == .userInterestConcert {
                                 onInterestTap()
                             } else if let targetID = notification.targetID {
                                 let (initialTab, initialSection) = mapNotificationTypeToTabAndSection(notification.type)
@@ -180,11 +186,12 @@ private extension NoticeView {
 
     func trackNotificationCellTap(type: NotificationType) {
         switch type {
-        case .interestConcert:
+        case .interestConcert, .userInterestConcert:
             AmplitudeService.shared.trackEvent(tag: .click(.interestConcertNotification))
-        case .preTicketingOpen, .preTicketing1D, .preTicketing30M:
+        case .preTicketingOpen, .preTicketing1D, .preTicketing30M, .preTicketing10M:
             AmplitudeService.shared.trackEvent(tag: .click(.preBookingScheduleNotification))
-        case .generalTicketingOpen, .generalTicketing1D, .generalTicketing30M:
+        case .generalTicketingOpen, .generalTicketing1D, .generalTicketing30M, .generalTicketing10M,
+             .addTicketing1D, .addTicketing30M, .addTicketing10M:
             AmplitudeService.shared.trackEvent(tag: .click(.bookingScheduleNotification))
         case .concertInfoUpdateSetlist:
             AmplitudeService.shared.trackEvent(tag: .click(.concertUpdateSetlistNotification))
@@ -200,6 +207,8 @@ private extension NoticeView {
             AmplitudeService.shared.trackEvent(tag: .click(.favoriteArtistConcertOpenNotification))
         case .recommend:
             AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertNotification))
+        case .unknown:
+            break
         }
     }
 }
@@ -210,6 +219,7 @@ private extension NoticeView {
     enum Literals {
         static let title = "알림"
         static let settingButton = "알림 설정"
+        static let markAllAsReadButton = "전체 읽기"
         static let infoMessage = "알림은 90일 이후 순차적으로 삭제돼요."
         static let emptyMessage = "아직 공연 소식이 없어요 :(\n알림으로 가장 먼저 알려드릴게요"
     }

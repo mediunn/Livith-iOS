@@ -49,7 +49,7 @@ final class DeepLinkService {
         if let notificationType {
             trackPushNotificationTap(type: notificationType)
 
-            if notificationType == .interestConcert {
+            if notificationType == .interestConcert || notificationType == .userInterestConcert {
                 NotificationCenter.default.post(name: .openInterestConcert, object: nil)
                 return
             }
@@ -162,11 +162,12 @@ private extension DeepLinkService {
 
     func trackPushNotificationTap(type: NotificationType) {
         switch type {
-        case .interestConcert:
+        case .interestConcert, .userInterestConcert:
             AmplitudeService.shared.trackEvent(tag: .click(.pushInterestConcert))
-        case .preTicketingOpen, .preTicketing1D, .preTicketing30M:
+        case .preTicketingOpen, .preTicketing1D, .preTicketing30M, .preTicketing10M:
             AmplitudeService.shared.trackEvent(tag: .click(.pushPreBookingSchedule))
-        case .generalTicketingOpen, .generalTicketing1D, .generalTicketing30M:
+        case .generalTicketingOpen, .generalTicketing1D, .generalTicketing30M, .generalTicketing10M,
+             .addTicketing1D, .addTicketing30M, .addTicketing10M:
             AmplitudeService.shared.trackEvent(tag: .click(.pushBookingSchedule))
         case .concertInfoUpdateSetlist:
             AmplitudeService.shared.trackEvent(tag: .click(.pushConcertUpdateSetlist))
@@ -182,6 +183,8 @@ private extension DeepLinkService {
             AmplitudeService.shared.trackEvent(tag: .click(.pushFavoriteArtistConcertOpen))
         case .recommend:
             AmplitudeService.shared.trackEvent(tag: .click(.pushRecommendedConcert))
+        case .unknown:
+            break
         }
     }
 }
