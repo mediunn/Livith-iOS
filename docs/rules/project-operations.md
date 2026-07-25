@@ -30,7 +30,8 @@
 - 테스트 실행은 `xcodebuild test`를 우선 사용한다. `tuist test`는 Exception 조건에서만 fallback으로 사용한다.
 - `xcodebuild test` 실행 전에 `xcodebuild -list`로 scheme명과 test action 존재 여부를 함께 확인한다.
 - `xcodebuild test`의 destination 시뮬레이터는 직전 실패 출력의 `Available destinations`에 표시된 이름과 OS 버전을 기준으로 지정한다.
-- `xcodebuild test`의 destination 시뮬레이터 이름은 이 저장소 환경에서 기본값으로 `iPhone 17`을 사용한다.
+- `xcodebuild test` 실행 전에 destination이 필요하면 `xcodebuild -showdestinations -workspace "Livith-iOS.xcworkspace" -scheme "<Scheme>"`로 사용 가능한 시뮬레이터를 확인한 뒤 지정한다.
+- destination 예시(강제 아님): `-destination 'platform=iOS Simulator,name=iPhone 17,OS=26.0'`처럼 확인된 이름·OS를 넣는다.
 - test action이 없는 scheme은 `tuist build`로 생산 코드 컴파일만 검증한다.
 - Swift Testing 기반 테스트가 포함된 scheme은 `xcodebuild test` 출력에서 `Executed 0 tests`가 표시되어도 테스트가 실행되지 않은 것으로 단정하지 않는다. 테스트 로그에서 `Test suite` 메시지 또는 결과 번들(.xcresult)의 테스트 식별자를 함께 확인한다.
 - 특정 테스트 타겟 또는 테스트 클래스만 실행하려면 `xcodebuild test`에 `-only-testing:<Module>/<Class>` 옵션을 사용한다.
