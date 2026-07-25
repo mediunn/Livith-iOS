@@ -35,7 +35,7 @@ struct CalendarWebView: UIViewRepresentable {
         userContentController.add(proxy, name: Constants.monthChangedHandlerName)
         userContentController.addUserScript(
             WKUserScript(
-                source: Constants.unlockViewportHeightScript,
+                source: CalendarWebContentHeightMeasurer.unlockViewportHeightScript,
                 injectionTime: .atDocumentEnd,
                 forMainFrameOnly: true
             )
@@ -54,9 +54,9 @@ struct CalendarWebView: UIViewRepresentable {
         webView.scrollView.showsHorizontalScrollIndicator = false
         webView.scrollView.backgroundColor = UIColor(Color.livithColor(.black100))
 
-        context.coordinator.calendarURL = url
-        context.coordinator.updatePendingPayload(from: calendarMonth)
-        context.coordinator.bindContentHeight($contentHeight)
+        context.coordinator.loadSession.calendarURL = url
+        context.coordinator.loadSession.updatePendingPayload(from: calendarMonth)
+        context.coordinator.contentHeightMeasurer.bind($contentHeight)
 
         if let url {
             webView.load(URLRequest(url: url))
@@ -70,10 +70,13 @@ struct CalendarWebView: UIViewRepresentable {
     func updateUIView(_ uiView: WKWebView, context: Context) {
         context.coordinator.onDateSelected = onDateSelected
         context.coordinator.onMonthChanged = onMonthChanged
-        context.coordinator.bindContentHeight($contentHeight)
-        context.coordinator.updatePendingPayload(from: calendarMonth)
-        context.coordinator.reloadCalendarURLIfNeeded(into: uiView)
-        context.coordinator.injectIfNeeded(into: uiView)
+        context.coordinator.contentHeightMeasurer.bind($contentHeight)
+        context.coordinator.loadSession.updatePendingPayload(from: calendarMonth)
+        context.coordinator.loadSession.reloadCalendarURLIfNeeded(into: uiView)
+        context.coordinator.loadSession.injectIfNeeded(
+            into: uiView,
+            contentHeightMeasurer: context.coordinator.contentHeightMeasurer
+        )
     }
 
     static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
@@ -89,15 +92,8 @@ extension CalendarWebView {
     final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         var onDateSelected: (Date) -> Void
         var onMonthChanged: (Int, Int) -> Void
-        var calendarURL: URL?
-        var hasLoadedCalendarURL = false
-        var pendingPayloadJSON: String?
-        var lastInjectedPayloadJSON: String?
-        var monthChangeGate = CalendarWebMonthChangeGate()
-
-        private var contentHeightBinding: Binding<CGFloat>?
-        private var contentHeightMeasureGeneration = 0
-        private var lastReloadAttemptDate: Date?
+        let loadSession = CalendarWebLoadSession()
+        let contentHeightMeasurer = CalendarWebContentHeightMeasurer()
 
         init(
             onDateSelected: @escaping (Date) -> Void,
@@ -107,70 +103,11 @@ extension CalendarWebView {
             self.onMonthChanged = onMonthChanged
         }
 
-        func bindContentHeight(_ binding: Binding<CGFloat>) {
-            contentHeightBinding = binding
-        }
-
-        func updatePendingPayload(from month: CalendarMonth?) {
-            pendingPayloadJSON = month.flatMap { CalendarWebMonthPayloadMapper.jsonString(from: $0) }
-        }
-
-        func reloadCalendarURLIfNeeded(into webView: WKWebView) {
-            guard !hasLoadedCalendarURL,
-                  let calendarURL,
-                  let blankURL = Constants.blankURL,
-                  webView.url == nil || webView.url == blankURL
-            else {
-                return
-            }
-
-            if let lastReloadAttemptDate,
-               Date().timeIntervalSince(lastReloadAttemptDate) < Constants.reloadCooldownInterval {
-                return
-            }
-
-            lastReloadAttemptDate = Date()
-            webView.load(URLRequest(url: calendarURL))
-        }
-
-        func injectIfNeeded(into webView: WKWebView) {
-            guard hasLoadedCalendarURL, let pendingPayloadJSON else { return }
-            guard pendingPayloadJSON != lastInjectedPayloadJSON else { return }
-            guard let escapedLiteral = Self.jsonStringLiteral(from: pendingPayloadJSON) else { return }
-
-            let script = "window.setCalendarData(JSON.parse(\(escapedLiteral)))"
-            let injectingPayloadJSON = pendingPayloadJSON
-            webView.evaluateJavaScript(script) { [weak self] _, error in
-                guard let self else { return }
-
-                if error == nil {
-                    self.lastInjectedPayloadJSON = injectingPayloadJSON
-                    self.monthChangeGate.markInjectSucceeded()
-                }
-                self.scheduleContentHeightMeasurement(of: webView)
-            }
-        }
-
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            guard !webView.isLoading else { return }
-            guard calendarURL != nil,
-                  let blankURL = Constants.blankURL,
-                  webView.url != blankURL
-            else {
-                return
-            }
-
-            let shouldMeasureWithoutWaitingForInject: Bool = {
-                guard let pendingPayloadJSON else { return true }
-                return pendingPayloadJSON == lastInjectedPayloadJSON
-            }()
-
-            hasLoadedCalendarURL = true
-            injectIfNeeded(into: webView)
-
-            if shouldMeasureWithoutWaitingForInject {
-                scheduleContentHeightMeasurement(of: webView)
-            }
+            loadSession.handleDidFinish(
+                navigationOn: webView,
+                contentHeightMeasurer: contentHeightMeasurer
+            )
         }
 
         func webView(
@@ -178,7 +115,7 @@ extension CalendarWebView {
             didFail navigation: WKNavigation!,
             withError error: Error
         ) {
-            handleLoadFailure(on: webView)
+            loadSession.handleLoadFailure(on: webView)
         }
 
         func webView(
@@ -186,7 +123,7 @@ extension CalendarWebView {
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
-            handleLoadFailure(on: webView)
+            loadSession.handleLoadFailure(on: webView)
         }
 
         func userContentController(
@@ -203,7 +140,7 @@ extension CalendarWebView {
                 }
 
             case Constants.monthChangedHandlerName:
-                guard monthChangeGate.shouldAcceptMonthChanged else { return }
+                guard loadSession.shouldAcceptMonthChanged else { return }
                 guard let yearMonth = CalendarMonthChangedMessageParser.yearMonth(from: message.body) else {
                     return
                 }
@@ -215,63 +152,6 @@ extension CalendarWebView {
                 return
             }
         }
-    }
-}
-
-// MARK: - Coordinator Helpers
-
-private extension CalendarWebView.Coordinator {
-    func handleLoadFailure(on webView: WKWebView) {
-        hasLoadedCalendarURL = false
-        lastInjectedPayloadJSON = nil
-        monthChangeGate.reset()
-        guard let blankURL = Constants.blankURL else { return }
-        webView.load(URLRequest(url: blankURL))
-    }
-
-    func scheduleContentHeightMeasurement(of webView: WKWebView) {
-        contentHeightMeasureGeneration += 1
-        let generation = contentHeightMeasureGeneration
-
-        for delay in Constants.contentHeightMeasureDelayList {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-                guard let self,
-                      self.contentHeightMeasureGeneration == generation
-                else {
-                    return
-                }
-                self.evaluateContentHeight(of: webView)
-            }
-        }
-    }
-
-    func evaluateContentHeight(of webView: WKWebView) {
-        webView.evaluateJavaScript(Constants.contentHeightScript) { [weak self] result, _ in
-            guard let self,
-                  let number = result as? NSNumber
-            else {
-                return
-            }
-
-            let measuredHeight = CGFloat(truncating: number)
-            guard measuredHeight > 0 else { return }
-
-            Task { @MainActor in
-                guard let binding = self.contentHeightBinding,
-                      abs(binding.wrappedValue - measuredHeight) > 0.5
-                else {
-                    return
-                }
-                binding.wrappedValue = measuredHeight
-            }
-        }
-    }
-
-    static func jsonStringLiteral(from json: String) -> String? {
-        guard let data = try? JSONEncoder().encode(json) else {
-            return nil
-        }
-        return String(data: data, encoding: .utf8)
     }
 }
 
@@ -298,44 +178,4 @@ private enum Constants {
     static let blankURL = URL(string: "about:blank")
     static let dateSelectedHandlerName = "calendarDateSelected"
     static let monthChangedHandlerName = "calendarMonthChanged"
-    static let reloadCooldownInterval: TimeInterval = 2
-    static let contentHeightMeasureDelayList: [TimeInterval] = [0.25, 0.5]
-    static let unlockViewportHeightScript = """
-    (function() {
-      var styleId = 'livith-calendar-height-unlock';
-      if (document.getElementById(styleId)) { return; }
-      var style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = [
-        'html, body, #root, #__next, #app, main {',
-        '  height: auto !important;',
-        '  min-height: 0 !important;',
-        '  max-height: none !important;',
-        '  overflow: visible !important;',
-        '}',
-        '.h-screen, .min-h-screen, .h-dvh, .min-h-dvh, .h-full, .min-h-full {',
-        '  height: auto !important;',
-        '  min-height: 0 !important;',
-        '  max-height: none !important;',
-        '}'
-      ].join('\\n');
-      document.head.appendChild(style);
-    })();
-    """
-    static let contentHeightScript = """
-    (function() {
-      var maxBottom = 0;
-      var nodes = document.body ? document.body.getElementsByTagName('*') : [];
-      for (var i = 0; i < nodes.length; i++) {
-        var el = nodes[i];
-        var style = window.getComputedStyle(el);
-        if (style.display === 'none' || style.visibility === 'hidden') { continue; }
-        if (style.position === 'fixed') { continue; }
-        var rect = el.getBoundingClientRect();
-        if (rect.height === 0) { continue; }
-        maxBottom = Math.max(maxBottom, rect.bottom + window.pageYOffset);
-      }
-      return Math.ceil(maxBottom);
-    })()
-    """
 }

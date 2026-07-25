@@ -21,7 +21,7 @@ struct CalendarHomeContentView: View {
 
     @State private var showSelectionBlockedToast = false
     @State private var showDayScheduleLoadFailedToast = false
-    @State private var webViewContentHeight = Layout.webViewFallbackHeight
+    @State private var webViewContentHeight = CalendarWebContentHeightMeasurer.fallbackHeight
 
     // MARK: - Body
 
@@ -192,7 +192,6 @@ private extension CalendarHomeContentView {
 
 private extension CalendarHomeContentView {
     enum Layout {
-        static let webViewFallbackHeight: CGFloat = 700
         static let loadingMinHeight: CGFloat = 200
     }
 }

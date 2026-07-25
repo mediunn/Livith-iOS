@@ -24,20 +24,11 @@ enum CalendarDateSelectedMessageParser {
 
 private extension CalendarDateSelectedMessageParser {
     static func dateString(from body: Any) -> String? {
-        if let dictionary = body as? [String: Any] {
-            return dictionary["date"] as? String
-        }
-
-        if let dictionary = body as? NSDictionary {
+        if let dictionary = CalendarWebScriptMessageBodyParser.dictionary(from: body) {
             return dictionary["date"] as? String
         }
 
         if let string = body as? String {
-            if let data = string.data(using: .utf8),
-               let dictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let date = dictionary["date"] as? String {
-                return date
-            }
             return string
         }
 

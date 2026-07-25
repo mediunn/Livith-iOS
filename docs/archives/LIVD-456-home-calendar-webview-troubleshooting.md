@@ -2,6 +2,25 @@
 
 ## 기록
 
+### 2026-07-25 - tuist generate 무응답
+
+**상황**
+- Phase 5 Helper·테스트 파일 추가 후 `tuist generate --no-open` 재실행.
+
+**문제**
+- 약 2분 이상 stdout 없이 hung. 자식 `tuist` 프로세스도 보이지 않음.
+
+**원인**
+- 원인 미파악 (샌드박스/이전 generate와 경합 가능).
+
+**해결**
+- hung 프로세스 kill 후 `tuist generate --no-open` 재실행 → 약 2초 성공.
+
+**교훈**
+- generate가 수 초 내 출력이 없으면 프로세스 상태를 확인하고 재시도한다.
+
+---
+
 ### 2026-07-25 - 일자 일정 동일 concertID·다른 time 행 누락
 
 **상황**
