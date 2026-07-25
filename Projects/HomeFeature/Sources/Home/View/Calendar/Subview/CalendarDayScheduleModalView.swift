@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 
 struct CalendarDayScheduleModalView: View {
@@ -15,7 +16,7 @@ struct CalendarDayScheduleModalView: View {
     // MARK: - Properties
 
     let dayTitle: String
-    let itemList: [CalendarDayScheduleItem]
+    let eventList: [CalendarDayEvent]
     let onDismiss: () -> Void
     let onInterestSettingTap: () -> Void
 
@@ -39,7 +40,7 @@ private extension CalendarDayScheduleModalView {
             header
                 .padding(.bottom, Layout.headerBottomSpacing)
 
-            if itemList.isEmpty {
+            if eventList.isEmpty {
                 emptyContent
             } else {
                 scheduleList
@@ -72,8 +73,8 @@ private extension CalendarDayScheduleModalView {
     var scheduleList: some View {
         ScrollView {
             LazyVStack(spacing: Layout.listSpacing) {
-                ForEach(itemList) { item in
-                    CalendarDayScheduleItemRow(item: item)
+                ForEach(eventList) { event in
+                    CalendarDayScheduleItemRow(event: event)
                 }
             }
         }

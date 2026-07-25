@@ -8,9 +8,11 @@
 
 import Foundation
 
+import Domain
+
 enum CalendarDayScheduleSorter {
-    static func sorted(_ itemList: [CalendarDayScheduleItem]) -> [CalendarDayScheduleItem] {
-        itemList.sorted { lhs, rhs in
+    static func sorted(_ eventList: [CalendarDayEvent]) -> [CalendarDayEvent] {
+        eventList.sorted { lhs, rhs in
             let lhsRank = sortRank(lhs)
             let rhsRank = sortRank(rhs)
             if lhsRank != rhsRank {
@@ -21,15 +23,15 @@ enum CalendarDayScheduleSorter {
                 return lhsTime < rhsTime
             }
 
-            return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+            return lhs.displayTitle.localizedStandardCompare(rhs.displayTitle) == .orderedAscending
         }
     }
 
-    private static func sortRank(_ item: CalendarDayScheduleItem) -> Int {
-        if item.isCancelled {
+    private static func sortRank(_ event: CalendarDayEvent) -> Int {
+        if event.isCancelled {
             return 2
         }
-        if item.time == nil {
+        if event.time == nil {
             return 1
         }
         return 0

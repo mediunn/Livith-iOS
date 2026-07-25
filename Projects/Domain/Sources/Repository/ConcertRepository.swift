@@ -25,7 +25,7 @@ public protocol ConcertRepository {
     func requestConcert(
         title: String,
         url: String?,
-        autoRegister: Bool,
+        shouldAutoRegister: Bool,
         requestContent: String?
     ) async throws(ConcertError)
 }

@@ -636,60 +636,126 @@ struct UserErrorMapperTests {
         }
     }
 
-    @Test("FetchInterestConcertToast는 needsToShow가 false이면 none 정책으로 변환해야 한다")
-    func fetchInterestConcertToast는_needsToShow가_false이면_none_정책으로_변환해야_한다() throws {
+    @Test("FetchInterestConcertEntryAlerts는 4가지 kind와 선택적 concertID를 Domain으로 변환해야 한다")
+    func fetchInterestConcertEntryAlerts는_4가지_kind와_선택적_concertID를_Domain으로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let json = """
         {
-            "needsToShow": false
+            "items": [
+                {
+                    "kind": "AUTO_REMOVED_COMPLETED",
+                    "title": "자동 정리된 공연 1",
+                    "content": "원 오크 록 내한 공연이 자동 정리 됐어요",
+                    "concertId": 101
+                },
+                {
+                    "kind": "AUTO_REMOVED_CANCELED",
+                    "title": "취소된 공연 1",
+                    "content": "원 오크 록 내한 공연이 취소되어 자동 정리 됐어요",
+                    "concertId": 102
+                },
+                {
+                    "kind": "REQUEST_REGISTERED",
+                    "title": "[19자 내 공연명 이후 말줄임..] 콘서트",
+                    "content": "나의 관심 콘서트에 추가됐어요",
+                    "concertId": 201
+                },
+                {
+                    "kind": "REQUEST_FAILED",
+                    "title": "[19자 내 공연명 이후 말줄임..] 콘서트",
+                    "content": "지난 공연으로 관심 콘서트에 추가되지 않았어요"
+                }
+            ]
         }
         """.data(using: .utf8)!
-        let dto = try JSONDecoder().decode(DTO.Response.FetchInterestConcertToast.self, from: json)
+        let dto = try JSONDecoder().decode(DTO.Response.FetchInterestConcertEntryAlerts.self, from: json)
 
         // When
         let result = sut.toDomain(from: dto)
 
         // Then
-        #expect(result == InterestConcertCleanupPolicy.none)
+        #expect(result == [
+            InterestConcertEntryAlert(
+                kind: .autoRemovedCompleted,
+                title: "자동 정리된 공연 1",
+                content: "원 오크 록 내한 공연이 자동 정리 됐어요",
+                concertID: 101
+            ),
+            InterestConcertEntryAlert(
+                kind: .autoRemovedCanceled,
+                title: "취소된 공연 1",
+                content: "원 오크 록 내한 공연이 취소되어 자동 정리 됐어요",
+                concertID: 102
+            ),
+            InterestConcertEntryAlert(
+                kind: .requestRegistered,
+                title: "[19자 내 공연명 이후 말줄임..] 콘서트",
+                content: "나의 관심 콘서트에 추가됐어요",
+                concertID: 201
+            ),
+            InterestConcertEntryAlert(
+                kind: .requestFailed,
+                title: "[19자 내 공연명 이후 말줄임..] 콘서트",
+                content: "지난 공연으로 관심 콘서트에 추가되지 않았어요",
+                concertID: nil
+            )
+        ])
     }
 
-    @Test("FetchInterestConcertToast는 type을 관심 콘서트 정리 정책으로 변환해야 한다")
-    func fetchInterestConcertToast는_type을_관심_콘서트_정리_정책으로_변환해야_한다() throws {
-        // Given
-        let sut = UserMapper()
-        let json = """
-        [
-            { "needsToShow": true, "type": "CANCELED" },
-            { "needsToShow": true, "type": "COMPLETED" },
-            { "needsToShow": true, "type": "BOTH" }
-        ]
-        """.data(using: .utf8)!
-        let dtoList = try JSONDecoder().decode([DTO.Response.FetchInterestConcertToast].self, from: json)
-
-        // When
-        let resultList = dtoList.map { sut.toDomain(from: $0) }
-
-        // Then
-        #expect(resultList == [.canceled, .completed, .both].map(Optional.some))
-    }
-
-    @Test("FetchInterestConcertToast는 needsToShow가 true인데 type이 없으면 변환하지 않아야 한다")
-    func fetchInterestConcertToast는_needsToShow가_true인데_type이_없으면_변환하지_않아야_한다() throws {
+    @Test("FetchInterestConcertEntryAlerts는 알 수 없는 kind 항목을 제외해야 한다")
+    func fetchInterestConcertEntryAlerts는_알_수_없는_kind_항목을_제외해야_한다() throws {
         // Given
         let sut = UserMapper()
         let json = """
         {
-            "needsToShow": true
+            "items": [
+                {
+                    "kind": "UNKNOWN_KIND",
+                    "title": "무시됨",
+                    "content": "무시됨"
+                },
+                {
+                    "kind": "REQUEST_REGISTERED",
+                    "title": "추가 완료",
+                    "content": "나의 관심 콘서트에 추가됐어요",
+                    "concertId": 301
+                }
+            ]
         }
         """.data(using: .utf8)!
-        let dto = try JSONDecoder().decode(DTO.Response.FetchInterestConcertToast.self, from: json)
+        let dto = try JSONDecoder().decode(DTO.Response.FetchInterestConcertEntryAlerts.self, from: json)
 
         // When
         let result = sut.toDomain(from: dto)
 
         // Then
-        #expect(result == nil)
+        #expect(result == [
+            InterestConcertEntryAlert(
+                kind: .requestRegistered,
+                title: "추가 완료",
+                content: "나의 관심 콘서트에 추가됐어요",
+                concertID: 301
+            )
+        ])
+    }
+
+    @Test("FetchInterestConcertEntryAlerts는 빈 items를 빈 배열로 변환해야 한다")
+    func fetchInterestConcertEntryAlerts는_빈_items를_빈_배열로_변환해야_한다() throws {
+        // Given
+        let sut = UserMapper()
+        let json = """
+        {
+            "items": []
+        }
+        """.data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchInterestConcertEntryAlerts.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+
+        // Then
+        #expect(result.isEmpty)
     }
 
     @Test("인증 토큰 없음 에러를 unknown으로 변환해야 한다")

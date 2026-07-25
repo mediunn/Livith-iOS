@@ -8,16 +8,17 @@
 
 import SwiftUI
 
+import Domain
 import LivithDesignSystem
 
 struct InterestConcertResultSheetView: View {
 
     // MARK: - Properties
 
-    let content: InterestConcertResultSheetContent
+    let alertList: [InterestConcertEntryAlert]
     @Binding var sheetHeight: CGFloat
     let onConfirm: () -> Void
-    let onCheckTap: (Int) -> Void
+    let onCheckTap: (Int?) -> Void
     let onRetryTap: () -> Void
 
     @State private var scrollContentHeight: CGFloat = 0
@@ -79,11 +80,11 @@ private extension InterestConcertResultSheetView {
         VStack(alignment: .leading, spacing: Constants.sectionSpacing) {
             titleSection
 
-            if !content.autoCleanupItemList.isEmpty {
+            if !alertList.autoCleanupAlertList.isEmpty {
                 autoCleanupSection
             }
 
-            if !content.requestResultItemList.isEmpty {
+            if !alertList.requestResultAlertList.isEmpty {
                 requestResultSection
             }
         }
@@ -113,7 +114,7 @@ private extension InterestConcertResultSheetView {
                 .foregroundStyle(Color.livithColor(.black5))
 
             VStack(spacing: Constants.cardSpacing) {
-                ForEach(content.autoCleanupItemList) { item in
+                ForEach(Array(alertList.autoCleanupAlertList.enumerated()), id: \.offset) { _, item in
                     autoCleanupCard(item)
                 }
             }
@@ -127,20 +128,20 @@ private extension InterestConcertResultSheetView {
                 .foregroundStyle(Color.livithColor(.black5))
 
             VStack(spacing: Constants.cardSpacing) {
-                ForEach(content.requestResultItemList) { item in
+                ForEach(Array(alertList.requestResultAlertList.enumerated()), id: \.offset) { _, item in
                     requestResultCard(item)
                 }
             }
         }
     }
 
-    func autoCleanupCard(_ item: InterestConcertResultSheetContent.AutoCleanupItem) -> some View {
+    func autoCleanupCard(_ item: InterestConcertEntryAlert) -> some View {
         VStack(alignment: .leading, spacing: Constants.autoCleanupCardTextSpacing) {
-            Text(item.title)
+            Text(item.displayTitle)
                 .notosans(.body3Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
 
-            Text(item.description)
+            Text(item.content)
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black50))
         }
@@ -151,46 +152,47 @@ private extension InterestConcertResultSheetView {
         .clipShape(RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
     }
 
-    func requestResultCard(_ item: InterestConcertResultSheetContent.RequestResultItem) -> some View {
+    func requestResultCard(_ item: InterestConcertEntryAlert) -> some View {
         HStack(alignment: .top, spacing: Constants.cardInnerSpacing) {
             VStack(alignment: .leading, spacing: Constants.cardInnerSpacing) {
-                statusBadge(isFailure: item.isFailure, title: item.badgeTitle)
+                if let badgeTitle = item.kind.badgeTitle {
+                    statusBadge(isFailure: item.kind.isFailure, title: badgeTitle)
+                }
 
                 VStack(alignment: .leading, spacing: Constants.requestTextSpacing) {
-                    Text(item.concertTitle)
+                    Text(item.displayTitle)
                         .notosans(.body3Semibold)
                         .foregroundStyle(Color.livithColor(.white100))
                         .lineLimit(1)
 
-                    Text(item.description)
+                    Text(item.content)
                         .notosans(.body4Medium)
                         .foregroundStyle(Color.livithColor(.black50))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button {
-                switch item.outcome {
-                case .added:
-                    if let concertID = item.concertID {
-                        onCheckTap(concertID)
+            if let actionTitle = item.kind.actionTitle {
+                Button {
+                    if item.kind.isFailure {
+                        onRetryTap()
+                    } else {
+                        onCheckTap(item.concertID)
                     }
-                case .failed:
-                    onRetryTap()
-                }
-            } label: {
-                HStack(spacing: 0) {
-                    Text(item.actionTitle)
-                        .notosans(.caption1Bold)
-                        .foregroundStyle(Color.livithColor(.black50))
+                } label: {
+                    HStack(spacing: 0) {
+                        Text(actionTitle)
+                            .notosans(.caption1Bold)
+                            .foregroundStyle(Color.livithColor(.black50))
 
-                    Image.livithIcon(.rightLineDefault)
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .foregroundStyle(Color.livithColor(.black50))
+                        Image.livithIcon(.rightLineDefault)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundStyle(Color.livithColor(.black50))
+                    }
                 }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .padding(.leading, Constants.cardHorizontalPadding)
         .padding(.trailing, Constants.requestCardTrailingPadding)

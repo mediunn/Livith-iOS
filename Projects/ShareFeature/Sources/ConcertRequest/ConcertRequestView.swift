@@ -110,8 +110,8 @@ public struct ConcertRequestView: View {
             detents: [.fraction(InterestConcertBottomSheet.Constants.sheetFraction)]
         ) {
             InterestConcertBottomSheet(
-                onDecline: { submit(autoRegister: false) },
-                onAccept: { submit(autoRegister: true) }
+                onDecline: { submit(shouldAutoRegister: false) },
+                onAccept: { submit(shouldAutoRegister: true) }
             )
             .livithToast(
                 isPresented: failureToastBinding,
@@ -301,13 +301,13 @@ private extension ConcertRequestView {
         }
     }
 
-    func submit(autoRegister: Bool) {
+    func submit(shouldAutoRegister: Bool) {
         let url = trimmed(urlText)
         let note = trimmed(additionalNote)
         store.send(.submit(
             title: trimmed(concertName),
             url: url.isEmpty ? nil : url,
-            autoRegister: autoRegister,
+            shouldAutoRegister: shouldAutoRegister,
             requestContent: note.isEmpty ? nil : note
         ))
     }

@@ -159,7 +159,7 @@ final class MockConcertRepository: ConcertRepository {
     func requestConcert(
         title: String,
         url: String?,
-        autoRegister: Bool,
+        shouldAutoRegister: Bool,
         requestContent: String?
     ) async throws(ConcertError) {
         if let error = errorStub {

@@ -22,7 +22,7 @@ struct ConcertRequestState {
 // MARK: - Intent
 
 enum ConcertRequestIntent {
-    case submit(title: String, url: String?, autoRegister: Bool, requestContent: String?)
+    case submit(title: String, url: String?, shouldAutoRegister: Bool, requestContent: String?)
     case onFailureToastDisappear
     case _submitResult(Result<Void, Error>)
 }
@@ -37,14 +37,14 @@ final class ConcertRequestStore: ObservableObject {
     @MainActor
     func send(_ intent: ConcertRequestIntent) {
         switch intent {
-        case .submit(let title, let url, let autoRegister, let requestContent):
+        case .submit(let title, let url, let shouldAutoRegister, let requestContent):
             guard !state.isSubmitting else { return }
             state.isSubmitting = true
             state.showFailureToast = false
             performSubmit(
                 title: title,
                 url: url,
-                autoRegister: autoRegister,
+                shouldAutoRegister: shouldAutoRegister,
                 requestContent: requestContent
             )
 
@@ -69,7 +69,7 @@ private extension ConcertRequestStore {
     func performSubmit(
         title: String,
         url: String?,
-        autoRegister: Bool,
+        shouldAutoRegister: Bool,
         requestContent: String?
     ) {
         Task {
@@ -77,7 +77,7 @@ private extension ConcertRequestStore {
                 try await concertRepository.requestConcert(
                     title: title,
                     url: url,
-                    autoRegister: autoRegister,
+                    shouldAutoRegister: shouldAutoRegister,
                     requestContent: requestContent
                 )
                 await MainActor.run {

@@ -130,7 +130,8 @@ private extension TargetID {
             .setlistDataTests: "SetlistData",
             .songDataTests: "SongData",
             .userDataTests: "UserData",
-            .notificationDataTests: "NotificationData"
+            .notificationDataTests: "NotificationData",
+            .calendarDataTests: "CalendarData"
         ]
 
         guard let parentModule = testModuleMappings[module] else { return nil }

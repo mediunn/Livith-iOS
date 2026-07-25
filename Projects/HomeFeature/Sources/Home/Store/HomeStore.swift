@@ -27,7 +27,7 @@ struct HomeState {
     var shouldShowPreferenceBanner: Bool = false
     var recommendedConcertList: [Concert] = []
     var shouldShowInterestResultSheet: Bool = false
-    var interestResultSheetContent: InterestConcertResultSheetContent? = nil
+    var interestResultAlertList: [InterestConcertEntryAlert] = []
 }
 
 // MARK: - Intent
@@ -45,7 +45,7 @@ enum HomeIntent {
     case _fetchUserResult(Result<User, Error>)
     case _interestListResult(Result<[InterestConcert], Error>)
     case _unreadCountResult(Result<Int, Error>)
-    case _entryAlertsResult(Result<[InterestEntryAlert], Error>)
+    case _interestResultAlertListResult(Result<[InterestConcertEntryAlert], Error>)
     case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
 }
 
@@ -80,7 +80,7 @@ final class HomeStore: ObservableObject {
     @Injected private var concertRepository: ConcertRepository
     
     private var cancellables = [CancelID: Task<Void, Never>]()
-    private var pendingEntryAlertsFetch = false
+    private var pendingInterestResultAlertFetch = false
     private var userAvailability: UserAvailability = .pending
     private var userWaiters: [UserWaiter] = []
 
@@ -96,7 +96,7 @@ final class HomeStore: ObservableObject {
             let loadsSections = state.needsInitialSectionLoad
             if loadsSections {
                 state.isSectionLoading = true
-                pendingEntryAlertsFetch = true
+                pendingInterestResultAlertFetch = true
             }
             performInterestAppear(loadsSections: loadsSections)
 
@@ -110,7 +110,6 @@ final class HomeStore: ObservableObject {
             state.errorMessage = ""
 
         case .onInterestResultSheetDismiss:
-            // 서버가 entry-alerts POST 시점에 노출 완료 처리하므로 별도 mark 호출은 없다.
             guard state.shouldShowInterestResultSheet else { return }
             clearInterestResultSheet()
 
@@ -130,7 +129,7 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = data.hasNewNotice
                 resolveUserAvailability(with: data.user)
             case .failure(let error):
-                pendingEntryAlertsFetch = false
+                pendingInterestResultAlertFetch = false
                 state.isSectionLoading = false
                 setError(from: error)
                 resolveUserAvailability(with: nil)
@@ -144,7 +143,7 @@ final class HomeStore: ObservableObject {
 
                 state.isSectionLoading = true
                 state.needsInitialSectionLoad = false
-                pendingEntryAlertsFetch = true
+                pendingInterestResultAlertFetch = true
                 performFetchSections()
             case .failure(let error):
                 setError(from: error)
@@ -171,11 +170,10 @@ final class HomeStore: ObservableObject {
                 state.hasNewNotice = false
             }
 
-        case ._entryAlertsResult(let result):
+        case ._interestResultAlertListResult(let result):
             switch result {
-            case .success(let alerts):
-                let content = InterestConcertResultSheetContent(alerts: alerts)
-                guard !content.isEmpty else {
+            case .success(let alertList):
+                guard shouldPresentInterestResultSheet(for: alertList) else {
                     clearInterestResultSheet()
                     return
                 }
@@ -184,7 +182,7 @@ final class HomeStore: ObservableObject {
                     return
                 }
 
-                state.interestResultSheetContent = content
+                state.interestResultAlertList = alertList
                 state.shouldShowInterestResultSheet = true
             case .failure:
                 clearInterestResultSheet()
@@ -195,12 +193,12 @@ final class HomeStore: ObservableObject {
                 return
             }
 
-            let isInitialLoad = pendingEntryAlertsFetch
+            let isInitialLoad = pendingInterestResultAlertFetch
             state.isSectionLoading = false
 
             if isInitialLoad {
                 state.needsInitialSectionLoad = false
-                pendingEntryAlertsFetch = false
+                pendingInterestResultAlertFetch = false
             }
 
             switch result {
@@ -210,7 +208,7 @@ final class HomeStore: ObservableObject {
                 state.recommendedConcertList = data.recommendedConcertList ?? []
                 state.errorMessage = ""
                 if isInitialLoad {
-                    performFetchEntryAlerts()
+                    performFetchInterestResultAlertList()
                 }
             case .failure(let error):
                 setError(from: error)
@@ -384,14 +382,18 @@ private extension HomeStore {
         }
     }
 
-    func performFetchEntryAlerts() {
+    func fetchInterestResultAlertList() async -> Result<[InterestConcertEntryAlert], Error> {
+        do {
+            return .success(try await userRepository.fetchInterestConcertEntryAlerts())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    func performFetchInterestResultAlertList() {
         Task {
-            do {
-                let alerts = try await notificationRepository.fetchEntryAlerts()
-                send(._entryAlertsResult(.success(alerts)))
-            } catch {
-                send(._entryAlertsResult(.failure(error)))
-            }
+            let result = await fetchInterestResultAlertList()
+            send(._interestResultAlertListResult(result))
         }
     }
 
@@ -480,6 +482,10 @@ private extension HomeStore {
 
     func clearInterestResultSheet() {
         state.shouldShowInterestResultSheet = false
-        state.interestResultSheetContent = nil
+        state.interestResultAlertList = []
+    }
+
+    func shouldPresentInterestResultSheet(for alertList: [InterestConcertEntryAlert]) -> Bool {
+        !alertList.isEmpty
     }
 }

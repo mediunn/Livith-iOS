@@ -18,6 +18,7 @@ struct CalendarHomeContentView: View {
     @ObservedObject var store: CalendarHomeStore
 
     @State private var showSelectionBlockedToast = false
+    @State private var showDayScheduleLoadFailedToast = false
 
     // MARK: - Body
 
@@ -25,7 +26,7 @@ struct CalendarHomeContentView: View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
                 VStack(spacing: .zero) {
-                    if !store.state.isLoadFailed {
+                    if showsFilterBar {
                         CalendarFilterBarView(store: store)
                     }
 
@@ -35,6 +36,9 @@ struct CalendarHomeContentView: View {
             .scrollIndicators(.never)
             .refreshable {
                 await store.performRefresh()
+            }
+            .onAppear {
+                store.send(.onAppear)
             }
 
             #if DEBUG
@@ -47,18 +51,28 @@ struct CalendarHomeContentView: View {
             guard newValue > 0 else { return }
             showSelectionBlockedToast = true
         }
+        .onChange(of: store.state.dayScheduleLoadFailedToastTrigger) { _, newValue in
+            guard newValue > 0 else { return }
+            showDayScheduleLoadFailedToast = true
+        }
         .onDisappear {
             dismissSelectionBlockedToast()
+            dismissDayScheduleLoadFailedToast()
         }
         .livithToast(
             isPresented: selectionBlockedToastBinding,
             type: .failure,
             message: store.state.selectionBlockedToastMessage
         )
+        .livithToast(
+            isPresented: dayScheduleLoadFailedToastBinding,
+            type: .failure,
+            message: store.state.dayScheduleLoadFailedToastMessage
+        )
         .crossDissolve(isPresented: dayScheduleModalBinding, dismissOnTapOutside: true) {
             CalendarDayScheduleModalView(
                 dayTitle: store.state.selectedDayTitle,
-                itemList: store.state.dayScheduleItemList,
+                eventList: store.state.dayScheduleEventList,
                 onDismiss: { store.send(.dayScheduleModalDismissed) },
                 onInterestSettingTap: {
                     store.send(.dayScheduleModalDismissed)
@@ -74,7 +88,9 @@ struct CalendarHomeContentView: View {
 private extension CalendarHomeContentView {
     @ViewBuilder
     var calendarBody: some View {
-        if store.state.isLoadFailed {
+        if store.state.isInitialLoading {
+            loadingView
+        } else if store.state.isLoadFailed {
             LivithEmptyView(text: CalendarHomeStore.Constants.loadFailedEmptyMessage)
                 .frame(maxWidth: .infinity)
                 .containerRelativeFrame(.vertical)
@@ -84,21 +100,23 @@ private extension CalendarHomeContentView {
         }
     }
 
+    var loadingView: some View {
+        VStack(spacing: .zero) {
+            Spacer(minLength: Layout.loadingMinHeight)
+
+            ProgressView()
+                .scaleEffect(1.6, anchor: .center)
+
+            Spacer(minLength: Layout.loadingMinHeight)
+        }
+        .frame(maxWidth: .infinity)
+        .containerRelativeFrame(.vertical)
+    }
+
     #if DEBUG
     var debugModalTriggers: some View {
-        VStack(spacing: 8) {
-            Button("일정 모달") {
-                store.send(.dayScheduleModalOpened(
-                    dayTitle: CalendarDayScheduleFixture.dayTitle,
-                    itemList: CalendarDayScheduleFixture.itemList
-                ))
-            }
-            Button("엠티 모달") {
-                store.send(.dayScheduleModalOpened(
-                    dayTitle: CalendarDayScheduleFixture.dayTitle,
-                    itemList: []
-                ))
-            }
+        Button("일정 모달") {
+            store.send(.dayScheduleRequested(date: Date()))
         }
         .notosans(.caption1Bold)
         .padding(12)
@@ -112,12 +130,27 @@ private extension CalendarHomeContentView {
 // MARK: - Computed Properties
 
 private extension CalendarHomeContentView {
+    var showsFilterBar: Bool {
+        !store.state.isLoadFailed && !store.state.isInitialLoading
+    }
+
     var selectionBlockedToastBinding: Binding<Bool> {
         Binding(
             get: { showSelectionBlockedToast && !store.state.selectionBlockedToastMessage.isEmpty },
             set: { isPresented in
                 if !isPresented {
                     dismissSelectionBlockedToast()
+                }
+            }
+        )
+    }
+
+    var dayScheduleLoadFailedToastBinding: Binding<Bool> {
+        Binding(
+            get: { showDayScheduleLoadFailedToast && !store.state.dayScheduleLoadFailedToastMessage.isEmpty },
+            set: { isPresented in
+                if !isPresented {
+                    dismissDayScheduleLoadFailedToast()
                 }
             }
         )
@@ -144,6 +177,13 @@ private extension CalendarHomeContentView {
         showSelectionBlockedToast = false
         store.send(.onSelectionBlockedToastDisappear)
     }
+
+    func dismissDayScheduleLoadFailedToast() {
+        guard showDayScheduleLoadFailedToast || !store.state.dayScheduleLoadFailedToastMessage.isEmpty else { return }
+
+        showDayScheduleLoadFailedToast = false
+        store.send(.onDayScheduleLoadFailedToastDisappear)
+    }
 }
 
 // MARK: - Layout
@@ -151,5 +191,6 @@ private extension CalendarHomeContentView {
 private extension CalendarHomeContentView {
     enum Layout {
         static let webViewMinHeight: CGFloat = 500
+        static let loadingMinHeight: CGFloat = 200
     }
 }

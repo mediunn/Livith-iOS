@@ -172,7 +172,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
     func requestConcert(
         title: String,
         url: String?,
-        autoRegister: Bool,
+        shouldAutoRegister: Bool,
         requestContent: String?
     ) async throws(ConcertError) {
         do {
@@ -180,7 +180,7 @@ struct ConcertRepositoryImpl: ConcertRepository {
                 ConcertAPI.requestConcert(
                     title: title,
                     url: url,
-                    autoRegister: autoRegister,
+                    shouldAutoRegister: shouldAutoRegister,
                     requestContent: requestContent
                 )
             )

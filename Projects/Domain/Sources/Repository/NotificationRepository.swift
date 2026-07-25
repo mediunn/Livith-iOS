@@ -12,7 +12,6 @@ public protocol NotificationRepository {
     func fetchNotificationList(cursor: Int?, size: Int) async throws(NotificationError) -> [NotificationItem]
     func markNotificationAsRead(id: Int) async throws(NotificationError)
     func markAllNotificationsAsRead() async throws(NotificationError)
-    func fetchEntryAlerts() async throws(NotificationError) -> [InterestEntryAlert]
     func fetchUnreadNotificationCount() async throws(NotificationError) -> Int
     func updateNotificationConsent(
         field: NotificationConsentField,

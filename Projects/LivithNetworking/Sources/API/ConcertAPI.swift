@@ -75,7 +75,7 @@ public enum ConcertAPI {
     public static func requestConcert(
         title: String,
         url: String?,
-        autoRegister: Bool,
+        shouldAutoRegister: Bool,
         requestContent: String?
     ) -> NetworkEndpoint {
         NetworkEndpoint(
@@ -84,7 +84,7 @@ public enum ConcertAPI {
             task: .body(DTO.Request.RequestConcert(
                 title: title,
                 url: url,
-                autoRegister: autoRegister,
+                autoRegister: shouldAutoRegister,
                 requestContent: requestContent
             )),
             authentication: .required

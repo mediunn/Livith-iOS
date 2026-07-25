@@ -55,13 +55,14 @@ struct HomeView: View {
             detents: [.height(interestResultSheetHeight)],
             background: .livithColor(.black90)
         ) {
-            if let content = store.state.interestResultSheetContent {
+            if store.state.shouldShowInterestResultSheet {
                 InterestConcertResultSheetView(
-                    content: content,
+                    alertList: store.state.interestResultAlertList,
                     sheetHeight: $interestResultSheetHeight,
                     onConfirm: { store.send(.onInterestResultSheetDismiss) },
                     onCheckTap: { concertID in
                         store.send(.onInterestResultSheetDismiss)
+                        guard let concertID else { return }
                         homeRouter.push(.concertDetail(
                             concertID: concertID,
                             initialTab: .artistDetail,

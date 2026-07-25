@@ -23,13 +23,13 @@ final class MockConcertRepository: ConcertRepository {
     func requestConcert(
         title: String,
         url: String?,
-        autoRegister: Bool,
+        shouldAutoRegister: Bool,
         requestContent: String?
     ) async throws(ConcertError) {
         requestConcertCallCount += 1
         requestConcertTitle = title
         requestConcertURL = url
-        requestConcertAutoRegister = autoRegister
+        requestConcertAutoRegister = shouldAutoRegister
         requestConcertContent = requestContent
         if requestConcertDelay > 0 {
             try? await Task.sleep(nanoseconds: requestConcertDelay)

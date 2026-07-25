@@ -39,7 +39,7 @@ struct ConcertRequestStoreTests {
         sut.send(.submit(
             title: "테일러 스위프트 콘서트",
             url: "https://www.example.com/concert/1",
-            autoRegister: true,
+            shouldAutoRegister: true,
             requestContent: "아티스트명: 테일러 스위프트"
         ))
         try await waitForAsyncTask()
@@ -61,7 +61,7 @@ struct ConcertRequestStoreTests {
         let sut = ConcertRequestStore()
 
         // When
-        sut.send(.submit(title: "공연", url: nil, autoRegister: false, requestContent: nil))
+        sut.send(.submit(title: "공연", url: nil, shouldAutoRegister: false, requestContent: nil))
         try await waitForAsyncTask()
 
         // Then
@@ -77,7 +77,7 @@ struct ConcertRequestStoreTests {
         let sut = ConcertRequestStore()
 
         // When
-        sut.send(.submit(title: "공연", url: nil, autoRegister: true, requestContent: nil))
+        sut.send(.submit(title: "공연", url: nil, shouldAutoRegister: true, requestContent: nil))
         try await waitForAsyncTask()
 
         // Then
@@ -94,8 +94,8 @@ struct ConcertRequestStoreTests {
         let sut = ConcertRequestStore()
 
         // When
-        sut.send(.submit(title: "공연", url: nil, autoRegister: true, requestContent: nil))
-        sut.send(.submit(title: "공연", url: nil, autoRegister: true, requestContent: nil))
+        sut.send(.submit(title: "공연", url: nil, shouldAutoRegister: true, requestContent: nil))
+        sut.send(.submit(title: "공연", url: nil, shouldAutoRegister: true, requestContent: nil))
         try await Task.sleep(nanoseconds: 400_000_000)
 
         // Then
@@ -107,7 +107,7 @@ struct ConcertRequestStoreTests {
         // Given
         container.concertRepository.requestConcertErrorStub = .serverError
         let sut = ConcertRequestStore()
-        sut.send(.submit(title: "공연", url: nil, autoRegister: true, requestContent: nil))
+        sut.send(.submit(title: "공연", url: nil, shouldAutoRegister: true, requestContent: nil))
         try await waitForAsyncTask()
         #expect(sut.state.showFailureToast)
 
