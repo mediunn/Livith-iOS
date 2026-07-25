@@ -8,6 +8,8 @@
 
 import SwiftUI
 
+import Amplitude
+
 struct CalendarFilterBarView: View {
 
     // MARK: - Properties
@@ -24,8 +26,14 @@ struct CalendarFilterBarView: View {
 
             CalendarScopeFilterView(
                 selectedScope: store.state.concertScope,
-                onAllConcertsTap: { store.send(.allConcertsTapped) },
-                onMyConcertsTap: { store.send(.myConcertsTapped) }
+                onAllConcertsTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.calendarToggleAllConcert))
+                    store.send(.allConcertsTapped)
+                },
+                onMyConcertsTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.calendarToggleMyConcerts))
+                    store.send(.myConcertsTapped)
+                }
             )
         }
         .padding(Layout.contentPadding)
@@ -40,13 +48,19 @@ private extension CalendarFilterBarView {
             CalendarDateFilterChipView(
                 kind: .ticketing,
                 isSelected: store.state.isTicketingDateSelected,
-                onTap: { store.send(.ticketingDateTapped) }
+                onTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.calendarChipBookingDate))
+                    store.send(.ticketingDateTapped)
+                }
             )
 
             CalendarDateFilterChipView(
                 kind: .performance,
                 isSelected: store.state.isPerformanceDateSelected,
-                onTap: { store.send(.performanceDateTapped) }
+                onTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.calendarChipConcertDate))
+                    store.send(.performanceDateTapped)
+                }
             )
         }
     }

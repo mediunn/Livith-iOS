@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import LivithDesignSystem
 
 public struct ConcertRequestView: View {
@@ -111,7 +112,10 @@ public struct ConcertRequestView: View {
         ) {
             InterestConcertBottomSheet(
                 onDecline: { submit(shouldAutoRegister: false) },
-                onAccept: { submit(shouldAutoRegister: true) }
+                onAccept: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.concertRequestAdded))
+                    submit(shouldAutoRegister: true)
+                }
             )
             .livithToast(
                 isPresented: failureToastBinding,
@@ -260,6 +264,7 @@ private extension ConcertRequestView {
 
     var submitButton: some View {
         LivithButton(Literals.submit, variant: .primary) {
+            AmplitudeService.shared.trackEvent(tag: .click(.concertRequestConfirm))
             dismissKeyboard()
             isBottomSheetPresented = true
         }

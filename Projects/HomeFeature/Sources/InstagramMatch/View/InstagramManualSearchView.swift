@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -113,6 +114,7 @@ private extension InstagramManualSearchView {
             Spacer()
 
             LivithReportButton(Literals.reportButtonTitle, variant: .info) {
+                AmplitudeService.shared.trackEvent(tag: .click(.concertRequest))
                 homeRouter.push(.concertRequest)
             }
             .padding(.trailing, 16)
@@ -221,6 +223,7 @@ private extension InstagramManualSearchView {
                 Literals.registerTitle,
                 variant: .primary
             ) {
+                AmplitudeService.shared.trackEvent(tag: .click(.igSearchSuccess))
                 store.send(.register)
             }
             .disabled(!store.state.isCTAEnabled)

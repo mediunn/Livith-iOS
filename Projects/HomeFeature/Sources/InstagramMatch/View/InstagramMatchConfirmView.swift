@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import DisplaySupport
 import LivithDesignSystem
@@ -69,7 +70,10 @@ struct InstagramMatchConfirmView: View {
                 message: Literals.cancelModalMessage,
                 confirmTitle: Literals.cancelModalConfirmTitle,
                 cancelTitle: Literals.cancelModalCancelTitle,
-                type: .confirm(onConfirm: { store.send(.confirmCancel) }),
+                type: .confirm(onConfirm: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.igParsingFail))
+                    store.send(.confirmCancel)
+                }),
                 onCancel: { store.send(.dismissCancelModal) }
             )
         }
@@ -162,6 +166,7 @@ private extension InstagramMatchConfirmView {
 
     var searchDirectlyButton: some View {
         Button {
+            AmplitudeService.shared.trackEvent(tag: .click(.igSearch))
             homeRouter.push(.instagramManualSearch(context: .manualSearch))
         } label: {
             VStack(spacing: 6) {
@@ -188,6 +193,7 @@ private extension InstagramMatchConfirmView {
                 Literals.registerTitle,
                 variant: .primary
             ) {
+                AmplitudeService.shared.trackEvent(tag: .click(.igParsingSuccess))
                 store.send(.register)
             }
             .disabled(!store.state.isCTAEnabled)
