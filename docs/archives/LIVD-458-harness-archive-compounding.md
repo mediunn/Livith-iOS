@@ -28,6 +28,13 @@
 - [AGENTS에 한글 Hard gate를 넣음] → AGENTS.md는 영어만, 한글 규칙은 docs/rules에 둔다.
 - [스킬이 .agents와 .claude에 미러됨] → 삭제 시 유저가 지정한 경로만 변경한다.
 - [문서 작성 제약을 plan에 넣으려 함] → AGENTS/rules/템플릿 작성 규칙은 documentation.md로 둔다.
+- [PR을 Summary/Test plan 형식으로 올림] → PR 본문은 `.github/PULL_REQUEST_TEMPLATE.md`를 따르고 `git.md`에 명시한다.
+
+## 追記
+
+### 2026-07-25 - PR 본문 템플릿
+- `git.md` Pull Request Do에 `.github/PULL_REQUEST_TEMPLATE.md` 준수를 추가했다. PR #297 본문을 템플릿에 맞게 수정했다.
 
 ## 참조
 - 브랜치: `refactor/LIVD-458-harness-archive-compounding`
+- PR: https://github.com/mediunn/Livith-iOS/pull/297

@@ -90,6 +90,7 @@
 ### Pull Request
 - PR 제목 형식: `[Type] 작업 설명` (예: `[Fix] 위젯 관련 코드 삭제 및 크래시 수정`)
 - PR 제목에 이슈 키를 포함하지 않는다.
+- PR 본문은 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따른다.
 - PR 본문에는 변경 사유와 주요 변경 사항을 작성한다.
 - 관련 이슈 키를 본문에 명시한다 (예: `Resolved: LIVD-123`).
 - PR을 만들기 전에 현재 브랜치 `슬러그`에 대응하는 `docs/plans/`, `docs/troubleshooting/` 문서가 없는지 확인한다.
@@ -129,5 +130,6 @@
 - 하나의 커밋에 하나의 논리적 변경만 포함되어 있는가
 - 브랜치 이름이 `type/이슈키-설명` 형식을 따르는가
 - PR 제목과 본문이 작성 규칙을 따르는가
+- PR 본문이 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따르는가
 - PR 전에 해당 `슬러그` 계획·트러블슈팅이 `plans/`·`troubleshooting/`에 없는가 (보류·해당 없음 제외)
 - 머지 후 원격 작업 브랜치를 삭제했는가
