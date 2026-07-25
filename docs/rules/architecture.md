@@ -6,6 +6,7 @@
 
 ## Scope
 - 프로젝트의 모든 모듈에 적용한다.
+- typed throws와 Store 상태(`@Published private(set)`)·`send` 단일 진입점의 정본은 이 문서다. `docs/rules/code-convention.md`는 이를 재정의하지 않고 따른다.
 
 ## Do
 
