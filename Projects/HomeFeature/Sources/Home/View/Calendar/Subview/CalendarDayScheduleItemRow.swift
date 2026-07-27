@@ -60,7 +60,7 @@ private extension CalendarDayScheduleItemRow {
                 kindChip
 
                 Text(event.displayTitle)
-                    .notosans(.body2Semibold)
+                    .notosans(.body3Semibold)
                     .foregroundStyle(Color.livithColor(.white100))
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)

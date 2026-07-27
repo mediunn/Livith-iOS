@@ -55,9 +55,11 @@
   - 네비: 기존 back+title 유지 + 우측 `LivithReportButton` `.info`
   - 툴팁: 인스타 검색과 동일 비주얼, FR-06 왕복 후에만 숨김(`@State`)
   - 탭 → Amplitude + `concertRequest` 푸시
+- [x] 이슈4: 캘린더 상세 모달 일정명 타이포
+  - Figma `47:3002` Body3-sm → `body3Semibold` (기존 `body2Semibold`)
 
 ## 영향 범위
-- `Projects/HomeFeature` — `HomeStore`, `InterestHomeContentView`, `HomeView`, `HomeStoreTests`, `InterestConcertSettingView`
+- `Projects/HomeFeature` — `HomeStore`, `InterestHomeContentView`, `HomeView`, `HomeStoreTests`, `InterestConcertSettingView`, `CalendarDayScheduleItemRow`
 - DesignSystem / Domain / Data 변경 없음
 
 ## 기술 결정
