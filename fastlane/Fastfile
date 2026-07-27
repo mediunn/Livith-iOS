@@ -22,6 +22,7 @@ platform :ios do
       configuration: "Debug",
       export_method: "app-store",
       xcargs: signing_xcargs,
+      export_options: ci_export_options,
       clean: true,
       output_directory: "build"
     )
@@ -47,6 +48,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       xcargs: signing_xcargs,
+      export_options: ci_export_options,
       clean: true,
       output_directory: "build"
     )
@@ -93,6 +95,20 @@ def signing_xcargs
     "-authenticationKeyPath #{ASC_KEY_P8} " \
     "-authenticationKeyID #{info['key_id']} " \
     "-authenticationKeyIssuerID #{info['issuer_id']}"
+end
+
+# export 단계는 cloud signing(API Key) 권한이 부족하므로, 설치된 Distribution 프로파일로 수동 매핑한다.
+# archive는 xcargs의 -allowProvisioningUpdates(자동), export는 아래 매핑(수동)으로 하이브리드.
+def ci_export_options
+  return nil unless is_ci
+  {
+    signingStyle: "manual",
+    teamID: "2DF5SKQK2R",
+    provisioningProfiles: {
+      "com.youz2me.livith" => "Livith-Distribution",
+      "com.youz2me.livith.shareextension" => "LivithShareExtension-Distribution"
+    }
+  }
 end
 
 # App Store Connect API Key. .p8 개인키와 key_id·issuer_id(JSON)를 모두 Livith-Certificate(private)에서
