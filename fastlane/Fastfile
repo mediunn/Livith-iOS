@@ -14,19 +14,21 @@ platform :ios do
   desc "QA 배포 — Dev(dev 서버) 빌드를 TestFlight internal에 업로드"
   lane :qa do
     version = bump_build_number
+    api_key = is_ci ? load_api_key : nil
     build_app(
       workspace: WORKSPACE,
       scheme: QA_SCHEME,
       configuration: "Debug",
       export_method: "app-store",
-      export_options: ci_export_options,
+      xcargs: is_ci ? "-allowProvisioningUpdates" : nil,
+      api_key: api_key,
       clean: true,
       output_directory: "build"
     )
 
     if is_ci
       upload_to_testflight(
-        api_key: load_api_key,
+        api_key: api_key,
         distribute_external: false,
         skip_waiting_for_build_processing: true
       )
@@ -39,19 +41,21 @@ platform :ios do
   desc "운영 배포 — Release 빌드를 App Store Connect에 업로드 (심사 미신청)"
   lane :release do
     version = bump_build_number
+    api_key = is_ci ? load_api_key : nil
     build_app(
       workspace: WORKSPACE,
       scheme: REL_SCHEME,
       configuration: "Release",
       export_method: "app-store",
-      export_options: ci_export_options,
+      xcargs: is_ci ? "-allowProvisioningUpdates" : nil,
+      api_key: api_key,
       clean: true,
       output_directory: "build"
     )
 
     if is_ci
       upload_to_app_store(
-        api_key: load_api_key,
+        api_key: api_key,
         submit_for_review: false,
         skip_metadata: true,
         skip_screenshots: true,
@@ -80,20 +84,6 @@ def commit_build_bump(version)
   sh("git", "add", APP_PLIST, EXT_PLIST)
   sh("git", "commit", "-m", "[Chore] #{ISSUE_KEY} - 빌드 번호 #{version} [skip ci]")
   push_to_git_remote(local_branch: ENV["GITHUB_REF_NAME"])
-end
-
-# CI(GitHub-hosted)는 Apple ID 자동 서명이 불가하므로 수동 프로파일로 서명한다.
-# 로컬(비CI)에서는 nil을 반환해 Xcode 자동 서명을 그대로 사용한다.
-def ci_export_options
-  return nil unless is_ci
-  {
-    signingStyle: "manual",
-    teamID: "2DF5SKQK2R",
-    provisioningProfiles: {
-      "com.youz2me.livith" => "Livith-Distribution",
-      "com.youz2me.livith.shareextension" => "LivithShareExtension-Distribution"
-    }
-  }
 end
 
 # App Store Connect API Key. .p8 개인키와 key_id·issuer_id(JSON)를 모두 Livith-Certificate(private)에서
