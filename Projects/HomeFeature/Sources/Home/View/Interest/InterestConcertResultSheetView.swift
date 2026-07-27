@@ -185,7 +185,8 @@ private extension InterestConcertResultSheetView {
                             .notosans(.caption1Bold)
                             .foregroundStyle(Color.livithColor(.black50))
 
-                        Image.livithIcon(.rightLineDefault)
+                        Image.livithIcon(.rightLineSmall)
+                            .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
                             .foregroundStyle(Color.livithColor(.black50))

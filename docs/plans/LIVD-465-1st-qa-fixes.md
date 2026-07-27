@@ -40,6 +40,10 @@
 - [x] 이슈1: 기존 테스트 갱신
   - 목록 비어 있는 실패 → 엠티뷰용 상태, `errorMessage` 비움
   - 목록 있는 재조회 실패 → 기존 목록 유지
+- [x] 이슈2: 관심 콘서트 결과 시트 아이콘 컬러·문장
+  - Figma `47:5737` 기준 chevron: `rightLineSmall` + template + black50
+  - 문장: API content vs 클라이언트 고정 문구 차이 확인 후 반영 (미정)
+  - UI 확인: `Livith-iOS-EntryAlertsTest` (`STUB_ENTRY_ALERTS`)
 
 ## 영향 범위
 - `Projects/HomeFeature` — `HomeStore`, `InterestHomeContentView`, `HomeView`, `HomeStoreTests`
