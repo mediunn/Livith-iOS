@@ -20,7 +20,7 @@ struct CalendarWebView: UIViewRepresentable {
     let calendarMonth: CalendarMonth?
     @Binding var contentHeight: CGFloat
     let onDateSelected: (Date) -> Void
-    let onMonthChanged: (Int, Int) -> Void
+    let onMonthChanged: (String, String) -> Void
 
     // MARK: - UIViewRepresentable
 
@@ -91,13 +91,13 @@ struct CalendarWebView: UIViewRepresentable {
 extension CalendarWebView {
     final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         var onDateSelected: (Date) -> Void
-        var onMonthChanged: (Int, Int) -> Void
+        var onMonthChanged: (String, String) -> Void
         let loadSession = CalendarWebLoadSession()
         let contentHeightMeasurer = CalendarWebContentHeightMeasurer()
 
         init(
             onDateSelected: @escaping (Date) -> Void,
-            onMonthChanged: @escaping (Int, Int) -> Void
+            onMonthChanged: @escaping (String, String) -> Void
         ) {
             self.onDateSelected = onDateSelected
             self.onMonthChanged = onMonthChanged
@@ -140,12 +140,11 @@ extension CalendarWebView {
                 }
 
             case Constants.monthChangedHandlerName:
-                guard loadSession.shouldAcceptMonthChanged else { return }
-                guard let yearMonth = CalendarMonthChangedMessageParser.yearMonth(from: message.body) else {
+                guard let dateRange = CalendarMonthChangedMessageParser.dateRange(from: message.body) else {
                     return
                 }
                 Task { @MainActor in
-                    onMonthChanged(yearMonth.year, yearMonth.month)
+                    onMonthChanged(dateRange.startDate, dateRange.endDate)
                 }
 
             default:

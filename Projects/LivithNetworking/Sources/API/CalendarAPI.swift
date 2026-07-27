@@ -10,14 +10,14 @@ import Foundation
 
 public enum CalendarAPI {
     public static func fetchMonth(
-        year: Int,
-        month: Int,
+        startDate: String,
+        endDate: String,
         scheduleTypes: [String],
         concertType: String
     ) -> NetworkEndpoint {
         var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "year", value: String(year)),
-            URLQueryItem(name: "month", value: String(month)),
+            URLQueryItem(name: "startDate", value: startDate),
+            URLQueryItem(name: "endDate", value: endDate),
             URLQueryItem(name: "concertType", value: concertType)
         ]
         scheduleTypes.forEach { queryItems.append(URLQueryItem(name: "scheduleTypes", value: $0)) }

@@ -22,16 +22,16 @@ struct CalendarRepositoryImpl: CalendarRepository {
     }
 
     func fetchMonth(
-        year: Int,
-        month: Int,
+        startDate: String,
+        endDate: String,
         scheduleTypes: [CalendarScheduleTypeFilter],
         concertType: CalendarConcertTypeFilter
     ) async throws(CalendarError) -> CalendarMonth {
         do {
             let response: DTO.Response.FetchCalendarMonth = try await networkClient.request(
                 CalendarAPI.fetchMonth(
-                    year: year,
-                    month: month,
+                    startDate: startDate,
+                    endDate: endDate,
                     scheduleTypes: scheduleTypes.map(\.rawValue),
                     concertType: concertType.rawValue
                 )

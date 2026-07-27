@@ -16,22 +16,18 @@ enum CalendarWebMonthPayloadMapper {
     private static let encoder = JSONEncoder()
 
     static func jsonString(from month: CalendarMonth) -> String? {
-        let payload = Payload(
-            year: month.year,
-            month: month.month,
-            days: month.dayList.map { day in
-                Payload.Day(
-                    date: DateFormatterService.string(from: day.date, type: .dashDate),
-                    events: day.eventList.map { event in
-                        Payload.Event(
-                            id: event.concertID,
-                            artist: event.artist,
-                            type: event.type.rawValue
-                        )
-                    }
-                )
-            }
-        )
+        let payload = month.dayList.map { day in
+            Day(
+                date: DateFormatterService.string(from: day.date, type: .dashDate),
+                events: day.eventList.map { event in
+                    Event(
+                        id: event.concertID,
+                        artist: event.artist,
+                        type: event.type.rawValue
+                    )
+                }
+            )
+        }
 
         guard let data = try? encoder.encode(payload) else {
             return nil
@@ -43,20 +39,14 @@ enum CalendarWebMonthPayloadMapper {
 // MARK: - Payload
 
 private extension CalendarWebMonthPayloadMapper {
-    struct Payload: Encodable {
-        let year: Int
-        let month: Int
-        let days: [Day]
+    struct Day: Encodable {
+        let date: String
+        let events: [Event]
+    }
 
-        struct Day: Encodable {
-            let date: String
-            let events: [Event]
-        }
-
-        struct Event: Encodable {
-            let id: Int
-            let artist: String
-            let type: String
-        }
+    struct Event: Encodable {
+        let id: Int
+        let artist: String
+        let type: String
     }
 }

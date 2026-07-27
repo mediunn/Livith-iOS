@@ -2,6 +2,67 @@
 
 ## 기록
 
+### 2026-07-27 22:19 - pull-to-refresh와 중앙 스피너 중복
+
+**상황**
+- 캘린더 탭에서 pull-to-refresh 시 시스템 refreshable 스피너와 중앙 ProgressView가 함께 보였다.
+
+**문제**
+- 이중 로딩 인디케이터.
+
+**원인**
+- `performRefresh`가 `isLoadFailed || calendarMonth == nil`이면 `showInitialLoading: true`로 중앙 스피너를 켰다. 관심 탭은 pull 시 시스템 스피너만 쓴다.
+
+**해결**
+- `performRefresh`는 항상 `showInitialLoading: false`로 fetch하고, 기존 `isInitialLoading`도 끈다. 기간 없을 때는 로딩을 켜지 않고 return.
+
+**교훈**
+- pull-to-refresh와 커스텀 중앙 로딩을 동시에 켜지 않는다.
+- 승격 후보: no
+
+---
+
+### 2026-07-27 22:04 - 초회 월 조회를 calendarMonthChanged 기간으로 통일
+
+**상황**
+- API가 startDate/endDate를 쓰는데 레포가 year/month로 월 경계를 다시 계산하고 있었다.
+
+**문제**
+- 웹이 주는 기간과 iOS 계산 기간이 이중으로 존재했다. MonthChangeGate 때문에 초회에는 웹 기간을 쓸 수 없었다.
+
+**원인**
+- onAppear 즉시 fetch + inject 전 monthChanged 차단.
+
+**해결**
+- onAppear는 기간 없으면 로딩만. WebView를 로딩 중에도 두고 monthChanged로 fetch.
+- Repository는 startDate/endDate 직통. Gate 제거, 동일 기간 no-op.
+
+**교훈**
+- 웹이 기간을 소유하면 네이티브는 월 경계를 다시 만들지 않는다.
+- 승격 후보: no
+
+---
+
+### 2026-07-27 21:54 - dashDate 파서가 슬래시 날짜를 허용함
+
+**상황**
+- `calendarMonthChanged`의 `startDate`/`endDate`를 `yyyy-MM-dd`로 검증하는 테스트를 돌렸다.
+
+**문제**
+- `"2026/01/01"`이 nil이 아니라 파싱에 성공했다.
+
+**원인**
+- `DateFormatter` 기본 `isLenient == true`라 `yyyy-MM-dd` 포맷이어도 `/` 구분 문자열을 받아들인다.
+
+**해결**
+- 파서에서 `^\d{4}-\d{2}-\d{2}$` 정규식으로 형식을 먼저 거른다.
+
+**교훈**
+- 네트워크·브릿지 날짜 문자열은 Formatter만 믿지 말고 형식 정규식을 둔다.
+- 승격 후보: no
+
+---
+
 ### 2026-07-27 21:36 - 홈 미설정 블록 상단 들뜸·툴팁 잘림
 
 **상황**

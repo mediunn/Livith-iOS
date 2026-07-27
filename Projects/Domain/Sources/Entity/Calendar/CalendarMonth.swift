@@ -11,13 +11,9 @@ import Foundation
 // MARK: - Month
 
 public struct CalendarMonth: Hashable, Sendable {
-    public let year: Int
-    public let month: Int
     public let dayList: [CalendarMonthDay]
 
-    public init(year: Int, month: Int, dayList: [CalendarMonthDay]) {
-        self.year = year
-        self.month = month
+    public init(dayList: [CalendarMonthDay]) {
         self.dayList = dayList
     }
 }

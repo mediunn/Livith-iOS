@@ -15,7 +15,7 @@ import LivithNetworking
 struct CalendarMapper {
     func toDomain(from dto: DTO.Response.FetchCalendarMonth) -> CalendarMonth {
         let dayList = dto.days.compactMap(toMonthDay)
-        return CalendarMonth(year: dto.year, month: dto.month, dayList: dayList)
+        return CalendarMonth(dayList: dayList)
     }
 
     func toDomain(from dto: DTO.Response.FetchCalendarDayEvents) -> CalendarDaySchedule? {

@@ -93,25 +93,29 @@ struct CalendarHomeContentView: View {
 private extension CalendarHomeContentView {
     @ViewBuilder
     var calendarBody: some View {
-        if store.state.isInitialLoading {
-            loadingView
-        } else if store.state.isLoadFailed {
+        if store.state.isLoadFailed {
             LivithEmptyView(text: CalendarHomeStore.Constants.loadFailedEmptyMessage)
                 .frame(maxWidth: .infinity)
                 .containerRelativeFrame(.vertical)
         } else {
-            CalendarWebView(
-                url: calendarWebConfig.url,
-                calendarMonth: store.state.calendarMonth,
-                contentHeight: $webViewContentHeight,
-                onDateSelected: { date in
-                    store.send(.dayScheduleRequested(date: date))
-                },
-                onMonthChanged: { year, month in
-                    store.send(.monthChanged(year: year, month: month))
+            ZStack {
+                CalendarWebView(
+                    url: calendarWebConfig.url,
+                    calendarMonth: store.state.calendarMonth,
+                    contentHeight: $webViewContentHeight,
+                    onDateSelected: { date in
+                        store.send(.dayScheduleRequested(date: date))
+                    },
+                    onMonthChanged: { startDate, endDate in
+                        store.send(.monthChanged(startDate: startDate, endDate: endDate))
+                    }
+                )
+                .frame(height: webViewContentHeight)
+
+                if store.state.isInitialLoading {
+                    loadingView
                 }
-            )
-            .frame(height: webViewContentHeight)
+            }
         }
     }
 
@@ -133,7 +137,7 @@ private extension CalendarHomeContentView {
 
 private extension CalendarHomeContentView {
     var showsFilterBar: Bool {
-        !store.state.isLoadFailed && !store.state.isInitialLoading
+        !store.state.isLoadFailed && store.state.calendarMonth != nil
     }
 
     var selectionBlockedToastBinding: Binding<Bool> {

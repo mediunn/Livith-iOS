@@ -157,16 +157,12 @@ struct CalendarDomainModelTests {
         // Given
         let date = Date(timeIntervalSince1970: 1_775_001_600)
         let month = CalendarMonth(
-            year: 2026,
-            month: 4,
             dayList: [
                 CalendarMonthDay(date: date, eventList: [])
             ]
         )
 
         // Then
-        #expect(month.year == 2026)
-        #expect(month.month == 4)
         #expect(month.dayList.count == 1)
     }
 }

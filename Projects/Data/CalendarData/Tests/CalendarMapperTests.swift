@@ -22,22 +22,18 @@ struct CalendarMapperTests {
         // Given
         let sut = CalendarMapper()
         let json = """
-        {
-          "year": 2026,
-          "month": 4,
-          "days": [
-            {
-              "date": "2026-04-02",
-              "events": [
-                {
-                  "id": 1678,
-                  "artist": "Matthew Ifield",
-                  "type": "TICKETING"
-                }
-              ]
-            }
-          ]
-        }
+        [
+          {
+            "date": "2026-04-02",
+            "events": [
+              {
+                "id": 1678,
+                "artist": "Matthew Ifield",
+                "type": "TICKETING"
+              }
+            ]
+          }
+        ]
         """.data(using: .utf8)!
         let dto = try JSONDecoder().decode(DTO.Response.FetchCalendarMonth.self, from: json)
 
@@ -45,8 +41,6 @@ struct CalendarMapperTests {
         let result = sut.toDomain(from: dto)
 
         // Then
-        #expect(result.year == 2026)
-        #expect(result.month == 4)
         #expect(result.dayList.count == 1)
         let day = try #require(result.dayList.first)
         #expect(day.date == DateFormatterService.date(from: "2026-04-02", type: .dashDate))
@@ -61,19 +55,15 @@ struct CalendarMapperTests {
         // Given
         let sut = CalendarMapper()
         let json = """
-        {
-          "year": 2026,
-          "month": 4,
-          "days": [
-            {
-              "date": "2026-04-02",
-              "events": [
-                { "id": 1, "artist": "A", "type": "INVALID" },
-                { "id": 2, "artist": "B", "type": "CONCERT" }
-              ]
-            }
-          ]
-        }
+        [
+          {
+            "date": "2026-04-02",
+            "events": [
+              { "id": 1, "artist": "A", "type": "INVALID" },
+              { "id": 2, "artist": "B", "type": "CONCERT" }
+            ]
+          }
+        ]
         """.data(using: .utf8)!
         let dto = try JSONDecoder().decode(DTO.Response.FetchCalendarMonth.self, from: json)
 
@@ -91,24 +81,20 @@ struct CalendarMapperTests {
         // Given
         let sut = CalendarMapper()
         let json = """
-        {
-          "year": 2026,
-          "month": 4,
-          "days": [
-            {
-              "date": "not-a-date",
-              "events": [
-                { "id": 1, "artist": "A", "type": "TICKETING" }
-              ]
-            },
-            {
-              "date": "2026-04-03",
-              "events": [
-                { "id": 2, "artist": "B", "type": "TICKETING" }
-              ]
-            }
-          ]
-        }
+        [
+          {
+            "date": "not-a-date",
+            "events": [
+              { "id": 1, "artist": "A", "type": "TICKETING" }
+            ]
+          },
+          {
+            "date": "2026-04-03",
+            "events": [
+              { "id": 2, "artist": "B", "type": "TICKETING" }
+            ]
+          }
+        ]
         """.data(using: .utf8)!
         let dto = try JSONDecoder().decode(DTO.Response.FetchCalendarMonth.self, from: json)
 
@@ -118,6 +104,20 @@ struct CalendarMapperTests {
         // Then
         #expect(result.dayList.count == 1)
         #expect(result.dayList[0].eventList.map(\.concertID) == [2])
+    }
+
+    @Test("빈 월별 응답 배열은 빈 dayList로 변환해야 한다")
+    func 빈_월별_응답_배열은_빈_dayList로_변환해야_한다() throws {
+        // Given
+        let sut = CalendarMapper()
+        let json = "[]".data(using: .utf8)!
+        let dto = try JSONDecoder().decode(DTO.Response.FetchCalendarMonth.self, from: json)
+
+        // When
+        let result = sut.toDomain(from: dto)
+
+        // Then
+        #expect(result.dayList.isEmpty)
     }
 
     @Test("날짜별 응답의 time·detail을 Domain으로 변환해야 한다")

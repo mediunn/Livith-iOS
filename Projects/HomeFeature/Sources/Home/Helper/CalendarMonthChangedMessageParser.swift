@@ -8,15 +8,28 @@
 
 import Foundation
 
+import LivithFoundation
+
 enum CalendarMonthChangedMessageParser {
-    static func yearMonth(from body: Any) -> (year: Int, month: Int)? {
+    static func dateRange(from body: Any) -> (startDate: String, endDate: String)? {
         guard let dictionary = CalendarWebScriptMessageBodyParser.dictionary(from: body),
-              let year = CalendarWebScriptMessageBodyParser.intValue(dictionary["year"]),
-              let month = CalendarWebScriptMessageBodyParser.intValue(dictionary["month"]),
-              (1...12).contains(month)
+              let startDateString = dictionary["startDate"] as? String,
+              let endDateString = dictionary["endDate"] as? String,
+              isDashDateString(startDateString),
+              isDashDateString(endDateString),
+              DateFormatterService.date(from: startDateString, type: .dashDate) != nil,
+              DateFormatterService.date(from: endDateString, type: .dashDate) != nil
         else {
             return nil
         }
-        return (year, month)
+        return (startDateString, endDateString)
+    }
+}
+
+// MARK: - Private
+
+private extension CalendarMonthChangedMessageParser {
+    static func isDashDateString(_ value: String) -> Bool {
+        value.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil
     }
 }

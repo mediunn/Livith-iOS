@@ -12,9 +12,11 @@ import Foundation
 
 public extension DTO.Response {
     struct FetchCalendarMonth: Decodable {
-        public let year: Int
-        public let month: Int
         public let days: [Day]
+
+        public init(from decoder: Decoder) throws {
+            self.days = try [Day](from: decoder)
+        }
 
         public struct Day: Decodable {
             public let date: String
