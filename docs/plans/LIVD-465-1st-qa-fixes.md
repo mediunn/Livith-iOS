@@ -8,6 +8,7 @@
 ## 목표
 - 관심 콘서트 목록 조회 실패를 토스트가 아닌 엠티뷰로 표시한다.
 - 목록이 비어 있는 실패 상태에서는 미설정 CTA를 보여주지 않는다.
+- 관심 콘서트 설정 화면에 정보 요청 버튼과 툴팁을 노출한다.
 
 ## 권한·범위
 - 정본(반드시 참이어야 하는 동작·불변조건):
@@ -20,13 +21,19 @@
   - 성공 재조회 시 실패 플래그/메시지를 해제하고 정상 UI로 복귀한다.
   - 엠티뷰 상태에서 pull-to-refresh와 interest appear 재진입 시 관심 목록을 다시 조회한다.
   - 재조회 중 UI: pull-to-refresh는 시스템 스피너만 사용하고 커스텀 로딩으로 바꾸지 않는다. appear 재조회일 때만 로딩 인디케이터로 교체한다.
+  - 관심 콘서트 설정 네비 우측에 `LivithReportButton("정보 요청", variant: .info)`를 둔다.
+  - 버튼 아래 툴팁 `"찾는 콘서트가 없다면?"`(Yellow30)를 기본 노출한다.
+  - 정보 요청(FR-06)으로 갔다가 돌아온 뒤에만 툴팁을 숨긴다. 그 외 재진입·다른 화면 왕복은 숨기지 않는다(뷰가 살아 있으면 계속 표시, 설정 화면을 완전히 pop 후 재진입하면 다시 표시).
+  - 정보 요청 탭 시 Amplitude `click_concert_request` 후 `homeRouter.push(.concertRequest)`.
 - 이번 범위 밖:
   - `LivithEmptyView` 공통 텍스트 색(Black80 → Black50) 변경
   - 홈 섹션/추천 조회 실패 UX 변경
   - 캘린더 탭 동작 변경
   - 세그먼트 탭 타이틀("관심 콘서트"/"캘린더") 변경
+  - `InstagramManualSearchView` 툴팁 표시 조건 변경(항상 노출 유지)
 - 코드에서 복원 불가능한 의도(있으면):
   - Figma 문구·레이아웃이 로드 실패 엠티뷰의 정본이다.
+  - Figma `47:5468` 툴팁 조건 중 「정보 요청 갔다가 돌아온 경우만 표시x」로 해석·확정.
 
 ## 작업 항목
 - [x] 이슈1: 관심 콘서트 로드 실패 엠티뷰 (Store)
@@ -44,9 +51,13 @@
   - Figma `47:5737` 기준 chevron: `rightLineSmall` + template + black50
   - 요청 결과 공연명 말줄임: 공백 포함 24자 초과 시 `...` (Figma 플레이스홀더 24자와 정합)
   - UI 확인: `Livith-iOS-EntryAlertsTest` (`STUB_ENTRY_ALERTS`)
+- [x] 이슈3: 관심 콘서트 설정 정보 요청 버튼·툴팁
+  - 네비: 기존 back+title 유지 + 우측 `LivithReportButton` `.info`
+  - 툴팁: 인스타 검색과 동일 비주얼, FR-06 왕복 후에만 숨김(`@State`)
+  - 탭 → Amplitude + `concertRequest` 푸시
 
 ## 영향 범위
-- `Projects/HomeFeature` — `HomeStore`, `InterestHomeContentView`, `HomeView`, `HomeStoreTests`
+- `Projects/HomeFeature` — `HomeStore`, `InterestHomeContentView`, `HomeView`, `HomeStoreTests`, `InterestConcertSettingView`
 - DesignSystem / Domain / Data 변경 없음
 
 ## 기술 결정
@@ -60,6 +71,8 @@
 | 재조회 중 UI | A. 항상 커스텀 로딩 / B. refresh는 시스템 스피너만, appear만 커스텀 로딩 | B | refreshable과 풀스크린 로딩 이중 표시 방지 |
 | 결과 시트 | A. 로드 실패 시 미노출 / B. errorMessage만 가드 | A | 실패 화면과 시트 동시 노출 방지 |
 | `LivithEmptyView` 색 | 이번 이슈에서 수정 / 보류 | 보류 | 공통 컴포넌트 영향. 별도 QA로 분리 |
+| 설정 화면 툴팁 숨김 | A. FR-06 왕복만 / B. 아무 페이지 왕복 / C. 항상 표시(인스타와 동일) | A | 유저 확정. Figma `47:5468` 표시x를 FR-06 왕복으로 해석 |
+| 툴팁 상태 위치 | A. View `@State` / B. Store | A | UI 배선만. 화면 인스턴스 수명과 맞춤 |
 
 ## 주의 사항
 - `errorMessage`를 비우는 경로와 토스트 `onChange`가 맞물려 회귀하지 않게 기존 HomeStore 에러 테스트를 함께 확인한다.
