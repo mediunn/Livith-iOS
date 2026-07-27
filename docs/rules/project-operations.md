@@ -33,8 +33,10 @@
 - `xcodebuild test` 실행 전에 destination이 필요하면 `xcodebuild -showdestinations -workspace "Livith-iOS.xcworkspace" -scheme "<Scheme>"`로 사용 가능한 시뮬레이터를 확인한 뒤 지정한다.
 - destination 예시(강제 아님): `-destination 'platform=iOS Simulator,name=iPhone 17,OS=26.0'`처럼 확인된 이름·OS를 넣는다.
 - test action이 없는 scheme은 `tuist build`로 생산 코드 컴파일만 검증한다.
-- Swift Testing 기반 테스트가 포함된 scheme은 `xcodebuild test` 출력에서 `Executed 0 tests`가 표시되어도 테스트가 실행되지 않은 것으로 단정하지 않는다. 테스트 로그에서 `Test suite` 메시지 또는 결과 번들(.xcresult)의 테스트 식별자를 함께 확인한다.
-- 특정 테스트 타겟 또는 테스트 클래스만 실행하려면 `xcodebuild test`에 `-only-testing:<Module>/<Class>` 옵션을 사용한다.
+- Swift Testing 기반 테스트가 포함된 scheme은 `xcodebuild test` 출력에서 `Executed 0 tests`가 표시되어도 테스트가 실행되지 않은 것으로 단정하지 않는다. 테스트 로그에서 `Test suite` 메시지·`Test run with N tests`·결과 번들(.xcresult)의 테스트 식별자를 함께 확인한다.
+- 특정 테스트만 실행할 때는 `-only-testing:<Module>/<TypeName>`(또는 XCTest의 `<Module>/<Class>`)으로 스위트·클래스를 지정한다. 예: `-only-testing:HomeFeatureTests/InterestConcertEntryAlertPresentationTests`.
+- 메서드 단위 `-only-testing:<Module>/<TypeName>/<method>`는 Swift Testing에서 0건으로 나올 수 있다. 스위트 필터를 우선한다.
+- TDD 루프에서 무엇을 돌릴지의 범위 규범은 `docs/rules/tdd.md`를 따른다. 이 문서는 실행 명령·필터 문법의 정본이다.
 
 ### 생산 코드 컴파일 검증
 - `xcodebuild test` 실행이 불가능한 scheme은 `tuist build <Target>`으로 생산 코드 컴파일을 검증한다.

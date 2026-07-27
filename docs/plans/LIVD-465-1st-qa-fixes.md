@@ -42,7 +42,7 @@
   - 목록 있는 재조회 실패 → 기존 목록 유지
 - [x] 이슈2: 관심 콘서트 결과 시트 아이콘 컬러·문장
   - Figma `47:5737` 기준 chevron: `rightLineSmall` + template + black50
-  - 문장: API content vs 클라이언트 고정 문구 차이 확인 후 반영 (미정)
+  - 요청 결과 공연명 말줄임: 공백 포함 24자 초과 시 `...` (Figma 플레이스홀더 24자와 정합)
   - UI 확인: `Livith-iOS-EntryAlertsTest` (`STUB_ENTRY_ALERTS`)
 
 ## 영향 범위
