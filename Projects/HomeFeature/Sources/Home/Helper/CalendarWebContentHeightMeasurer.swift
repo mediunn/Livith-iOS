@@ -50,7 +50,15 @@ final class CalendarWebContentHeightMeasurer {
     }
 
     func resetToFallback() {
-        contentHeightBinding?.wrappedValue = Self.fallbackHeight
+        Task { @MainActor [weak self] in
+            guard let self,
+                  let binding = self.contentHeightBinding,
+                  binding.wrappedValue != Self.fallbackHeight
+            else {
+                return
+            }
+            binding.wrappedValue = Self.fallbackHeight
+        }
     }
 
     func scheduleMeasurement(of webView: WKWebView) {
