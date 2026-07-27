@@ -2,6 +2,21 @@
 
 ## 기록
 
+### 2026-07-27 12:40 - CI export 실패: 프로파일이 App Store 타입이 아님(Ad Hoc)
+
+**상황**
+- 자동 서명으로 archive는 성공. export 단계.
+
+**문제**
+- 먼저 `exportArchive Cloud signing permission error`(API Key App Manager 권한으로 cloud signing 불가) → export_options 수동 매핑으로 전환.
+- 이후 `Provisioning profile "Livith-Distribution" is not an "iOS App Store" profile`.
+
+**원인**
+- `Livith-Distribution` 프로파일이 등록 기기 2개를 가진 **Ad Hoc** 타입이었다. `export_method: app-store`는 App Store 타입 프로파일을 요구한다.
+
+**해결**
+- 방향 결정 대기: ⓐ App Store 타입 프로파일 재발급 후 교체, ⓑ API Key를 Admin 권한으로 올려 export도 cloud signing(프로파일 자동 생성).
+
 ### 2026-07-27 12:25 - CI: fastlane 상대경로로 API Key 파일 못 찾음
 
 **상황**
