@@ -39,7 +39,8 @@
 | `style` | UI 리소스 변경 (이미지, 색상, 폰트) |
 | `setting` | 프로젝트 설정, 환경 구성 |
 | `hotfix` | 릴리즈 후 긴급 수정 |
-| `chore` | 빌드, CI, 문서 등 코드 외 변경 |
+| `chore` | 빌드, CI 등 코드·문서 외 변경 |
+| `docs` | 규칙·계획·아키텍처 등 문서만 변경 |
 | `test` | 테스트 코드 추가 또는 수정 |
 
 - 예시: `feat/LIVD-10-network`, `fix/LIVD-237-amplitude`, `docs/LIVD-336-rules`
@@ -73,7 +74,8 @@
 | `[Setting]` | 프로젝트 설정, 의존성 변경 | `[Setting] LIVD-223 - Concert Feature에 Amplitude 의존성 추가` |
 | `[Hotfix]` | 릴리즈 후 긴급 수정 | `[Hotfix] 버전 1.0.1로 변경` |
 | `[Merge]` | PR 머지 커밋 | `[Merge] LIVD-238 from fix/LIVD-237-amplitude` |
-| `[Chore]` | 빌드, CI, 문서 등 코드 외 변경 | `[Chore] LIVD-336 - 규칙 문서 추가` |
+| `[Chore]` | 빌드, CI 등 코드·문서 외 변경 | `[Chore] LIVD-336 - CI 스크립트 정리` |
+| `[Docs]` | 규칙·계획·아키텍처 등 문서만 변경 | `[Docs] LIVD-336 - 규칙 문서 추가` |
 | `[Test]` | 테스트 코드 추가 또는 수정 | `[Test] LIVD-50 - 로그인 Store 단위 테스트 추가` |
 
 ### 커밋 단위
@@ -88,8 +90,11 @@
 ### Pull Request
 - PR 제목 형식: `[Type] 작업 설명` (예: `[Fix] 위젯 관련 코드 삭제 및 크래시 수정`)
 - PR 제목에 이슈 키를 포함하지 않는다.
+- PR 본문은 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따른다.
 - PR 본문에는 변경 사유와 주요 변경 사항을 작성한다.
 - 관련 이슈 키를 본문에 명시한다 (예: `Resolved: LIVD-123`).
+- PR을 만들기 전에 현재 브랜치 `슬러그`에 대응하는 `docs/plans/`, `docs/troubleshooting/` 문서가 없는지 확인한다.
+- 해당 `슬러그` 문서가 남아 있으면 `docs/rules/plan.md`의 `컴파운딩 게이트`를 완료한 뒤에 PR을 만든다.
 - 리뷰어를 최소 1명 지정한다.
 - 머지 커밋 메시지 형식: `[Merge] 이슈키 from 브랜치명`
 - Squash Merge는 사용하지 않는다 (커밋 히스토리를 보존한다).
@@ -106,12 +111,15 @@
 - 이슈와 무관한 변경을 작업 브랜치에 포함하지 않는다.
 - 빌드가 깨지는 상태로 커밋하지 않는다.
 - 커밋 메시지에 `Co-Authored-By`를 넣지 않는다.
+- 해당 `슬러그`의 계획·트러블슈팅 문서가 `docs/plans/` 또는 `docs/troubleshooting/`에 남은 채로 PR을 만들지 않는다.
 
 ## Exception
 - `[Hotfix]`는 `main`과 `develop`에서 직접 작업할 수 있다.
 - `[Hotfix]`는 이슈 키 없이 커밋할 수 있다.
 - 초기 프로젝트 설정 등 이슈가 없는 경우 이슈 키를 생략할 수 있다.
 - 긴급 상황에서 리뷰어 없이 머지할 수 있으나, 사후 리뷰를 반드시 진행한다.
+- 원래 계획·트러블슈팅이 없는 단순 작업은 PR 전 아카이브 확인을 건너뛴다.
+- 유저가 이번 PR의 아카이브 보류를 명시한 경우에는 PR 전 아카이브를 건너뛰고 보류 사유를 PR 본문 또는 응답에 남긴다.
 
 ## Checklist
 - 커밋 메시지가 `[Type] 이슈키 - 설명` 형식을 따르는가
@@ -122,4 +130,6 @@
 - 하나의 커밋에 하나의 논리적 변경만 포함되어 있는가
 - 브랜치 이름이 `type/이슈키-설명` 형식을 따르는가
 - PR 제목과 본문이 작성 규칙을 따르는가
+- PR 본문이 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따르는가
+- PR 전에 해당 `슬러그` 계획·트러블슈팅이 `plans/`·`troubleshooting/`에 없는가 (보류·해당 없음 제외)
 - 머지 후 원격 작업 브랜치를 삭제했는가
