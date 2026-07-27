@@ -71,7 +71,8 @@ end
 # CFBundleVersion을 YYYYMMDD.HHMM 타임스탬프로 App·ShareExtension 양쪽에 주입한다.
 # 두 타깃의 빌드 번호가 다르면 App Store가 업로드를 거부하므로 반드시 동일 값으로 맞춘다.
 def bump_build_number
-  version = Time.now.strftime("%Y%m%d.%H%M")
+  # GitHub-hosted 러너는 UTC로 동작하므로, 배포 시각을 KST(+09:00)로 고정해 찍는다.
+  version = Time.now.getlocal("+09:00").strftime("%Y%m%d.%H%M")
   [APP_PLIST, EXT_PLIST].each do |plist|
     set_info_plist_value(path: plist, key: "CFBundleVersion", value: version)
   end
