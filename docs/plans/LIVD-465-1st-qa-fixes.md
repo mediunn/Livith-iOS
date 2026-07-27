@@ -57,10 +57,15 @@
   - 탭 → Amplitude + `concertRequest` 푸시
 - [x] 이슈4: 캘린더 상세 모달 일정명 타이포
   - Figma `47:3002` Body3-sm → `body3Semibold` (기존 `body2Semibold`)
+- [x] 이슈5: 홈 로고·탭 배경 black100 고정
+  - 관심 목록 empty여도 `HomeView` 배경을 black90으로 바꾸지 않음 (Figma `47:5815`)
+  - 미설정 CTA 블록 좌측 하단 corner radius 20 (background fill, clipShape 금지)
+  - empty 헤더 top padding 0으로 탭과 붙임
+  - CTA 블록 상·하 padding 30 (Figma `47:5818`)
 
 ## 영향 범위
-- `Projects/HomeFeature` — `HomeStore`, `InterestHomeContentView`, `HomeView`, `HomeStoreTests`, `InterestConcertSettingView`, `CalendarDayScheduleItemRow`
-- DesignSystem / Domain / Data 변경 없음
+- `Projects/HomeFeature` — `HomeStore`, `InterestHomeContentView`, `HomeView`, `HomeStoreTests`, `InterestConcertSettingView`, `CalendarDayScheduleItemRow`, `EmptyInterestConcertSectionView`
+- DesignSystem / Domain / Data 기능 변경 없음 (`SegmentedTabBar` 주석 삭제만)
 
 ## 기술 결정
 | 결정 사항 | 선택지 | 결정 | 근거 |

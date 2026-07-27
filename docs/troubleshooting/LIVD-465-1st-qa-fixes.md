@@ -2,6 +2,28 @@
 
 ## 기록
 
+### 2026-07-27 21:36 - 홈 미설정 블록 상단 들뜸·툴팁 잘림
+
+**상황**
+- 로고·탭을 black100으로 고정하고 미설정 CTA에 좌측 하단 radius를 준 뒤, 블록이 떠 보이고 노란 툴팁이 잘렸다.
+
+**문제**
+- 탭과 CTA 사이에 틈이 보였고, 콜아웃이 블록 밖으로 나가지 못했다.
+
+**원인**
+- empty 헤더에도 `padding.top 16`이 남아 black100 간격이 드러났다.
+- radius를 `clipShape`으로 걸어 오버레이 툴팁까지 잘렸다.
+
+**해결**
+- empty+배너 없음일 때 헤더 top padding 0.
+- `UnevenRoundedRectangle`를 background fill로만 적용(clip 제거).
+
+**교훈**
+- 배경만 둥글릴 때는 clipShape 대신 shape fill background를 쓴다.
+- 승격 후보: no
+
+---
+
 ### 2026-07-27 21:17 - 설정 화면 정보 요청 버튼·툴팁 Figma 정합
 
 **상황**

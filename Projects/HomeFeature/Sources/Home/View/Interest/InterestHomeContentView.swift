@@ -37,6 +37,12 @@ private extension InterestHomeContentView {
     var preferenceBannerBackgroundColor: Color {
         Color.livithColor(store.state.interestConcertList.isEmpty ? .black100 : .black90)
     }
+
+    var headerSectionTopPadding: CGFloat {
+        let isEmptyInterestWithoutBanner = store.state.interestConcertList.isEmpty
+            && !store.state.shouldShowPreferenceBanner
+        return isEmptyInterestWithoutBanner ? .zero : Constants.headerSectionTopPadding
+    }
 }
 
 // MARK: - UIComponents
@@ -54,7 +60,7 @@ private extension InterestHomeContentView {
                         .zIndex(2)
 
                     headerSection
-                        .padding(.top, Constants.headerSectionTopPadding)
+                        .padding(.top, headerSectionTopPadding)
                         .zIndex(1)
 
                     concertContentSection
