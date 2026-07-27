@@ -2,6 +2,25 @@
 
 ## 기록
 
+### 2026-07-27 12:55 - 배포 성공, 빌드번호 커밋 단계만 CWD 문제로 실패
+
+**상황**
+- Admin API Key로 archive·export cloud signing 통과 → **TestFlight(App 6745769826) 업로드 성공**. 파이프라인 본체는 완전 동작.
+- 마지막 `commit_build_bump`의 `git add`.
+
+**문제**
+- `fatal: pathspec 'Projects/App/Resources/App-Info.plist' did not match any files` (exit 128). 잡 전체 failure.
+
+**원인**
+- 원시 `sh("git", ...)`가 `fastlane/` 디렉토리에서 실행돼 상대경로 `Projects/App/...`를 못 찾음. (API Key 경로와 동일한 CWD 문제.)
+- `set_info_plist_value`는 fastlane이 루트 기준으로 해석해 정상 주입됐으나 raw git은 아님.
+
+**해결**
+- `REPO_ROOT`(GITHUB_WORKSPACE) 정의 후 git 명령을 `git -C REPO_ROOT ...`로 실행. push도 `git push origin HEAD:$GITHUB_REF_NAME`로 명시.
+
+**교훈**
+- fastlane의 raw `sh` 명령은 `fastlane/`가 CWD다. 저장소 파일을 다루는 git 명령은 `-C <root>`로 워크스페이스 루트를 명시한다.
+
 ### 2026-07-27 12:40 - CI export 실패: 프로파일이 App Store 타입이 아님(Ad Hoc)
 
 **상황**
