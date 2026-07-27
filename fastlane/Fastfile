@@ -1,0 +1,108 @@
+default_platform(:ios)
+
+WORKSPACE  = "Livith-iOS.xcworkspace".freeze
+APP_PLIST  = "Projects/App/Resources/App-Info.plist".freeze
+EXT_PLIST  = "Projects/App/ShareExtension/Resources/ShareExtension-Info.plist".freeze
+QA_SCHEME  = "Livith-iOS-Dev".freeze
+REL_SCHEME = "Livith-iOS".freeze
+ISSUE_KEY  = "LIVD-459".freeze
+# App Store Connect API Key: .p8 개인키와 식별자(key_id·issuer_id) JSON 모두 Livith-Certificate에서 checkout된다.
+ASC_KEY_P8   = ".certificate/P8/AppStoreConnectAPI_AppManager.p8".freeze
+ASC_KEY_INFO = ".certificate/ASC/api_key.json".freeze
+
+platform :ios do
+  desc "QA 배포 — Dev(dev 서버) 빌드를 TestFlight internal에 업로드"
+  lane :qa do
+    version = bump_build_number
+    build_app(
+      workspace: WORKSPACE,
+      scheme: QA_SCHEME,
+      configuration: "Debug",
+      export_method: "app-store",
+      export_options: ci_export_options,
+      clean: true,
+      output_directory: "build"
+    )
+
+    if is_ci
+      upload_to_testflight(
+        api_key: load_api_key,
+        distribute_external: false,
+        skip_waiting_for_build_processing: true
+      )
+      commit_build_bump(version)
+    else
+      UI.message("로컬 실행: 아카이브까지만 수행 (업로드·커밋 생략)")
+    end
+  end
+
+  desc "운영 배포 — Release 빌드를 App Store Connect에 업로드 (심사 미신청)"
+  lane :release do
+    version = bump_build_number
+    build_app(
+      workspace: WORKSPACE,
+      scheme: REL_SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: ci_export_options,
+      clean: true,
+      output_directory: "build"
+    )
+
+    if is_ci
+      upload_to_app_store(
+        api_key: load_api_key,
+        submit_for_review: false,
+        skip_metadata: true,
+        skip_screenshots: true,
+        force: true
+      )
+      commit_build_bump(version)
+    else
+      UI.message("로컬 실행: 아카이브까지만 수행 (업로드·커밋 생략)")
+    end
+  end
+end
+
+# CFBundleVersion을 YYYYMMDD.HHMM 타임스탬프로 App·ShareExtension 양쪽에 주입한다.
+# 두 타깃의 빌드 번호가 다르면 App Store가 업로드를 거부하므로 반드시 동일 값으로 맞춘다.
+def bump_build_number
+  version = Time.now.strftime("%Y%m%d.%H%M")
+  [APP_PLIST, EXT_PLIST].each do |plist|
+    set_info_plist_value(path: plist, key: "CFBundleVersion", value: version)
+  end
+  UI.message("빌드 번호 주입: #{version}")
+  version
+end
+
+# 갱신한 빌드 번호를 커밋한다. on:push 재트리거를 막기 위해 [skip ci]를 붙인다.
+def commit_build_bump(version)
+  sh("git", "add", APP_PLIST, EXT_PLIST)
+  sh("git", "commit", "-m", "[Chore] #{ISSUE_KEY} - 빌드 번호 #{version} [skip ci]")
+  push_to_git_remote(local_branch: ENV["GITHUB_REF_NAME"])
+end
+
+# CI(GitHub-hosted)는 Apple ID 자동 서명이 불가하므로 수동 프로파일로 서명한다.
+# 로컬(비CI)에서는 nil을 반환해 Xcode 자동 서명을 그대로 사용한다.
+def ci_export_options
+  return nil unless is_ci
+  {
+    signingStyle: "manual",
+    teamID: "2DF5SKQK2R",
+    provisioningProfiles: {
+      "com.youz2me.livith" => "Livith-Distribution",
+      "com.youz2me.livith.shareextension" => "LivithShareExtension-Distribution"
+    }
+  }
+end
+
+# App Store Connect API Key. .p8 개인키와 key_id·issuer_id(JSON)를 모두 Livith-Certificate(private)에서
+# 당겨온다. public 저장소인 Fastfile에는 식별자를 노출하지 않는다.
+def load_api_key
+  info = JSON.parse(File.read(ASC_KEY_INFO))
+  app_store_connect_api_key(
+    key_id: info["key_id"],
+    issuer_id: info["issuer_id"],
+    key_filepath: ASC_KEY_P8
+  )
+end

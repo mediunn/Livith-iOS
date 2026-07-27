@@ -86,4 +86,14 @@ Tuist/.build
 ### Module Scripts ###
 .module_backup/
 claude.md__pycache__/
+
+### Fastlane / Bundler ###
+vendor/bundle/
+.bundle/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+fastlane/README.md
+*.ipa
+*.dSYM.zip
 Analyze/
