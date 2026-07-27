@@ -2,6 +2,23 @@
 
 ## 기록
 
+### 2026-07-27 12:00 - CI 첫 실행: Tuist/Config 디렉토리 부재로 cp 실패
+
+**상황**
+- `qa` 브랜치 push로 첫 CI 실행. Install xcconfig 스텝에서 Livith-Certificate의 xcconfig를 `Tuist/Config/`로 복사.
+
+**문제**
+- `cp: Tuist/Config is not directory`로 exit 1.
+
+**원인**
+- `.gitignore`의 `*.xcconfig`로 `Tuist/Config` 안 파일이 전부 무시되고, 빈 폴더는 git이 추적하지 않아 CI checkout에 `Tuist/Config` 폴더 자체가 없었다. cp 대상 디렉토리가 없어 마지막 인자를 파일로 해석해 실패.
+
+**해결**
+- cp 전에 `mkdir -p Tuist/Config`를 추가했다.
+
+**교훈**
+- gitignore된 폴더는 CI checkout에 존재하지 않는다. 복사 대상 디렉토리는 명시적으로 mkdir한다.
+
 ### 2026-07-27 10:20 - 서명 인증서 팀 불일치 (잘못된 인증서 지목)
 
 **상황**

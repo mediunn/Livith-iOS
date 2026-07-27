@@ -45,6 +45,7 @@ jobs:
 
       - name: Install xcconfig & provisioning profiles
         run: |
+          mkdir -p Tuist/Config
           cp .certificate/Config/*.xcconfig Tuist/Config/
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp .certificate/Provisioning/*.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
