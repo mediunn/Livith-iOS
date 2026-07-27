@@ -14,7 +14,7 @@
 ## Do
 - `AGENTS.md`는 영어로만 작성한다.
 - 한글 상세 규범은 `규칙 문서`에 작성한다.
-- `규칙 문서`와 `템플릿 문서`는 한글로 작성한다. `docs/templates/rule-template.md`의 Writing Notes를 따른다.
+- `규칙 문서`와 `템플릿 문서`는 한글로 작성한다. 표기는 한글(Hangul)만 쓰고 한자·일본어 한자는 쓰지 않는다. `docs/templates/rule-template.md`의 Writing Notes를 따른다.
 - `AGENTS.md`에는 Hard gates·라우팅·진입 안내만 두고, Do/Don't 상세는 `규칙 문서`에 둔다.
 - 계획·트러블슈팅·압축 archive 양식은 각각 `docs/templates/plan.md`, `docs/templates/troubleshooting.md`, `docs/templates/archive.md`를 따른다.
 
@@ -22,6 +22,7 @@
 - `AGENTS.md` 본문에 한글 규범 문장을 넣지 않는다.
 - `규칙 문서`에 써야 할 상세 규범을 `AGENTS.md`에만 두지 않는다.
 - 유저 대면 응답 언어 규칙(한국어)을 `AGENTS.md` 작성 언어 규칙과 섞어 바꾸지 않는다.
+- `규칙 문서`·`템플릿 문서`·archive에 한자나 일본어 한자를 쓰지 않는다. 필요하면 순한글·영어 식별자로 푼다.
 
 ## Exception
 - `AGENTS.md`의 "All user-facing responses must be written in Korean."처럼 응답 언어를 영어로 지시하는 문장은 허용한다.
@@ -31,5 +32,5 @@
 ## Checklist
 - `AGENTS.md` 변경분이 영어인가
 - 한글 상세 규범이 `규칙 문서`에 있는가
-- `규칙 문서`·`템플릿 문서`가 한글인가 (경로·식별자 제외)
+- `규칙 문서`·`템플릿 문서`가 한글인가 (경로·식별자 제외, 한자·일본어 한자 없음)
 - `AGENTS.md`에 Do/Don't 상세를 중복으로 넣지 않았는가
