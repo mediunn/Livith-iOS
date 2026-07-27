@@ -2,6 +2,39 @@
 
 ## 기록
 
+### 2026-07-27 12:25 - CI: fastlane 상대경로로 API Key 파일 못 찾음
+
+**상황**
+- 자동 서명(API Key) 적용 후 CI. `load_api_key`의 `File.read`.
+
+**문제**
+- `No such file or directory - .certificate/ASC/api_key.json` (ENOENT, Fastfile:92).
+
+**원인**
+- fastlane이 `fastlane/` 디렉토리 기준으로 상대경로를 해석해 워크스페이스 루트의 `.certificate`를 못 찾음.
+
+**해결**
+- `GITHUB_WORKSPACE`(로컬은 `Dir.pwd`) 기준 절대경로로 `ASC_KEY_P8`·`ASC_KEY_INFO`를 구성.
+
+**교훈**
+- fastlane에서 저장소 파일을 참조할 때 상대경로는 CWD에 의존한다. CI는 `GITHUB_WORKSPACE` 절대경로를 쓴다.
+
+### 2026-07-27 12:15 - CI 아카이브 서명 실패 (Debug config ↔ Distribution 프로파일 불일치, 자동 서명으로 전환)
+
+**상황**
+- tuist install/generate 통과 후 Fastlane qa의 `xcodebuild archive`.
+
+**문제**
+- `ARCHIVE FAILED`: "No profiles for 'com.youz2me.livith' were found ... iOS App **Development** provisioning profiles ... Automatic signing is disabled".
+
+**원인**
+- QA는 Debug config로 아카이브 → xcodebuild가 **Development** 서명을 기대. 설치한 프로파일은 **Distribution**이라 타입 불일치.
+- CI는 Apple ID 자동 서명 불가. archive 단계 서명은 `export_options`(export 전용)로 해결되지 않음.
+- App·Extension 프로파일이 서로 달라 gym `xcargs` 전역 override로 타깃별 매핑 불가.
+
+**해결**
+- 방향 결정 대기: ⓐ 자동 서명 + App Store Connect API Key로 `-allowProvisioningUpdates` 자동 프로비저닝, ⓑ Tuist Project.swift에 config별 수동 서명(팀·프로파일) 명시.
+
 ### 2026-07-27 12:05 - CI: tuist install 누락으로 generate 실패
 
 **상황**
