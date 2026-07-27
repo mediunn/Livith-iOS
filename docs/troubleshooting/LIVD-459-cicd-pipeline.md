@@ -2,6 +2,23 @@
 
 ## 기록
 
+### 2026-07-27 12:05 - CI: tuist install 누락으로 generate 실패
+
+**상황**
+- mkdir 수정 후 두 번째 CI. Tuist generate 스텝.
+
+**문제**
+- `We could not find external dependencies. Run 'tuist install'`로 exit 1.
+
+**원인**
+- CI는 깨끗한 checkout이라 SPM 외부 의존성이 없다. 로컬은 이미 받아둬 generate만으로 됐지만 CI는 generate 전에 `tuist install`이 필요하다.
+
+**해결**
+- generate 앞에 `tuist install` 스텝을 추가했다.
+
+**교훈**
+- 로컬에 이미 존재하는 상태(의존성·폴더)를 CI가 재현하지 못하는 지점이 반복된다. clean checkout 기준으로 필요한 준비 스텝을 명시한다.
+
 ### 2026-07-27 12:00 - CI 첫 실행: Tuist/Config 디렉토리 부재로 cp 실패
 
 **상황**

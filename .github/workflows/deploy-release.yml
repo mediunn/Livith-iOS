@@ -62,6 +62,9 @@ jobs:
           security import .certificate/P12/distribution.p12 -k "$KEYCHAIN" -P "$P12_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "" "$KEYCHAIN"
 
+      - name: Tuist install
+        run: tuist install
+
       - name: Tuist generate
         run: tuist generate --no-open
 
