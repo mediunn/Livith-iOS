@@ -87,7 +87,9 @@ private extension HomeView {
     var backgroundColor: Color {
         switch store.state.selectedHomeTab {
         case .interestConcert:
-            return Color.livithColor(store.state.interestConcertList.isEmpty ? .black90 : .black100)
+            let usesBlack100 = store.state.isInterestListLoadFailed
+                || !store.state.interestConcertList.isEmpty
+            return Color.livithColor(usesBlack100 ? .black100 : .black90)
         case .calendar:
             return Color.livithColor(.black100)
         }

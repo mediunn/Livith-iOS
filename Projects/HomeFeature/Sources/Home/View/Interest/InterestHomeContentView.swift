@@ -44,8 +44,10 @@ private extension InterestHomeContentView {
 private extension InterestHomeContentView {
     var scrollView: some View {
         ScrollView {
-            if store.state.isSectionLoading {
+            if store.state.isSectionLoading || store.state.isInterestListRetryLoading {
                 loadingView
+            } else if store.state.isInterestListLoadFailed {
+                loadFailedEmptyView
             } else {
                 VStack(spacing: .zero) {
                     preferenceBannerSection
@@ -74,6 +76,12 @@ private extension InterestHomeContentView {
             Spacer(minLength: Constants.loadingMinHeight)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    var loadFailedEmptyView: some View {
+        LivithEmptyView(text: HomeStore.Constants.interestListLoadFailedEmptyMessage)
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical)
     }
 
     @ViewBuilder
