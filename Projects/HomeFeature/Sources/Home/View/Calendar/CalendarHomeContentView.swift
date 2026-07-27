@@ -11,6 +11,8 @@ import SwiftUI
 import DIContainer
 import LivithDesignSystem
 
+import Amplitude
+
 struct CalendarHomeContentView: View {
 
     // MARK: - Properties
@@ -104,9 +106,11 @@ private extension CalendarHomeContentView {
                     calendarMonth: store.state.calendarMonth,
                     contentHeight: $webViewContentHeight,
                     onDateSelected: { date in
+                        AmplitudeService.shared.trackEvent(tag: .click(.calendarDate))
                         store.send(.dayScheduleRequested(date: date))
                     },
                     onMonthChanged: { startDate, endDate in
+                        trackCalendarMonthChangeIfNeeded(startDate: startDate, endDate: endDate)
                         store.send(.monthChanged(startDate: startDate, endDate: endDate))
                     }
                 )
@@ -177,6 +181,17 @@ private extension CalendarHomeContentView {
 // MARK: - Actions
 
 private extension CalendarHomeContentView {
+    func trackCalendarMonthChangeIfNeeded(startDate: String, endDate: String) {
+        guard let previousStartDate = store.state.rangeStartDate,
+              let previousEndDate = store.state.rangeEndDate,
+              previousStartDate != startDate || previousEndDate != endDate
+        else {
+            return
+        }
+
+        AmplitudeService.shared.trackEvent(tag: .click(.calendarMonth))
+    }
+
     func dismissSelectionBlockedToast() {
         guard showSelectionBlockedToast || !store.state.selectionBlockedToastMessage.isEmpty else { return }
 
