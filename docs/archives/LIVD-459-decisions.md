@@ -70,6 +70,9 @@
 **과정**: 커밋하면 CI가 push → `on: push`가 재트리거 → 무한루프. 커밋 메시지에 `[skip ci]`를 박아 차단.
 
 **결정**: **커밋 갱신 + `[skip ci]`.** 저장소 plist 값을 최신 배포 번호와 일치시킴.
+- 커밋은 `[CI]` 고정 prefix, author는 `github-actions[bot]`으로 고정(러너 기본값 대신).
+- 값 주입은 `<key>CFBundleVersion</key>` 다음 `<string>` 값만 텍스트로 치환해 plist 키 재정렬 diff를 없앰. `set_info_plist_value`·`plutil`·`PlistBuddy`는 전부 plist를 재직렬화하며 `BASE_URL` 등 xcconfig 변수 키까지 재정렬함을 확인했다.
+- 빌드 번호는 `qa`/`main`에만 쌓이므로 `develop → qa`/`main` 머지에서 `CFBundleVersion`이 충돌하면 배포 브랜치 값(ours)을 유지한다. 값 라인만 바꿔 충돌 범위를 그 한 줄로 최소화했다.
 
 ---
 
@@ -123,4 +126,4 @@
 
 **과정**: **Livith-iOS가 public 저장소**임을 확인. .p8 개인키가 없으면 식별자만으로는 무용하지만, public에 API 식별자를 굳이 박을 이유가 없음.
 
-**결정**: key_id·issuer_id는 **Livith-Certificate(private)의 `ASC/api_key.json`에서 읽음.** teamID·프로파일 이름은 앱 번들에 공개되는 정보라 하드코딩 유지.
+**결정**: key_id·issuer_id는 **Livith-Certificate(private)의 `ASC/api_key.json`에서 읽음.** cloud signing 전환(#10) 이후 teamID·프로파일 이름 하드코딩은 제거됐고, 서명은 `Shared.xcconfig`의 `DEVELOPMENT_TEAM`·`CODE_SIGN_STYLE = Automatic`과 cloud signing이 처리한다.

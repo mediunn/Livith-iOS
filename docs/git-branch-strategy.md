@@ -34,7 +34,8 @@ develop ─(릴리즈)→ main               →CI→ App Store 업로드 (Relea
 
 - **`qa`**: develop에서 "지금 QA 올리자" 싶을 때 머지. 작업 브랜치 커밋마다 배포되는 폭탄을 피하기 위해 전용 브랜치로 둔다.
 - **`main`**: 머지가 곧 릴리즈. push 시 App Store에 프로덕션 빌드를 업로드하되, 비가역인 심사 신청은 사람이 수동으로.
-- CI가 배포 후 빌드 번호(`YYYYMMDD.HHMM`)를 커밋·push하며, `[skip ci]`로 재트리거를 막는다.
+- CI가 배포 후 빌드 번호(`YYYYMMDD.HHMM`)를 `[CI]` 커밋(author `github-actions[bot]`)으로 push하며, `[skip ci]`로 재트리거를 막는다.
+- 빌드 번호 커밋은 `qa`/`main`에만 쌓인다. `develop → qa`/`main` 머지에서 `CFBundleVersion`이 충돌하면 **배포 브랜치의 최신 빌드 번호를 유지(ours)** 한다. `CFBundleVersion` 값 라인만 텍스트로 치환해 충돌 범위를 그 한 줄로 최소화했다.
 
 ## 커밋·머지 규칙 (요약)
 

@@ -29,11 +29,12 @@
   - `Tuist/Config/*.xcconfig`(gitignore·Livith-Certificate 소스) 주입 경로
   - 서명 인증서(.p12)·프로비저닝 프로파일 주입 (러너가 GitHub-hosted일 경우)
   - App Store Connect API Key(`.p8`)를 GitHub Secrets로
-- [ ] 첫 CI 실행 검증 (사용자 Secrets 등록 후) 및 트러블슈팅 문서화
+- [x] 첫 CI 실행 검증 (사용자 Secrets 등록 후) 및 트러블슈팅 문서화
+  - QA→TestFlight internal 업로드까지 실제 통과 확인. cloud signing으로 archive·export 서명.
 
 ## 영향 범위
 - 신규: `Gemfile`, `Gemfile.lock`, `fastlane/Fastfile`, `fastlane/Appfile`, `.github/workflows/deploy-qa.yml`, `.github/workflows/deploy-release.yml`
-- 수정: `Projects/App/Resources/App-Info.plist`, `Projects/App/ShareExtension/Resources/ShareExtension-Info.plist` (빌드 번호 주입은 CI 런타임에서 덮어쓰므로 커밋되는 값은 그대로 둘 수 있음 — 결정 필요)
+- 수정: `Projects/App/Resources/App-Info.plist`, `Projects/App/ShareExtension/Resources/ShareExtension-Info.plist` (빌드 번호는 배포 후 `qa`/`main`에 `[CI]` 커밋으로 갱신 — `CFBundleVersion` 값 라인만 텍스트 치환, `[skip ci]`로 루프 차단)
 - 저장소 설정: GitHub Secrets (인증서, 프로파일, API Key, xcconfig)
 
 ## 기술 결정
@@ -61,7 +62,7 @@
 - **빌드 번호 커밋 루프**: CI가 갱신한 빌드 번호를 커밋·push하면 `on: push`가 재트리거되어 무한루프가 난다. 커밋 메시지에 `[skip ci]`를 박고, 워크플로우에도 방어적으로 조건을 건다.
 - **QA/main 동일 앱 레코드**: App 타깃 번들ID는 config와 무관하게 `com.youz2me.livith` 하나다(`Module+TargetID.swift`). Dev/Prod는 같은 앱이며 차이는 config(Debug/Release)와 배포 대상(TestFlight internal / App Store)뿐이다. 빌드 번호 시퀀스도 이 하나의 앱에서 공유되며, 타임스탬프 방식이라 QA·main이 섞여도 충돌하지 않는다. QA는 Dev 스킴이므로 **Debug config 아카이브**가 TestFlight에 올라간다(dev 서버 빌드).
 - **러너 Xcode 버전**: 로컬 빌드는 Xcode 26.2다. GitHub-hosted 러너 이미지에 26.2가 없으면 `setup-xcode`가 실패한다. 첫 CI 실행에서 러너의 가용 Xcode를 확인해 버전을 맞춘다(필요 시 프로젝트 최소 요구 버전으로 하향). 로컬에서 검증 불가한 CI 전용 리스크.
-- **CI 수동 서명**: 로컬은 자동 서명으로 아카이브되지만 CI는 Apple ID가 없어 불가하다. Fastfile은 `is_ci`일 때만 `signingStyle: manual` + 프로파일 매핑을 적용한다. 이 경로는 첫 CI 실행에서만 검증 가능하다.
+- **CI 서명(cloud signing)**: 로컬은 자동 서명으로 아카이브된다. CI도 Apple ID 대신 App Store Connect **Admin API Key** cloud signing으로 archive·export를 처리한다. Fastfile은 `is_ci`일 때만 `-allowProvisioningUpdates` + API Key 인증(`signing_xcargs`)을 넘겨 프로파일을 자동 생성한다. 수동 프로파일 매핑·하드코딩은 사용하지 않는다.
 - **커밋/푸시 승인**: 모든 커밋·푸시는 사용자 명시 승인 후 진행한다 (git.md).
 
 ## 확정 사항
@@ -73,15 +74,13 @@
 - `DIST_CERT_PASSWORD` — `P12/distribution.p12` 개인키 암호
 - `CERT_REPO_PAT` — Livith-Certificate(private) 접근용 PAT (Contents read)
 
-팀ID·프로파일 이름은 확정값이라 Fastfile에 하드코딩한다: teamID `2DF5SKQK2R`, App 프로파일 `Livith-Distribution`, Extension 프로파일 `LivithShareExtension-Distribution`.
+서명은 cloud signing(Admin API Key + `-allowProvisioningUpdates`)이 처리하므로 teamID·프로파일 이름을 Fastfile에 하드코딩하지 않는다. teamID는 `Shared.xcconfig`의 `DEVELOPMENT_TEAM`이 담당한다.
 
 ### Livith-Certificate (`mediunn/Livith-Certificate`, CI가 checkout)
 - 존재: `Config/*.xcconfig`, `Provisioning/*.mobileprovision`, `P12/distribution.p12`, `P8/AppStoreConnectAPI_AppManager.p8`
 - **추가 필요**: `ASC/api_key.json` — key_id·issuer_id만 담은 JSON. **Livith-iOS가 public**이라 API 식별자를 Fastfile에 두지 않고 private 저장소에서 읽는다.
 
-teamID(`2DF5SKQK2R`)·프로파일 이름은 앱 번들에 공개되는 정보라 Fastfile에 하드코딩한다.
-
-xcconfig·프로파일·ASC 키가 바뀌면 이 저장소만 갱신하면 CI가 자동으로 최신을 쓴다. 인증서(.p12)만 개인키 때문에 Secret으로 둔다.
+xcconfig·프로파일·ASC 키가 바뀌면 이 저장소만 갱신하면 CI가 자동으로 최신을 쓴다. 인증서(.p12)만 개인키 때문에 Secret으로 둔다. cloud signing 전환 후 프로파일은 CI에서 자동 생성되므로 수동 프로파일 복사 스텝은 제거했다.
 빌드 번호 push는 `GITHUB_TOKEN`(contents:write)으로 하므로 별도 PAT는 불필요하다.
 
 ## 검증 방법

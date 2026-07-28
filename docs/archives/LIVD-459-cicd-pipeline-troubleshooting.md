@@ -2,6 +2,31 @@
 
 ## 기록
 
+### 2026-07-28 - PR #299 리뷰 반영 (빌드번호 커밋·서명 정리)
+
+**상황**
+- PR #299에 리뷰어(JinUng41)가 8개 권장 사항을 남김. Approve/Request changes 아닌 개선 코멘트.
+
+**문제**
+- `set_info_plist_value`가 `CFBundleVersion`뿐 아니라 plist 키 순서까지 재정렬 → 배포마다 diff 지저분 + `develop`↔`qa` 머지 충돌 유발(qa 커밋 `9b9a88e0`에서 `BASE_URL` 등 위치 변경 확인됨).
+- 빌드번호를 `qa`/`main`에만 커밋 → `develop → qa` 머지 시 plist 충돌.
+- CI 커밋 author가 러너 기본값(`Anka`)으로 남음.
+- `ISSUE_KEY = "LIVD-459"`가 박혀 자동 chore 커밋마다 무관한 이슈키가 따라옴.
+- cloud signing 전환(decisions #10) 후에도 워크플로우에 수동 프로비저닝 프로파일 `cp`가 잔존.
+- 계획/의사결정 문서에 수동 서명·teamID/프로파일 하드코딩 서술이 구현과 어긋난 채 남음.
+- `.certificate/`가 `.gitignore`에 없어 서명 자산이 실수로 커밋될 위험.
+
+**해결** (사용자 결정: 빌드번호 커밋 유지 + 개별 수정 / 프로파일 cp 삭제)
+- `bump_build_number`: `set_info_plist_value` → `<key>CFBundleVersion</key>` 다음 `<string>` 값만 텍스트 치환(`set_bundle_version`). `plutil -replace`·`PlistBuddy`도 테스트했으나 둘 다 plist를 재직렬화하며 `BASE_URL` 등 키를 재정렬해 폐기, 텍스트 치환만 값 1줄 diff 유지. `REPO_ROOT` 기준 절대경로.
+- `commit_build_bump`: push 전 `git config`로 author를 `github-actions[bot]`으로 고정. 커밋 메시지는 이슈키 대신 `[CI]` 고정 prefix.
+- 워크플로우 두 개: 수동 프로파일 `cp` 제거(cloud signing이 프로파일 자동 생성). 스텝명 `Install xcconfig`로 축소.
+- `.gitignore`에 `.certificate/` 추가.
+- decisions #7/#12, plan, `git-branch-strategy.md`를 cloud signing·ours 머지 전략에 맞춰 정합.
+
+**교훈**
+- plist 값만 갱신할 땐 `set_info_plist_value`·`plutil`·`PlistBuddy` 모두 전체 재직렬화로 키 순서를 바꾼다. 값 1줄만 유지하려면 대상 `<string>`을 텍스트로 치환한다.
+- 배포 브랜치에만 쌓이는 자동 커밋은 author identity를 고정하고, 되돌아오는 머지의 충돌 해소(ours)를 문서로 규정한다.
+
 ### 2026-07-27 14:40 - 빌드번호 시각이 UTC로 찍힘 (KST 아님)
 
 **상황**
