@@ -23,6 +23,8 @@ struct HomeState {
     var hasNewNotice: Bool = false
     var concertSectionList: [ConcertSection] = []
     var isSectionLoading: Bool = false
+    var isInterestListLoadFailed: Bool = false
+    var isInterestListRetryLoading: Bool = false
     var needsInitialSectionLoad: Bool = true
     var shouldShowPreferenceBanner: Bool = false
     var recommendedConcertList: [Concert] = []
@@ -53,6 +55,10 @@ enum HomeIntent {
 
 @MainActor
 final class HomeStore: ObservableObject {
+    enum Constants {
+        static let interestListLoadFailedEmptyMessage = "콘서트 목록을\n불러오지 못했어요"
+    }
+
     private enum CancelID {
         case homeAppear
         case interestAppear
@@ -98,10 +104,14 @@ final class HomeStore: ObservableObject {
                 state.isSectionLoading = true
                 pendingInterestResultAlertFetch = true
             }
+            if state.isInterestListLoadFailed {
+                state.isInterestListRetryLoading = true
+            }
             performInterestAppear(loadsSections: loadsSections)
 
         case .onRefresh:
             performFetchSections()
+            performFetchInterestList(filter: .homeSection(sort: state.interestConcertSort))
 
         case .homeTabSelected(let tab):
             state.selectedHomeTab = tab
@@ -150,16 +160,29 @@ final class HomeStore: ObservableObject {
             }
 
         case ._interestListResult(let result):
+            if case .failure(let error) = result, isCancellationError(error) {
+                return
+            }
+
+            state.isInterestListRetryLoading = false
+
             switch result {
             case .success(let list):
                 state.interestConcertList = list
+                state.isInterestListLoadFailed = false
                 // 유저 조회 실패로 설정된 에러를 관심 목록 성공이 지우지 않도록,
                 // 유저가 있을 때만(정렬 재조회 등) 에러를 클리어한다.
                 if state.user != nil {
                     state.errorMessage = ""
                 }
             case .failure(let error):
-                setError(from: error)
+                if state.interestConcertList.isEmpty {
+                    state.isInterestListLoadFailed = true
+                    state.errorMessage = ""
+                    clearInterestResultSheet()
+                } else {
+                    setError(from: error)
+                }
             }
 
         case ._unreadCountResult(let result):
@@ -177,7 +200,7 @@ final class HomeStore: ObservableObject {
                     clearInterestResultSheet()
                     return
                 }
-                guard state.errorMessage.isEmpty else {
+                guard state.errorMessage.isEmpty, !state.isInterestListLoadFailed else {
                     clearInterestResultSheet()
                     return
                 }
@@ -252,20 +275,10 @@ private extension HomeStore {
             async let interestListResult = fetchInterestList(filter: .homeSection(sort: sort))
             async let sectionsResult = fetchSectionsIfNeeded(loadsSections)
 
-            // 관심 목록 실패는 초기 로드 실패로 전파하지 않는다.
-            send(._interestListResult(.success(interestList(from: await interestListResult))))
+            send(._interestListResult(await interestListResult))
 
             guard loadsSections else { return }
             await sendSectionResult(sectionsResult: await sectionsResult)
-        }
-    }
-
-    func interestList(from result: Result<[InterestConcert], Error>) -> [InterestConcert] {
-        switch result {
-        case .success(let list):
-            return list
-        case .failure:
-            return []
         }
     }
 

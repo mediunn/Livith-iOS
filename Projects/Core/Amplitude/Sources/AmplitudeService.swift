@@ -170,6 +170,8 @@ public extension AmplitudeService {
         case calendarChipBookingDate = "click_chip_booking_date"
         case calendarToggleAllConcert = "click_toggle_all_concert"
         case calendarToggleMyConcerts = "click_toggle_my_concerts"
+        case calendarDate = "click_calendar_date"
+        case calendarMonth = "click_calendar_month"
 
         // 인스타 파싱
         case igParsingSuccess = "click_ios_ig_parsing_success"

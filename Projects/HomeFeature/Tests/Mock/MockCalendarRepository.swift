@@ -12,8 +12,8 @@ import Domain
 
 final class MockCalendarRepository: CalendarRepository {
     struct FetchMonthParameters: Equatable {
-        let year: Int
-        let month: Int
+        let startDate: String
+        let endDate: String
         let scheduleTypeList: [CalendarScheduleTypeFilter]
         let concertType: CalendarConcertTypeFilter
     }
@@ -35,16 +35,16 @@ final class MockCalendarRepository: CalendarRepository {
     var fetchDayEventsParameterList: [FetchDayEventsParameters] = []
 
     func fetchMonth(
-        year: Int,
-        month: Int,
+        startDate: String,
+        endDate: String,
         scheduleTypes: [CalendarScheduleTypeFilter],
         concertType: CalendarConcertTypeFilter
     ) async throws(CalendarError) -> CalendarMonth {
         fetchMonthCallCount += 1
         fetchMonthParameterList.append(
             FetchMonthParameters(
-                year: year,
-                month: month,
+                startDate: startDate,
+                endDate: endDate,
                 scheduleTypeList: scheduleTypes,
                 concertType: concertType
             )
@@ -72,7 +72,7 @@ final class MockCalendarRepository: CalendarRepository {
             }
         }
 
-        return CalendarMonth(year: year, month: month, dayList: [])
+        return CalendarMonth(dayList: [])
     }
 
     func fetchDayEvents(

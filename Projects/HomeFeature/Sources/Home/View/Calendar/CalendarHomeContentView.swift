@@ -11,6 +11,8 @@ import SwiftUI
 import DIContainer
 import LivithDesignSystem
 
+import Amplitude
+
 struct CalendarHomeContentView: View {
 
     // MARK: - Properties
@@ -93,25 +95,31 @@ struct CalendarHomeContentView: View {
 private extension CalendarHomeContentView {
     @ViewBuilder
     var calendarBody: some View {
-        if store.state.isInitialLoading {
-            loadingView
-        } else if store.state.isLoadFailed {
+        if store.state.isLoadFailed {
             LivithEmptyView(text: CalendarHomeStore.Constants.loadFailedEmptyMessage)
                 .frame(maxWidth: .infinity)
                 .containerRelativeFrame(.vertical)
         } else {
-            CalendarWebView(
-                url: calendarWebConfig.url,
-                calendarMonth: store.state.calendarMonth,
-                contentHeight: $webViewContentHeight,
-                onDateSelected: { date in
-                    store.send(.dayScheduleRequested(date: date))
-                },
-                onMonthChanged: { year, month in
-                    store.send(.monthChanged(year: year, month: month))
+            ZStack {
+                CalendarWebView(
+                    url: calendarWebConfig.url,
+                    calendarMonth: store.state.calendarMonth,
+                    contentHeight: $webViewContentHeight,
+                    onDateSelected: { date in
+                        AmplitudeService.shared.trackEvent(tag: .click(.calendarDate))
+                        store.send(.dayScheduleRequested(date: date))
+                    },
+                    onMonthChanged: { startDate, endDate in
+                        trackCalendarMonthChangeIfNeeded(startDate: startDate, endDate: endDate)
+                        store.send(.monthChanged(startDate: startDate, endDate: endDate))
+                    }
+                )
+                .frame(height: webViewContentHeight)
+
+                if store.state.isInitialLoading {
+                    loadingView
                 }
-            )
-            .frame(height: webViewContentHeight)
+            }
         }
     }
 
@@ -133,7 +141,7 @@ private extension CalendarHomeContentView {
 
 private extension CalendarHomeContentView {
     var showsFilterBar: Bool {
-        !store.state.isLoadFailed && !store.state.isInitialLoading
+        !store.state.isLoadFailed && store.state.calendarMonth != nil
     }
 
     var selectionBlockedToastBinding: Binding<Bool> {
@@ -173,6 +181,17 @@ private extension CalendarHomeContentView {
 // MARK: - Actions
 
 private extension CalendarHomeContentView {
+    func trackCalendarMonthChangeIfNeeded(startDate: String, endDate: String) {
+        guard let previousStartDate = store.state.rangeStartDate,
+              let previousEndDate = store.state.rangeEndDate,
+              previousStartDate != startDate || previousEndDate != endDate
+        else {
+            return
+        }
+
+        AmplitudeService.shared.trackEvent(tag: .click(.calendarMonth))
+    }
+
     func dismissSelectionBlockedToast() {
         guard showSelectionBlockedToast || !store.state.selectionBlockedToastMessage.isEmpty else { return }
 

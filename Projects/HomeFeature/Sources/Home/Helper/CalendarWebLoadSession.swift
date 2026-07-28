@@ -19,7 +19,6 @@ final class CalendarWebLoadSession {
     var hasLoadedCalendarURL = false
     var pendingPayloadJSON: String?
     var lastInjectedPayloadJSON: String?
-    var monthChangeGate = CalendarWebMonthChangeGate()
 
     private var lastReloadAttemptDate: Date?
 
@@ -64,7 +63,6 @@ final class CalendarWebLoadSession {
 
             if error == nil {
                 self.lastInjectedPayloadJSON = injectingPayloadJSON
-                self.monthChangeGate.markInjectSucceeded()
             }
             contentHeightMeasurer.scheduleMeasurement(of: webView)
         }
@@ -98,13 +96,8 @@ final class CalendarWebLoadSession {
     func handleLoadFailure(on webView: WKWebView) {
         hasLoadedCalendarURL = false
         lastInjectedPayloadJSON = nil
-        monthChangeGate.reset()
         guard let blankURL = Constants.blankURL else { return }
         webView.load(URLRequest(url: blankURL))
-    }
-
-    var shouldAcceptMonthChanged: Bool {
-        monthChangeGate.shouldAcceptMonthChanged
     }
 }
 

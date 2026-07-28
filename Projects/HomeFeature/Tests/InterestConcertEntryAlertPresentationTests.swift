@@ -37,11 +37,12 @@ struct InterestConcertEntryAlertPresentationTests {
         #expect(InterestConcertEntryAlertKind.autoRemovedCompleted.actionTitle == nil)
     }
 
-    @Test("요청 결과 title은 19자를 넘으면 말줄임해야 한다")
-    func 요청_결과_title은_19자를_넘으면_말줄임해야_한다() {
+    @Test("요청 결과 title은 공백 포함 24자를 넘으면 말줄임해야 한다")
+    func 요청_결과_title은_공백_포함_24자를_넘으면_말줄임해야_한다() {
         // Given
-        let longTitle = String(repeating: "가", count: 20)
-        let shortTitle = String(repeating: "나", count: 19)
+        let longTitle = String(repeating: "가", count: 25)
+        let shortTitle = String(repeating: "나", count: 24)
+        let figmaPlaceholderTitle = "[19자 내 공연명 이후 말줄임..] 콘서트"
         let longAlert = InterestConcertEntryAlert(
             kind: .requestRegistered,
             title: longTitle,
@@ -54,6 +55,12 @@ struct InterestConcertEntryAlertPresentationTests {
             content: "장르가 없어 관심 콘서트에 추가되지 않았어요",
             concertID: nil
         )
+        let figmaPlaceholderAlert = InterestConcertEntryAlert(
+            kind: .requestRegistered,
+            title: figmaPlaceholderTitle,
+            content: "나의 관심 콘서트에 추가됐어요",
+            concertID: 1
+        )
         let autoCleanupAlert = InterestConcertEntryAlert(
             kind: .autoRemovedCompleted,
             title: longTitle,
@@ -62,8 +69,9 @@ struct InterestConcertEntryAlertPresentationTests {
         )
 
         // When / Then
-        #expect(longAlert.displayTitle == String(repeating: "가", count: 19) + "…")
+        #expect(longAlert.displayTitle == String(repeating: "가", count: 24) + "...")
         #expect(shortAlert.displayTitle == shortTitle)
+        #expect(figmaPlaceholderAlert.displayTitle == figmaPlaceholderTitle)
         #expect(autoCleanupAlert.displayTitle == longTitle)
     }
 

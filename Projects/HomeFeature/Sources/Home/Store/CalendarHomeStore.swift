@@ -25,8 +25,8 @@ struct CalendarHomeState {
     var isTicketingDateSelected: Bool = true
     var isPerformanceDateSelected: Bool = true
     var concertScope: CalendarConcertScope = .all
-    var selectedYear: Int = CalendarHomeState.currentYearMonth.year
-    var selectedMonth: Int = CalendarHomeState.currentYearMonth.month
+    var rangeStartDate: String?
+    var rangeEndDate: String?
     var calendarMonth: CalendarMonth?
     var isInitialLoading: Bool = false
     var isLoadFailed: Bool = false
@@ -37,11 +37,6 @@ struct CalendarHomeState {
     var isDayScheduleModalPresented: Bool = false
     var selectedDayTitle: String = ""
     var dayScheduleEventList: [CalendarDayEvent] = []
-
-    static var currentYearMonth: (year: Int, month: Int) {
-        let components = Calendar.current.dateComponents([.year, .month], from: Date())
-        return (components.year ?? 2_026, components.month ?? 1)
-    }
 }
 
 // MARK: - Intent
@@ -56,7 +51,7 @@ enum CalendarHomeIntent {
     case onDayScheduleLoadFailedToastDisappear
     case dayScheduleRequested(date: Date)
     case dayScheduleModalDismissed
-    case monthChanged(year: Int, month: Int)
+    case monthChanged(startDate: String, endDate: String)
     case _fetchMonthResult(Result<CalendarMonth, Error>, requestID: Int)
     case _fetchDayEventsResult(Result<CalendarDaySchedule, Error>, requestID: Int)
 }
@@ -88,8 +83,12 @@ final class CalendarHomeStore: ObservableObject {
     func send(_ intent: CalendarHomeIntent) {
         switch intent {
         case .onAppear:
-            let shouldShowInitialLoading = state.calendarMonth == nil || state.isLoadFailed
-            performFetchMonth(showInitialLoading: shouldShowInitialLoading)
+            if hasFetchRange {
+                let showInitialLoading = state.isLoadFailed || state.calendarMonth == nil
+                scheduleFetchMonth(showInitialLoading: showInitialLoading)
+            } else {
+                state.isInitialLoading = true
+            }
 
         case .ticketingDateTapped:
             let didChange = toggleDateFilter(
@@ -98,7 +97,7 @@ final class CalendarHomeStore: ObservableObject {
                 setSelected: { state.isTicketingDateSelected = $0 }
             )
             if didChange {
-                performFetchMonth(showInitialLoading: false)
+                scheduleFetchMonth(showInitialLoading: false)
             }
 
         case .performanceDateTapped:
@@ -108,20 +107,20 @@ final class CalendarHomeStore: ObservableObject {
                 setSelected: { state.isPerformanceDateSelected = $0 }
             )
             if didChange {
-                performFetchMonth(showInitialLoading: false)
+                scheduleFetchMonth(showInitialLoading: false)
             }
 
         case .allConcertsTapped:
             guard state.concertScope != .all else { return }
 
             state.concertScope = .all
-            performFetchMonth(showInitialLoading: false)
+            scheduleFetchMonth(showInitialLoading: false)
 
         case .myConcertsTapped:
             guard state.concertScope != .my else { return }
 
             state.concertScope = .my
-            performFetchMonth(showInitialLoading: false)
+            scheduleFetchMonth(showInitialLoading: false)
 
         case .onSelectionBlockedToastDisappear:
             state.selectionBlockedToastMessage = ""
@@ -135,17 +134,18 @@ final class CalendarHomeStore: ObservableObject {
         case .dayScheduleModalDismissed:
             state.isDayScheduleModalPresented = false
 
-        case .monthChanged(let year, let month):
-            guard (1...12).contains(month) else { return }
-            guard state.selectedYear != year || state.selectedMonth != month else { return }
+        case .monthChanged(let startDate, let endDate):
+            let isSameRange = state.rangeStartDate == startDate && state.rangeEndDate == endDate
+            guard !isSameRange || state.calendarMonth == nil || state.isLoadFailed else { return }
 
             state.isDayScheduleModalPresented = false
             cancellables[.fetchDayEvents]?.cancel()
             dayEventsRequestID += 1
 
-            state.selectedYear = year
-            state.selectedMonth = month
-            performFetchMonth(showInitialLoading: false)
+            state.rangeStartDate = startDate
+            state.rangeEndDate = endDate
+            let showInitialLoading = state.calendarMonth == nil || state.isLoadFailed
+            scheduleFetchMonth(showInitialLoading: showInitialLoading)
 
         case ._fetchMonthResult(let result, let requestID):
             guard requestID == monthRequestID else { return }
@@ -179,16 +179,30 @@ final class CalendarHomeStore: ObservableObject {
     }
 
     func performRefresh() async {
-        let showInitialLoading = state.isLoadFailed || state.calendarMonth == nil
-        await scheduleFetchMonth(showInitialLoading: showInitialLoading).value
+        guard hasFetchRange else {
+            return
+        }
+
+        state.isInitialLoading = false
+        await scheduleFetchMonth(showInitialLoading: false)?.value
     }
 }
 
 // MARK: - Private Helpers
 
 private extension CalendarHomeStore {
+    var hasFetchRange: Bool {
+        state.rangeStartDate != nil && state.rangeEndDate != nil
+    }
+
     @discardableResult
-    func scheduleFetchMonth(showInitialLoading: Bool) -> Task<Void, Never> {
+    func scheduleFetchMonth(showInitialLoading: Bool) -> Task<Void, Never>? {
+        guard let startDate = state.rangeStartDate,
+              let endDate = state.rangeEndDate
+        else {
+            return nil
+        }
+
         cancellables[.fetchMonth]?.cancel()
 
         monthRequestID += 1
@@ -196,20 +210,17 @@ private extension CalendarHomeStore {
 
         if showInitialLoading {
             state.isInitialLoading = true
+            state.isLoadFailed = false
         }
 
         let task = Task {
-            let result = await fetchMonthResult()
+            let result = await fetchMonthResult(startDate: startDate, endDate: endDate)
             guard !Task.isCancelled else { return }
 
             send(._fetchMonthResult(result, requestID: requestID))
         }
         cancellables[.fetchMonth] = task
         return task
-    }
-
-    func performFetchMonth(showInitialLoading: Bool) {
-        _ = scheduleFetchMonth(showInitialLoading: showInitialLoading)
     }
 
     func performFetchDayEvents(date: Date) {
@@ -224,11 +235,11 @@ private extension CalendarHomeStore {
         }
     }
 
-    func fetchMonthResult() async -> Result<CalendarMonth, Error> {
+    func fetchMonthResult(startDate: String, endDate: String) async -> Result<CalendarMonth, Error> {
         do {
             let month = try await calendarRepository.fetchMonth(
-                year: state.selectedYear,
-                month: state.selectedMonth,
+                startDate: startDate,
+                endDate: endDate,
                 scheduleTypes: scheduleTypeFilterList(),
                 concertType: concertTypeFilter()
             )

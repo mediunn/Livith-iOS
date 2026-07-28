@@ -306,8 +306,53 @@ struct HomeStoreTests {
         #expect(sut.state.user?.nickname == "홍길동")
         #expect(sut.state.interestConcertList.isEmpty)
         #expect(sut.state.hasNewNotice)
+        #expect(sut.state.isInterestListLoadFailed)
         #expect(sut.state.errorMessage.isEmpty)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+    }
+
+    @Test("관심 목록 로드 실패 후 interestAppear는 재조회 로딩을 켜고 목록을 다시 조회해야 한다")
+    func testInterestAppearAfterLoadFailedStartsRetryLoadingAndRefetches() async throws {
+        // Given
+        let sut = HomeStore()
+        sut.send(._interestListResult(.failure(UserError.serverError)))
+        #expect(sut.state.isInterestListLoadFailed)
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
+
+        // When
+        sut.send(.interestAppear)
+
+        // Then
+        #expect(sut.state.isInterestListRetryLoading)
+
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(!sut.state.isInterestListLoadFailed)
+        #expect(!sut.state.isInterestListRetryLoading)
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
+    }
+
+    @Test("onRefresh는 홈 섹션과 관심 콘서트 목록을 함께 다시 조회해야 한다")
+    func testOnRefreshRefetchesSectionsAndInterestList() async throws {
+        // Given
+        let sut = HomeStore()
+        sut.send(._interestListResult(.failure(UserError.serverError)))
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
+        container.userRepository.userStub = makeMockUser(hasPreferences: false)
+        sut.send(._homeAppearResult(.success((user: makeMockUser(hasPreferences: false), hasNewNotice: false))))
+
+        // When
+        sut.send(.onRefresh)
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(!sut.state.isInterestListLoadFailed)
+        #expect(!sut.state.isInterestListRetryLoading)
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
     }
 
     @Test("homeAppear 시 알림 수 조회 실패는 홈 초기 데이터 실패로 전파하지 않아야 한다")
@@ -578,7 +623,23 @@ struct HomeStoreTests {
         sut.send(._interestListResult(.failure(UserError.serverError)))
 
         // Then
-        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(sut.state.isInterestListLoadFailed)
+        #expect(sut.state.errorMessage.isEmpty)
+        #expect(!sut.state.shouldShowInterestResultSheet)
+        #expect(sut.state.interestResultAlertList.isEmpty)
+    }
+
+    @Test("관심 목록 로드 실패 상태에서는 관심 콘서트 결과 시트를 띄우지 않아야 한다")
+    func testInterestResultSheetIsBlockedWhenInterestListLoadFailed() {
+        // Given
+        let sut = HomeStore()
+        sut.send(._interestListResult(.failure(UserError.serverError)))
+        #expect(sut.state.isInterestListLoadFailed)
+
+        // When
+        sut.send(._interestResultAlertListResult(.success(makeInterestConcertEntryAlertList())))
+
+        // Then
         #expect(!sut.state.shouldShowInterestResultSheet)
         #expect(sut.state.interestResultAlertList.isEmpty)
     }
@@ -659,6 +720,20 @@ struct HomeStoreTests {
         #expect(sut.state.recommendedConcertList.first?.id == recommended.first?.id)
     }
 
+    @Test("관심 콘서트 목록이 비어 있는 조회 실패 시 isInterestListLoadFailed를 설정하고 errorMessage는 비워야 한다")
+    func testEmptyInterestConcertListFailureSetsLoadFailedWithoutErrorMessage() {
+        // Given
+        let sut = HomeStore()
+
+        // When
+        sut.send(._interestListResult(.failure(UserError.serverError)))
+
+        // Then
+        #expect(sut.state.interestConcertList.isEmpty)
+        #expect(sut.state.isInterestListLoadFailed)
+        #expect(sut.state.errorMessage.isEmpty)
+    }
+
     @Test("관심 콘서트 목록 조회 실패 결과가 들어오면 기존 관심 콘서트 목록을 유지하고 errorMessage를 설정해야 한다")
     func testInterestConcertListFailureKeepsInterestConcertListAndSetsErrorMessage() {
         let sut = HomeStore()
@@ -667,7 +742,23 @@ struct HomeStoreTests {
         sut.send(._interestListResult(.failure(UserError.serverError)))
 
         #expect(sut.state.interestConcertList.map(\.id) == [123])
+        #expect(!sut.state.isInterestListLoadFailed)
         #expect(!sut.state.errorMessage.isEmpty)
+    }
+
+    @Test("관심 콘서트 목록 조회 성공 시 isInterestListLoadFailed를 해제해야 한다")
+    func testInterestConcertListSuccessClearsLoadFailed() {
+        // Given
+        let sut = HomeStore()
+        sut.send(._interestListResult(.failure(UserError.serverError)))
+        #expect(sut.state.isInterestListLoadFailed)
+
+        // When
+        sut.send(._interestListResult(.success(makeInterestConcertList(concertIDList: [123]))))
+
+        // Then
+        #expect(!sut.state.isInterestListLoadFailed)
+        #expect(sut.state.interestConcertList.map(\.id) == [123])
     }
 
     @Test("관심 콘서트 정렬을 선택하면 홈 섹션 조회 조건으로 목록을 다시 조회해야 한다")

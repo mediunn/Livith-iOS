@@ -37,6 +37,12 @@ private extension InterestHomeContentView {
     var preferenceBannerBackgroundColor: Color {
         Color.livithColor(store.state.interestConcertList.isEmpty ? .black100 : .black90)
     }
+
+    var headerSectionTopPadding: CGFloat {
+        let isEmptyInterestWithoutBanner = store.state.interestConcertList.isEmpty
+            && !store.state.shouldShowPreferenceBanner
+        return isEmptyInterestWithoutBanner ? .zero : Constants.headerSectionTopPadding
+    }
 }
 
 // MARK: - UIComponents
@@ -44,15 +50,17 @@ private extension InterestHomeContentView {
 private extension InterestHomeContentView {
     var scrollView: some View {
         ScrollView {
-            if store.state.isSectionLoading {
+            if store.state.isSectionLoading || store.state.isInterestListRetryLoading {
                 loadingView
+            } else if store.state.isInterestListLoadFailed {
+                loadFailedEmptyView
             } else {
                 VStack(spacing: .zero) {
                     preferenceBannerSection
                         .zIndex(2)
 
                     headerSection
-                        .padding(.top, Constants.headerSectionTopPadding)
+                        .padding(.top, headerSectionTopPadding)
                         .zIndex(1)
 
                     concertContentSection
@@ -74,6 +82,12 @@ private extension InterestHomeContentView {
             Spacer(minLength: Constants.loadingMinHeight)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    var loadFailedEmptyView: some View {
+        LivithEmptyView(text: HomeStore.Constants.interestListLoadFailedEmptyMessage)
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical)
     }
 
     @ViewBuilder

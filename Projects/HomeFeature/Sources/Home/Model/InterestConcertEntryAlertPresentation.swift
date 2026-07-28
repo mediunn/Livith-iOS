@@ -50,7 +50,7 @@ extension InterestConcertEntryAlertKind {
 }
 
 extension InterestConcertEntryAlert {
-    /// 요청 결과 카드 공연명. Figma: 19자 초과 시 말줄임. 자동 정리는 원문 유지.
+    /// 요청 결과 카드 공연명. Figma: 공백 포함 24자 초과 시 말줄임. 자동 정리는 원문 유지.
     var displayTitle: String {
         switch kind {
         case .autoRemovedCompleted, .autoRemovedCanceled:
@@ -62,11 +62,11 @@ extension InterestConcertEntryAlert {
 }
 
 private extension String {
-    static let requestConcertNameMaxLength = 19
+    static let requestConcertNameMaxLength = 24
 
     var truncatedForRequestConcertName: String {
         guard count > Self.requestConcertNameMaxLength else { return self }
-        return String(prefix(Self.requestConcertNameMaxLength)) + "…"
+        return String(prefix(Self.requestConcertNameMaxLength)) + "..."
     }
 }
 

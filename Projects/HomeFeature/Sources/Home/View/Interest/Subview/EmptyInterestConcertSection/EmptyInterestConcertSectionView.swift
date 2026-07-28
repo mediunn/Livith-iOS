@@ -33,7 +33,15 @@ struct EmptyInterestConcertSectionView: View {
 
     var body: some View {
         headerContentView
-        .background(Color.livithColor(.black90))
+            .background {
+                UnevenRoundedRectangle(
+                    topLeadingRadius: .zero,
+                    bottomLeadingRadius: Constants.bottomLeadingCornerRadius,
+                    bottomTrailingRadius: .zero,
+                    topTrailingRadius: .zero
+                )
+                .fill(Color.livithColor(.black90))
+            }
     }
 }
 
@@ -49,7 +57,7 @@ private extension EmptyInterestConcertSectionView {
                     .notosans(.headSemibold)
                     .foregroundStyle(.livithColor(.white100))
                     .padding(.leading, 16)
-                    .padding(.bottom, 28)
+                    .padding(.bottom, Constants.sectionVerticalPadding)
             }
 
             Spacer()
@@ -65,8 +73,7 @@ private extension EmptyInterestConcertSectionView {
                     }
                 }
                 .padding(.trailing, 16)
-                .padding(.top, 24)
-                .padding(.bottom, 28)
+                .padding(.vertical, Constants.sectionVerticalPadding)
         }
     }
 
@@ -99,6 +106,15 @@ private struct InterestConcertButtonHeightPreferenceKey: PreferenceKey {
 
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
+    }
+}
+
+// MARK: - Constants
+
+private extension EmptyInterestConcertSectionView {
+    enum Constants {
+        static let bottomLeadingCornerRadius: CGFloat = 20
+        static let sectionVerticalPadding: CGFloat = 30
     }
 }
 

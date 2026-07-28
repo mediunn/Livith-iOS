@@ -33,7 +33,7 @@ struct HomeView: View {
 
             tabContent
         }
-        .background(backgroundColor.ignoresSafeArea())
+        .background(Color.livithColor(.black100).ignoresSafeArea())
         .onAppear {
             isPreferenceBannerExpanded = true
             store.send(.homeAppear)
@@ -84,15 +84,6 @@ struct HomeView: View {
 // MARK: - Computed Properties
 
 private extension HomeView {
-    var backgroundColor: Color {
-        switch store.state.selectedHomeTab {
-        case .interestConcert:
-            return Color.livithColor(store.state.interestConcertList.isEmpty ? .black90 : .black100)
-        case .calendar:
-            return Color.livithColor(.black100)
-        }
-    }
-
     var interestResultSheetBinding: Binding<Bool> {
         Binding(
             get: { store.state.shouldShowInterestResultSheet },

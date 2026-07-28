@@ -168,7 +168,7 @@ struct UserRepositoryImpl: UserRepository {
         ),
         InterestConcertEntryAlert(
             kind: .requestRegistered,
-            title: "테일러 스위프트 내한 콘서트",
+            title: "[19자 내 공연명 이후 말줄임..] 콘서트",
             content: "나의 관심 콘서트에 추가됐어요",
             concertID: 1
         ),

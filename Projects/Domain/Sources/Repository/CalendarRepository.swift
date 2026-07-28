@@ -10,8 +10,8 @@ import Foundation
 
 public protocol CalendarRepository {
     func fetchMonth(
-        year: Int,
-        month: Int,
+        startDate: String,
+        endDate: String,
         scheduleTypes: [CalendarScheduleTypeFilter],
         concertType: CalendarConcertTypeFilter
     ) async throws(CalendarError) -> CalendarMonth

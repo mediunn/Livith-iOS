@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+import Amplitude
 import Domain
 import LivithDesignSystem
 
@@ -20,6 +21,7 @@ struct InterestConcertSettingView: View {
     @State private var showErrorToast: Bool = false
     @State private var showSuccessToast: Bool = false
     @State private var isDiscardChangesModalPresented: Bool = false
+    @State private var hasOpenedConcertRequest: Bool = false
 
     // MARK: - Initializer
 
@@ -106,7 +108,7 @@ private extension InterestConcertSettingView {
             }
 
             searchTextField
-                .padding(.top, store.state.isSearchFocused ? 12 : 30)
+                .padding(.top, store.state.isSearchFocused ? 12 : Constants.guideToSearchSpacing)
                 .padding(.horizontal, Constants.horizontalPadding)
         }
     }
@@ -141,12 +143,56 @@ private extension InterestConcertSettingView {
     }
 
     var navigationBar: some View {
-        LivithNavigationView(
-            type: .back(
-                title: store.state.mode.navigationTitle,
-                onBack: handleBackButtonTap
-            )
-        )
+        HStack(spacing: 4) {
+            Button(action: handleBackButtonTap) {
+                Image.livithIcon(.backLineDefault)
+                    .resizable()
+                    .frame(
+                        width: Constants.navigationBackIconSize,
+                        height: Constants.navigationBackIconSize
+                    )
+            }
+
+            Text(store.state.mode.navigationTitle)
+                .notosans(.body1Semibold)
+                .foregroundStyle(Color.livithColor(.white100))
+                .lineLimit(1)
+
+            Spacer(minLength: .zero)
+
+            LivithReportButton(Literals.reportButtonTitle, variant: .info) {
+                hasOpenedConcertRequest = true
+                AmplitudeService.shared.trackEvent(tag: .click(.concertRequest))
+                homeRouter.push(.concertRequest)
+            }
+        }
+        .padding(.horizontal, Constants.horizontalPadding)
+        .padding(.top, Constants.navigationContentTopPadding)
+        .frame(height: Constants.navigationBarHeight, alignment: .top)
+        .overlay(alignment: .bottomTrailing) {
+            if !hasOpenedConcertRequest {
+                reportTooltip
+                    .offset(y: Constants.tooltipBottomOffset)
+                    .padding(.trailing, Constants.horizontalPadding)
+            }
+        }
+        .zIndex(1)
+    }
+
+    var reportTooltip: some View {
+        VStack(alignment: .trailing, spacing: Constants.tooltipArrowBubbleOverlap) {
+            TooltipArrowShape()
+                .fill(Color.livithColor(.yellow30))
+                .frame(width: Constants.tooltipArrowWidth, height: Constants.tooltipArrowHeight)
+                .padding(.trailing, Constants.tooltipArrowTrailingPadding)
+
+            Text(Literals.reportTooltipTitle)
+                .notosans(.caption1Bold)
+                .foregroundStyle(Color.livithColor(.black80))
+                .padding(.horizontal, 15)
+                .frame(height: Constants.tooltipBubbleHeight)
+                .background(Capsule().fill(Color.livithColor(.yellow30)))
+        }
     }
 
     var loadingView: some View {
@@ -174,7 +220,7 @@ private extension InterestConcertSettingView {
                 .notosans(.body4Medium)
                 .foregroundStyle(Color.livithColor(.black50))
         }
-        .padding(.top, 30)
+        .padding(.top, Constants.guideSectionTopPadding)
         .padding(.horizontal, Constants.horizontalPadding)
     }
 
@@ -225,16 +271,42 @@ private extension InterestConcertSettingView {
     }
 }
 
+// MARK: - TooltipArrowShape
+
+private struct TooltipArrowShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+            path.closeSubpath()
+        }
+    }
+}
+
 // MARK: - Constants
 
 private extension InterestConcertSettingView {
     enum Constants {
         static let horizontalPadding: CGFloat = 16
+        static let navigationBarHeight: CGFloat = 66
+        static let navigationContentTopPadding: CGFloat = 20
+        static let navigationBackIconSize: CGFloat = 38
+        static let guideSectionTopPadding: CGFloat = 20
+        static let guideToSearchSpacing: CGFloat = 20
+        static let tooltipArrowWidth: CGFloat = 14
+        static let tooltipArrowHeight: CGFloat = 8
+        static let tooltipArrowTrailingPadding: CGFloat = 15
+        static let tooltipArrowBubbleOverlap: CGFloat = -2
+        static let tooltipBubbleHeight: CGFloat = 31
+        static let tooltipBottomOffset: CGFloat = 28
     }
 
     enum Literals {
         static let guideTitle = "소식을 받을 콘서트를\n선택해 주세요"
         static let searchPlaceholder = "찾고 있는 콘서트나 가수를 검색하세요"
+        static let reportButtonTitle = "정보 요청"
+        static let reportTooltipTitle = "찾는 콘서트가 없다면?"
     }
 }
 
