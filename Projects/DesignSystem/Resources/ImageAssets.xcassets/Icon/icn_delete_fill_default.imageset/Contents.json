@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "icn_fill_delete_default.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

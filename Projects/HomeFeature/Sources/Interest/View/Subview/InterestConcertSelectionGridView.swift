@@ -1,0 +1,102 @@
+//
+//  InterestConcertSelectionGridView.swift
+//  HomeFeature
+//
+//  Created by 김진웅 on 4/20/26.
+//  Copyright © 2026 Livith. All rights reserved.
+//
+
+import SwiftUI
+
+import DisplaySupport
+import LivithDesignSystem
+import Domain
+
+struct InterestConcertSelectionGridView: View {
+    let concertList: [Concert]
+    let selectedConcertIDList: [Int]
+    let isLoadingMore: Bool
+    let onConcertTap: (Int) -> Void
+    let onScroll: () -> Void
+    let onLoadMore: () -> Void
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            if concertList.isEmpty {
+                emptyView
+            } else {
+                gridView
+            }
+        }
+        .scrollDismissesKeyboard(.immediately)
+        .simultaneousGesture(
+            DragGesture().onChanged { _ in
+                onScroll()
+            }
+        )
+    }
+}
+
+private extension InterestConcertSelectionGridView {
+    var emptyView: some View {
+        LivithEmptyView(text: "검색 결과가 없어요")
+            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.vertical)
+    }
+
+    var gridView: some View {
+        LazyVGrid(
+            columns: gridItems,
+            spacing: Constants.rowSpacing
+        ) {
+            ForEach(concertList) { concert in
+                concertCard(for: concert)
+            }
+
+            if isLoadingMore {
+                ProgressView()
+                    .tint(Color.livithColor(.white100))
+                    .gridCellColumns(Constants.gridColumns)
+                    .padding(.vertical, 16)
+            }
+        }
+        .padding(.top, 20)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 210)
+    }
+
+    func concertCard(for concert: Concert) -> some View {
+        LivithCard(
+            imageURL: concert.posterURL,
+            title: ConcertDisplayHelper.title(for: concert),
+            subtitle: ConcertDisplayHelper.dateRange(for: concert),
+            secondaryText: concert.artist,
+            badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
+            isSelected: selectedConcertIDList.contains(concert.id),
+            isFlexible: true,
+            onTap: { onConcertTap(concert.id) }
+        )
+        .onAppear {
+            if concert.id == concertList.last?.id {
+                onLoadMore()
+            }
+        }
+    }
+}
+
+private extension InterestConcertSelectionGridView {
+    var gridItems: [GridItem] {
+        Array(
+            repeating: GridItem(.flexible(), spacing: Constants.columnSpacing, alignment: .top),
+            count: Constants.gridColumns
+        )
+    }
+}
+
+private extension InterestConcertSelectionGridView {
+    enum Constants {
+        static let gridColumns = 3
+        static let columnSpacing: CGFloat = 10
+        static let rowSpacing: CGFloat = 24
+    }
+}

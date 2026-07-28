@@ -1,0 +1,486 @@
+//
+//  ConcertView.swift
+//  ConcertFeature
+//
+//  Created by Youjin Lee on 12/29/25.
+//  Copyright © 2025 Livith. All rights reserved.
+//
+
+import SwiftUI
+
+import Amplitude
+import DisplaySupport
+import Domain
+import LivithDesignSystem
+
+public struct ConcertView: View {
+
+    // MARK: - Property
+
+    private let concertID: Int
+    private let initialTab: ConcertTab
+    private let initialSection: ConcertInfoSection?
+    private let onTicketSiteReturn: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    @StateObject private var store: ConcertStore = ConcertStore()
+    @StateObject private var communityStore: CommunityStore = CommunityStore()
+    @State private var isExceedingLineLimit: Bool = false
+    @State private var isExceedingCharacterLimit: Bool = false
+
+    // MARK: - Initializer
+
+    public init(
+        concertID: Int,
+        initialTab: ConcertTab = .artistDetail,
+        initialSection: ConcertInfoSection? = nil,
+        onTicketSiteReturn: @escaping () -> Void = {}
+    ) {
+        self.concertID = concertID
+        self.initialTab = initialTab
+        self.initialSection = initialSection
+        self.onTicketSiteReturn = onTicketSiteReturn
+    }
+
+    // MARK: - Body
+
+    private var showEmptyView: Bool {
+        !store.state.isLoading && store.state.concert == nil
+    }
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            LivithNavigationView(
+                type: .back(title: navigationTitle, onBack: { dismiss() })
+            )
+
+            if showEmptyView {
+                emptyContentView
+            } else {
+                scrollContent
+                commentInputSection
+            }
+        }
+        .background(Color.livithColor(.black100).ignoresSafeArea())
+        .livithToast(
+            isPresented: Binding(
+                get: { toastInfo != nil },
+                set: { if !$0 { dismissCurrentToast() } }
+            ),
+            type: toastInfo?.type ?? .failure,
+            message: toastInfo?.message ?? ""
+        )
+        .livithToast(
+            isPresented: $isExceedingLineLimit,
+            type: .failure,
+            message: "댓글은 15줄을 초과할 수 없어요"
+        )
+        .livithToast(
+            isPresented: $isExceedingCharacterLimit,
+            type: .failure,
+            message: "댓글은 400자를 초과할 수 없어요"
+        )
+        .crossDissolve(isPresented: isDeleteDialogPresented, dismissOnTapOutside: true) {
+            LivithDangerModal(
+                message: "댓글을 삭제하시겠어요?",
+                confirmTitle: "지금은 삭제할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .confirm(onConfirm: {
+                    communityStore.send(.confirmDelete)
+                }),
+                onCancel: {
+                    communityStore.send(.dismissDialog)
+                }
+            )
+        }
+        .crossDissolve(isPresented: isReportDialogPresented, dismissOnTapOutside: true) {
+            LivithDangerModal(
+                message: "댓글을 신고하시겠어요?",
+                confirmTitle: "신고할래요",
+                cancelTitle: "잘못 눌렀어요",
+                type: .report(onConfirm: { content in
+                    communityStore.send(.confirmReport(content: content))
+                }),
+                onCancel: {
+                    communityStore.send(.dismissDialog)
+                }
+            )
+        }
+        .overlay { ticketReturnBannerOverlay }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
+        .onAppear {
+            store.send(.onAppear(concertID: concertID))
+            store.send(.tabSelected(initialTab))
+            store.send(.sectionSelected(initialSection))
+            communityStore.send(.onAppear(concertID: concertID))
+        }
+    }
+}
+
+// MARK: - Main Content
+
+private extension ConcertView {
+    var emptyContentView: some View {
+        LivithEmptyView(text: "콘서트 정보가 없어요")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    var scrollContent: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    headerSection
+                        .id("top")
+
+                    Section {
+                        tabContentView
+                    } header: {
+                        segmentTabBar
+                            .id("tabBar")
+                    }
+                }
+                .opacity(store.state.concert != nil ? 1 : 0)
+                .animation(.easeInOut(duration: 0.3), value: store.state.concert != nil)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+            .onChange(of: store.state.selectedTab) {
+                withAnimation {
+                    proxy.scrollTo("top", anchor: .top)
+                }
+            }
+            .onChange(of: communityStore.state.toastState) { _, newValue in
+                if case .success(let message) = newValue, message.contains("작성") {
+                    withAnimation {
+                        proxy.scrollTo("top", anchor: .top)
+                    }
+                }
+            }
+            .onChange(of: store.state.concert) { _, newValue in
+                if newValue != nil && initialTab != .artistDetail {
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(300))
+                        withAnimation {
+                            proxy.scrollTo("tabBar", anchor: .top)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    var commentInputSection: some View {
+        if store.state.selectedTab == .community {
+            CommentInputView(
+                text: Binding(
+                    get: { communityStore.state.commentText },
+                    set: { communityStore.send(.updateCommentText($0)) }
+                ),
+                isExceedingLineLimit: $isExceedingLineLimit,
+                isExceedingCharacterLimit: $isExceedingCharacterLimit,
+                isSubmitting: communityStore.state.isSubmitting,
+                onSubmit: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    communityStore.send(.submitComment)
+                }
+            )
+        }
+    }
+}
+
+// MARK: - Computed Bindings
+
+private extension ConcertView {
+    var isDeleteDialogPresented: Binding<Bool> {
+        Binding(
+            get: { 
+                if case .delete = communityStore.state.dialogState { return true }
+                return false
+            },
+            set: { if !$0 { communityStore.send(.dismissDialog) } }
+        )
+    }
+    
+    var isReportDialogPresented: Binding<Bool> {
+        Binding(
+            get: { 
+                if case .report = communityStore.state.dialogState { return true }
+                return false
+            },
+            set: { if !$0 { communityStore.send(.dismissDialog) } }
+        )
+    }
+}
+
+// MARK: - Banner Overlays
+
+private extension ConcertView {
+
+    @ViewBuilder
+    var ticketReturnBannerOverlay: some View {
+        if store.state.showTicketReturnBanner {
+            LivithSnackBar(
+                message: "웹사이트를 보셨나요?\n관심 콘서트 설정하고 공연 알림을 받으세요",
+                actionTitle: "콘서트 설정",
+                onActionTapped: {
+                    store.send(.onTicketBannerDismiss)
+                    AmplitudeService.shared.trackEvent(tag: .confirm(.changeInterest))
+                    store.send(.interestButtonTapped)
+                },
+                onDismiss: {
+                    store.send(.onTicketBannerDismiss)
+                }
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+}
+
+// MARK: - Header Section
+
+private extension ConcertView {
+    var headerSection: some View {
+        ZStack(alignment: .bottom) {
+            posterSection
+
+            concertInfoSection
+                .padding(.bottom, 30)
+        }
+        .frame(width: UIScreen.main.bounds.width)
+        .clipped()
+    }
+}
+
+// MARK: - Segment TabBar
+
+private extension ConcertView {
+    var segmentTabBar: some View {
+        SegmentedTabBar(type: .detail(
+            selectedTab: store.state.selectedTab,
+            communityCount: communityStore.state.totalCount,
+            onTabSelected: { tab in
+                switch tab {
+                case .artistDetail:
+                    AmplitudeService.shared.trackEvent(tag: .click(.artistDetailSegment))
+                case .concertInfo:
+                    AmplitudeService.shared.trackEvent(tag: .click(.concertDetailSegment))
+                case .setlist:
+                    AmplitudeService.shared.trackEvent(tag: .click(.setlistSegmentDetail))
+                case .community:
+                    break
+                }
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    store.send(.tabSelected(tab))
+                }
+            }
+        ))
+        .frame(maxWidth: .infinity)
+        .background(Color.livithColor(.black100))
+    }
+}
+
+// MARK: - Tab Content
+
+private extension ConcertView {
+    @ViewBuilder
+    var tabContentView: some View {
+        switch store.state.selectedTab {
+        case .artistDetail:
+            ArtistDetailTabView(
+                artist: store.state.artist,
+                introduction: store.state.concert?.introduction ?? "",
+                fanCultures: store.state.fanCultures
+            )
+            .background(.livithColor(.black100))
+        case .concertInfo:
+            ConcertInfoTabView(
+                ticketingOffice: store.state.concert?.ticketingOffice,
+                ticketingOfficeURL: store.state.concert?.ticketingOfficeURL,
+                scheduleList: store.state.schedules,
+                concertInfoList: store.state.concertInfoList,
+                merchandiseList: store.state.merchandiseList,
+                initialSection: store.state.initialSection,
+                onSectionScrolled: { store.send(.sectionSelected(nil)) },
+                onTicketSiteReturn: { store.send(.onTicketSiteReturn) }
+            )
+            .frame(maxWidth: UIScreen.main.bounds.width)
+            .background(.livithColor(.black100))
+        case .setlist:
+            SetlistTabView(concertID: store.state.concertID, setlistList: store.state.setlistList)
+                .frame(maxWidth: UIScreen.main.bounds.width)
+                .background(.livithColor(.black100))
+        case .community:
+            CommunityTabView(store: communityStore)
+        }
+    }
+}
+
+// MARK: - Poster Section
+
+private extension ConcertView {
+    var shouldShowInterestButton: Bool {
+        guard let status = store.state.concert?.status else { return true }
+        switch status {
+        case .canceled, .completed, .past:
+            return false
+        case .ongoing, .upcoming:
+            return true
+        }
+    }
+
+    var isInterested: Bool {
+        store.state.isCurrentConcertInterested ?? false
+    }
+
+    var posterSection: some View {
+        ZStack(alignment: .topTrailing) {
+            posterImage
+
+            if shouldShowInterestButton {
+                LivithActionButton(
+                    isInterested ? "소식 받는중" : "소식 받기",
+                    type: .notice(isActive: isInterested)
+                ) {
+                    AmplitudeService.shared.trackEvent(tag: .click(.interestConcertDetail))
+                    store.send(.interestButtonTapped)
+                }
+                .padding(.top, 16)
+                .padding(.trailing, 16)
+            }
+        }
+        .clipped()
+    }
+
+    var posterImage: some View {
+        AsyncImageView(
+            url: store.state.concert?.posterURL,
+            showGradient: false
+        ) {
+            Image.livithImage(.concertCardEmpty)
+                .resizable()
+        }
+        .frame(width: UIScreen.main.bounds.width, height: 337)
+        .clipped()
+        .overlay {
+            if store.state.concert?.posterURL != nil {
+                Color.black.opacity(0.7)
+            }
+        }
+    }
+}
+
+// MARK: - Concert Info Section
+
+private extension ConcertView {
+    var concertInfoSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if let label = store.state.concert?.label, !label.isEmpty {
+                LivithIconBadge.popular(label)
+                    .padding(.bottom, 10)
+            }
+
+            concertTitle
+                .padding(.bottom, 10)
+
+            artistName
+                .padding(.bottom, 10)
+
+            dateInfo
+                .padding(.bottom, 4)
+
+            venueInfo
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+    }
+
+    var concertTitle: some View {
+        Text(navigationTitle)
+            .notosans(.headSemibold)
+            .foregroundStyle(Color.livithColor(.white100))
+    }
+
+    var artistName: some View {
+        Text(store.state.concert?.artist ?? "")
+            .notosans(.body2Medium)
+            .foregroundStyle(Color.livithColor(.black30))
+    }
+
+    var dateInfo: some View {
+        HStack(spacing: 4) {
+            Image.livithIcon(.calendarLine)
+                .resizable()
+                .frame(width: 24, height: 24)
+
+            Text(store.state.formattedDateRange)
+                .notosans(.body4Medium)
+                .foregroundStyle(Color.livithColor(.black30))
+        }
+    }
+
+    var venueInfo: some View {
+        HStack(alignment: .top, spacing: 4) {
+            Image.livithIcon(.locationLine)
+                .resizable()
+                .frame(width: 24, height: 24)
+
+            Text(store.state.concert.map { ConcertDisplayHelper.venue(for: $0) } ?? "")
+                .notosans(.body4Medium)
+                .foregroundStyle(Color.livithColor(.black30))
+        }
+    }
+
+    var navigationTitle: String {
+        store.state.concert.map { ConcertDisplayHelper.title(for: $0) } ?? ""
+    }
+}
+
+// MARK: - Toast
+
+private extension ConcertView {
+    var toastInfo: (isPresented: Bool, type: LivithToastType, message: String)? {
+        if let fetchError = store.state.fetchError {
+            return (true, .failure, fetchError)
+        }
+
+        switch store.state.interestStatus {
+        case .success(let msg):
+            return (true, .success, msg)
+        case .failure(let msg):
+            return (true, .failure, msg)
+        default:
+            break
+        }
+
+        switch communityStore.state.toastState {
+        case .success(let msg):
+            return (true, .success, msg)
+        case .failure(let msg):
+            return (true, .failure, msg)
+        case .none:
+            break
+        }
+
+        return nil
+    }
+
+    func dismissCurrentToast() {
+        if store.state.fetchError != nil {
+            store.send(.onFetchErrorDismiss)
+        } else if store.state.interestStatus != .idle && store.state.interestStatus != .inProgress {
+            store.send(.onToastDisappear)
+        } else if communityStore.state.toastState != .none {
+            communityStore.send(.dismissToast)
+        }
+    }
+}
+
+#Preview {
+    ConcertView(
+        concertID: 1
+    )
+}

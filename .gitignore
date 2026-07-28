@@ -4,9 +4,6 @@
 .AppleDouble
 .LSOverride
 
-# Icon must end with two
-Icon
-
 # Thumbnails
 ._*
 
@@ -37,7 +34,6 @@ xcuserdata/
 ## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
 *.xcscmblueprint
 *.xccheckout
-*.xcconfig
 
 ## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
 build/
@@ -69,3 +65,39 @@ Derived/
 
 ### Tuist managed dependencies ###
 Tuist/.build
+.build/
+
+### AI Agents ###
+.claude/
+.codex/
+.cursor/
+.cursorignore
+.opencode/
+.github/instructions/
+.github/copilot-instructions.md
+.pi/
+
+### Config ###
+*.xcconfig
+
+### CI 서명 자산 (Livith-Certificate checkout 경로) ###
+# CI가 checkout하는 인증서·프로파일·API Key. 실수로 서명 자산이 커밋되는 걸 막는다.
+.certificate/
+
+### VSCode ###
+.vscode/
+
+### Module Scripts ###
+.module_backup/
+claude.md__pycache__/
+
+### Fastlane / Bundler ###
+vendor/bundle/
+.bundle/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+fastlane/README.md
+*.ipa
+*.dSYM.zip
+Analyze/
