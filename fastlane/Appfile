@@ -1,0 +1,2 @@
+app_identifier("com.youz2me.livith")
+# App Store Connect API Key 인증을 사용하므로 apple_id·팀 ID는 지정하지 않는다.
