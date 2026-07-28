@@ -1,0 +1,125 @@
+default_platform(:ios)
+
+WORKSPACE  = "Livith-iOS.xcworkspace".freeze
+APP_PLIST  = "Projects/App/Resources/App-Info.plist".freeze
+EXT_PLIST  = "Projects/App/ShareExtension/Resources/ShareExtension-Info.plist".freeze
+QA_SCHEME  = "Livith-iOS-Dev".freeze
+REL_SCHEME = "Livith-iOS".freeze
+# 원시 git 명령은 fastlane/ 디렉토리에서 실행되므로 워크스페이스 루트를 명시한다.
+REPO_ROOT  = ENV.fetch("GITHUB_WORKSPACE", File.expand_path("..", __dir__)).freeze
+# App Store Connect API Key: .p8 개인키와 식별자(key_id·issuer_id) JSON 모두 Livith-Certificate에서 checkout된다.
+# fastlane은 fastlane/ 디렉토리 기준으로 상대경로를 해석하므로 워크스페이스 절대경로로 참조한다.
+CERT_ROOT    = File.join(ENV.fetch("GITHUB_WORKSPACE", Dir.pwd), ".certificate").freeze
+ASC_KEY_P8   = File.join(CERT_ROOT, "P8", "AppStoreConnectAPI_AppManager.p8").freeze
+ASC_KEY_INFO = File.join(CERT_ROOT, "ASC", "api_key.json").freeze
+
+platform :ios do
+  desc "QA 배포 — Dev(dev 서버) 빌드를 TestFlight internal에 업로드"
+  lane :qa do
+    version = bump_build_number
+    build_app(
+      workspace: WORKSPACE,
+      scheme: QA_SCHEME,
+      configuration: "Debug",
+      export_method: "app-store",
+      xcargs: signing_xcargs,
+      clean: true,
+      output_directory: "build"
+    )
+
+    if is_ci
+      upload_to_testflight(
+        api_key: load_api_key,
+        distribute_external: false,
+        skip_waiting_for_build_processing: true
+      )
+      commit_build_bump(version)
+    else
+      UI.message("로컬 실행: 아카이브까지만 수행 (업로드·커밋 생략)")
+    end
+  end
+
+  desc "운영 배포 — Release 빌드를 App Store Connect에 업로드 (심사 미신청)"
+  lane :release do
+    version = bump_build_number
+    build_app(
+      workspace: WORKSPACE,
+      scheme: REL_SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      xcargs: signing_xcargs,
+      clean: true,
+      output_directory: "build"
+    )
+
+    if is_ci
+      upload_to_app_store(
+        api_key: load_api_key,
+        submit_for_review: false,
+        skip_metadata: true,
+        skip_screenshots: true,
+        force: true
+      )
+      commit_build_bump(version)
+    else
+      UI.message("로컬 실행: 아카이브까지만 수행 (업로드·커밋 생략)")
+    end
+  end
+end
+
+# CFBundleVersion을 YYYYMMDD.HHMM 타임스탬프로 App·ShareExtension 양쪽에 주입한다.
+# 두 타깃의 빌드 번호가 다르면 App Store가 업로드를 거부하므로 반드시 동일 값으로 맞춘다.
+def bump_build_number
+  # GitHub-hosted 러너는 UTC로 동작하므로, 배포 시각을 KST(+09:00)로 고정해 찍는다.
+  version = Time.now.getlocal("+09:00").strftime("%Y%m%d.%H%M")
+  [APP_PLIST, EXT_PLIST].each do |plist|
+    set_bundle_version(File.join(REPO_ROOT, plist), version)
+  end
+  UI.message("빌드 번호 주입: #{version}")
+  version
+end
+
+# CFBundleVersion 값만 텍스트로 교체한다. set_info_plist_value·plutil·PlistBuddy는 plist 전체를
+# 재직렬화하며 키 순서(BASE_URL 등 xcconfig 변수 키 포함)를 재정렬해, 배포마다 diff가 지저분해지고
+# develop↔qa 머지 충돌을 유발한다. <key>CFBundleVersion</key> 다음 <string> 값만 바꿔 순서·포맷을 보존한다.
+def set_bundle_version(plist_path, version)
+  content = File.read(plist_path)
+  pattern = %r{(<key>CFBundleVersion</key>\s*<string>)[^<]*(</string>)}
+  UI.user_error!("CFBundleVersion 키를 찾지 못함: #{plist_path}") unless content.match?(pattern)
+  File.write(plist_path, content.sub(pattern, "\\1#{version}\\2"))
+end
+
+# 갱신한 빌드 번호를 커밋한다. on:push 재트리거를 막기 위해 [skip ci]를 붙인다.
+# 빌드 번호 커밋은 qa/main에만 쌓이므로 develop→qa/main 머지에서 CFBundleVersion 라인이
+# 충돌하면 배포 브랜치 값(ours)을 유지한다. (docs/git-branch-strategy.md)
+def commit_build_bump(version)
+  # CI 러너 기본 author(Anka) 대신 github-actions[bot]으로 identity를 고정한다.
+  sh("git", "-C", REPO_ROOT, "config", "user.name", "github-actions[bot]")
+  sh("git", "-C", REPO_ROOT, "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+  sh("git", "-C", REPO_ROOT, "add", APP_PLIST, EXT_PLIST)
+  # 특정 Linear 이슈에 묶이지 않는 자동 커밋이라 이슈키 대신 [CI] 고정 prefix를 쓴다.
+  sh("git", "-C", REPO_ROOT, "commit", "-m", "[CI] 빌드 번호 #{version} [skip ci]")
+  sh("git", "-C", REPO_ROOT, "push", "origin", "HEAD:#{ENV['GITHUB_REF_NAME']}")
+end
+
+# archive 단계 자동 서명(-allowProvisioningUpdates)용 xcodebuild 인증 인자.
+# gym(build_app)은 api_key 파라미터가 없어 xcargs로 API Key 인증을 넘긴다. CI에서만 적용한다.
+def signing_xcargs
+  return nil unless is_ci
+  info = JSON.parse(File.read(ASC_KEY_INFO))
+  "-allowProvisioningUpdates " \
+    "-authenticationKeyPath #{ASC_KEY_P8} " \
+    "-authenticationKeyID #{info['key_id']} " \
+    "-authenticationKeyIssuerID #{info['issuer_id']}"
+end
+
+# App Store Connect API Key. .p8 개인키와 key_id·issuer_id(JSON)를 모두 Livith-Certificate(private)에서
+# 당겨온다. public 저장소인 Fastfile에는 식별자를 노출하지 않는다.
+def load_api_key
+  info = JSON.parse(File.read(ASC_KEY_INFO))
+  app_store_connect_api_key(
+    key_id: info["key_id"],
+    issuer_id: info["issuer_id"],
+    key_filepath: ASC_KEY_P8
+  )
+end

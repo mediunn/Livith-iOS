@@ -80,10 +80,24 @@ Tuist/.build
 ### Config ###
 *.xcconfig
 
+### CI 서명 자산 (Livith-Certificate checkout 경로) ###
+# CI가 checkout하는 인증서·프로파일·API Key. 실수로 서명 자산이 커밋되는 걸 막는다.
+.certificate/
+
 ### VSCode ###
 .vscode/
 
 ### Module Scripts ###
 .module_backup/
 claude.md__pycache__/
+
+### Fastlane / Bundler ###
+vendor/bundle/
+.bundle/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+fastlane/README.md
+*.ipa
+*.dSYM.zip
 Analyze/
