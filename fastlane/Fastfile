@@ -5,7 +5,6 @@ APP_PLIST  = "Projects/App/Resources/App-Info.plist".freeze
 EXT_PLIST  = "Projects/App/ShareExtension/Resources/ShareExtension-Info.plist".freeze
 QA_SCHEME  = "Livith-iOS-Dev".freeze
 REL_SCHEME = "Livith-iOS".freeze
-ISSUE_KEY  = "LIVD-459".freeze
 # 원시 git 명령은 fastlane/ 디렉토리에서 실행되므로 워크스페이스 루트를 명시한다.
 REPO_ROOT  = ENV.fetch("GITHUB_WORKSPACE", File.expand_path("..", __dir__)).freeze
 # App Store Connect API Key: .p8 개인키와 식별자(key_id·issuer_id) JSON 모두 Livith-Certificate에서 checkout된다.
@@ -74,16 +73,32 @@ def bump_build_number
   # GitHub-hosted 러너는 UTC로 동작하므로, 배포 시각을 KST(+09:00)로 고정해 찍는다.
   version = Time.now.getlocal("+09:00").strftime("%Y%m%d.%H%M")
   [APP_PLIST, EXT_PLIST].each do |plist|
-    set_info_plist_value(path: plist, key: "CFBundleVersion", value: version)
+    set_bundle_version(File.join(REPO_ROOT, plist), version)
   end
   UI.message("빌드 번호 주입: #{version}")
   version
 end
 
+# CFBundleVersion 값만 텍스트로 교체한다. set_info_plist_value·plutil·PlistBuddy는 plist 전체를
+# 재직렬화하며 키 순서(BASE_URL 등 xcconfig 변수 키 포함)를 재정렬해, 배포마다 diff가 지저분해지고
+# develop↔qa 머지 충돌을 유발한다. <key>CFBundleVersion</key> 다음 <string> 값만 바꿔 순서·포맷을 보존한다.
+def set_bundle_version(plist_path, version)
+  content = File.read(plist_path)
+  pattern = %r{(<key>CFBundleVersion</key>\s*<string>)[^<]*(</string>)}
+  UI.user_error!("CFBundleVersion 키를 찾지 못함: #{plist_path}") unless content.match?(pattern)
+  File.write(plist_path, content.sub(pattern, "\\1#{version}\\2"))
+end
+
 # 갱신한 빌드 번호를 커밋한다. on:push 재트리거를 막기 위해 [skip ci]를 붙인다.
+# 빌드 번호 커밋은 qa/main에만 쌓이므로 develop→qa/main 머지에서 CFBundleVersion 라인이
+# 충돌하면 배포 브랜치 값(ours)을 유지한다. (docs/git-branch-strategy.md)
 def commit_build_bump(version)
+  # CI 러너 기본 author(Anka) 대신 github-actions[bot]으로 identity를 고정한다.
+  sh("git", "-C", REPO_ROOT, "config", "user.name", "github-actions[bot]")
+  sh("git", "-C", REPO_ROOT, "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
   sh("git", "-C", REPO_ROOT, "add", APP_PLIST, EXT_PLIST)
-  sh("git", "-C", REPO_ROOT, "commit", "-m", "[Chore] #{ISSUE_KEY} - 빌드 번호 #{version} [skip ci]")
+  # 특정 Linear 이슈에 묶이지 않는 자동 커밋이라 이슈키 대신 [CI] 고정 prefix를 쓴다.
+  sh("git", "-C", REPO_ROOT, "commit", "-m", "[CI] 빌드 번호 #{version} [skip ci]")
   sh("git", "-C", REPO_ROOT, "push", "origin", "HEAD:#{ENV['GITHUB_REF_NAME']}")
 end
 

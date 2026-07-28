@@ -35,7 +35,7 @@ jobs:
           ruby-version: '3.4'
           bundler-cache: true
 
-      # xcconfig·프로비저닝 프로파일은 Livith-Certificate 저장소에서 직접 당겨온다.
+      # xcconfig·서명 자산(인증서·API Key)은 Livith-Certificate 저장소에서 직접 당겨온다.
       # 값이 바뀌어도 Livith-Certificate만 갱신하면 되고 GitHub Secret은 손대지 않는다.
       - name: Checkout Livith-Certificate
         uses: actions/checkout@v4
@@ -44,12 +44,12 @@ jobs:
           token: ${{ secrets.CERT_REPO_PAT }}
           path: .certificate
 
-      - name: Install xcconfig & provisioning profiles
+      # cloud signing(-allowProvisioningUpdates + Admin API Key)이 프로파일을 자동 생성하므로
+      # 수동 프로비저닝 프로파일 복사는 제거했다(decisions #10).
+      - name: Install xcconfig
         run: |
           mkdir -p Tuist/Config
           cp .certificate/Config/*.xcconfig Tuist/Config/
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp .certificate/Provisioning/*.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
       # 인증서(.p12)도 Livith-Certificate에서 당겨와 임시 키체인에 import한다. 개인키 암호만 Secret.
       - name: Import distribution certificate
