@@ -136,7 +136,7 @@ private extension InstagramManualSearchView {
                 .padding(.trailing, Constants.tooltipArrowTrailingPadding)
 
             Text(Literals.reportTooltipTitle)
-                .notosans(.caption2Semibold)
+                .notosans(.caption1Semibold)
                 .foregroundStyle(Color.livithColor(.black90))
                 .padding(.horizontal, 15)
                 .frame(height: Constants.tooltipBubbleHeight)
@@ -304,8 +304,8 @@ private extension InstagramManualSearchView {
         static let tooltipArrowWidth: CGFloat = 13
         static let tooltipArrowHeight: CGFloat = 8
         static let tooltipArrowTrailingPadding: CGFloat = 18.5
-        static let tooltipBubbleHeight: CGFloat = 21
-        static let tooltipBottomOffset: CGFloat = 7
+        static let tooltipBubbleHeight: CGFloat = 31
+        static let tooltipBottomOffset: CGFloat = 28
         static let bottomGradientHeight: CGFloat = 152
     }
 

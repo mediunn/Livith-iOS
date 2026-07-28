@@ -146,7 +146,7 @@ private extension InstagramMatchConfirmView {
                     secondaryText: concert.artist,
                     badge: .status(
                         text: ConcertDisplayHelper.statusBadge(for: concert),
-                        remainDays: concert.daysLeft
+                        remainDays: nil
                     ),
                     isSelected: store.state.selectedConcertID == concert.id,
                     isFlexible: true,
