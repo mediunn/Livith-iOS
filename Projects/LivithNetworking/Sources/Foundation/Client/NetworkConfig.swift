@@ -13,7 +13,7 @@ public struct NetworkConfig: Sendable {
         #if DEBUG
         return "v7"
         #else
-        return "v6"
+        return "v7"
         #endif
     }
     
