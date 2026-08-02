@@ -56,6 +56,7 @@ platform :ios do
       upload_to_app_store(
         api_key: load_api_key,
         submit_for_review: false,
+        precheck_include_in_app_purchases: false,
         skip_metadata: true,
         skip_screenshots: true,
         force: true
