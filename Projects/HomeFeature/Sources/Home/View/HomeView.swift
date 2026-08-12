@@ -17,7 +17,6 @@ struct HomeView: View {
 
     @EnvironmentObject private var homeRouter: HomeRouter
     @StateObject private var store: HomeStore = .init()
-    @StateObject private var calendarStore: CalendarHomeStore = .init()
 
     @State private var showErrorToast = false
     @State private var isPreferenceBannerExpanded: Bool = true
@@ -127,7 +126,12 @@ private extension HomeView {
                 isPreferenceBannerExpanded: $isPreferenceBannerExpanded
             )
         case .calendar:
-            CalendarHomeContentView(store: calendarStore)
+            CalendarHomeContentView(
+                scope: CalendarHomeScope(
+                    state: store.state.calendar,
+                    send: { store.send(.calendar($0)) }
+                )
+            )
         }
     }
 }

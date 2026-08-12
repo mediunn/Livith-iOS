@@ -14,7 +14,7 @@ struct CalendarFilterBarView: View {
 
     // MARK: - Properties
 
-    @ObservedObject var store: CalendarHomeStore
+    let scope: CalendarHomeScope
 
     // MARK: - Body
 
@@ -25,14 +25,14 @@ struct CalendarFilterBarView: View {
             Spacer()
 
             CalendarScopeFilterView(
-                selectedScope: store.state.concertScope,
+                selectedScope: scope.state.concertScope,
                 onAllConcertsTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.calendarToggleAllConcert))
-                    store.send(.allConcertsTapped)
+                    scope.send(.allConcertsTapped)
                 },
                 onMyConcertsTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.calendarToggleMyConcerts))
-                    store.send(.myConcertsTapped)
+                    scope.send(.myConcertsTapped)
                 }
             )
         }
@@ -47,19 +47,19 @@ private extension CalendarFilterBarView {
         HStack(spacing: Layout.chipSpacing) {
             CalendarDateFilterChipView(
                 kind: .ticketing,
-                isSelected: store.state.isTicketingDateSelected,
+                isSelected: scope.state.isTicketingDateSelected,
                 onTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.calendarChipBookingDate))
-                    store.send(.ticketingDateTapped)
+                    scope.send(.ticketingDateTapped)
                 }
             )
 
             CalendarDateFilterChipView(
                 kind: .performance,
-                isSelected: store.state.isPerformanceDateSelected,
+                isSelected: scope.state.isPerformanceDateSelected,
                 onTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.calendarChipConcertDate))
-                    store.send(.performanceDateTapped)
+                    scope.send(.performanceDateTapped)
                 }
             )
         }

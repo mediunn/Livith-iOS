@@ -15,22 +15,22 @@
 
 ## 권한·범위
 - 정본(반드시 참이어야 하는 동작·불변조건):
-  - Store 외부 Intent 진입점: `HomeStore.send(_ intent: HomeIntent)` 하나.
-  - `HomeIntent` = 셸 케이스 + `.interest(InterestHomeIntent)` + `.calendar(CalendarHomeIntent)`.
-  - `HomeState` = 루트에 평평한 셸 필드(`selectedHomeTab`, `user`, `hasNewNotice`) + `interest: InterestHomeState` + `calendar: CalendarHomeState`.
-  - 셸 State에 두지 않는 것: 관심 에러 토스트·관심 결과 시트 관련 필드 → `InterestHomeState`.
-  - 셸 Intent 처리 로직은 `HomeStore`에 유지한다 (`HomeShellReducer` 없음).
-  - child: `InterestHomeReducer` / `CalendarHomeReducer`.
+  - Store 외부 Intent 진입점: `HomeStore.send(_ intent: HomeIntent) -> DiscardableTask` 하나 (`@discardableResult`).
+  - `HomeIntent` = 셸 케이스 + (슬라이스 2) `.interest(...)` + `.calendar(CalendarHomeIntent)`.
+  - `HomeState` = 루트에 평평한 셸 필드(`selectedHomeTab`, `user`, `hasNewNotice`) + (슬라이스 2) `interest` + `calendar: CalendarHomeState`. 슬라이스 1에서는 관심 필드는 아직 루트에 잔류.
+  - 셸 State에 두지 않는 것(슬라이스 2): 관심 에러 토스트·관심 결과 시트 관련 필드 → `InterestHomeState`.
+  - 셸 Intent 처리 로직은 `HomeStore`에 유지한다.
+  - child: `CalendarHomeReducer` (슬라이스 1) / `InterestHomeReducer` (슬라이스 2).
     - Repository는 child에 `@Injected`.
     - CancelID·Task 맵은 각 child가 소유.
-    - Store가 생성 시 넘긴 `send` 클로저로 nested Intent를 재진입 (`._fetchResult` 패턴 유지).
-    - `InterestHomeReducer.reduce`는 shell context를 **읽기 전용**으로 받는다 (`user` 등 복사하지 않음).
+    - Store가 생성 시 넘긴 `send` 클로저로 nested Intent를 재진입 (`._fetchResult` 패턴 유지). Task에서만 재진입.
   - 탭 View:
-    - `InterestHomeScope`: `state: InterestHomeState`, `user: User?`(표시용), `send: (InterestHomeIntent) -> Void`.
-    - `CalendarHomeScope`: `state: CalendarHomeState`, `send: (CalendarHomeIntent) -> Void`.
-    - Scope의 `send`는 `HomeView`가 `{ store.send(.interest($0)) }` / `{ store.send(.calendar($0)) }`로 감싼다.
+    - (슬라이스 2) `InterestHomeScope`
+    - `CalendarHomeScope`: `state: CalendarHomeState`, `send: (CalendarHomeIntent) -> DiscardableTask`.
+    - Scope의 `send`는 `HomeView`가 `{ store.send(.calendar($0)) }`로 감싼다.
+  - pull-to-refresh: 캘린더·관심 모두 `await send(...).wait()` (`DiscardableTask`). 캘린더는 `.pullToRefresh`(month Task), 관심은 `.onRefresh`(섹션+관심 목록 join Task). Slice 2 이후에도 Scope `send`로 동일 계약.
   - 탭 전환·필터·로드 실패·모달·토스트 등 기존 UX 동작은 동일하다.
-  - Store/Reducer 관련 테스트가 그린이다 (스위트 이름은 이동에 맞게 조정 가능).
+  - Store/Reducer 관련 테스트가 그린이다.
   - TDD: state 변경·Intent 위임은 red → green을 따른다.
   - 구현 순서: **캘린더 흡수 먼저** → 관심 nest 추출.
 - 이번 범위 밖:
@@ -44,10 +44,10 @@
   - 다른 Feature에서 같은 형태가 필요해져도 이번 이슈에서 공용 프레임워크로 올리지 않는다. 반복 후 `Scope` 정도만 승격한다.
 
 ## 작업 항목
-- [ ] (슬라이스 1) 캘린더를 단일 Store 합성으로 흡수
+- [x] (슬라이스 1) 캘린더를 단일 Store 합성으로 흡수
   - `CalendarHomeState` / `CalendarHomeIntent` 유지·정리
-  - `CalendarHomeReducer` 도입: `@Injected` CalendarRepository, CancelID/Task, `send` 클로저 재진입
-  - `HomeState.calendar` / `HomeIntent.calendar` / `HomeStore` 위임
+  - `CalendarHomeReducer` 도입: `@Injected` CalendarRepository, CancelID/Task, `send` 클로저 재진입, `DiscardableTask`
+  - `HomeState.calendar` / `HomeIntent.calendar` / `HomeStore` 위임 (`withCalendar`)
   - `CalendarHomeScope` + `CalendarHomeContentView` Store 비의존
   - `HomeView`에서 `calendarStore` `@StateObject` 제거
   - `CalendarHomeStore` ObservableObject 삭제
@@ -81,8 +81,9 @@
 | 작업 범위 | 홈만 / 공통 헬퍼 포함 | 홈만 | 패턴 검증 후 공통화 |
 | View 구독 | Store 전달 / Scope / facade ObservableObject | **Scope** (`state` + `send`, 관심은 `user` 포함) | 탭 View가 Store를 모르게 (가벼운 TCA) |
 | child 비동기 | Effect enum / child에 Repo 주입 / 혼용 | **child Reducer에 `@Injected` Repo** | Effect 타입 비용↓, 현 Store `perform*` 이전과 유사 |
-| child 이름 | Handler / Processor / Logic / Reducer | **`InterestHomeReducer` / `CalendarHomeReducer`** | TCA 어휘 유지, 순수하지 않음은 감수 |
-| 결과 재진입 | send 클로저 / weak Store / Store만 Task | **Store가 넘긴 `send` 클로저** | child가 `HomeStore` 타입에 비의존 |
+| child 이름 | Handler / Processor / Logic / Reducer | **`CalendarHomeReducer`** / **`InterestHomeReducer`** | TCA 어휘 유지. 순수하지 않음은 문서에 명시 |
+| `reduce` 반환 | Void / Task / DiscardableTask | **`DiscardableTask`** (`@discardableResult` + `wait()`) | `.refreshable { await scope.send(.pullToRefresh).wait() }`; month fetch Task만 보유 |
+| 결과 재진입 | send 클로저 / weak Store / Store만 Task | **Store가 넘긴 `send` 클로저** | child가 `HomeStore` 타입에 비의존; `inout` 중 sync `send` 금지 |
 | CancelID·Task | 각 Reducer / Store 단일 맵 | **각 Reducer 소유** | 비동기 생명주기를 child에 모음 |
 | 셸 `user` — View | Scope에 포함 / interest에 복사 / Reducer만 | **Scope에 표시용 `user`** | 닉네임 등 표시 |
 | 셸 `user` — Reducer | shell context 읽기 / interest 복사 / 셸에 로직 잔류 | **reduce에 shell context 읽기 전용** | `UserAvailability`·배너 로직, 복사 방지 |
@@ -111,11 +112,11 @@ HomeIntent
 
 HomeStore.send
   ├── shell → HomeStore 내부
-  ├── .interest → InterestHomeReducer.reduce(&state.interest, shell:)
-  └── .calendar → CalendarHomeReducer.reduce(&state.calendar)
+  ├── .interest → InterestHomeReducer.reduce(&state.interest, …)  ← 슬라이스 2
+  └── .calendar → CalendarHomeReducer.reduce(&state.calendar) → DiscardableTask
 
-InterestHomeReducer / CalendarHomeReducer
-  ├── @Injected Repository
+CalendarHomeReducer (lazy, Store 장기 소유)
+  ├── @Injected CalendarRepository
   ├── CancelID + Task 맵
   └── send 클로저로 nested Intent 재진입
 ```
@@ -125,13 +126,14 @@ InterestHomeReducer / CalendarHomeReducer
 ```text
 HomeView → 탭 View : Scope(값)
 탭 View → HomeStore : child Intent only (Store 타입 비노출)
-HomeStore → Reducer : intent + inout child state (+ interest면 shell context)
-Reducer → HomeStore : send 클로저로 ._result Intent
+HomeStore → Reducer : intent + inout child state
+Reducer → HomeStore : send 클로저로 ._result Intent (Task에서만)
 Reducer → Repository : 직접 await
+pull-to-refresh : await scope.send(.pullToRefresh|.onRefresh).wait()
 ```
 
 ## 주의 사항
-- **Reducer 수명:** `InterestHomeReducer` / `CalendarHomeReducer`는 **`HomeStore`의 장기 소유 인스턴스**다. View `body`·탭 전환·Scope 재생성마다 `Reducer()`를 만들지 않는다. View/Scope는 Reducer를 갖지 않는다.
+- **Reducer 수명:** `CalendarHomeReducer`(및 이후 `InterestHomeReducer`)는 **`HomeStore`의 장기 소유 인스턴스**다. View `body`·탭 전환·Scope 재생성마다 `Reducer()`를 만들지 않는다. View/Scope는 Reducer를 갖지 않는다.
   - 위반 시: Task/CancelID가 끊기고, `@Injected`·진행 중 요청이 리셋되며, 불필요한 할당으로 SwiftUI 렌더 비용이 커진다.
   - Scope는 값 타입이라 부모 body마다 다시 만들어도 된다. 비용은 클로저/struct 복사 수준이어야 한다.
 - `user`·`hasNewNotice`는 셸 소유. 관심 Reducer는 shell context로 **읽기만** 한다. interest state에 user를 복사하지 않는다.
@@ -143,13 +145,13 @@ Reducer → Repository : 직접 await
 - 브랜치: `refactor/LIVD-478-home-single-store`. `develop`에 직접 커밋하지 않는다.
 
 ## 검증 방법
-- [ ] 명령: `tuist generate --no-open`
-- [ ] 기대 신호: 성공 종료
-- [ ] 실제 결과: 
-- [ ] 명령: `xcodebuild test -workspace "Livith-iOS.xcworkspace" -scheme "<HomeFeature scheme>" -destination '<confirmed simulator>' -only-testing:HomeFeatureTests/HomeStoreTests` (및 캘린더 관련 스위트; scheme·destination은 실행 직전 확인)
-- [ ] 기대 신호: 관련 테스트 통과. `Executed 0 tests`만으로 실패/미실행 단정하지 않음
-- [ ] 실제 결과: 
-- [ ] 수동/코드 확인: `HomeView`에 `CalendarHomeStore` `@StateObject` 없음, `CalendarHomeStore` 클래스 없음, 탭 View가 `HomeStore` 타입을 import·보유하지 않음
+- [x] 명령: `tuist generate --no-open`
+- [x] 기대 신호: 성공 종료
+- [x] 실제 결과: Success (2026-08-12)
+- [x] 명령: `xcodebuild test … -only-testing:HomeFeatureTests/CalendarHomeStoreTests` + `HomeStoreCalendarDelegationTests` + `HomeStoreTests` (`iPhone 17, OS=26.5`)
+- [x] 기대 신호: 관련 테스트 통과. `Executed 0 tests`만으로 실패/미실행 단정하지 않음
+- [x] 실제 결과: **TEST SUCCEEDED** — 72 tests / 3 suites passed
+- [x] 수동/코드 확인: `HomeView`에 `CalendarHomeStore` `@StateObject` 없음, `CalendarHomeStore` 클래스 없음, 캘린더 탭 View는 `CalendarHomeScope`만 사용
 
 ## 컴파운딩 (아카이브 전)
 - [ ] 교훈 분류 완료

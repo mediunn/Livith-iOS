@@ -68,7 +68,7 @@ private extension InterestHomeContentView {
             }
         }
         .scrollIndicators(.never)
-        .refreshable { store.send(.onRefresh) }
+        .refreshable { await store.send(.onRefresh).wait() }
         .ignoresSafeArea(edges: .bottom)
     }
 

@@ -18,7 +18,7 @@ struct CalendarHomeContentView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @ObservedObject var store: CalendarHomeStore
+    let scope: CalendarHomeScope
     @Injected private var calendarWebConfig: CalendarWebConfig
 
     @State private var showSelectionBlockedToast = false
@@ -31,7 +31,7 @@ struct CalendarHomeContentView: View {
         ScrollView {
             VStack(spacing: .zero) {
                 if showsFilterBar {
-                    CalendarFilterBarView(store: store)
+                    CalendarFilterBarView(scope: scope)
                 }
 
                 calendarBody
@@ -39,18 +39,18 @@ struct CalendarHomeContentView: View {
         }
         .scrollIndicators(.never)
         .refreshable {
-            await store.performRefresh()
+            await scope.send(.pullToRefresh).wait()
         }
         .onAppear {
-            store.send(.onAppear)
+            scope.send(.onAppear)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
-        .onChange(of: store.state.selectionBlockedToastTrigger) { _, newValue in
+        .onChange(of: scope.state.selectionBlockedToastTrigger) { _, newValue in
             guard newValue > 0 else { return }
             showSelectionBlockedToast = true
         }
-        .onChange(of: store.state.dayScheduleLoadFailedToastTrigger) { _, newValue in
+        .onChange(of: scope.state.dayScheduleLoadFailedToastTrigger) { _, newValue in
             guard newValue > 0 else { return }
             showDayScheduleLoadFailedToast = true
         }
@@ -61,24 +61,24 @@ struct CalendarHomeContentView: View {
         .livithToast(
             isPresented: selectionBlockedToastBinding,
             type: .failure,
-            message: store.state.selectionBlockedToastMessage
+            message: scope.state.selectionBlockedToastMessage
         )
         .livithToast(
             isPresented: dayScheduleLoadFailedToastBinding,
             type: .failure,
-            message: store.state.dayScheduleLoadFailedToastMessage
+            message: scope.state.dayScheduleLoadFailedToastMessage
         )
         .crossDissolve(isPresented: dayScheduleModalBinding, dismissOnTapOutside: true) {
             CalendarDayScheduleModalView(
-                dayTitle: store.state.selectedDayTitle,
-                eventList: store.state.dayScheduleEventList,
-                onDismiss: { store.send(.dayScheduleModalDismissed) },
+                dayTitle: scope.state.selectedDayTitle,
+                eventList: scope.state.dayScheduleEventList,
+                onDismiss: { scope.send(.dayScheduleModalDismissed) },
                 onInterestSettingTap: {
-                    store.send(.dayScheduleModalDismissed)
+                    scope.send(.dayScheduleModalDismissed)
                     homeRouter.push(.interestConcertSetting(mode: .update))
                 },
                 onEventTap: { event in
-                    store.send(.dayScheduleModalDismissed)
+                    scope.send(.dayScheduleModalDismissed)
                     homeRouter.push(.concertDetail(
                         concertID: event.concertID,
                         initialTab: .artistDetail,
@@ -95,28 +95,28 @@ struct CalendarHomeContentView: View {
 private extension CalendarHomeContentView {
     @ViewBuilder
     var calendarBody: some View {
-        if store.state.isLoadFailed {
-            LivithEmptyView(text: CalendarHomeStore.Constants.loadFailedEmptyMessage)
+        if scope.state.isLoadFailed {
+            LivithEmptyView(text: CalendarHomeConstants.loadFailedEmptyMessage)
                 .frame(maxWidth: .infinity)
                 .containerRelativeFrame(.vertical)
         } else {
             ZStack {
                 CalendarWebView(
                     url: calendarWebConfig.url,
-                    calendarMonth: store.state.calendarMonth,
+                    calendarMonth: scope.state.calendarMonth,
                     contentHeight: $webViewContentHeight,
                     onDateSelected: { date in
                         AmplitudeService.shared.trackEvent(tag: .click(.calendarDate))
-                        store.send(.dayScheduleRequested(date: date))
+                        scope.send(.dayScheduleRequested(date: date))
                     },
                     onMonthChanged: { startDate, endDate in
                         trackCalendarMonthChangeIfNeeded(startDate: startDate, endDate: endDate)
-                        store.send(.monthChanged(startDate: startDate, endDate: endDate))
+                        scope.send(.monthChanged(startDate: startDate, endDate: endDate))
                     }
                 )
                 .frame(height: webViewContentHeight)
 
-                if store.state.isInitialLoading {
+                if scope.state.isInitialLoading {
                     loadingView
                 }
             }
@@ -141,12 +141,12 @@ private extension CalendarHomeContentView {
 
 private extension CalendarHomeContentView {
     var showsFilterBar: Bool {
-        !store.state.isLoadFailed && store.state.calendarMonth != nil
+        !scope.state.isLoadFailed && scope.state.calendarMonth != nil
     }
 
     var selectionBlockedToastBinding: Binding<Bool> {
         Binding(
-            get: { showSelectionBlockedToast && !store.state.selectionBlockedToastMessage.isEmpty },
+            get: { showSelectionBlockedToast && !scope.state.selectionBlockedToastMessage.isEmpty },
             set: { isPresented in
                 if !isPresented {
                     dismissSelectionBlockedToast()
@@ -157,7 +157,7 @@ private extension CalendarHomeContentView {
 
     var dayScheduleLoadFailedToastBinding: Binding<Bool> {
         Binding(
-            get: { showDayScheduleLoadFailedToast && !store.state.dayScheduleLoadFailedToastMessage.isEmpty },
+            get: { showDayScheduleLoadFailedToast && !scope.state.dayScheduleLoadFailedToastMessage.isEmpty },
             set: { isPresented in
                 if !isPresented {
                     dismissDayScheduleLoadFailedToast()
@@ -168,10 +168,10 @@ private extension CalendarHomeContentView {
 
     var dayScheduleModalBinding: Binding<Bool> {
         Binding(
-            get: { store.state.isDayScheduleModalPresented },
+            get: { scope.state.isDayScheduleModalPresented },
             set: { isPresented in
                 if !isPresented {
-                    store.send(.dayScheduleModalDismissed)
+                    scope.send(.dayScheduleModalDismissed)
                 }
             }
         )
@@ -182,8 +182,8 @@ private extension CalendarHomeContentView {
 
 private extension CalendarHomeContentView {
     func trackCalendarMonthChangeIfNeeded(startDate: String, endDate: String) {
-        guard let previousStartDate = store.state.rangeStartDate,
-              let previousEndDate = store.state.rangeEndDate,
+        guard let previousStartDate = scope.state.rangeStartDate,
+              let previousEndDate = scope.state.rangeEndDate,
               previousStartDate != startDate || previousEndDate != endDate
         else {
             return
@@ -193,17 +193,17 @@ private extension CalendarHomeContentView {
     }
 
     func dismissSelectionBlockedToast() {
-        guard showSelectionBlockedToast || !store.state.selectionBlockedToastMessage.isEmpty else { return }
+        guard showSelectionBlockedToast || !scope.state.selectionBlockedToastMessage.isEmpty else { return }
 
         showSelectionBlockedToast = false
-        store.send(.onSelectionBlockedToastDisappear)
+        scope.send(.onSelectionBlockedToastDisappear)
     }
 
     func dismissDayScheduleLoadFailedToast() {
-        guard showDayScheduleLoadFailedToast || !store.state.dayScheduleLoadFailedToastMessage.isEmpty else { return }
+        guard showDayScheduleLoadFailedToast || !scope.state.dayScheduleLoadFailedToastMessage.isEmpty else { return }
 
         showDayScheduleLoadFailedToast = false
-        store.send(.onDayScheduleLoadFailedToastDisappear)
+        scope.send(.onDayScheduleLoadFailedToastDisappear)
     }
 }
 

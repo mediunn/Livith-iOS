@@ -30,6 +30,7 @@ struct HomeState {
     var recommendedConcertList: [Concert] = []
     var shouldShowInterestResultSheet: Bool = false
     var interestResultAlertList: [InterestConcertEntryAlert] = []
+    var calendar: CalendarHomeState = .init()
 }
 
 // MARK: - Intent
@@ -43,6 +44,7 @@ enum HomeIntent {
     case onInterestResultSheetDismiss
     case checkUnreadNotification
     case interestConcertSortSelected(InterestConcertSort)
+    case calendar(CalendarHomeIntent)
     case _homeAppearResult(Result<(user: User, hasNewNotice: Bool), Error>)
     case _fetchUserResult(Result<User, Error>)
     case _interestListResult(Result<[InterestConcert], Error>)
@@ -84,6 +86,10 @@ final class HomeStore: ObservableObject {
     @Injected private var userRepository: UserRepository
     @Injected private var notificationRepository: NotificationRepository
     @Injected private var concertRepository: ConcertRepository
+
+    private lazy var calendarReducer = CalendarHomeReducer { [weak self] intent in
+        _ = self?.send(.calendar(intent))
+    }
     
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var pendingInterestResultAlertFetch = false
@@ -92,7 +98,8 @@ final class HomeStore: ObservableObject {
 
     // MARK: - Public Interface
     
-    func send(_ intent: HomeIntent) {
+    @discardableResult
+    func send(_ intent: HomeIntent) -> DiscardableTask {
         switch intent {
         case .homeAppear:
             userAvailability = .pending
@@ -110,8 +117,7 @@ final class HomeStore: ObservableObject {
             performInterestAppear(loadsSections: loadsSections)
 
         case .onRefresh:
-            performFetchSections()
-            performFetchInterestList(filter: .homeSection(sort: state.interestConcertSort))
+            return scheduleOnRefresh()
 
         case .homeTabSelected(let tab):
             state.selectedHomeTab = tab
@@ -120,17 +126,22 @@ final class HomeStore: ObservableObject {
             state.errorMessage = ""
 
         case .onInterestResultSheetDismiss:
-            guard state.shouldShowInterestResultSheet else { return }
+            guard state.shouldShowInterestResultSheet else { return .none }
             clearInterestResultSheet()
 
         case .checkUnreadNotification:
             performFetchUnreadCount()
 
         case .interestConcertSortSelected(let sort):
-            guard state.interestConcertSort != sort else { return }
+            guard state.interestConcertSort != sort else { return .none }
 
             state.interestConcertSort = sort
             performFetchInterestList(filter: .homeSection(sort: sort))
+
+        case .calendar(let calendarIntent):
+            return withCalendar { calendar in
+                calendarReducer.reduce(calendarIntent, state: &calendar)
+            }
 
         case ._homeAppearResult(let result):
             switch result {
@@ -149,7 +160,7 @@ final class HomeStore: ObservableObject {
             switch result {
             case .success(let user):
                 state.user = user
-                guard state.needsInitialSectionLoad else { return }
+                guard state.needsInitialSectionLoad else { return .none }
 
                 state.isSectionLoading = true
                 state.needsInitialSectionLoad = false
@@ -161,7 +172,7 @@ final class HomeStore: ObservableObject {
 
         case ._interestListResult(let result):
             if case .failure(let error) = result, isCancellationError(error) {
-                return
+                return .none
             }
 
             state.isInterestListRetryLoading = false
@@ -198,11 +209,11 @@ final class HomeStore: ObservableObject {
             case .success(let alertList):
                 guard shouldPresentInterestResultSheet(for: alertList) else {
                     clearInterestResultSheet()
-                    return
+                    return .none
                 }
                 guard state.errorMessage.isEmpty, !state.isInterestListLoadFailed else {
                     clearInterestResultSheet()
-                    return
+                    return .none
                 }
 
                 state.interestResultAlertList = alertList
@@ -213,7 +224,7 @@ final class HomeStore: ObservableObject {
 
         case ._sectionLoadResult(let result):
             if case .failure(let error) = result, isCancellationError(error) {
-                return
+                return .none
             }
 
             let isInitialLoad = pendingInterestResultAlertFetch
@@ -237,12 +248,45 @@ final class HomeStore: ObservableObject {
                 setError(from: error)
             }
         }
+
+        return .none
+    }
+}
+
+// MARK: - Calendar
+
+private extension HomeStore {
+    func withCalendar(
+        _ body: (inout CalendarHomeState) -> DiscardableTask
+    ) -> DiscardableTask {
+        var calendar = state.calendar
+        let task = body(&calendar)
+        state.calendar = calendar
+        return task
     }
 }
 
 // MARK: - Helpers
 
 private extension HomeStore {
+    func scheduleOnRefresh() -> DiscardableTask {
+        performFetchSections()
+        performFetchInterestList(filter: .homeSection(sort: state.interestConcertSort))
+
+        let sectionsTask = cancellables[.sections]
+        let interestListTask = cancellables[.interestList]
+        let task = Task {
+            await withTaskCancellationHandler {
+                await sectionsTask?.value
+                await interestListTask?.value
+            } onCancel: {
+                sectionsTask?.cancel()
+                interestListTask?.cancel()
+            }
+        }
+        return DiscardableTask(task: task)
+    }
+
     func performHomeAppear() {
         cancellables[.homeAppear]?.cancel()
 
