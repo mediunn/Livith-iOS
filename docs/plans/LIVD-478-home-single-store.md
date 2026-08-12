@@ -16,18 +16,19 @@
 ## 권한·범위
 - 정본(반드시 참이어야 하는 동작·불변조건):
   - Store 외부 Intent 진입점: `HomeStore.send(_ intent: HomeIntent) -> DiscardableTask` 하나 (`@discardableResult`).
-  - `HomeIntent` = 셸 케이스 + (슬라이스 2) `.interest(...)` + `.calendar(CalendarHomeIntent)`.
-  - `HomeState` = 루트에 평평한 셸 필드(`selectedHomeTab`, `user`, `hasNewNotice`) + (슬라이스 2) `interest` + `calendar: CalendarHomeState`. 슬라이스 1에서는 관심 필드는 아직 루트에 잔류.
-  - 셸 State에 두지 않는 것(슬라이스 2): 관심 에러 토스트·관심 결과 시트 관련 필드 → `InterestHomeState`.
+  - `HomeIntent` = 셸 케이스 + `.interest(InterestHomeIntent)` + `.calendar(CalendarHomeIntent)`.
+  - `HomeState` = 루트에 평평한 셸 필드(`selectedHomeTab`, `user`, `hasNewNotice`) + `interest: InterestHomeState` + `calendar: CalendarHomeState`.
+  - 셸 State에 두지 않는 것: 관심 에러 토스트·관심 결과 시트 관련 필드 → `InterestHomeState`.
   - 셸 Intent 처리 로직은 `HomeStore`에 유지한다.
-  - child: `CalendarHomeReducer` (슬라이스 1) / `InterestHomeReducer` (슬라이스 2).
+  - child: `CalendarHomeReducer` / `InterestHomeReducer`.
     - Repository는 child에 `@Injected`.
     - CancelID·Task 맵은 각 child가 소유.
     - Store가 생성 시 넘긴 `send` 클로저로 nested Intent를 재진입 (`._fetchResult` 패턴 유지). Task에서만 재진입.
+    - `InterestHomeReducer`는 `waitForUser` 클로저 + `InterestHomeShellContext.user` 읽기 전용.
   - 탭 View:
-    - (슬라이스 2) `InterestHomeScope`
+    - `InterestHomeScope`: `state`, `user: User?`, `send: (InterestHomeIntent) -> DiscardableTask`.
     - `CalendarHomeScope`: `state: CalendarHomeState`, `send: (CalendarHomeIntent) -> DiscardableTask`.
-    - Scope의 `send`는 `HomeView`가 `{ store.send(.calendar($0)) }`로 감싼다.
+    - Scope의 `send`는 `HomeView`가 `{ store.send(.interest($0)) }` / `{ store.send(.calendar($0)) }`로 감싼다.
   - pull-to-refresh: 캘린더·관심 모두 `await send(...).wait()` (`DiscardableTask`). 캘린더는 `.pullToRefresh`(month Task), 관심은 `.onRefresh`(섹션+관심 목록 join Task). Slice 2 이후에도 Scope `send`로 동일 계약.
   - 탭 전환·필터·로드 실패·모달·토스트 등 기존 UX 동작은 동일하다.
   - Store/Reducer 관련 테스트가 그린이다.
@@ -52,14 +53,14 @@
   - `HomeView`에서 `calendarStore` `@StateObject` 제거
   - `CalendarHomeStore` ObservableObject 삭제
   - 캘린더 테스트 mid 경로를 `HomeStore` + `.calendar` / Reducer로 이전
-- [ ] (슬라이스 2) 관심 nest + InterestHomeReducer
+- [x] (슬라이스 2) 관심 nest + InterestHomeReducer
   - `InterestHomeState` / `InterestHomeIntent` 분리 (토스트·결과 시트 포함)
-  - `InterestHomeReducer`: Repo·CancelID·`send` 클로저·shell 읽기 context
+  - `InterestHomeReducer`: Repo·CancelID·`send` 클로저·shell 읽기 context + `waitForUser`
   - 셸 필드는 `HomeState` 루트에 평평히 유지, 셸 로직은 `HomeStore`
   - `InterestHomeScope` + `InterestHomeContentView` Store 비의존
-  - `UserAvailability` / `homeAppear`↔`interestAppear` 순서 유지
+  - `UserAvailability` / `homeAppear`↔`.interest(.onAppear)` 순서 유지 (Store 소유)
   - `HomeStoreTests` nested Intent·Scope 계약에 맞게 수정
-- [ ] 검증
+- [x] 검증
   - Swift 파일 변경 후 `tuist generate --no-open`
   - `HomeFeature` 관련 `xcodebuild test`로 그린 확인
 
@@ -138,7 +139,7 @@ pull-to-refresh : await scope.send(.pullToRefresh|.onRefresh).wait()
   - Scope는 값 타입이라 부모 body마다 다시 만들어도 된다. 비용은 클로저/struct 복사 수준이어야 한다.
 - `user`·`hasNewNotice`는 셸 소유. 관심 Reducer는 shell context로 **읽기만** 한다. interest state에 user를 복사하지 않는다.
 - 관심 에러 토스트·결과 시트는 `InterestHomeState`에 두고, `HomeView`는 `store.state.interest`를 읽어 시트/토스트를 붙인다.
-- `homeAppear`와 `interestAppear`의 `UserAvailability` 순서를 바꾸지 않는다.
+- `homeAppear`와 `.interest(.onAppear)`의 `UserAvailability` 순서를 바꾸지 않는다.
 - 캘린더 월/일 requestID·CancelID 의미가 바뀌지 않아야 한다.
 - Swift 파일 추가/삭제 후 반드시 `tuist generate --no-open` 후에 테스트한다.
 - 공통 `Reducer` protocol / Effect 시스템 / Shared `Scope`를 이번 이슈에서 넣지 않는다.
@@ -147,11 +148,11 @@ pull-to-refresh : await scope.send(.pullToRefresh|.onRefresh).wait()
 ## 검증 방법
 - [x] 명령: `tuist generate --no-open`
 - [x] 기대 신호: 성공 종료
-- [x] 실제 결과: Success (2026-08-12)
-- [x] 명령: `xcodebuild test … -only-testing:HomeFeatureTests/CalendarHomeStoreTests` + `HomeStoreCalendarDelegationTests` + `HomeStoreTests` (`iPhone 17, OS=26.5`)
-- [x] 기대 신호: 관련 테스트 통과. `Executed 0 tests`만으로 실패/미실행 단정하지 않음
-- [x] 실제 결과: **TEST SUCCEEDED** — 72 tests / 3 suites passed
-- [x] 수동/코드 확인: `HomeView`에 `CalendarHomeStore` `@StateObject` 없음, `CalendarHomeStore` 클래스 없음, 캘린더 탭 View는 `CalendarHomeScope`만 사용
+- [x] 실제 결과: Success (슬라이스 1·2)
+- [x] 명령: `xcodebuild test … -only-testing:HomeFeatureTests/HomeStoreTests` + `CalendarHomeStoreTests` + `HomeStoreCalendarDelegationTests` (`iPhone 17, OS=26.5`)
+- [x] 기대 신호: 관련 테스트 통과
+- [x] 실제 결과: **TEST SUCCEEDED** — 73 tests / 3 suites (슬라이스 2)
+- [x] 수동/코드 확인: `HomeView` 단일 `HomeStore`, 탭 View는 Scope만, `CalendarHomeStore` 없음
 
 ## 컴파운딩 (아카이브 전)
 - [ ] 교훈 분류 완료

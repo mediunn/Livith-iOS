@@ -17,7 +17,7 @@ struct InterestHomeContentView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @ObservedObject var store: HomeStore
+    let scope: InterestHomeScope
 
     @Binding var isPreferenceBannerExpanded: Bool
 
@@ -26,7 +26,7 @@ struct InterestHomeContentView: View {
     var body: some View {
         scrollView
             .onAppear {
-                store.send(.interestAppear)
+                scope.send(.onAppear)
             }
     }
 }
@@ -35,12 +35,12 @@ struct InterestHomeContentView: View {
 
 private extension InterestHomeContentView {
     var preferenceBannerBackgroundColor: Color {
-        Color.livithColor(store.state.interestConcertList.isEmpty ? .black100 : .black90)
+        Color.livithColor(scope.state.interestConcertList.isEmpty ? .black100 : .black90)
     }
 
     var headerSectionTopPadding: CGFloat {
-        let isEmptyInterestWithoutBanner = store.state.interestConcertList.isEmpty
-            && !store.state.shouldShowPreferenceBanner
+        let isEmptyInterestWithoutBanner = scope.state.interestConcertList.isEmpty
+            && !scope.state.shouldShowPreferenceBanner
         return isEmptyInterestWithoutBanner ? .zero : Constants.headerSectionTopPadding
     }
 }
@@ -50,9 +50,9 @@ private extension InterestHomeContentView {
 private extension InterestHomeContentView {
     var scrollView: some View {
         ScrollView {
-            if store.state.isSectionLoading || store.state.isInterestListRetryLoading {
+            if scope.state.isSectionLoading || scope.state.isInterestListRetryLoading {
                 loadingView
-            } else if store.state.isInterestListLoadFailed {
+            } else if scope.state.isInterestListLoadFailed {
                 loadFailedEmptyView
             } else {
                 VStack(spacing: .zero) {
@@ -68,7 +68,7 @@ private extension InterestHomeContentView {
             }
         }
         .scrollIndicators(.never)
-        .refreshable { await store.send(.onRefresh).wait() }
+        .refreshable { await scope.send(.onRefresh).wait() }
         .ignoresSafeArea(edges: .bottom)
     }
 
@@ -85,14 +85,14 @@ private extension InterestHomeContentView {
     }
 
     var loadFailedEmptyView: some View {
-        LivithEmptyView(text: HomeStore.Constants.interestListLoadFailedEmptyMessage)
+        LivithEmptyView(text: InterestHomeConstants.interestListLoadFailedEmptyMessage)
             .frame(maxWidth: .infinity)
             .containerRelativeFrame(.vertical)
     }
 
     @ViewBuilder
     var preferenceBannerSection: some View {
-        if store.state.shouldShowPreferenceBanner {
+        if scope.state.shouldShowPreferenceBanner {
             PreferenceBannerView(
                 isExpanded: $isPreferenceBannerExpanded,
                 onTapBanner: {
@@ -108,13 +108,13 @@ private extension InterestHomeContentView {
 
     @ViewBuilder
     var headerSection: some View {
-        if !store.state.interestConcertList.isEmpty {
+        if !scope.state.interestConcertList.isEmpty {
             HomeInterestConcertSectionView(
-                interestConcertList: store.state.interestConcertList,
-                selectedSort: store.state.interestConcertSort,
+                interestConcertList: scope.state.interestConcertList,
+                selectedSort: scope.state.interestConcertSort,
                 onChangeTap: { homeRouter.push(.interestConcertSetting(mode: .update)) },
                 onTitleTap: { homeRouter.push(.interestConcertList) },
-                onSortSelected: { store.send(.interestConcertSortSelected($0)) },
+                onSortSelected: { scope.send(.interestConcertSortSelected($0)) },
                 onConcertTap: { interestConcert in
                     homeRouter.push(.concertDetail(
                         concertID: interestConcert.concert.id,
@@ -125,7 +125,7 @@ private extension InterestHomeContentView {
             )
         } else {
             EmptyInterestConcertSectionView(
-                nickname: store.state.user?.nickname ?? "라이빗",
+                nickname: scope.user?.nickname ?? "라이빗",
                 onSettingTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
                     homeRouter.push(.interestConcertSetting(mode: .initialSetup))
@@ -136,10 +136,10 @@ private extension InterestHomeContentView {
 
     var concertContentSection: some View {
         HomeConcertContentSectionView(
-            nickname: store.state.user?.nickname ?? "라이빗",
-            sectionList: store.state.concertSectionList,
-            recommendedConcertList: store.state.recommendedConcertList,
-            shouldShowRecommendedConcertSection: !store.state.shouldShowPreferenceBanner,
+            nickname: scope.user?.nickname ?? "라이빗",
+            sectionList: scope.state.concertSectionList,
+            recommendedConcertList: scope.state.recommendedConcertList,
+            shouldShowRecommendedConcertSection: !scope.state.shouldShowPreferenceBanner,
             onRecommendedConcertTap: { concert in
                 AmplitudeService.shared.trackEvent(tag: .click(.recommendedConcertCell))
                 homeRouter.push(.concertDetail(
@@ -149,7 +149,7 @@ private extension InterestHomeContentView {
                 ))
             },
             onRecommendedSeeAllTap: {
-                homeRouter.push(.recommendedConcertList(concertList: store.state.recommendedConcertList))
+                homeRouter.push(.recommendedConcertList(concertList: scope.state.recommendedConcertList))
             },
             onConcertTap: { concert in
                 AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))

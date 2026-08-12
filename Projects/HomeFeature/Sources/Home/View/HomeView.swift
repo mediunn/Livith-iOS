@@ -23,7 +23,7 @@ struct HomeView: View {
     @State private var interestResultSheetHeight: CGFloat = 320
 
     // MARK: - Body
-    
+
     var body: some View {
         VStack(spacing: .zero) {
             navigationView
@@ -37,31 +37,36 @@ struct HomeView: View {
             isPreferenceBannerExpanded = true
             store.send(.homeAppear)
         }
-        .onChange(of: store.state.errorMessage) { _, newValue in
+        .onChange(of: store.state.interest.errorMessage) { _, newValue in
             if !newValue.isEmpty {
                 showErrorToast = true
             }
         }
         .livithToast(
             isPresented: Binding(
-                get: { showErrorToast && !store.state.errorMessage.isEmpty },
-                set: { if !$0 { showErrorToast = false; store.send(.onErrorToastDisappear) } }
+                get: { showErrorToast && !store.state.interest.errorMessage.isEmpty },
+                set: {
+                    if !$0 {
+                        showErrorToast = false
+                        store.send(.interest(.onErrorToastDisappear))
+                    }
+                }
             ),
             type: .failure,
-            message: store.state.errorMessage
+            message: store.state.interest.errorMessage
         )
         .livithSheet(
             isPresented: interestResultSheetBinding,
             detents: [.height(interestResultSheetHeight)],
             background: .livithColor(.black90)
         ) {
-            if store.state.shouldShowInterestResultSheet {
+            if store.state.interest.shouldShowInterestResultSheet {
                 InterestConcertResultSheetView(
-                    alertList: store.state.interestResultAlertList,
+                    alertList: store.state.interest.interestResultAlertList,
                     sheetHeight: $interestResultSheetHeight,
-                    onConfirm: { store.send(.onInterestResultSheetDismiss) },
+                    onConfirm: { store.send(.interest(.onInterestResultSheetDismiss)) },
                     onCheckTap: { concertID in
-                        store.send(.onInterestResultSheetDismiss)
+                        store.send(.interest(.onInterestResultSheetDismiss))
                         guard let concertID else { return }
                         homeRouter.push(.concertDetail(
                             concertID: concertID,
@@ -71,7 +76,7 @@ struct HomeView: View {
                     },
                     onRetryTap: {
                         AmplitudeService.shared.trackEvent(tag: .click(.concertRequestRetry))
-                        store.send(.onInterestResultSheetDismiss)
+                        store.send(.interest(.onInterestResultSheetDismiss))
                         homeRouter.push(.concertRequest)
                     }
                 )
@@ -85,10 +90,10 @@ struct HomeView: View {
 private extension HomeView {
     var interestResultSheetBinding: Binding<Bool> {
         Binding(
-            get: { store.state.shouldShowInterestResultSheet },
+            get: { store.state.interest.shouldShowInterestResultSheet },
             set: { isPresented in
                 if !isPresented {
-                    store.send(.onInterestResultSheetDismiss)
+                    store.send(.interest(.onInterestResultSheetDismiss))
                 }
             }
         )
@@ -122,7 +127,11 @@ private extension HomeView {
         switch store.state.selectedHomeTab {
         case .interestConcert:
             InterestHomeContentView(
-                store: store,
+                scope: InterestHomeScope(
+                    state: store.state.interest,
+                    user: store.state.user,
+                    send: { store.send(.interest($0)) }
+                ),
                 isPreferenceBannerExpanded: $isPreferenceBannerExpanded
             )
         case .calendar:

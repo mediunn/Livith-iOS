@@ -2,6 +2,46 @@
 
 ## 기록
 
+### 2026-08-12 21:10 - InterestHomeIntent.interestAppear → onAppear
+
+**상황**
+- nest 후 `send(.interest(.interestAppear))` 중복 네이밍에 대한 사용자 피드백.
+
+**문제**
+- child Intent에 탭 접두가 남아 캘린더 `.calendar(.onAppear)`와 비대칭이었다.
+
+**원인**
+- top-level `HomeIntent.interestAppear` 이름을 nest로 옮기며 그대로 유지했다.
+
+**해결**
+- `InterestHomeIntent.onAppear`로 변경. 호출은 `.interest(.onAppear)`.
+
+**교훈**
+- nest된 child Intent는 바깥 case가 문맥이므로 `onAppear`처럼 탭 접두를 빼 캘린더와 맞춘다.
+- 승격 후보: no
+
+---
+
+### 2026-08-12 21:05 - 슬라이스 2 관심 nest 완료
+
+**상황**
+- 관심 탭을 Calendar와 동일하게 `InterestHomeState` / `InterestHomeReducer` / `InterestHomeScope`로 흡수했다.
+
+**문제**
+- `UserAvailability`·토스트 소유권·`_fetchUserResult` 테스트 경로를 nest와 맞출 때 경계가 흔들릴 수 있었다.
+
+**원인**
+- 관심 로직과 셸 `homeAppear`가 한 Store에 섞여 있었고, toast/sheet도 루트 필드였다.
+
+**해결**
+- `UserAvailability`는 Store 유지 + Reducer에 `waitForUser` 주입. toast/sheet는 `InterestHomeState`. `homeAppear` 실패만 Store가 `withInterest`로 interest 에러를 쓴다. View는 Scope만.
+
+**교훈**
+- 셸↔child 조율 상태는 Store에 두고, child는 클로저로 읽기만 한다. refresh await는 탭 공통으로 `DiscardableTask`.
+- 승격 후보: no
+
+---
+
 ### 2026-08-12 20:50 - child 이름을 Reducer로 되돌림, Interest refresh도 DiscardableTask
 
 **상황**
