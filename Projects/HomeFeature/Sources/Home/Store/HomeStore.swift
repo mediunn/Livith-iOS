@@ -40,45 +40,41 @@ enum HomeIntent {
 @MainActor
 final class HomeStore: ObservableObject {
 
-    private enum CancelID {
+    enum CancelID {
         case homeAppear
         case unreadCount
+        case interestAppear
+        case interestList
+        case sections
+        case calendarFetchMonth
+        case calendarFetchDayEvents
     }
 
     /// `homeAppear`가 완료되기 전까지 관심 탭 `onAppear`의 추천 조회가 대기하는 상태.
-    private enum UserAvailability {
+    enum UserAvailability {
         case pending
         case available(User)
         case unavailable
     }
 
-    private struct UserWaiter {
+    struct UserWaiter {
         let id: UUID
         let continuation: CheckedContinuation<User?, Never>
     }
 
     @Published private(set) var state: HomeState = .init()
 
-    @Injected private var userRepository: UserRepository
-    @Injected private var notificationRepository: NotificationRepository
+    @Injected var userRepository: UserRepository
+    @Injected var notificationRepository: NotificationRepository
+    @Injected var concertRepository: ConcertRepository
+    @Injected var calendarRepository: CalendarRepository
 
-    private lazy var interestReducer = InterestHomeReducer(
-        send: { [weak self] intent in
-            _ = self?.send(.interest(intent))
-        },
-        waitForUser: { [weak self] in
-            guard let self else { return nil }
-            return await self.waitForUser()
-        }
-    )
-
-    private lazy var calendarReducer = CalendarHomeReducer { [weak self] intent in
-        _ = self?.send(.calendar(intent))
-    }
-
-    private var cancellables = [CancelID: Task<Void, Never>]()
-    private var userAvailability: UserAvailability = .pending
-    private var userWaiters: [UserWaiter] = []
+    var cancellables = [CancelID: Task<Void, Never>]()
+    var userAvailability: UserAvailability = .pending
+    var userWaiters: [UserWaiter] = []
+    var pendingInterestResultAlertFetch = false
+    var calendarMonthRequestID = 0
+    var calendarDayEventsRequestID = 0
 
     // MARK: - Public Interface
 
@@ -97,16 +93,12 @@ final class HomeStore: ObservableObject {
 
         case .interest(let interestIntent):
             return withInterest { interest in
-                interestReducer.reduce(
-                    interestIntent,
-                    state: &interest,
-                    shell: InterestHomeShellContext(user: state.user)
-                )
+                reduceInterest(interestIntent, state: &interest)
             }
 
         case .calendar(let calendarIntent):
             return withCalendar { calendar in
-                calendarReducer.reduce(calendarIntent, state: &calendar)
+                reduceCalendar(calendarIntent, state: &calendar)
             }
 
         case ._homeAppearResult(let result):
@@ -117,7 +109,7 @@ final class HomeStore: ObservableObject {
                 resolveUserAvailability(with: data.user)
             case .failure(let error):
                 _ = withInterest { interest in
-                    interestReducer.applyHomeAppearFailure(from: error, state: &interest)
+                    applyHomeAppearFailure(from: error, state: &interest)
                     return .none
                 }
                 resolveUserAvailability(with: nil)
@@ -129,12 +121,12 @@ final class HomeStore: ObservableObject {
                 state.user = user
                 guard state.interest.needsInitialSectionLoad else { return .none }
                 _ = withInterest { interest in
-                    interestReducer.beginInitialSectionLoad(state: &interest, user: user)
+                    beginInitialSectionLoad(state: &interest, user: user)
                     return .none
                 }
             case .failure(let error):
                 _ = withInterest { interest in
-                    interestReducer.applyError(from: error, state: &interest)
+                    applyInterestError(from: error, state: &interest)
                     return .none
                 }
             }
@@ -154,7 +146,7 @@ final class HomeStore: ObservableObject {
 
 // MARK: - Child State
 
-private extension HomeStore {
+extension HomeStore {
     func withInterest(
         _ body: (inout InterestHomeState) -> DiscardableTask
     ) -> DiscardableTask {
@@ -174,9 +166,9 @@ private extension HomeStore {
     }
 }
 
-// MARK: - Helpers
+// MARK: - Shell Helpers
 
-private extension HomeStore {
+extension HomeStore {
     func performHomeAppear() {
         cancellables[.homeAppear]?.cancel()
 

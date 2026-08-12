@@ -28,7 +28,13 @@
 - [nest 후 `.interest(.interestAppear)`처럼 접두가 겹침] → child Intent는 `onAppear`처럼 짧게 맞춘다
 - [셸↔관심 조율 상태를 Interest로 옮기면 homeAppear 순서가 깨짐] → `UserAvailability`는 Store에 둔다
 
+## 추가 기록
+
+### 2026-08-13 - child Reducer 제거, `HomeStore+` 확장으로 흡수
+- 하위 Reducer 타입을 없애고 `HomeStore+Interest` / `HomeStore+Calendar`에 로직을 옮김.
+- Scope · nest State/Intent · `DiscardableTask`는 유지.
+- Swift `private`는 파일 단위라 extension이 쓰는 Store 멤버는 모듈 내부로 열음.
+
 ## 참조
 - 브랜치: `refactor/LIVD-478-home-single-store`
-- 커밋: 캘린더 흡수, 관심 nest
-- 경로: `HomeStore`, `InterestHomeReducer`, `CalendarHomeReducer`, `DiscardableTask`, `*HomeScope`
+- 경로: `HomeStore`, `HomeStore+Interest`, `HomeStore+Calendar`, `DiscardableTask`, `*HomeScope`

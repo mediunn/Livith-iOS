@@ -32,12 +32,6 @@ enum InterestHomeConstants {
     static let interestListLoadFailedEmptyMessage = "콘서트 목록을\n불러오지 못했어요"
 }
 
-// MARK: - Shell Context
-
-struct InterestHomeShellContext {
-    let user: User?
-}
-
 // MARK: - Intent
 
 enum InterestHomeIntent {
