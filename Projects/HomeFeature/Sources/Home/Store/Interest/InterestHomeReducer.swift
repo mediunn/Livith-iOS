@@ -1,5 +1,5 @@
 //
-//  HomeStore+Interest.swift
+//  InterestHomeReducer.swift
 //  HomeFeature
 //
 //  Copyright © 2026 Livith. All rights reserved.
@@ -7,12 +7,76 @@
 
 import Foundation
 
+import DIContainer
 import Domain
 
-// MARK: - Interest
+// MARK: - InterestHomeState
 
-extension HomeStore {
-    func reduceInterest(
+struct InterestHomeState {
+    var user: User? = nil
+    var interestConcertList: [InterestConcert] = []
+    var interestConcertSort: InterestConcertSort = .ticketing
+    var errorMessage: String = ""
+    var concertSectionList: [ConcertSection] = []
+    var isSectionLoading: Bool = false
+    var isInterestListLoadFailed: Bool = false
+    var isInterestListRetryLoading: Bool = false
+    var needsInitialSectionLoad: Bool = true
+    var shouldShowPreferenceBanner: Bool = false
+    var recommendedConcertList: [Concert] = []
+    var shouldShowInterestResultSheet: Bool = false
+    var interestResultAlertList: [InterestConcertEntryAlert] = []
+}
+
+// MARK: - InterestHomeConstants
+
+enum InterestHomeConstants {
+    static let interestListLoadFailedEmptyMessage = "콘서트 목록을\n불러오지 못했어요"
+}
+
+// MARK: - InterestHomeIntent
+
+enum InterestHomeIntent {
+    case onAppear
+    case onRefresh
+    case onErrorToastDisappear
+    case onInterestResultSheetDismiss
+    case interestConcertSortSelected(InterestConcertSort)
+    case _interestListResult(Result<[InterestConcert], Error>)
+    case _interestResultAlertListResult(Result<[InterestConcertEntryAlert], Error>)
+    case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
+    case _sectionsFetched([ConcertSection])
+    case _homeAppearStarted
+    case _userLoaded(User)
+    case _homeAppearFailed(Error)
+}
+
+// MARK: - InterestHomeReducer
+
+@MainActor
+final class InterestHomeReducer {
+
+    private enum CancelID {
+        case appear
+        case interestList
+        case sections
+    }
+
+    @Injected private var userRepository: UserRepository
+    @Injected private var concertRepository: ConcertRepository
+
+    private let send: (InterestHomeIntent) -> DiscardableTask
+    private var cancellables = [CancelID: Task<Void, Never>]()
+    private var pendingInterestResultAlertFetch = false
+    private var pendingInterestSectionList: [ConcertSection]?
+    private var isHomeAppearUserResolved = false
+
+    init(send: @escaping (InterestHomeIntent) -> DiscardableTask) {
+        self.send = send
+    }
+
+    @discardableResult
+    func reduce(
         _ intent: InterestHomeIntent,
         state: inout InterestHomeState
     ) -> DiscardableTask {
@@ -26,11 +90,11 @@ extension HomeStore {
             if state.isInterestListLoadFailed {
                 state.isInterestListRetryLoading = true
             }
-            performInterestAppear(loadsSections: loadsSections, sort: state.interestConcertSort)
+            performAppear(loadsSections: loadsSections, sort: state.interestConcertSort)
             return .none
 
         case .onRefresh:
-            return scheduleInterestOnRefresh(sort: state.interestConcertSort, user: state.user)
+            return scheduleOnRefresh(sort: state.interestConcertSort, user: state.user)
 
         case .onErrorToastDisappear:
             state.errorMessage = ""
@@ -48,7 +112,7 @@ extension HomeStore {
             return .none
 
         case ._interestListResult(let result):
-            if case .failure(let error) = result, isInterestCancellationError(error) {
+            if case .failure(let error) = result, isCancellationError(error) {
                 return .none
             }
 
@@ -67,7 +131,7 @@ extension HomeStore {
                     state.errorMessage = ""
                     clearInterestResultSheet(state: &state)
                 } else {
-                    applyInterestError(from: error, state: &state)
+                    applyError(from: error, state: &state)
                 }
             }
             return .none
@@ -92,7 +156,7 @@ extension HomeStore {
             return .none
 
         case ._sectionLoadResult(let result):
-            if case .failure(let error) = result, isInterestCancellationError(error) {
+            if case .failure(let error) = result, isCancellationError(error) {
                 return .none
             }
 
@@ -114,41 +178,45 @@ extension HomeStore {
                     performFetchInterestResultAlertList()
                 }
             case .failure(let error):
-                applyInterestError(from: error, state: &state)
+                applyError(from: error, state: &state)
             }
             return .none
-        }
-    }
 
-    func applyHomeAppearFailure(from error: Error, state: inout InterestHomeState) {
-        pendingInterestResultAlertFetch = false
-        state.isSectionLoading = false
-        applyInterestError(from: error, state: &state)
-    }
+        case ._sectionsFetched(let sectionList):
+            if let user = state.user {
+                performCompleteSectionSuccess(sectionList: sectionList, user: user)
+            } else if isHomeAppearUserResolved {
+                return .none
+            } else {
+                pendingInterestSectionList = sectionList
+            }
+            return .none
 
-    func applyInterestError(from error: Error, state: inout InterestHomeState) {
-        let message = interestErrorMessage(from: error)
-        state.errorMessage = message
+        case ._homeAppearStarted:
+            isHomeAppearUserResolved = false
+            return .none
 
-        guard !message.isEmpty else { return }
-        clearInterestResultSheet(state: &state)
-    }
+        case ._userLoaded(let user):
+            state.user = user
+            isHomeAppearUserResolved = true
+            flushPendingSections(user: user)
+            return .none
 
-    func flushPendingInterestSections() {
-        guard let sectionList = pendingInterestSectionList else { return }
-        pendingInterestSectionList = nil
-        guard let user = state.interest.user else { return }
-
-        Task {
-            await completeInterestSectionSuccess(sectionList: sectionList, user: user)
+        case ._homeAppearFailed(let error):
+            isHomeAppearUserResolved = true
+            pendingInterestSectionList = nil
+            pendingInterestResultAlertFetch = false
+            state.isSectionLoading = false
+            applyError(from: error, state: &state)
+            return .none
         }
     }
 }
 
-// MARK: - Interest Helpers
+// MARK: - Helpers
 
-private extension HomeStore {
-    func scheduleInterestOnRefresh(sort: InterestConcertSort, user: User?) -> DiscardableTask {
+private extension InterestHomeReducer {
+    func scheduleOnRefresh(sort: InterestConcertSort, user: User?) -> DiscardableTask {
         performFetchSections(user: user)
         performFetchInterestList(filter: .homeSection(sort: sort))
 
@@ -166,49 +234,55 @@ private extension HomeStore {
         return DiscardableTask(task: task)
     }
 
-    func performInterestAppear(loadsSections: Bool, sort: InterestConcertSort) {
-        cancellables[.interestAppear]?.cancel()
+    func performAppear(loadsSections: Bool, sort: InterestConcertSort) {
+        cancellables[.appear]?.cancel()
         if loadsSections {
             pendingInterestSectionList = nil
         }
 
-        cancellables[.interestAppear] = Task {
+        cancellables[.appear] = Task {
             async let interestListResult = fetchInterestList(filter: .homeSection(sort: sort))
             async let sectionsResult = fetchSectionsIfNeeded(loadsSections)
 
-            send(.interest(._interestListResult(await interestListResult)))
+            send(._interestListResult(await interestListResult))
 
             guard loadsSections else { return }
-            await sendInterestSectionResult(sectionsResult: await sectionsResult)
+            await sendSectionsResult(sectionsResult: await sectionsResult)
         }
     }
 
-    func sendInterestSectionResult(sectionsResult: Result<[ConcertSection], Error>?) async {
+    func sendSectionsResult(sectionsResult: Result<[ConcertSection], Error>?) async {
         if Task.isCancelled { return }
         guard let sectionsResult else { return }
 
         switch sectionsResult {
         case .success(let sectionList):
-            if let user = state.interest.user {
-                await completeInterestSectionSuccess(sectionList: sectionList, user: user)
-            } else if isHomeAppearUserResolved {
-                return
-            } else {
-                pendingInterestSectionList = sectionList
-            }
+            send(._sectionsFetched(sectionList))
         case .failure(let error):
-            if Task.isCancelled || isInterestCancellationError(error) { return }
-            send(.interest(._sectionLoadResult(.failure(error))))
+            if Task.isCancelled || isCancellationError(error) { return }
+            send(._sectionLoadResult(.failure(error)))
         }
     }
 
-    func completeInterestSectionSuccess(sectionList: [ConcertSection], user: User) async {
+    func flushPendingSections(user: User) {
+        guard let sectionList = pendingInterestSectionList else { return }
+        pendingInterestSectionList = nil
+        performCompleteSectionSuccess(sectionList: sectionList, user: user)
+    }
+
+    func performCompleteSectionSuccess(sectionList: [ConcertSection], user: User) {
+        Task {
+            await completeSectionSuccess(sectionList: sectionList, user: user)
+        }
+    }
+
+    func completeSectionSuccess(sectionList: [ConcertSection], user: User) async {
         let recommendations = await fetchRecommendations(for: user)
         if Task.isCancelled { return }
-        send(.interest(._sectionLoadResult(.success((
+        send(._sectionLoadResult(.success((
             sectionList: sectionList,
             recommendedConcertList: recommendations
-        )))))
+        ))))
     }
 
     func fetchInterestList(filter: InterestConcertListFilter) async -> Result<[InterestConcert], Error> {
@@ -245,7 +319,7 @@ private extension HomeStore {
     func performFetchInterestResultAlertList() {
         Task {
             let result = await fetchInterestResultAlertList()
-            send(.interest(._interestResultAlertListResult(result)))
+            send(._interestResultAlertListResult(result))
         }
     }
 
@@ -253,7 +327,7 @@ private extension HomeStore {
         cancellables[.interestList]?.cancel()
         cancellables[.interestList] = Task {
             let result = await fetchInterestList(filter: filter)
-            send(.interest(._interestListResult(result)))
+            send(._interestListResult(result))
         }
     }
 
@@ -268,13 +342,13 @@ private extension HomeStore {
                 if Task.isCancelled { return }
                 let recommendedConcertList = await recommendations
                 if Task.isCancelled { return }
-                send(.interest(._sectionLoadResult(.success((
+                send(._sectionLoadResult(.success((
                     sectionList: sectionList,
                     recommendedConcertList: recommendedConcertList
-                )))))
+                ))))
             } catch {
-                if Task.isCancelled || isInterestCancellationError(error) { return }
-                send(.interest(._sectionLoadResult(.failure(error))))
+                if Task.isCancelled || isCancellationError(error) { return }
+                send(._sectionLoadResult(.failure(error)))
             }
         }
     }
@@ -294,14 +368,22 @@ private extension HomeStore {
         }
     }
 
-    func interestErrorMessage(from error: Error) -> String {
-        if isInterestCancellationError(error) {
+    func applyError(from error: Error, state: inout InterestHomeState) {
+        let message = errorMessage(from: error)
+        state.errorMessage = message
+
+        guard !message.isEmpty else { return }
+        clearInterestResultSheet(state: &state)
+    }
+
+    func errorMessage(from error: Error) -> String {
+        if isCancellationError(error) {
             return ""
         }
         return error.localizedDescription
     }
 
-    func isInterestCancellationError(_ error: Error) -> Bool {
+    func isCancellationError(_ error: Error) -> Bool {
         if error is CancellationError {
             return true
         }

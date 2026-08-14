@@ -40,6 +40,16 @@
 - `waitForUser` 대신 섹션 결과를 pending으로 붙잡아 유저 이후에 추천을 조회한다.
 - `._fetchUserResult`는 프로덕션 `send`가 없어 제거했다.
 
+### 2026-08-14 - 제네릭 HomeScope
+- `InterestHomeScope` / `CalendarHomeScope`를 `HomeScope<State, Intent>`로 합친다.
+- `HomeStore.scope(_:intent:)`가 KeyPath로 child state를 투영하고 send를 셸 Intent로 감싼다.
+- `scope` send 클로저는 Swift 6에서 `self`를 명시해야 한다 (`[self] in send(...)`).
+
+### 2026-08-14 - 관심·캘린더 Reducer 재도입
+- 탭 로직은 `InterestHomeReducer` / `CalendarHomeReducer`가 가진다. Store는 셸 + KeyPath `reduce`.
+- 유저 조회 결과는 `._userLoaded` / `._homeAppearFailed`로 관심 Reducer에 넘긴다.
+- View는 `HomeScope`만 알고 Reducer를 모른다.
+
 ## 참조
 - 브랜치: `refactor/LIVD-478-home-single-store`
-- 경로: `HomeStore`, `HomeStore+Interest`, `HomeStore+Calendar`, `InterestHomeState`, `DiscardableTask`, `*HomeScope`
+- 경로: `HomeStore`, `InterestHomeReducer`, `CalendarHomeReducer`, `HomeScope`, `DiscardableTask`

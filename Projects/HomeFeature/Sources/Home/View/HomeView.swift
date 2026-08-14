@@ -127,18 +127,12 @@ private extension HomeView {
         switch store.state.selectedHomeTab {
         case .interestConcert:
             InterestHomeContentView(
-                scope: InterestHomeScope(
-                    state: store.state.interest,
-                    send: { store.send(.interest($0)) }
-                ),
+                scope: store.scope(\.interest, intent: HomeIntent.interest),
                 isPreferenceBannerExpanded: $isPreferenceBannerExpanded
             )
         case .calendar:
             CalendarHomeContentView(
-                scope: CalendarHomeScope(
-                    state: store.state.calendar,
-                    send: { store.send(.calendar($0)) }
-                )
+                scope: store.scope(\.calendar, intent: HomeIntent.calendar)
             )
         }
     }

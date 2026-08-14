@@ -14,7 +14,7 @@ struct CalendarFilterBarView: View {
 
     // MARK: - Properties
 
-    let scope: CalendarHomeScope
+    let scope: HomeScope<CalendarHomeState, CalendarHomeIntent>
 
     // MARK: - Body
 

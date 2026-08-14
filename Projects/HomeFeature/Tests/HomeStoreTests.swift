@@ -57,6 +57,17 @@ struct HomeStoreTests {
         #expect(sut.state.selectedHomeTab == .calendar)
     }
 
+    @Test("scope는 child state를 투영하고 send를 셸 Intent로 감싸야 한다")
+    func testScopeProjectsChildStateAndWrapsIntent() {
+        let sut = HomeStore()
+
+        let scope = sut.scope(\.interest, intent: HomeIntent.interest)
+        #expect(scope.state.interestConcertSort == .ticketing)
+
+        scope.send(.interestConcertSortSelected(.concert))
+        #expect(sut.state.interest.interestConcertSort == .concert)
+    }
+
     @Test("homeTabSelected는 초기 홈 데이터 로드를 다시 수행하지 않아야 한다")
     func testHomeTabSelectedDoesNotRefetchInitialHomeData() async throws {
         // Given

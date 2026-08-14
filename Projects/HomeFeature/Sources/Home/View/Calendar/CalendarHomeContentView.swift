@@ -18,7 +18,7 @@ struct CalendarHomeContentView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    let scope: CalendarHomeScope
+    let scope: HomeScope<CalendarHomeState, CalendarHomeIntent>
     @Injected private var calendarWebConfig: CalendarWebConfig
 
     @State private var showSelectionBlockedToast = false

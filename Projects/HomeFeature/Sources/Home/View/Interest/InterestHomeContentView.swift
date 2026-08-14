@@ -17,7 +17,7 @@ struct InterestHomeContentView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    let scope: InterestHomeScope
+    let scope: HomeScope<InterestHomeState, InterestHomeIntent>
 
     @Binding var isPreferenceBannerExpanded: Bool
 

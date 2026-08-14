@@ -38,29 +38,24 @@ enum HomeIntent {
 @MainActor
 final class HomeStore: ObservableObject {
 
-    enum CancelID {
+    private enum CancelID {
         case homeAppear
         case unreadCount
-        case interestAppear
-        case interestList
-        case sections
-        case calendarFetchMonth
-        case calendarFetchDayEvents
     }
 
     @Published private(set) var state: HomeState = .init()
 
-    @Injected var userRepository: UserRepository
-    @Injected var notificationRepository: NotificationRepository
-    @Injected var concertRepository: ConcertRepository
-    @Injected var calendarRepository: CalendarRepository
+    @Injected private var userRepository: UserRepository
+    @Injected private var notificationRepository: NotificationRepository
 
-    var cancellables = [CancelID: Task<Void, Never>]()
-    var pendingInterestResultAlertFetch = false
-    var pendingInterestSectionList: [ConcertSection]?
-    var isHomeAppearUserResolved = false
-    var calendarMonthRequestID = 0
-    var calendarDayEventsRequestID = 0
+    private lazy var interestReducer = InterestHomeReducer { [weak self] in
+        self?.send(.interest($0)) ?? .none
+    }
+    private lazy var calendarReducer = CalendarHomeReducer { [weak self] in
+        self?.send(.calendar($0)) ?? .none
+    }
+
+    private var cancellables = [CancelID: Task<Void, Never>]()
 
     // MARK: - Public Interface
 
@@ -68,7 +63,7 @@ final class HomeStore: ObservableObject {
     func send(_ intent: HomeIntent) -> DiscardableTask {
         switch intent {
         case .homeAppear:
-            isHomeAppearUserResolved = false
+            _ = reduce(\.interest) { interestReducer.reduce(._homeAppearStarted, state: &$0) }
             performHomeAppear()
 
         case .homeTabSelected(let tab):
@@ -78,29 +73,18 @@ final class HomeStore: ObservableObject {
             performFetchUnreadCount()
 
         case .interest(let interestIntent):
-            return withInterest { interest in
-                reduceInterest(interestIntent, state: &interest)
-            }
+            return reduce(\.interest) { interestReducer.reduce(interestIntent, state: &$0) }
 
         case .calendar(let calendarIntent):
-            return withCalendar { calendar in
-                reduceCalendar(calendarIntent, state: &calendar)
-            }
+            return reduce(\.calendar) { calendarReducer.reduce(calendarIntent, state: &$0) }
 
         case ._homeAppearResult(let result):
             switch result {
             case .success(let data):
-                state.interest.user = data.user
                 state.hasNewNotice = data.hasNewNotice
-                isHomeAppearUserResolved = true
-                flushPendingInterestSections()
+                return reduce(\.interest) { interestReducer.reduce(._userLoaded(data.user), state: &$0) }
             case .failure(let error):
-                isHomeAppearUserResolved = true
-                pendingInterestSectionList = nil
-                _ = withInterest { interest in
-                    applyHomeAppearFailure(from: error, state: &interest)
-                    return .none
-                }
+                return reduce(\.interest) { interestReducer.reduce(._homeAppearFailed(error), state: &$0) }
             }
 
         case ._unreadCountResult(let result):
@@ -119,21 +103,23 @@ final class HomeStore: ObservableObject {
 // MARK: - Child State
 
 extension HomeStore {
-    func withInterest(
-        _ body: (inout InterestHomeState) -> DiscardableTask
-    ) -> DiscardableTask {
-        var interest = state.interest
-        let task = body(&interest)
-        state.interest = interest
-        return task
+    func scope<ChildState, ChildIntent>(
+        _ keyPath: KeyPath<HomeState, ChildState>,
+        intent: @escaping (ChildIntent) -> HomeIntent
+    ) -> HomeScope<ChildState, ChildIntent> {
+        HomeScope(
+            state: state[keyPath: keyPath],
+            send: { [self] in send(intent($0)) }
+        )
     }
 
-    func withCalendar(
-        _ body: (inout CalendarHomeState) -> DiscardableTask
+    func reduce<S>(
+        _ keyPath: WritableKeyPath<HomeState, S>,
+        _ body: (inout S) -> DiscardableTask
     ) -> DiscardableTask {
-        var calendar = state.calendar
-        let task = body(&calendar)
-        state.calendar = calendar
+        var child = state[keyPath: keyPath]
+        let task = body(&child)
+        state[keyPath: keyPath] = child
         return task
     }
 }
