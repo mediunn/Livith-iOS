@@ -7,10 +7,7 @@
 
 import Foundation
 
-import Domain
-
 struct InterestHomeScope {
     let state: InterestHomeState
-    let user: User?
     let send: (InterestHomeIntent) -> DiscardableTask
 }

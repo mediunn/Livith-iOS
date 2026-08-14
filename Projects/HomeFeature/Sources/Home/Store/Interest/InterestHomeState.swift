@@ -12,6 +12,7 @@ import Domain
 // MARK: - State
 
 struct InterestHomeState {
+    var user: User? = nil
     var interestConcertList: [InterestConcert] = []
     var interestConcertSort: InterestConcertSort = .ticketing
     var errorMessage: String = ""

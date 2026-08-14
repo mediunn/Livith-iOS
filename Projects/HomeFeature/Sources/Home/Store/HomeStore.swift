@@ -16,7 +16,6 @@ import LivithDesignSystem
 
 struct HomeState {
     var selectedHomeTab: SegmentedTabBarType.HomeTab = .interestConcert
-    var user: User? = nil
     var hasNewNotice: Bool = false
     var interest: InterestHomeState = .init()
     var calendar: CalendarHomeState = .init()
@@ -31,7 +30,6 @@ enum HomeIntent {
     case interest(InterestHomeIntent)
     case calendar(CalendarHomeIntent)
     case _homeAppearResult(Result<(user: User, hasNewNotice: Bool), Error>)
-    case _fetchUserResult(Result<User, Error>)
     case _unreadCountResult(Result<Int, Error>)
 }
 
@@ -50,18 +48,6 @@ final class HomeStore: ObservableObject {
         case calendarFetchDayEvents
     }
 
-    /// `homeAppear`가 완료되기 전까지 관심 탭 `onAppear`의 추천 조회가 대기하는 상태.
-    enum UserAvailability {
-        case pending
-        case available(User)
-        case unavailable
-    }
-
-    struct UserWaiter {
-        let id: UUID
-        let continuation: CheckedContinuation<User?, Never>
-    }
-
     @Published private(set) var state: HomeState = .init()
 
     @Injected var userRepository: UserRepository
@@ -70,9 +56,9 @@ final class HomeStore: ObservableObject {
     @Injected var calendarRepository: CalendarRepository
 
     var cancellables = [CancelID: Task<Void, Never>]()
-    var userAvailability: UserAvailability = .pending
-    var userWaiters: [UserWaiter] = []
     var pendingInterestResultAlertFetch = false
+    var pendingInterestSectionList: [ConcertSection]?
+    var isHomeAppearUserResolved = false
     var calendarMonthRequestID = 0
     var calendarDayEventsRequestID = 0
 
@@ -82,7 +68,7 @@ final class HomeStore: ObservableObject {
     func send(_ intent: HomeIntent) -> DiscardableTask {
         switch intent {
         case .homeAppear:
-            userAvailability = .pending
+            isHomeAppearUserResolved = false
             performHomeAppear()
 
         case .homeTabSelected(let tab):
@@ -104,29 +90,15 @@ final class HomeStore: ObservableObject {
         case ._homeAppearResult(let result):
             switch result {
             case .success(let data):
-                state.user = data.user
+                state.interest.user = data.user
                 state.hasNewNotice = data.hasNewNotice
-                resolveUserAvailability(with: data.user)
+                isHomeAppearUserResolved = true
+                flushPendingInterestSections()
             case .failure(let error):
+                isHomeAppearUserResolved = true
+                pendingInterestSectionList = nil
                 _ = withInterest { interest in
                     applyHomeAppearFailure(from: error, state: &interest)
-                    return .none
-                }
-                resolveUserAvailability(with: nil)
-            }
-
-        case ._fetchUserResult(let result):
-            switch result {
-            case .success(let user):
-                state.user = user
-                guard state.interest.needsInitialSectionLoad else { return .none }
-                _ = withInterest { interest in
-                    beginInitialSectionLoad(state: &interest, user: user)
-                    return .none
-                }
-            case .failure(let error):
-                _ = withInterest { interest in
-                    applyInterestError(from: error, state: &interest)
                     return .none
                 }
             }
@@ -189,47 +161,6 @@ extension HomeStore {
                 send(._homeAppearResult(.failure(error)))
             }
         }
-    }
-
-    /// `homeAppear`의 유저 조회 결과를 대기한다. 이미 결과가 나와 있으면 즉시 반환하고,
-    /// 아직 진행 중이면 `resolveUserAvailability`가 호출될 때까지 대기한다.
-    /// 유저 조회가 실패하거나 대기 중 Task가 취소되면 `nil`을 반환해 추천 조회를 건너뛴다.
-    func waitForUser() async -> User? {
-        switch userAvailability {
-        case .available(let user):
-            return user
-        case .unavailable:
-            return nil
-        case .pending:
-            let waiterID = UUID()
-            return await withTaskCancellationHandler {
-                await withCheckedContinuation { continuation in
-                    if Task.isCancelled {
-                        continuation.resume(returning: nil)
-                        return
-                    }
-                    userWaiters.append(UserWaiter(id: waiterID, continuation: continuation))
-                }
-            } onCancel: {
-                Task { @MainActor in
-                    resumeUserWaiter(id: waiterID, returning: nil)
-                }
-            }
-        }
-    }
-
-    func resolveUserAvailability(with user: User?) {
-        userAvailability = user.map { .available($0) } ?? .unavailable
-
-        let waiters = userWaiters
-        userWaiters.removeAll()
-        waiters.forEach { $0.continuation.resume(returning: user) }
-    }
-
-    func resumeUserWaiter(id: UUID, returning user: User?) {
-        guard let index = userWaiters.firstIndex(where: { $0.id == id }) else { return }
-        let waiter = userWaiters.remove(at: index)
-        waiter.continuation.resume(returning: user)
     }
 
     func hasNewNotice(from result: Result<Bool, Error>) -> Bool {

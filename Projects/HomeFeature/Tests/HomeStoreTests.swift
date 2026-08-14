@@ -27,10 +27,10 @@ struct HomeStoreTests {
     
     // MARK: - 초기 상태 테스트
     
-    @Test("초기 상태에서 user는 nil이어야 한다")
+    @Test("초기 상태에서 관심 유저는 nil이어야 한다")
     func testInitialUserState() {
         let sut = HomeStore()
-        #expect(sut.state.user == nil)
+        #expect(sut.state.interest.user == nil)
     }
 
     @Test("초기 상태에서 관심 콘서트 정렬은 예매일이어야 한다")
@@ -90,7 +90,7 @@ struct HomeStoreTests {
         #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.hasNewNotice)
         #expect(sut.state.interest.interestConcertList.isEmpty)
         #expect(sut.state.interest.concertSectionList.isEmpty)
@@ -137,12 +137,12 @@ struct HomeStoreTests {
 
         // Then
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
-        #expect(sut.state.user == nil)
+        #expect(sut.state.interest.user == nil)
         #expect(sut.state.interest.isSectionLoading)
 
         try await Task.sleep(nanoseconds: 350_000_000)
 
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.interest.concertSectionList.count == 1)
         #expect(!sut.state.interest.isSectionLoading)
     }
@@ -170,7 +170,7 @@ struct HomeStoreTests {
         #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.interest.interestConcertList.map(\.id) == [123])
         #expect(sut.state.hasNewNotice)
         #expect(sut.state.interest.concertSectionList.count == 1)
@@ -228,7 +228,7 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 150_000_000)
 
         // Then
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.interest.concertSectionList.count == 1)
         #expect(!sut.state.interest.isSectionLoading)
     }
@@ -245,7 +245,7 @@ struct HomeStoreTests {
         sut.send(.homeAppear)
         sut.send(.interest(.onAppear))
         try await Task.sleep(nanoseconds: 50_000_000)
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.interest.isSectionLoading)
         #expect(sut.state.interest.concertSectionList.isEmpty)
 
@@ -303,7 +303,7 @@ struct HomeStoreTests {
         // Then
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.interest.interestConcertList.isEmpty)
         #expect(sut.state.hasNewNotice)
         #expect(sut.state.interest.isInterestListLoadFailed)
@@ -393,7 +393,7 @@ struct HomeStoreTests {
         #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
         #expect(container.notificationRepository.fetchUnreadNotificationCountCallCount == 1)
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.interest.interestConcertList.map(\.id) == [123])
         #expect(!sut.state.hasNewNotice)
         #expect(sut.state.interest.errorMessage.isEmpty)
@@ -418,7 +418,7 @@ struct HomeStoreTests {
 
         // Then: 관심 목록은 유저 조회와 무관하게 반영되지만, 섹션은 유저 실패로 반영되지 않는다.
         #expect(container.userRepository.fetchUserCallCount == 1)
-        #expect(sut.state.user == nil)
+        #expect(sut.state.interest.user == nil)
         #expect(sut.state.interest.interestConcertList.map(\.id) == [123])
         #expect(!sut.state.hasNewNotice)
         #expect(!sut.state.interest.errorMessage.isEmpty)
@@ -611,7 +611,7 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 200_000_000)
 
         // Then
-        #expect(sut.state.user?.nickname == "홍길동")
+        #expect(sut.state.interest.user?.nickname == "홍길동")
         #expect(sut.state.interest.errorMessage.isEmpty)
         #expect(!sut.state.interest.shouldShowInterestResultSheet)
     }
@@ -620,7 +620,7 @@ struct HomeStoreTests {
     func testInterestResultSheetIsDiscardedWhenErrorMessageExists() async throws {
         // Given
         let sut = HomeStore()
-        sut.send(._fetchUserResult(.failure(UserError.serverError)))
+        sut.send(._homeAppearResult(.failure(UserError.serverError)))
         #expect(!sut.state.interest.errorMessage.isEmpty)
 
         // When
@@ -696,24 +696,19 @@ struct HomeStoreTests {
 
     // MARK: - Home Layout Load 테스트
 
-    @Test("유저 조회 결과가 들어오면 관심 콘서트를 다시 조회하지 않고 홈 콘서트 섹션 데이터를 로드해야 한다")
-    func testUserResultLoadsHomeConcertSectionWithoutFetchingInterestConcertList() async throws {
+    @Test("homeAppear 유저 결과는 관심 상태에 저장하고 관심 목록·섹션을 조회하지 않아야 한다")
+    func testHomeAppearResultStoresUserWithoutFetchingInterestListOrSections() async throws {
         let sut = HomeStore()
         let user = makeMockUser(hasPreferences: true)
-        let section = makeMockSection(id: 5)
-        let recommended = [makeMockConcert(id: 21)]
 
-        container.concertRepository.homeSectionListStub = [section]
-        container.concertRepository.recommendedConcertListStub = recommended
+        sut.send(._homeAppearResult(.success((user: user, hasNewNotice: false))))
+        try await Task.sleep(nanoseconds: 50_000_000)
 
-        sut.send(._fetchUserResult(.success(user)))
-        try await Task.sleep(nanoseconds: 100_000_000)
-
+        #expect(sut.state.interest.user?.nickname == user.nickname)
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
-        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
-        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
-        #expect(sut.state.interest.concertSectionList.first?.id == section.id)
-        #expect(sut.state.interest.recommendedConcertList.first?.id == recommended.first?.id)
+        #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
+        #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
+        #expect(sut.state.interest.concertSectionList.isEmpty)
     }
 
     @Test("유저 조회 결과가 있어도 기존 관심 콘서트 상세 API를 호출하지 않아야 한다")
@@ -726,12 +721,12 @@ struct HomeStoreTests {
         container.concertRepository.homeSectionListStub = [section]
         container.concertRepository.recommendedConcertListStub = recommended
 
-        sut.send(._fetchUserResult(.success(user)))
+        sut.send(.interest(.onAppear))
+        sut.send(._homeAppearResult(.success((user: user, hasNewNotice: false))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
         #expect(container.concertRepository.fetchConcertScheduleListCallCount == 0)
         #expect(container.concertRepository.fetchMainSetlistCallCount == 0)
         #expect(container.setlistRepository.fetchSetlistSongsCallCount == 0)
@@ -842,14 +837,15 @@ struct HomeStoreTests {
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 10)]
         container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 100)]
 
-        sut.send(._fetchUserResult(.success(user)))
+        sut.send(.interest(.onAppear))
+        sut.send(._homeAppearResult(.success((user: user, hasNewNotice: false))))
         try await Task.sleep(nanoseconds: 100_000_000)
-        sut.send(._fetchUserResult(.success(user)))
+        sut.send(._homeAppearResult(.success((user: user, hasNewNotice: false))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
     }
 
     @Test("관심 콘서트 목록 조회 결과가 바뀌어도 홈 콘서트 섹션 초기 로딩은 한 번만 수행되어야 한다")
@@ -860,7 +856,8 @@ struct HomeStoreTests {
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 10)]
         container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 100)]
 
-        sut.send(._fetchUserResult(.success(user)))
+        sut.send(.interest(.onAppear))
+        sut.send(._homeAppearResult(.success((user: user, hasNewNotice: false))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         sut.send(.interest(._interestListResult(.success(makeInterestConcertList(concertIDList: [123])))))
@@ -871,7 +868,7 @@ struct HomeStoreTests {
 
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 0)
+        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
         #expect(container.concertRepository.fetchConcertScheduleListCallCount == 0)
         #expect(container.concertRepository.fetchMainSetlistCallCount == 0)
         #expect(container.setlistRepository.fetchSetlistSongsCallCount == 0)
@@ -889,7 +886,8 @@ struct HomeStoreTests {
         container.concertRepository.homeSectionListStub = [section]
 
         // When
-        sut.send(._fetchUserResult(.success(user)))
+        sut.send(.interest(.onAppear))
+        sut.send(._homeAppearResult(.success((user: user, hasNewNotice: false))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
@@ -955,7 +953,7 @@ struct HomeStoreTests {
     func testOnErrorToastDisappearClearsErrorMessage() {
         // Given
         let sut = HomeStore()
-        sut.send(._fetchUserResult(.failure(UserError.serverError)))
+        sut.send(._homeAppearResult(.failure(UserError.serverError)))
         #expect(!sut.state.interest.errorMessage.isEmpty)
 
         // When

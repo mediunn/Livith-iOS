@@ -125,7 +125,7 @@ private extension InterestHomeContentView {
             )
         } else {
             EmptyInterestConcertSectionView(
-                nickname: scope.user?.nickname ?? "라이빗",
+                nickname: scope.state.user?.nickname ?? "라이빗",
                 onSettingTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
                     homeRouter.push(.interestConcertSetting(mode: .initialSetup))
@@ -136,7 +136,7 @@ private extension InterestHomeContentView {
 
     var concertContentSection: some View {
         HomeConcertContentSectionView(
-            nickname: scope.user?.nickname ?? "라이빗",
+            nickname: scope.state.user?.nickname ?? "라이빗",
             sectionList: scope.state.concertSectionList,
             recommendedConcertList: scope.state.recommendedConcertList,
             shouldShowRecommendedConcertSection: !scope.state.shouldShowPreferenceBanner,

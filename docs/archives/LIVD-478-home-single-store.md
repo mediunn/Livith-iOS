@@ -35,6 +35,11 @@
 - Scope · nest State/Intent · `DiscardableTask`는 유지.
 - Swift `private`는 파일 단위라 extension이 쓰는 Store 멤버는 모듈 내부로 열음.
 
+### 2026-08-14 - User를 InterestHomeState로 이동
+- `HomeState.user`를 없애고 `InterestHomeState.user`에 둔다. 조회는 `homeAppear`, 저장·소비는 관심.
+- `waitForUser` 대신 섹션 결과를 pending으로 붙잡아 유저 이후에 추천을 조회한다.
+- `._fetchUserResult`는 프로덕션 `send`가 없어 제거했다.
+
 ## 참조
 - 브랜치: `refactor/LIVD-478-home-single-store`
-- 경로: `HomeStore`, `HomeStore+Interest`, `HomeStore+Calendar`, `DiscardableTask`, `*HomeScope`
+- 경로: `HomeStore`, `HomeStore+Interest`, `HomeStore+Calendar`, `InterestHomeState`, `DiscardableTask`, `*HomeScope`

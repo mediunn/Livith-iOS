@@ -129,7 +129,6 @@ private extension HomeView {
             InterestHomeContentView(
                 scope: InterestHomeScope(
                     state: store.state.interest,
-                    user: store.state.user,
                     send: { store.send(.interest($0)) }
                 ),
                 isPreferenceBannerExpanded: $isPreferenceBannerExpanded
