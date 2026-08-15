@@ -366,6 +366,26 @@ struct HomeStoreTests {
         #expect(sut.state.interest.interestConcertList.map(\.id) == [123])
     }
 
+    @Test("onRefresh wait 취소 시 fetch 결과를 state에 반영하지 않아야 한다")
+    func onRefresh_wait_취소_시_fetch_결과를_state에_반영하지_않아야_한다() async throws {
+        // Given
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 99)]
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [456])
+        container.concertRepository.fetchHomeConcertSectionListDelay = 300_000_000
+        container.userRepository.fetchInterestedConcertListDelayQueue = [300_000_000]
+        let sut = HomeStore()
+
+        // When
+        let waitTask = Task { await sut.send(.interest(.onRefresh)).wait() }
+        try await Task.sleep(nanoseconds: 30_000_000)
+        waitTask.cancel()
+        try await Task.sleep(nanoseconds: 400_000_000)
+
+        // Then
+        #expect(sut.state.interest.concertSectionList.isEmpty)
+        #expect(sut.state.interest.interestConcertList.isEmpty)
+    }
+
     @Test("onRefresh wait는 섹션·관심 목록 fetch 완료까지 대기해야 한다")
     func onRefresh_wait는_섹션_관심_목록_fetch_완료까지_대기해야_한다() async throws {
         // Given

@@ -327,6 +327,7 @@ private extension InterestHomeReducer {
         cancellables[.interestList]?.cancel()
         cancellables[.interestList] = Task {
             let result = await fetchInterestList(filter: filter)
+            if Task.isCancelled { return }
             send(._interestListResult(result))
         }
     }

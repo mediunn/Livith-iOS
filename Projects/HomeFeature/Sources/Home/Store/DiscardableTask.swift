@@ -17,6 +17,10 @@ struct DiscardableTask {
     }
 
     func wait() async {
-        await task?.value
+        await withTaskCancellationHandler {
+            await task?.value
+        } onCancel: {
+            task?.cancel()
+        }
     }
 }
