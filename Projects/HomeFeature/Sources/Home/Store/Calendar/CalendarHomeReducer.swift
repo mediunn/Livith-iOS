@@ -150,6 +150,7 @@ final class CalendarHomeReducer {
             return scheduleFetchMonth(showInitialLoading: showInitialLoading, state: &state)
 
         case .pullToRefresh:
+            guard hasFetchRange(state) else { return .none }
             state.isInitialLoading = false
             return scheduleFetchMonth(showInitialLoading: false, state: &state)
 

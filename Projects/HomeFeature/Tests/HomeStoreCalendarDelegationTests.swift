@@ -61,4 +61,19 @@ struct HomeStoreCalendarDelegationTests {
         #expect(container.calendarRepository.fetchMonthCallCount == 2)
         #expect(!sut.state.calendar.isInitialLoading)
     }
+
+    @Test("range 없이 pullToRefresh하면 초기 로딩을 유지하고 조회하지 않아야 한다")
+    func pullToRefresh_없이_range_초기로딩_유지해야_한다() {
+        // Given: 월 범위가 없어 onAppear가 중앙 로딩을 켠 상태
+        let sut = HomeStore()
+        sut.send(.calendar(.onAppear))
+        #expect(sut.state.calendar.isInitialLoading)
+
+        // When
+        sut.send(.calendar(.pullToRefresh))
+
+        // Then
+        #expect(sut.state.calendar.isInitialLoading)
+        #expect(container.calendarRepository.fetchMonthCallCount == 0)
+    }
 }

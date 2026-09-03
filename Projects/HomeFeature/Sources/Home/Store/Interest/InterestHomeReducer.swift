@@ -60,6 +60,7 @@ final class InterestHomeReducer {
         case appear
         case interestList
         case sections
+        case completeSection
     }
 
     @Injected private var userRepository: UserRepository
@@ -193,7 +194,9 @@ final class InterestHomeReducer {
             return .none
 
         case ._homeAppearStarted:
+            state.user = nil
             isHomeAppearUserResolved = false
+            cancellables[.completeSection]?.cancel()
             return .none
 
         case ._userLoaded(let user):
@@ -206,6 +209,7 @@ final class InterestHomeReducer {
             isHomeAppearUserResolved = true
             pendingInterestSectionList = nil
             pendingInterestResultAlertFetch = false
+            cancellables[.completeSection]?.cancel()
             state.isSectionLoading = false
             applyError(from: error, state: &state)
             return .none
@@ -236,6 +240,7 @@ private extension InterestHomeReducer {
 
     func performAppear(loadsSections: Bool, sort: InterestConcertSort) {
         cancellables[.appear]?.cancel()
+        cancellables[.completeSection]?.cancel()
         if loadsSections {
             pendingInterestSectionList = nil
         }
@@ -271,7 +276,8 @@ private extension InterestHomeReducer {
     }
 
     func performCompleteSectionSuccess(sectionList: [ConcertSection], user: User) {
-        Task {
+        cancellables[.completeSection]?.cancel()
+        cancellables[.completeSection] = Task {
             await completeSectionSuccess(sectionList: sectionList, user: user)
         }
     }

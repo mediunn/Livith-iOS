@@ -484,6 +484,55 @@ struct HomeStoreTests {
         #expect(!sut.state.interest.isSectionLoading)
     }
 
+    @Test("재진입 시 이전 추천 Task 결과는 섹션에 반영되지 않아야 한다")
+    func testReappearCancelsStaleRecommendationTask() async throws {
+        // Given: 첫 진입은 추천이 느리게 끝나도록 둔다.
+        container.userRepository.userStub = makeMockUser(nickname: "홍길동", hasPreferences: true)
+        container.notificationRepository.unreadNotificationCountStub = 0
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
+        container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 99)]
+        container.concertRepository.fetchRecommendedConcertListDelay = 400_000_000
+
+        let sut = HomeStore()
+        sut.send(.homeAppear)
+        sut.send(.interest(.onAppear))
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // When: 추천이 끝나기 전에 새 스텁으로 다시 진입한다. 새 추천은 즉시 끝난다.
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 2)]
+        container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 100)]
+        container.concertRepository.fetchRecommendedConcertListDelay = 0
+        sut.send(.homeAppear)
+        sut.send(.interest(.onAppear))
+        try await Task.sleep(nanoseconds: 600_000_000)
+
+        // Then: 늦게 끝난 이전 추천 결과가 새 섹션을 덮지 않아야 한다.
+        #expect(sut.state.interest.concertSectionList.map(\.id) == [2])
+        #expect(sut.state.interest.recommendedConcertList.map(\.id) == [100])
+    }
+
+    @Test("2회차 유저 조회 실패 시 이전 user로 섹션을 반영하지 않아야 한다")
+    func testStaleUserDoesNotApplySectionsAfterUserFailure() async throws {
+        // Given: 1회차에서 user를 state에 적재한다.
+        let sut = HomeStore()
+        let user = makeMockUser(nickname: "홍길동", hasPreferences: true)
+        sut.send(._homeAppearResult(.success((user: user, hasNewNotice: false))))
+        #expect(sut.state.interest.user?.nickname == "홍길동")
+
+        // When: 2회차 유저 조회는 실패하고 섹션은 성공한다.
+        container.userRepository.fetchUserErrorStub = .serverError
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 7)]
+        container.concertRepository.fetchHomeConcertSectionListDelay = 100_000_000
+        sut.send(.homeAppear)
+        sut.send(.interest(.onAppear))
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        // Then: 낡은 user로 섹션·추천을 반영하지 않아야 한다.
+        #expect(sut.state.interest.user == nil)
+        #expect(sut.state.interest.concertSectionList.isEmpty)
+        #expect(!sut.state.interest.errorMessage.isEmpty)
+    }
+
     // MARK: - InterestConcertResultSheet 테스트
 
     @Test("섹션 로드 CancellationError는 결과 시트 조회 예약을 소진하지 않아야 한다")
