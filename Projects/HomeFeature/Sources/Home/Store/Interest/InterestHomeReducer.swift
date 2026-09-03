@@ -46,9 +46,7 @@ enum InterestHomeIntent {
     case _interestResultAlertListResult(Result<[InterestConcertEntryAlert], Error>)
     case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
     case _sectionsFetched([ConcertSection])
-    case _homeAppearStarted
-    case _userLoaded(User)
-    case _homeAppearFailed(Error)
+    case _userResult(Result<User, Error>)
 }
 
 // MARK: - InterestHomeReducer
@@ -61,6 +59,7 @@ final class InterestHomeReducer {
         case interestList
         case sections
         case completeSection
+        case user
     }
 
     @Injected private var userRepository: UserRepository
@@ -70,7 +69,7 @@ final class InterestHomeReducer {
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var pendingInterestResultAlertFetch = false
     private var pendingInterestSectionList: [ConcertSection]?
-    private var isHomeAppearUserResolved = false
+    private var userLoadFailed = false
 
     init(send: @escaping (InterestHomeIntent) -> DiscardableTask) {
         self.send = send
@@ -91,10 +90,14 @@ final class InterestHomeReducer {
             if state.isInterestListLoadFailed {
                 state.isInterestListRetryLoading = true
             }
+            performFetchUserIfNeeded(user: state.user)
             performAppear(loadsSections: loadsSections, sort: state.interestConcertSort)
             return .none
 
         case .onRefresh:
+            if state.user == nil {
+                performFetchUser()
+            }
             return scheduleOnRefresh(sort: state.interestConcertSort, user: state.user)
 
         case .onErrorToastDisappear:
@@ -186,32 +189,27 @@ final class InterestHomeReducer {
         case ._sectionsFetched(let sectionList):
             if let user = state.user {
                 performCompleteSectionSuccess(sectionList: sectionList, user: user)
-            } else if isHomeAppearUserResolved {
-                return .none
+            } else if userLoadFailed {
+                state.isSectionLoading = false
+                pendingInterestResultAlertFetch = false
             } else {
                 pendingInterestSectionList = sectionList
             }
             return .none
 
-        case ._homeAppearStarted:
-            state.user = nil
-            isHomeAppearUserResolved = false
-            cancellables[.completeSection]?.cancel()
-            return .none
-
-        case ._userLoaded(let user):
-            state.user = user
-            isHomeAppearUserResolved = true
-            flushPendingSections(user: user)
-            return .none
-
-        case ._homeAppearFailed(let error):
-            isHomeAppearUserResolved = true
-            pendingInterestSectionList = nil
-            pendingInterestResultAlertFetch = false
-            cancellables[.completeSection]?.cancel()
-            state.isSectionLoading = false
-            applyError(from: error, state: &state)
+        case ._userResult(let result):
+            switch result {
+            case .success(let user):
+                state.user = user
+                userLoadFailed = false
+                flushPendingSections(user: user)
+            case .failure(let error):
+                userLoadFailed = true
+                pendingInterestSectionList = nil
+                pendingInterestResultAlertFetch = false
+                state.isSectionLoading = false
+                applyError(from: error, state: &state)
+            }
             return .none
         }
     }
@@ -335,6 +333,29 @@ private extension InterestHomeReducer {
             let result = await fetchInterestList(filter: filter)
             if Task.isCancelled { return }
             send(._interestListResult(result))
+        }
+    }
+
+    func performFetchUserIfNeeded(user: User?) {
+        guard user == nil, !userLoadFailed else { return }
+        performFetchUser()
+    }
+
+    func performFetchUser() {
+        userLoadFailed = false
+        cancellables[.user]?.cancel()
+        cancellables[.user] = Task {
+            let result = await fetchUser()
+            if Task.isCancelled { return }
+            send(._userResult(result))
+        }
+    }
+
+    func fetchUser() async -> Result<User, Error> {
+        do {
+            return .success(try await userRepository.fetchUser())
+        } catch {
+            return .failure(error)
         }
     }
 

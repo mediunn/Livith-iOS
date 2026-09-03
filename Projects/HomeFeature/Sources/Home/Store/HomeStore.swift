@@ -29,7 +29,6 @@ enum HomeIntent {
     case checkUnreadNotification
     case interest(InterestHomeIntent)
     case calendar(CalendarHomeIntent)
-    case _homeAppearResult(Result<(user: User, hasNewNotice: Bool), Error>)
     case _unreadCountResult(Result<Int, Error>)
 }
 
@@ -39,13 +38,11 @@ enum HomeIntent {
 final class HomeStore: ObservableObject {
 
     private enum CancelID {
-        case homeAppear
         case unreadCount
     }
 
     @Published private(set) var state: HomeState = .init()
 
-    @Injected private var userRepository: UserRepository
     @Injected private var notificationRepository: NotificationRepository
 
     private lazy var interestReducer = InterestHomeReducer { [weak self] in
@@ -63,8 +60,7 @@ final class HomeStore: ObservableObject {
     func send(_ intent: HomeIntent) -> DiscardableTask {
         switch intent {
         case .homeAppear:
-            _ = reduce(\.interest) { interestReducer.reduce(._homeAppearStarted, state: &$0) }
-            performHomeAppear()
+            performFetchUnreadCount()
 
         case .homeTabSelected(let tab):
             state.selectedHomeTab = tab
@@ -77,15 +73,6 @@ final class HomeStore: ObservableObject {
 
         case .calendar(let calendarIntent):
             return reduce(\.calendar) { calendarReducer.reduce(calendarIntent, state: &$0) }
-
-        case ._homeAppearResult(let result):
-            switch result {
-            case .success(let data):
-                state.hasNewNotice = data.hasNewNotice
-                return reduce(\.interest) { interestReducer.reduce(._userLoaded(data.user), state: &$0) }
-            case .failure(let error):
-                return reduce(\.interest) { interestReducer.reduce(._homeAppearFailed(error), state: &$0) }
-            }
 
         case ._unreadCountResult(let result):
             switch result {
@@ -127,54 +114,6 @@ extension HomeStore {
 // MARK: - Shell Helpers
 
 extension HomeStore {
-    func performHomeAppear() {
-        cancellables[.homeAppear]?.cancel()
-
-        cancellables[.homeAppear] = Task {
-            async let userResult = fetchUser()
-            async let hasNewNoticeResult = fetchHasNewNotice()
-
-            let user = await userResult
-            if Task.isCancelled { return }
-
-            switch user {
-            case .success(let user):
-                send(._homeAppearResult(.success((
-                    user: user,
-                    hasNewNotice: hasNewNotice(from: await hasNewNoticeResult)
-                ))))
-            case .failure(let error):
-                send(._homeAppearResult(.failure(error)))
-            }
-        }
-    }
-
-    func hasNewNotice(from result: Result<Bool, Error>) -> Bool {
-        switch result {
-        case .success(let hasNewNotice):
-            return hasNewNotice
-        case .failure:
-            return false
-        }
-    }
-
-    func fetchUser() async -> Result<User, Error> {
-        do {
-            return .success(try await userRepository.fetchUser())
-        } catch {
-            return .failure(error)
-        }
-    }
-
-    func fetchHasNewNotice() async -> Result<Bool, Error> {
-        do {
-            let count = try await notificationRepository.fetchUnreadNotificationCount()
-            return .success(count > 0)
-        } catch {
-            return .failure(error)
-        }
-    }
-
     func performFetchUnreadCount() {
         cancellables[.unreadCount]?.cancel()
         cancellables[.unreadCount] = Task {

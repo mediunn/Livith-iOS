@@ -50,6 +50,13 @@
 - 유저 조회 결과는 `._userLoaded` / `._homeAppearFailed`로 관심 Reducer에 넘긴다.
 - View는 `HomeScope`만 알고 Reducer를 모른다.
 
+### 2026-09-03 - user 조회 관심 탭 이전
+- `fetchUser`를 셸(`HomeStore.performHomeAppear`)에서 `InterestHomeReducer`로 옮겼다. 셸 `homeAppear`는 알림 수 조회만 한다.
+- 핸드셰이크 Intent(`_homeAppearStarted`·`_userLoaded`·`_homeAppearFailed`)를 삭제하고 `._userResult` 하나로 합쳤다.
+- 실패 메모는 Reducer-private `userLoadFailed` 플래그로 둔다. `user` 복제가 아니라 시도 여부라 SSOT 유지.
+- 실패 시 다음 `onAppear`에 자동 재시도하지 않고, user 미보유 `onRefresh`가 user 조회부터 시작해 복구한다.
+- `._sectionsFetched` 3분기(`if let user` → 합류, `else if userLoadFailed` → 폐기, `else` → 대기)는 유지. 순서 변경 없이 리셋 성격은 `onAppear`의 조회 조건(`user == nil && !userLoadFailed`)이 맡는다.
+
 ## 참조
 - 브랜치: `refactor/LIVD-478-home-single-store`
 - 경로: `HomeStore`, `InterestHomeReducer`, `CalendarHomeReducer`, `HomeScope`, `DiscardableTask`
