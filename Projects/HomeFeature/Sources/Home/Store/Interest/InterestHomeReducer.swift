@@ -44,7 +44,7 @@ enum InterestHomeIntent {
     case interestConcertSortSelected(InterestConcertSort)
     case _interestListResult(Result<[InterestConcert], Error>)
     case _interestResultAlertListResult(Result<[InterestConcertEntryAlert], Error>)
-    case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?), Error>)
+    case _sectionLoadResult(Result<(sectionList: [ConcertSection], recommendedConcertList: [Concert]?, preservesRecommendations: Bool), Error>)
     case _sectionsFetched([ConcertSection])
     case _userResult(Result<User, Error>)
 }
@@ -175,8 +175,10 @@ final class InterestHomeReducer {
             switch result {
             case .success(let data):
                 state.concertSectionList = data.sectionList
-                state.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
-                state.recommendedConcertList = data.recommendedConcertList ?? []
+                if !data.preservesRecommendations {
+                    state.shouldShowPreferenceBanner = !(state.user?.hasPreferences ?? false)
+                    state.recommendedConcertList = data.recommendedConcertList ?? []
+                }
                 state.errorMessage = ""
                 if isInitialLoad {
                     performFetchInterestResultAlertList()
@@ -219,7 +221,7 @@ final class InterestHomeReducer {
 
 private extension InterestHomeReducer {
     func scheduleOnRefresh(sort: InterestConcertSort, user: User?) -> DiscardableTask {
-        performFetchSections(user: user)
+        performFetchSections(user: user, preservesRecommendations: user == nil)
         performFetchInterestList(filter: .homeSection(sort: sort))
 
         let sectionsTask = cancellables[.sections]
@@ -285,7 +287,8 @@ private extension InterestHomeReducer {
         if Task.isCancelled { return }
         send(._sectionLoadResult(.success((
             sectionList: sectionList,
-            recommendedConcertList: recommendations
+            recommendedConcertList: recommendations,
+            preservesRecommendations: false
         ))))
     }
 
@@ -359,7 +362,7 @@ private extension InterestHomeReducer {
         }
     }
 
-    func performFetchSections(user: User?) {
+    func performFetchSections(user: User?, preservesRecommendations: Bool) {
         cancellables[.sections]?.cancel()
         cancellables[.sections] = Task {
             do {
@@ -372,7 +375,8 @@ private extension InterestHomeReducer {
                 if Task.isCancelled { return }
                 send(._sectionLoadResult(.success((
                     sectionList: sectionList,
-                    recommendedConcertList: recommendedConcertList
+                    recommendedConcertList: recommendedConcertList,
+                    preservesRecommendations: preservesRecommendations
                 ))))
             } catch {
                 if Task.isCancelled || isCancellationError(error) { return }

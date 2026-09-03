@@ -17,8 +17,8 @@
   - 추천은 `hasPreferences == true`인 유저에게만 조회한다.
   - 추천 Task 취소 전파(1번 수정)와 캘린더 가드 순서(3번 수정)는 유지된다.
 - 이번 범위 밖:
-  - 4번 디테일(새로고침 시 nil user의 추천·배너 처리 방식).
-  - 5번(중첩 동기 `send` 방어).
+  - 4번 디테일(새로고침 시 nil user의 추천·배너 처리 방식) → 별도 완료.
+  - 5번(중첩 동기 `send` 방어 — assert안 적용 후 롤백, 구조적 해결안 검토 중).
   - View 변경, Domain/API 계약 변경, 캘린더 로직.
   - `onRefresh`의 `wait()`가 합류 추천까지 기다리게 하기(4번 작업과 함께 정리).
 - 코드에서 복원 불가능한 의도(있으면):
@@ -48,6 +48,7 @@
   - 구 `testStaleUserDoesNotApplySectionsAfterUserFailure` 삭제(시나리오 소멸, 신규 실패 테스트로 대체).
   - 실패 후 복구 테스트를 onRefresh 방식(`testOnRefreshRecoversHomeSectionLoadAfterUserFailure`)으로 교체.
 - [x] 검증 후 기존 archive(`docs/archives/LIVD-478-home-single-store.md`)에 추가 기록
+- [x] 4번 A안 (`preservesRecommendations` 플래그로 nil user 새로고침 시 추천·배너 보존)
 
 ## 영향 범위
 - 변경 모듈: `HomeFeature` 단일 모듈.

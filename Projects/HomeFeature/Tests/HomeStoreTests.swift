@@ -563,6 +563,33 @@ struct HomeStoreTests {
         #expect(sut.state.interest.user?.nickname == "홍길동")
     }
 
+    @Test("user 미보유 onRefresh는 기존 추천 목록과 배너를 유지해야 한다")
+    func testOnRefreshWithoutUserPreservesRecommendationsAndBanner() async throws {
+        // Given: user는 모르지만 추천·섹션이 표시 중인 상태
+        // (user 미보유 시 배너 기본값은 true. 핵심은 새로고침이 이 값을 바꾸지 않는 것이다.)
+        container.concertRepository.homeSectionListStub = [makeMockSection(id: 5)]
+        container.userRepository.interestConcertListStub = makeInterestConcertList(concertIDList: [123])
+
+        let sut = HomeStore()
+        sut.send(.interest(._sectionLoadResult(.success((
+            sectionList: [makeMockSection(id: 9)],
+            recommendedConcertList: [makeMockConcert(id: 1)],
+            preservesRecommendations: false
+        )))))
+        #expect(sut.state.interest.recommendedConcertList.map(\.id) == [1])
+        #expect(sut.state.interest.shouldShowPreferenceBanner)
+
+        // When
+        sut.send(.interest(.onRefresh))
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: 섹션·관심목록은 갱신하고 추천·배너는 그대로 둔다.
+        #expect(sut.state.interest.concertSectionList.map(\.id) == [5])
+        #expect(sut.state.interest.interestConcertList.map(\.id) == [123])
+        #expect(sut.state.interest.recommendedConcertList.map(\.id) == [1])
+        #expect(sut.state.interest.shouldShowPreferenceBanner)
+    }
+
     // MARK: - InterestConcertResultSheet 테스트
 
     @Test("섹션 로드 CancellationError는 결과 시트 조회 예약을 소진하지 않아야 한다")
@@ -583,7 +610,8 @@ struct HomeStoreTests {
         sut.send(.interest(._sectionLoadResult(.failure(CancellationError()))))
         sut.send(.interest(._sectionLoadResult(.success((
             sectionList: [makeMockSection(id: 1)],
-            recommendedConcertList: []
+            recommendedConcertList: [],
+            preservesRecommendations: false
         )))))
         try await Task.sleep(nanoseconds: 100_000_000)
 
