@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 import DIContainer
 import Domain
@@ -45,12 +46,20 @@ final class HomeStore: ObservableObject {
 
     @Injected private var notificationRepository: NotificationRepository
 
-    private lazy var interestReducer = InterestHomeReducer { [weak self] in
-        self?.send(.interest($0)) ?? .none
-    }
-    private lazy var calendarReducer = CalendarHomeReducer { [weak self] in
-        self?.send(.calendar($0)) ?? .none
-    }
+    private lazy var interestReducer = InterestHomeReducer(
+        state: Binding(
+            get: { [weak self] in self?.state.interest ?? InterestHomeState() },
+            set: { [weak self] in self?.state.interest = $0 }
+        ),
+        send: { [weak self] in self?.send(.interest($0)) ?? .none }
+    )
+    private lazy var calendarReducer = CalendarHomeReducer(
+        state: Binding(
+            get: { [weak self] in self?.state.calendar ?? CalendarHomeState() },
+            set: { [weak self] in self?.state.calendar = $0 }
+        ),
+        send: { [weak self] in self?.send(.calendar($0)) ?? .none }
+    )
 
     private var cancellables = [CancelID: Task<Void, Never>]()
 
@@ -69,10 +78,10 @@ final class HomeStore: ObservableObject {
             performFetchUnreadCount()
 
         case .interest(let interestIntent):
-            return reduce(\.interest) { interestReducer.reduce(interestIntent, state: &$0) }
+            return interestReducer.reduce(interestIntent)
 
         case .calendar(let calendarIntent):
-            return reduce(\.calendar) { calendarReducer.reduce(calendarIntent, state: &$0) }
+            return calendarReducer.reduce(calendarIntent)
 
         case ._unreadCountResult(let result):
             switch result {
@@ -98,16 +107,6 @@ extension HomeStore {
             state: state[keyPath: keyPath],
             send: { [self] in send(intent($0)) }
         )
-    }
-
-    func reduce<S>(
-        _ keyPath: WritableKeyPath<HomeState, S>,
-        _ body: (inout S) -> DiscardableTask
-    ) -> DiscardableTask {
-        var child = state[keyPath: keyPath]
-        let task = body(&child)
-        state[keyPath: keyPath] = child
-        return task
     }
 }
 

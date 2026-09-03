@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 import DIContainer
 import Domain
@@ -77,46 +78,48 @@ final class CalendarHomeReducer {
 
     @Injected private var calendarRepository: CalendarRepository
 
+    @Binding private var state: CalendarHomeState
+
     private let send: (CalendarHomeIntent) -> DiscardableTask
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var monthRequestID = 0
     private var dayEventsRequestID = 0
 
-    init(send: @escaping (CalendarHomeIntent) -> DiscardableTask) {
+    init(state: Binding<CalendarHomeState>, send: @escaping (CalendarHomeIntent) -> DiscardableTask) {
+        self._state = state
         self.send = send
     }
 
     @discardableResult
     func reduce(
-        _ intent: CalendarHomeIntent,
-        state: inout CalendarHomeState
+        _ intent: CalendarHomeIntent
     ) -> DiscardableTask {
         switch intent {
         case .onAppear:
             if hasFetchRange(state) {
                 let showInitialLoading = state.isLoadFailed || state.calendarMonth == nil
-                return scheduleFetchMonth(showInitialLoading: showInitialLoading, state: &state)
+                return scheduleFetchMonth(showInitialLoading: showInitialLoading)
             }
             state.isInitialLoading = true
             return .none
 
         case .ticketingDateTapped:
-            guard toggleTicketingDateFilter(state: &state) else { return .none }
-            return scheduleFetchMonth(showInitialLoading: false, state: &state)
+            guard toggleTicketingDateFilter() else { return .none }
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .performanceDateTapped:
-            guard togglePerformanceDateFilter(state: &state) else { return .none }
-            return scheduleFetchMonth(showInitialLoading: false, state: &state)
+            guard togglePerformanceDateFilter() else { return .none }
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .allConcertsTapped:
             guard state.concertScope != .all else { return .none }
             state.concertScope = .all
-            return scheduleFetchMonth(showInitialLoading: false, state: &state)
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .myConcertsTapped:
             guard state.concertScope != .my else { return .none }
             state.concertScope = .my
-            return scheduleFetchMonth(showInitialLoading: false, state: &state)
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .onSelectionBlockedToastDisappear:
             state.selectionBlockedToastMessage = ""
@@ -147,12 +150,12 @@ final class CalendarHomeReducer {
             state.rangeStartDate = startDate
             state.rangeEndDate = endDate
             let showInitialLoading = state.calendarMonth == nil || state.isLoadFailed
-            return scheduleFetchMonth(showInitialLoading: showInitialLoading, state: &state)
+            return scheduleFetchMonth(showInitialLoading: showInitialLoading)
 
         case .pullToRefresh:
             guard hasFetchRange(state) else { return .none }
             state.isInitialLoading = false
-            return scheduleFetchMonth(showInitialLoading: false, state: &state)
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case ._fetchMonthResult(let result, let requestID):
             guard requestID == monthRequestID else { return .none }
@@ -182,7 +185,7 @@ final class CalendarHomeReducer {
                 state.isDayScheduleModalPresented = true
             case .failure(let error):
                 guard !isCancellationError(error) else { return .none }
-                presentDayScheduleLoadFailedToast(state: &state)
+                presentDayScheduleLoadFailedToast()
             }
             return .none
         }
@@ -197,8 +200,7 @@ private extension CalendarHomeReducer {
     }
 
     func scheduleFetchMonth(
-        showInitialLoading: Bool,
-        state: inout CalendarHomeState
+        showInitialLoading: Bool
     ) -> DiscardableTask {
         guard let startDate = state.rangeStartDate,
               let endDate = state.rangeEndDate
@@ -302,38 +304,38 @@ private extension CalendarHomeReducer {
         }
     }
 
-    func toggleTicketingDateFilter(state: inout CalendarHomeState) -> Bool {
+    func toggleTicketingDateFilter() -> Bool {
         guard state.isTicketingDateSelected else {
             state.isTicketingDateSelected = true
             return true
         }
         guard state.isPerformanceDateSelected else {
-            presentSelectionBlockedToast(state: &state)
+            presentSelectionBlockedToast()
             return false
         }
         state.isTicketingDateSelected = false
         return true
     }
 
-    func togglePerformanceDateFilter(state: inout CalendarHomeState) -> Bool {
+    func togglePerformanceDateFilter() -> Bool {
         guard state.isPerformanceDateSelected else {
             state.isPerformanceDateSelected = true
             return true
         }
         guard state.isTicketingDateSelected else {
-            presentSelectionBlockedToast(state: &state)
+            presentSelectionBlockedToast()
             return false
         }
         state.isPerformanceDateSelected = false
         return true
     }
 
-    func presentSelectionBlockedToast(state: inout CalendarHomeState) {
+    func presentSelectionBlockedToast() {
         state.selectionBlockedToastMessage = CalendarHomeConstants.selectionBlockedToastMessage
         state.selectionBlockedToastTrigger += 1
     }
 
-    func presentDayScheduleLoadFailedToast(state: inout CalendarHomeState) {
+    func presentDayScheduleLoadFailedToast() {
         state.dayScheduleLoadFailedToastMessage = CalendarHomeConstants.dayScheduleLoadFailedToastMessage
         state.dayScheduleLoadFailedToastTrigger += 1
     }

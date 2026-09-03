@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 import DIContainer
 import Domain
@@ -65,20 +66,22 @@ final class InterestHomeReducer {
     @Injected private var userRepository: UserRepository
     @Injected private var concertRepository: ConcertRepository
 
+    @Binding private var state: InterestHomeState
+
     private let send: (InterestHomeIntent) -> DiscardableTask
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var pendingInterestResultAlertFetch = false
     private var pendingInterestSectionList: [ConcertSection]?
     private var userLoadFailed = false
 
-    init(send: @escaping (InterestHomeIntent) -> DiscardableTask) {
+    init(state: Binding<InterestHomeState>, send: @escaping (InterestHomeIntent) -> DiscardableTask) {
+        self._state = state
         self.send = send
     }
 
     @discardableResult
     func reduce(
-        _ intent: InterestHomeIntent,
-        state: inout InterestHomeState
+        _ intent: InterestHomeIntent
     ) -> DiscardableTask {
         switch intent {
         case .onAppear:
@@ -106,7 +109,7 @@ final class InterestHomeReducer {
 
         case .onInterestResultSheetDismiss:
             guard state.shouldShowInterestResultSheet else { return .none }
-            clearInterestResultSheet(state: &state)
+            clearInterestResultSheet()
             return .none
 
         case .interestConcertSortSelected(let sort):
@@ -133,9 +136,9 @@ final class InterestHomeReducer {
                 if state.interestConcertList.isEmpty {
                     state.isInterestListLoadFailed = true
                     state.errorMessage = ""
-                    clearInterestResultSheet(state: &state)
+                    clearInterestResultSheet()
                 } else {
-                    applyError(from: error, state: &state)
+                    applyError(from: error)
                 }
             }
             return .none
@@ -144,18 +147,18 @@ final class InterestHomeReducer {
             switch result {
             case .success(let alertList):
                 guard shouldPresentInterestResultSheet(for: alertList) else {
-                    clearInterestResultSheet(state: &state)
+                    clearInterestResultSheet()
                     return .none
                 }
                 guard state.errorMessage.isEmpty, !state.isInterestListLoadFailed else {
-                    clearInterestResultSheet(state: &state)
+                    clearInterestResultSheet()
                     return .none
                 }
 
                 state.interestResultAlertList = alertList
                 state.shouldShowInterestResultSheet = true
             case .failure:
-                clearInterestResultSheet(state: &state)
+                clearInterestResultSheet()
             }
             return .none
 
@@ -184,7 +187,7 @@ final class InterestHomeReducer {
                     performFetchInterestResultAlertList()
                 }
             case .failure(let error):
-                applyError(from: error, state: &state)
+                applyError(from: error)
             }
             return .none
 
@@ -210,7 +213,7 @@ final class InterestHomeReducer {
                 pendingInterestSectionList = nil
                 pendingInterestResultAlertFetch = false
                 state.isSectionLoading = false
-                applyError(from: error, state: &state)
+                applyError(from: error)
             }
             return .none
         }
@@ -400,12 +403,12 @@ private extension InterestHomeReducer {
         }
     }
 
-    func applyError(from error: Error, state: inout InterestHomeState) {
+    func applyError(from error: Error) {
         let message = errorMessage(from: error)
         state.errorMessage = message
 
         guard !message.isEmpty else { return }
-        clearInterestResultSheet(state: &state)
+        clearInterestResultSheet()
     }
 
     func errorMessage(from error: Error) -> String {
@@ -425,7 +428,7 @@ private extension InterestHomeReducer {
         return false
     }
 
-    func clearInterestResultSheet(state: inout InterestHomeState) {
+    func clearInterestResultSheet() {
         state.shouldShowInterestResultSheet = false
         state.interestResultAlertList = []
     }
