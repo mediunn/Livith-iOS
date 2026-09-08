@@ -1,5 +1,5 @@
 //
-//  CalendarHomeStore.swift
+//  CalendarHomeReducer.swift
 //  HomeFeature
 //
 //  Created by 김진웅 on 7/19/26.
@@ -7,19 +7,20 @@
 //
 
 import Foundation
+import SwiftUI
 
 import DIContainer
 import Domain
 import LivithFoundation
 
-// MARK: - Concert Scope
+// MARK: - CalendarConcertScope
 
 enum CalendarConcertScope {
     case all
     case my
 }
 
-// MARK: - State
+// MARK: - CalendarHomeState
 
 struct CalendarHomeState {
     var isTicketingDateSelected: Bool = true
@@ -39,7 +40,15 @@ struct CalendarHomeState {
     var dayScheduleEventList: [CalendarDayEvent] = []
 }
 
-// MARK: - Intent
+// MARK: - CalendarHomeConstants
+
+enum CalendarHomeConstants {
+    static let selectionBlockedToastMessage = "예매일 또는 공연일 중 하나는 선택해야 해요."
+    static let dayScheduleLoadFailedToastMessage = "일정을 불러오지 못했어요"
+    static let loadFailedEmptyMessage = "캘린더를\n불러오지 못했어요"
+}
+
+// MARK: - CalendarHomeIntent
 
 enum CalendarHomeIntent {
     case onAppear
@@ -52,91 +61,87 @@ enum CalendarHomeIntent {
     case dayScheduleRequested(date: Date)
     case dayScheduleModalDismissed
     case monthChanged(startDate: String, endDate: String)
+    case pullToRefresh
     case _fetchMonthResult(Result<CalendarMonth, Error>, requestID: Int)
     case _fetchDayEventsResult(Result<CalendarDaySchedule, Error>, requestID: Int)
 }
 
-// MARK: - Store
+// MARK: - CalendarHomeReducer
 
 @MainActor
-final class CalendarHomeStore: ObservableObject {
-
-    enum Constants {
-        static let selectionBlockedToastMessage = "예매일 또는 공연일 중 하나는 선택해야 해요."
-        static let dayScheduleLoadFailedToastMessage = "일정을 불러오지 못했어요"
-        static let loadFailedEmptyMessage = "캘린더를\n불러오지 못했어요"
-    }
-
-    @Published private(set) var state: CalendarHomeState = .init()
-
-    @Injected private var calendarRepository: CalendarRepository
+final class CalendarHomeReducer {
 
     private enum CancelID {
         case fetchMonth
         case fetchDayEvents
     }
 
+    @Injected private var calendarRepository: CalendarRepository
+
+    @Binding private var state: CalendarHomeState
+
+    private let send: (CalendarHomeIntent) -> DiscardableTask
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var monthRequestID = 0
     private var dayEventsRequestID = 0
 
-    func send(_ intent: CalendarHomeIntent) {
+    init(state: Binding<CalendarHomeState>, send: @escaping (CalendarHomeIntent) -> DiscardableTask) {
+        self._state = state
+        self.send = send
+    }
+
+    @discardableResult
+    func reduce(
+        _ intent: CalendarHomeIntent
+    ) -> DiscardableTask {
         switch intent {
         case .onAppear:
-            if hasFetchRange {
+            if hasFetchRange(state) {
                 let showInitialLoading = state.isLoadFailed || state.calendarMonth == nil
-                scheduleFetchMonth(showInitialLoading: showInitialLoading)
-            } else {
-                state.isInitialLoading = true
+                return scheduleFetchMonth(showInitialLoading: showInitialLoading)
             }
+            state.isInitialLoading = true
+            return .none
 
         case .ticketingDateTapped:
-            let didChange = toggleDateFilter(
-                isSelected: state.isTicketingDateSelected,
-                otherIsSelected: state.isPerformanceDateSelected,
-                setSelected: { state.isTicketingDateSelected = $0 }
-            )
-            if didChange {
-                scheduleFetchMonth(showInitialLoading: false)
-            }
+            guard toggleTicketingDateFilter() else { return .none }
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .performanceDateTapped:
-            let didChange = toggleDateFilter(
-                isSelected: state.isPerformanceDateSelected,
-                otherIsSelected: state.isTicketingDateSelected,
-                setSelected: { state.isPerformanceDateSelected = $0 }
-            )
-            if didChange {
-                scheduleFetchMonth(showInitialLoading: false)
-            }
+            guard togglePerformanceDateFilter() else { return .none }
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .allConcertsTapped:
-            guard state.concertScope != .all else { return }
-
+            guard state.concertScope != .all else { return .none }
             state.concertScope = .all
-            scheduleFetchMonth(showInitialLoading: false)
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .myConcertsTapped:
-            guard state.concertScope != .my else { return }
-
+            guard state.concertScope != .my else { return .none }
             state.concertScope = .my
-            scheduleFetchMonth(showInitialLoading: false)
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case .onSelectionBlockedToastDisappear:
             state.selectionBlockedToastMessage = ""
+            return .none
 
         case .onDayScheduleLoadFailedToastDisappear:
             state.dayScheduleLoadFailedToastMessage = ""
+            return .none
 
         case .dayScheduleRequested(let date):
-            performFetchDayEvents(date: date)
+            performFetchDayEvents(date: date, state: state)
+            return .none
 
         case .dayScheduleModalDismissed:
             state.isDayScheduleModalPresented = false
+            return .none
 
         case .monthChanged(let startDate, let endDate):
             let isSameRange = state.rangeStartDate == startDate && state.rangeEndDate == endDate
-            guard !isSameRange || state.calendarMonth == nil || state.isLoadFailed else { return }
+            guard !isSameRange || state.calendarMonth == nil || state.isLoadFailed else {
+                return .none
+            }
 
             state.isDayScheduleModalPresented = false
             cancellables[.fetchDayEvents]?.cancel()
@@ -145,10 +150,15 @@ final class CalendarHomeStore: ObservableObject {
             state.rangeStartDate = startDate
             state.rangeEndDate = endDate
             let showInitialLoading = state.calendarMonth == nil || state.isLoadFailed
-            scheduleFetchMonth(showInitialLoading: showInitialLoading)
+            return scheduleFetchMonth(showInitialLoading: showInitialLoading)
+
+        case .pullToRefresh:
+            guard hasFetchRange(state) else { return .none }
+            state.isInitialLoading = false
+            return scheduleFetchMonth(showInitialLoading: false)
 
         case ._fetchMonthResult(let result, let requestID):
-            guard requestID == monthRequestID else { return }
+            guard requestID == monthRequestID else { return .none }
 
             state.isInitialLoading = false
 
@@ -157,56 +167,55 @@ final class CalendarHomeStore: ObservableObject {
                 state.calendarMonth = month
                 state.isLoadFailed = false
             case .failure(let error):
-                guard !isCancellationError(error) else { return }
-
+                guard !isCancellationError(error) else { return .none }
                 state.isLoadFailed = true
             }
+            return .none
 
         case ._fetchDayEventsResult(let result, let requestID):
-            guard requestID == dayEventsRequestID else { return }
+            guard requestID == dayEventsRequestID else { return .none }
 
             switch result {
             case .success(let schedule):
-                state.selectedDayTitle = DateFormatterService.string(from: schedule.date, type: .koreanMonthDayWeekday)
+                state.selectedDayTitle = DateFormatterService.string(
+                    from: schedule.date,
+                    type: .koreanMonthDayWeekday
+                )
                 state.dayScheduleEventList = CalendarDayScheduleSorter.sorted(schedule.eventList)
                 state.isDayScheduleModalPresented = true
             case .failure(let error):
-                guard !isCancellationError(error) else { return }
-
+                guard !isCancellationError(error) else { return .none }
                 presentDayScheduleLoadFailedToast()
             }
+            return .none
         }
-    }
-
-    func performRefresh() async {
-        guard hasFetchRange else {
-            return
-        }
-
-        state.isInitialLoading = false
-        await scheduleFetchMonth(showInitialLoading: false)?.value
     }
 }
 
-// MARK: - Private Helpers
+// MARK: - Helpers
 
-private extension CalendarHomeStore {
-    var hasFetchRange: Bool {
+private extension CalendarHomeReducer {
+    func hasFetchRange(_ state: CalendarHomeState) -> Bool {
         state.rangeStartDate != nil && state.rangeEndDate != nil
     }
 
-    @discardableResult
-    func scheduleFetchMonth(showInitialLoading: Bool) -> Task<Void, Never>? {
+    func scheduleFetchMonth(
+        showInitialLoading: Bool
+    ) -> DiscardableTask {
         guard let startDate = state.rangeStartDate,
               let endDate = state.rangeEndDate
         else {
-            return nil
+            cancellables[.fetchMonth]?.cancel()
+            cancellables[.fetchMonth] = nil
+            return .none
         }
 
         cancellables[.fetchMonth]?.cancel()
 
         monthRequestID += 1
         let requestID = monthRequestID
+        let scheduleTypes = scheduleTypeFilterList(state)
+        let concertType = concertTypeFilter(state)
 
         if showInitialLoading {
             state.isInitialLoading = true
@@ -214,34 +223,49 @@ private extension CalendarHomeStore {
         }
 
         let task = Task {
-            let result = await fetchMonthResult(startDate: startDate, endDate: endDate)
+            let result = await fetchMonthResult(
+                startDate: startDate,
+                endDate: endDate,
+                scheduleTypes: scheduleTypes,
+                concertType: concertType
+            )
             guard !Task.isCancelled else { return }
-
             send(._fetchMonthResult(result, requestID: requestID))
         }
         cancellables[.fetchMonth] = task
-        return task
+        return DiscardableTask(task: task)
     }
 
-    func performFetchDayEvents(date: Date) {
+    func performFetchDayEvents(date: Date, state: CalendarHomeState) {
         cancellables[.fetchDayEvents]?.cancel()
 
         dayEventsRequestID += 1
         let requestID = dayEventsRequestID
+        let scheduleTypes = scheduleTypeFilterList(state)
+        let concertType = concertTypeFilter(state)
 
         cancellables[.fetchDayEvents] = Task {
-            let result = await fetchDayEventsResult(date: date)
+            let result = await fetchDayEventsResult(
+                date: date,
+                scheduleTypes: scheduleTypes,
+                concertType: concertType
+            )
             send(._fetchDayEventsResult(result, requestID: requestID))
         }
     }
 
-    func fetchMonthResult(startDate: String, endDate: String) async -> Result<CalendarMonth, Error> {
+    func fetchMonthResult(
+        startDate: String,
+        endDate: String,
+        scheduleTypes: [CalendarScheduleTypeFilter],
+        concertType: CalendarConcertTypeFilter
+    ) async -> Result<CalendarMonth, Error> {
         do {
             let month = try await calendarRepository.fetchMonth(
                 startDate: startDate,
                 endDate: endDate,
-                scheduleTypes: scheduleTypeFilterList(),
-                concertType: concertTypeFilter()
+                scheduleTypes: scheduleTypes,
+                concertType: concertType
             )
             return .success(month)
         } catch {
@@ -249,12 +273,16 @@ private extension CalendarHomeStore {
         }
     }
 
-    func fetchDayEventsResult(date: Date) async -> Result<CalendarDaySchedule, Error> {
+    func fetchDayEventsResult(
+        date: Date,
+        scheduleTypes: [CalendarScheduleTypeFilter],
+        concertType: CalendarConcertTypeFilter
+    ) async -> Result<CalendarDaySchedule, Error> {
         do {
             let schedule = try await calendarRepository.fetchDayEvents(
                 date: date,
-                scheduleTypes: scheduleTypeFilterList(),
-                concertType: concertTypeFilter()
+                scheduleTypes: scheduleTypes,
+                concertType: concertType
             )
             return .success(schedule)
         } catch {
@@ -262,67 +290,61 @@ private extension CalendarHomeStore {
         }
     }
 
-    func scheduleTypeFilterList() -> [CalendarScheduleTypeFilter] {
+    func scheduleTypeFilterList(_ state: CalendarHomeState) -> [CalendarScheduleTypeFilter] {
         var filterList: [CalendarScheduleTypeFilter] = []
-
-        if state.isTicketingDateSelected {
-            filterList.append(.ticketing)
-        }
-        if state.isPerformanceDateSelected {
-            filterList.append(.concert)
-        }
-
+        if state.isTicketingDateSelected { filterList.append(.ticketing) }
+        if state.isPerformanceDateSelected { filterList.append(.concert) }
         return filterList
     }
 
-    func concertTypeFilter() -> CalendarConcertTypeFilter {
+    func concertTypeFilter(_ state: CalendarHomeState) -> CalendarConcertTypeFilter {
         switch state.concertScope {
-        case .all:
-            return .all
-        case .my:
-            return .interest
+        case .all: return .all
+        case .my: return .interest
         }
     }
 
-    @discardableResult
-    func toggleDateFilter(
-        isSelected: Bool,
-        otherIsSelected: Bool,
-        setSelected: (Bool) -> Void
-    ) -> Bool {
-        guard isSelected else {
-            setSelected(true)
+    func toggleTicketingDateFilter() -> Bool {
+        guard state.isTicketingDateSelected else {
+            state.isTicketingDateSelected = true
             return true
         }
-
-        guard otherIsSelected else {
+        guard state.isPerformanceDateSelected else {
             presentSelectionBlockedToast()
             return false
         }
+        state.isTicketingDateSelected = false
+        return true
+    }
 
-        setSelected(false)
+    func togglePerformanceDateFilter() -> Bool {
+        guard state.isPerformanceDateSelected else {
+            state.isPerformanceDateSelected = true
+            return true
+        }
+        guard state.isTicketingDateSelected else {
+            presentSelectionBlockedToast()
+            return false
+        }
+        state.isPerformanceDateSelected = false
         return true
     }
 
     func presentSelectionBlockedToast() {
-        state.selectionBlockedToastMessage = Constants.selectionBlockedToastMessage
+        state.selectionBlockedToastMessage = CalendarHomeConstants.selectionBlockedToastMessage
         state.selectionBlockedToastTrigger += 1
     }
 
     func presentDayScheduleLoadFailedToast() {
-        state.dayScheduleLoadFailedToastMessage = Constants.dayScheduleLoadFailedToastMessage
+        state.dayScheduleLoadFailedToastMessage = CalendarHomeConstants.dayScheduleLoadFailedToastMessage
         state.dayScheduleLoadFailedToastTrigger += 1
     }
 
     func isCancellationError(_ error: Error) -> Bool {
-        if error is CancellationError {
-            return true
-        }
-
+        if error is CancellationError { return true }
         if case let calendarError as CalendarError = error, calendarError == .cancelled {
             return true
         }
-
         return false
     }
 }
