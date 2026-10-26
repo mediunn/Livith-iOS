@@ -202,20 +202,20 @@ private extension DebugNetworkPlugin {
             return "invalidURL"
         case .invalidRequest:
             return "invalidRequest"
-        case .encodingFailed:
-            return "encodingFailed"
-        case .noConnection:
-            return "noConnection"
-        case .timeout:
-            return "timeout"
+        case .encodingFailed(let error):
+            return "encodingFailed (\(underlyingDetail(error)))"
+        case .noConnection(let error):
+            return "noConnection (\(underlyingDetail(error)))"
+        case .timeout(let error):
+            return "timeout (\(underlyingDetail(error)))"
         case .cancelled:
             return "cancelled"
         case .invalidResponse:
             return "invalidResponse"
         case .noData:
             return "noData"
-        case .decodingFailed:
-            return "decodingFailed"
+        case .decodingFailed(let error):
+            return "decodingFailed (\(underlyingDetail(error)))"
         case .badRequest:
             return "badRequest"
         case .unauthorized:
@@ -228,9 +228,14 @@ private extension DebugNetworkPlugin {
             return "clientError(\(statusCode))"
         case .serverError(let statusCode, _):
             return "serverError(\(statusCode))"
-        case .unknown:
-            return "unknown"
+        case .unknown(let error):
+            return "unknown (\(underlyingDetail(error)))"
         }
+    }
+
+    func underlyingDetail(_ error: Error) -> String {
+        let nsError = error as NSError
+        return "\(nsError.domain) \(nsError.code): \(nsError.localizedDescription)"
     }
 
     func statusDescription(_ code: Int) -> String {
