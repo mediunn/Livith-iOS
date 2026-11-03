@@ -112,7 +112,10 @@ private extension InterestHomeContentView {
             HomeInterestConcertSectionView(
                 interestConcertList: scope.state.interestConcertList,
                 selectedSort: scope.state.interestConcertSort,
-                onChangeTap: { homeRouter.push(.interestConcertSetting(mode: .update)) },
+                onChangeTap: {
+                    AmplitudeService.shared.trackEvent(tag: .click(.changeConcertMain))
+                    homeRouter.push(.interestConcertSetting(mode: .update))
+                },
                 onTitleTap: { homeRouter.push(.interestConcertList) },
                 onSortSelected: { scope.send(.interestConcertSortSelected($0)) },
                 onConcertTap: { interestConcert in
