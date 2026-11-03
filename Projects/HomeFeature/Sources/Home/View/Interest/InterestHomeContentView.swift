@@ -119,6 +119,7 @@ private extension InterestHomeContentView {
                 onTitleTap: { homeRouter.push(.interestConcertList) },
                 onSortSelected: { scope.send(.interestConcertSortSelected($0)) },
                 onConcertTap: { interestConcert in
+                    AmplitudeService.shared.trackEvent(tag: .click(.concertCellMain))
                     homeRouter.push(.concertDetail(
                         concertID: interestConcert.concert.id,
                         initialTab: .artistDetail,
