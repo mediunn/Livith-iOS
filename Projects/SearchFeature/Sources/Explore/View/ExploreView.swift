@@ -34,6 +34,7 @@ struct ExploreView: View {
 
             ZStack(alignment: .top) {
                 ExploreSearchButton(onTap: handleSearchTap)
+                    .padding(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
                     .zIndex(2)
                     .background(
                         scrollOffset > Constants.bannerHeight - 60
