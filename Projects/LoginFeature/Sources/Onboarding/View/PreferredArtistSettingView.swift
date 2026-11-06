@@ -70,6 +70,8 @@ struct PreferredArtistSettingView: View {
                     isDiscardChangesModalPresented = false
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
     }
 }

@@ -76,6 +76,8 @@ struct InstagramManualSearchView: View {
                 type: .confirm(onConfirm: { store.send(.confirmCancel) }),
                 onCancel: { store.send(.dismissCancelModal) }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: store.state.errorMessage) { _, errorMessage in
             if !errorMessage.isEmpty {

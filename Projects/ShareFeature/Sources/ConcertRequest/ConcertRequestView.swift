@@ -144,6 +144,8 @@ public struct ConcertRequestView: View {
                     isCancelModalPresented = false
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
     }
 }

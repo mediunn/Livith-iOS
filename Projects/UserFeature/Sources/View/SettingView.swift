@@ -74,6 +74,8 @@ struct SettingView: View {
                     overlayType = .none
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: logoutStore.state.logoutResult) { _, newResult in
             handleLogoutResult(newResult)

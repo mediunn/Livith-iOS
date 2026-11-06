@@ -81,6 +81,8 @@ struct InterestConcertSettingView: View {
                     isDiscardChangesModalPresented = false
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: store.state.errorMessage) { _, errorMessage in
             if !errorMessage.isEmpty {

@@ -94,6 +94,8 @@ public struct ConcertView: View {
                     communityStore.send(.dismissDialog)
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .crossDissolve(isPresented: isReportDialogPresented, dismissOnTapOutside: true) {
             LivithDangerModal(
@@ -107,6 +109,8 @@ public struct ConcertView: View {
                     communityStore.send(.dismissDialog)
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout(avoidsKeyboard: true)
         }
         .overlay { ticketReturnBannerOverlay }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
