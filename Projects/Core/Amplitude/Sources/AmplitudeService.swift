@@ -62,11 +62,12 @@ public extension AmplitudeService {
         // 홈 메인
         case interestConcertMain = "click_interest_concert_main"
         case concertCellMain = "click_concert_cell_main"
-        case moreInfoMain = "click_more_info_main"
-        case concertScheduleSegmentMain = "click_concert_schedule_segment_main"
-        case setlistSegmentMain = "click_setlist_segment_main"
-        case setlistSongMain = "click_setlist_song_main"
-        case moreSongsMain = "click_more_songs_main"
+        // 구 홈 UI 이벤트
+        // case moreInfoMain = "click_more_info_main"
+        // case concertScheduleSegmentMain = "click_concert_schedule_segment_main"
+        // case setlistSegmentMain = "click_setlist_segment_main"
+        // case setlistSongMain = "click_setlist_song_main"
+        // case moreSongsMain = "click_more_songs_main"
         case changeConcertMain = "click_change_concert_main"
         case setPreferenceBannerMain = "click_set_preference_banner_main"
 
