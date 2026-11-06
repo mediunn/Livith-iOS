@@ -21,11 +21,13 @@ import UserData
 import PreferenceData
 import CalendarData
 import HomeFeature
+import ConcertFeature
 
 extension LivithApp {
     func registerDependency() {
         registerNetworkingClient()
         registerCalendarWebConfig()
+        registerSetlistWebConfig()
 
         DIContainer.shared.register(
             assemblers: [
@@ -80,5 +82,15 @@ private extension LivithApp {
             return URL(string: value)
         }
         DIContainer.shared.register(CalendarWebConfig(url: url), for: CalendarWebConfig.self)
+    }
+
+    func registerSetlistWebConfig() {
+        let urlString = Bundle.main.infoDictionary?["WEB_BASE_URL"] as? String
+        let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let baseURL = trimmed.flatMap { value -> URL? in
+            guard !value.isEmpty else { return nil }
+            return URL(string: value)
+        }
+        DIContainer.shared.register(SetlistWebConfig(baseURL: baseURL), for: SetlistWebConfig.self)
     }
 }

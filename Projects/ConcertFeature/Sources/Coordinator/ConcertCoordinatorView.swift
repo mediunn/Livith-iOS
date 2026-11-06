@@ -48,7 +48,7 @@ public struct ConcertCoordinatorView: View {
     private func destinationView(for route: ConcertRoute) -> some View {
         switch route {
         case .setlistDetail(let concertID, let setlistID):
-            #if DEBUG && targetEnvironment(simulator)
+            #if DEBUG
             SetlistWebView(concertID: concertID, setlistID: setlistID)
             #else
             SetlistDetailContainerView(
