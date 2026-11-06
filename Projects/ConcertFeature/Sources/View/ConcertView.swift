@@ -235,6 +235,8 @@ private extension ConcertView {
                     store.send(.onTicketBannerDismiss)
                 }
             )
+            .padding([.horizontal, .bottom], 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
