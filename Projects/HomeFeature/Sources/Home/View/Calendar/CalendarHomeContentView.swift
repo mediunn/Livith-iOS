@@ -97,7 +97,7 @@ private extension CalendarHomeContentView {
     var calendarBody: some View {
         if scope.state.isLoadFailed {
             LivithEmptyView(text: CalendarHomeConstants.loadFailedEmptyMessage)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .containerRelativeFrame(.vertical)
         } else {
             ZStack {

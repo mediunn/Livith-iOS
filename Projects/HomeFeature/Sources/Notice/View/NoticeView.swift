@@ -102,6 +102,7 @@ private extension NoticeView {
             Spacer()
 
             LivithEmptyView(text: Literals.emptyMessage)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Spacer()
         }

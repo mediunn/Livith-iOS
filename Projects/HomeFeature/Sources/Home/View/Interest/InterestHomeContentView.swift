@@ -86,7 +86,7 @@ private extension InterestHomeContentView {
 
     var loadFailedEmptyView: some View {
         LivithEmptyView(text: InterestHomeConstants.interestListLoadFailedEmptyMessage)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerRelativeFrame(.vertical)
     }
 

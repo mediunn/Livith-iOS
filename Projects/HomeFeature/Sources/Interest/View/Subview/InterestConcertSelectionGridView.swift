@@ -40,7 +40,7 @@ struct InterestConcertSelectionGridView: View {
 private extension InterestConcertSelectionGridView {
     var emptyView: some View {
         LivithEmptyView(text: "검색 결과가 없어요")
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerRelativeFrame(.vertical)
     }
 

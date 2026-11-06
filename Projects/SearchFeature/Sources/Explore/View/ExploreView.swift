@@ -251,6 +251,7 @@ private extension ExploreView {
 
     var emptyView: some View {
         LivithEmptyView(text: "콘서트가 없어요")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
