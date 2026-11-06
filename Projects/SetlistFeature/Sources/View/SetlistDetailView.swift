@@ -110,11 +110,11 @@ private extension SetlistDetailView {
                             isReportSheetPresented = true
                         }
                     )
-                    .padding(.horizontal, 16)
                     .padding(.top, 24)
 
                     songListView
                 }
+                .padding(.horizontal, 16)
                 .padding(.bottom, 40)
             }
         }
