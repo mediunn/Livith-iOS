@@ -40,7 +40,7 @@ struct InterestConcertSelectionGridView: View {
 private extension InterestConcertSelectionGridView {
     var emptyView: some View {
         LivithEmptyView(text: "검색 결과가 없어요")
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerRelativeFrame(.vertical)
     }
 
@@ -60,9 +60,6 @@ private extension InterestConcertSelectionGridView {
                     .padding(.vertical, 16)
             }
         }
-        .padding(.top, 20)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 210)
     }
 
     func concertCard(for concert: Concert) -> some View {

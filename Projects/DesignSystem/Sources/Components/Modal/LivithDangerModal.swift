@@ -36,7 +36,6 @@ public struct LivithDangerModal: View {
 
     @State private var text: String = ""
     @State private var isOverLimit: Bool = false
-    @State private var keyboardHeight: CGFloat = 0
     @State private var isFocused: Bool = false
 
     private var isConfirmEnabled: Bool {
@@ -67,37 +66,18 @@ public struct LivithDangerModal: View {
     // MARK: - Body
 
     public var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                dialogContent
-                    .padding(.horizontal, 24)
-                    .offset(y: isReportType && keyboardHeight > 0 ? -(keyboardHeight / 2) : 0)
-                    .animation(.easeInOut(duration: 0.25), value: keyboardHeight)
-
-                if isReportType && isOverLimit {
-                    LivithToast(type: .failure, message: "200자를 초과했어요")
-                        .position(
-                            x: geometry.size.width / 2,
-                            y: geometry.size.height - keyboardHeight - 20 - 27
-                        )
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        }
-        .ignoresSafeArea(.keyboard)
-        .onAppear {
-            if isReportType {
-                keyboardHeight = KeyboardHeightObserver.shared.height
-            }
-        }
-        .onReceive(KeyboardHeightObserver.shared.$height) { height in
-            if isReportType {
-                keyboardHeight = height
-            }
-        }
+        dialogContent
+            .preference(
+                key: ModalToastMessageKey.self,
+                value: isReportType && isOverLimit ? "200자를 초과했어요" : nil
+            )
     }
+}
 
-    private var dialogContent: some View {
+// MARK: - UIComponents
+
+private extension LivithDangerModal {
+    var dialogContent: some View {
         VStack(alignment: .center, spacing: 20) {
             headerSection
 
@@ -278,6 +258,8 @@ private struct LivithDangerModalPreviewContainer: View {
                 type: .confirm(onConfirm: { isConfirmPresented = false }),
                 onCancel: { isConfirmPresented = false }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .crossDissolve(isPresented: $isReportPresented, dismissOnTapOutside: true) {
             LivithDangerModal(
@@ -287,6 +269,8 @@ private struct LivithDangerModalPreviewContainer: View {
                 type: .report(onConfirm: { _ in isReportPresented = false }),
                 onCancel: { isReportPresented = false }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout(avoidsKeyboard: true)
         }
     }
 }

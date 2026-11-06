@@ -40,6 +40,7 @@ struct InstagramManualSearchView: View {
 
                 gridSection
             }
+            .padding(.horizontal, Constants.horizontalPadding)
 
             bottomGradient
 
@@ -75,6 +76,8 @@ struct InstagramManualSearchView: View {
                 type: .confirm(onConfirm: { store.send(.confirmCancel) }),
                 onCancel: { store.send(.dismissCancelModal) }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: store.state.errorMessage) { _, errorMessage in
             if !errorMessage.isEmpty {
@@ -108,7 +111,6 @@ private extension InstagramManualSearchView {
                         .resizable()
                         .frame(width: 36, height: 36)
                 }
-                .padding(.leading, 16)
             }
 
             Spacer()
@@ -117,13 +119,11 @@ private extension InstagramManualSearchView {
                 AmplitudeService.shared.trackEvent(tag: .click(.concertRequest))
                 homeRouter.push(.concertRequest)
             }
-            .padding(.trailing, 16)
         }
         .frame(height: Constants.navigationBarHeight)
         .overlay(alignment: .bottomTrailing) {
             reportTooltip
                 .offset(y: Constants.tooltipBottomOffset)
-                .padding(.trailing, Constants.horizontalPadding)
         }
         .zIndex(1)
     }
@@ -150,7 +150,6 @@ private extension InstagramManualSearchView {
 
             searchTextField
                 .padding(.top, 32)
-                .padding(.horizontal, Constants.horizontalPadding)
         }
     }
 
@@ -164,7 +163,6 @@ private extension InstagramManualSearchView {
             Spacer()
         }
         .padding(.top, 20)
-        .padding(.horizontal, Constants.horizontalPadding)
     }
 
     var searchTextField: some View {
@@ -190,9 +188,13 @@ private extension InstagramManualSearchView {
                     onScroll: { store.send(.setSearchFocused(false)) },
                     onLoadMore: { store.send(.loadNextPage) }
                 )
+                .contentMargins(.bottom, store.state.displayedConcertList.isEmpty ? 0 : 210, for: .scrollContent)
             }
         }
-        .padding(.top, 9)
+        .padding(
+            .top,
+            store.state.isInitialLoading || store.state.isSearchLoading ? 9 : 29
+        )
     }
 
     var bottomGradient: some View {

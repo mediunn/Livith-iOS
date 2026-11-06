@@ -35,6 +35,7 @@ public enum LoginModule: String {
 
 public enum SearchModule: String {
     case searchFeature = "SearchFeature"
+    case searchFeatureTests = "SearchFeatureTests"
 }
 
 

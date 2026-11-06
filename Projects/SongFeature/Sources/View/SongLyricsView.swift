@@ -228,6 +228,7 @@ private extension SongLyricsView {
         VStack {
             Spacer()
             LivithEmptyView(text: "가사 정보가 없어요")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

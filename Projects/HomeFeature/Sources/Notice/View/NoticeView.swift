@@ -81,6 +81,7 @@ private extension NoticeView {
                 onRightButtonTap: onSettingTap
             )
         )
+        .padding(.horizontal, 16)
     }
 
     var loadingView: some View {
@@ -101,6 +102,7 @@ private extension NoticeView {
             Spacer()
 
             LivithEmptyView(text: Literals.emptyMessage)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Spacer()
         }

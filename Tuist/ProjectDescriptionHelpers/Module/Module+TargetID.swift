@@ -67,8 +67,8 @@ public enum TargetID {
             return livithNetworkingSourcePath(module)
         case .login:
             return ["Sources/**"]
-        case .search:
-            return ["Sources/**"]
+        case .search(let module):
+            return searchSourcePath(module)
         case .song:
             return ["Sources/**"]
         case .setlist:
@@ -169,6 +169,15 @@ private extension TargetID {
         case .homeFeature:
             return ["Sources/**"]
         case .homeFeatureTests:
+            return ["Tests/**"]
+        }
+    }
+
+    func searchSourcePath(_ module: SearchModule) -> SourceFilesList {
+        switch module {
+        case .searchFeature:
+            return ["Sources/**"]
+        case .searchFeatureTests:
             return ["Tests/**"]
         }
     }

@@ -30,26 +30,23 @@ struct TermsView: View {
 
             stepIndicator
                 .padding(.top, 10)
-                .padding(.horizontal, 16)
 
             title
                 .padding(.top, 32)
-                .padding(.horizontal, 16)
 
             allAgreeButton
                 .padding(.top, 20)
-                .padding(.horizontal, 16)
 
             termsSection
                 .padding(.top, 20)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 4)
 
             Spacer()
 
             nextButton
                 .padding(.bottom, 50)
-                .padding(.horizontal, 16)
         }
+        .padding(.horizontal, 16)
         .background(Color.livithColor(.black100))
         .ignoresSafeArea(.all, edges: .bottom)
         .sheet(isPresented: $showSafari) {
