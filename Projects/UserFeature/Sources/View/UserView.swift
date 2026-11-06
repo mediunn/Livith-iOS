@@ -206,7 +206,7 @@ private extension UserView {
                         if store.state.hasArtistData {
                             AmplitudeService.shared.trackEvent(tag: .click(.changeArtistPreference))
                         } else {
-                            AmplitudeService.shared.trackEvent(tag: .click(.setGenrePreference))
+                            AmplitudeService.shared.trackEvent(tag: .click(.setArtistPreference))
                         }
                         router.push(.artistUpdate(selectedArtistList: store.state.artists))
                         // TODO: 향후 Store 상태 변경으로 이전 예정

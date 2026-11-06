@@ -228,7 +228,6 @@ private extension ConcertView {
                 actionTitle: "콘서트 설정",
                 onActionTapped: {
                     store.send(.onTicketBannerDismiss)
-                    AmplitudeService.shared.trackEvent(tag: .confirm(.changeInterest))
                     store.send(.interestButtonTapped)
                 },
                 onDismiss: {

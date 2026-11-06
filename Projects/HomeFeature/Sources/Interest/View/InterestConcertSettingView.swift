@@ -138,7 +138,12 @@ private extension InterestConcertSettingView {
             isCTAEnabled: store.state.isCTAEnabled,
             isSubmitting: store.state.isSubmitting,
             onRemoveSelectedConcert: { store.send(.removeSelectedConcert($0)) },
-            onSubmit: { store.send(.submit) }
+            onSubmit: {
+                if store.state.mode == .initialSetup {
+                    AmplitudeService.shared.trackEvent(tag: .confirm(.interestConcert))
+                }
+                store.send(.submit)
+            }
         )
     }
 
