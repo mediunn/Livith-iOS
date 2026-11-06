@@ -49,6 +49,7 @@ struct SettingView: View {
 
             Spacer()
         }
+        .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
         .sheet(isPresented: isSheetPresented) {
@@ -85,7 +86,6 @@ struct SettingView: View {
 private extension SettingView {
     var navigationBar: some View {
         LivithNavigationView(type: .back(title: Literals.title, onBack: { router.pop() }))
-            .padding(.horizontal, 16)
     }
 }
 
