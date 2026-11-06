@@ -79,11 +79,11 @@ public struct ConcertRequestView: View {
                         urlSection
                         additionalNoteSection
                     }
-                    .padding(.horizontal, 16)
                     .padding(.top, 20)
                     .padding(.bottom, Constants.scrollBottomPadding)
                 }
             }
+            .padding(.horizontal, 16)
 
             submitButton
                 .padding(.horizontal, 16)

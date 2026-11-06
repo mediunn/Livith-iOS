@@ -63,8 +63,8 @@ public struct ArtistEditView: View {
                 submitButton
                     .padding(.bottom, Constants.bottomPadding)
             }
-            .padding(.horizontal, Constants.horizontalPadding)
         }
+        .padding(.horizontal, Constants.horizontalPadding)
         .background(.livithColor(.black100))
         .ignoresSafeArea(.keyboard)
         .navigationBarHidden(true)

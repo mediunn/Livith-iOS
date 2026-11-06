@@ -81,6 +81,7 @@ private extension NoticeView {
                 onRightButtonTap: onSettingTap
             )
         )
+        .padding(.horizontal, 16)
     }
 
     var loadingView: some View {

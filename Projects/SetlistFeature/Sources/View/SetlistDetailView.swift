@@ -51,6 +51,7 @@ public struct SetlistDetailView: View {
     public var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(type: .back(title: store.state.setlist?.title ?? "", onBack: { dismiss() }))
+                .padding(.horizontal, 16)
 
             ZStack {
                 Color.livithColor(.black100)

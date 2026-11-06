@@ -54,6 +54,7 @@ public struct ConcertView: View {
             LivithNavigationView(
                 type: .back(title: navigationTitle, onBack: { dismiss() })
             )
+            .padding(.horizontal, 16)
 
             if showEmptyView {
                 emptyContentView

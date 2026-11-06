@@ -30,6 +30,7 @@ struct ExploreView: View {
     var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(type: .logo())
+                .padding(.horizontal, 16)
 
             ZStack(alignment: .top) {
                 ExploreSearchButton(onTap: handleSearchTap)

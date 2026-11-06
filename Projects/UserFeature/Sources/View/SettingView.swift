@@ -85,6 +85,7 @@ struct SettingView: View {
 private extension SettingView {
     var navigationBar: some View {
         LivithNavigationView(type: .back(title: Literals.title, onBack: { router.pop() }))
+            .padding(.horizontal, 16)
     }
 }
 
