@@ -60,9 +60,6 @@ private extension InterestConcertSelectionGridView {
                     .padding(.vertical, 16)
             }
         }
-        .padding(.top, 20)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 210)
     }
 
     func concertCard(for concert: Concert) -> some View {
