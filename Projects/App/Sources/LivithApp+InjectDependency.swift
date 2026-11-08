@@ -93,7 +93,7 @@ private extension LivithApp {
         }
         #if DEBUG
         /// `true`로 변경하면 시뮬레이터에서 로컬 웹 서버를 사용합니다.
-        let useLocalWeb = true
+        let useLocalWeb = false
         let baseURL = useLocalWeb ? URL(string: "http://localhost:5173") : configuredURL
         #else
         let baseURL = configuredURL
