@@ -87,10 +87,17 @@ private extension LivithApp {
     func registerSetlistWebConfig() {
         let urlString = Bundle.main.infoDictionary?["WEB_BASE_URL"] as? String
         let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let baseURL = trimmed.flatMap { value -> URL? in
+        let configuredURL = trimmed.flatMap { value -> URL? in
             guard !value.isEmpty else { return nil }
             return URL(string: value)
         }
+        #if DEBUG
+        /// `true`로 변경하면 시뮬레이터에서 로컬 웹 서버를 사용합니다.
+        let useLocalWeb = true
+        let baseURL = useLocalWeb ? URL(string: "http://localhost:5173") : configuredURL
+        #else
+        let baseURL = configuredURL
+        #endif
         DIContainer.shared.register(SetlistWebConfig(baseURL: baseURL), for: SetlistWebConfig.self)
     }
 }
