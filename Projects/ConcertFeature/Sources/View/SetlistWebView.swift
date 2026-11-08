@@ -66,7 +66,6 @@ private struct SetlistWebContent: UIViewRepresentable {
         webView.navigationDelegate = context.coordinator
         webView.isOpaque = false
         webView.backgroundColor = UIColor(Color.livithColor(.black100))
-        webView.scrollView.bounces = false
         if let url = webConfig.setlistURL(concertID: concertID, setlistID: setlistID) {
             webView.load(URLRequest(url: url))
         } else {
