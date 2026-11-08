@@ -189,7 +189,7 @@ private extension InterestConcertListView {
 
     var errorEmptyView: some View {
         LivithEmptyView(text: store.state.errorMessage)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerRelativeFrame(.vertical)
     }
 

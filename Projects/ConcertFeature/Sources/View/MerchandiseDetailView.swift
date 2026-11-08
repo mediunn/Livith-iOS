@@ -52,11 +52,11 @@ struct MerchandiseDetailView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 16)
                 .padding(.top, 20)
                 .padding(.bottom, 40)
             }
         }
+        .padding(.horizontal, 16)
         .background(Color.livithColor(.black100).ignoresSafeArea())
         .sheet(
             isPresented: $isTicketSheetPresented,

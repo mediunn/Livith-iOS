@@ -42,6 +42,7 @@ struct InterestConcertSettingView: View {
 
                 gridSection
             }
+            .padding(.horizontal, Constants.horizontalPadding)
 
             bottomSection
         }
@@ -80,6 +81,8 @@ struct InterestConcertSettingView: View {
                     isDiscardChangesModalPresented = false
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: store.state.errorMessage) { _, errorMessage in
             if !errorMessage.isEmpty {
@@ -109,7 +112,6 @@ private extension InterestConcertSettingView {
 
             searchTextField
                 .padding(.top, store.state.isSearchFocused ? 12 : Constants.guideToSearchSpacing)
-                .padding(.horizontal, Constants.horizontalPadding)
         }
     }
 
@@ -126,9 +128,13 @@ private extension InterestConcertSettingView {
                     onScroll: { store.send(.setSearchFocused(false)) },
                     onLoadMore: { store.send(.loadNextPage) }
                 )
+                .contentMargins(.bottom, store.state.displayedConcertList.isEmpty ? 0 : 210, for: .scrollContent)
             }
         }
-        .padding(.top, 12)
+        .padding(
+            .top,
+            store.state.isInitialLoading || store.state.isSearchLoading ? 12 : 32
+        )
     }
 
     var bottomSection: some View {
@@ -138,7 +144,12 @@ private extension InterestConcertSettingView {
             isCTAEnabled: store.state.isCTAEnabled,
             isSubmitting: store.state.isSubmitting,
             onRemoveSelectedConcert: { store.send(.removeSelectedConcert($0)) },
-            onSubmit: { store.send(.submit) }
+            onSubmit: {
+                if store.state.mode == .initialSetup {
+                    AmplitudeService.shared.trackEvent(tag: .confirm(.interestConcert))
+                }
+                store.send(.submit)
+            }
         )
     }
 
@@ -166,14 +177,12 @@ private extension InterestConcertSettingView {
                 homeRouter.push(.concertRequest)
             }
         }
-        .padding(.horizontal, Constants.horizontalPadding)
         .padding(.top, Constants.navigationContentTopPadding)
         .frame(height: Constants.navigationBarHeight, alignment: .top)
         .overlay(alignment: .bottomTrailing) {
             if !hasOpenedConcertRequest {
                 reportTooltip
                     .offset(y: Constants.tooltipBottomOffset)
-                    .padding(.trailing, Constants.horizontalPadding)
             }
         }
         .zIndex(1)
@@ -221,7 +230,6 @@ private extension InterestConcertSettingView {
                 .foregroundStyle(Color.livithColor(.black50))
         }
         .padding(.top, Constants.guideSectionTopPadding)
-        .padding(.horizontal, Constants.horizontalPadding)
     }
 
     var searchTextField: some View {

@@ -206,7 +206,7 @@ private extension UserView {
                         if store.state.hasArtistData {
                             AmplitudeService.shared.trackEvent(tag: .click(.changeArtistPreference))
                         } else {
-                            AmplitudeService.shared.trackEvent(tag: .click(.setGenrePreference))
+                            AmplitudeService.shared.trackEvent(tag: .click(.setArtistPreference))
                         }
                         router.push(.artistUpdate(selectedArtistList: store.state.artists))
                         // TODO: 향후 Store 상태 변경으로 이전 예정
@@ -240,7 +240,7 @@ private extension UserView {
             LivithSnackBar(
                 message: "선호 장르를 설정했어요!\n홈에서 확인해 볼까요?",
                 actionTitle: "홈으로 이동",
-                position: .top,
+                dismissEdge: .top,
                 onActionTapped: {
                     showGenreUpdateSuccessSnackBar = false
                     router.navigateToHome()
@@ -249,6 +249,8 @@ private extension UserView {
                     showGenreUpdateSuccessSnackBar = false
                 }
             )
+            .padding([.horizontal, .top], 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .transition(.move(edge: .top).combined(with: .opacity))
         }
     }
@@ -259,7 +261,7 @@ private extension UserView {
             LivithSnackBar(
                 message: "선호 아티스트를 설정했어요!\n홈에서 확인해 볼까요?",
                 actionTitle: "홈으로 이동",
-                position: .top,
+                dismissEdge: .top,
                 onActionTapped: {
                     showArtistUpdateSuccessSnackBar = false
                     router.navigateToHome()
@@ -268,6 +270,8 @@ private extension UserView {
                     showArtistUpdateSuccessSnackBar = false
                 }
             )
+            .padding([.horizontal, .top], 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .transition(.move(edge: .top).combined(with: .opacity))
         }
     }

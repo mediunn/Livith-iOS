@@ -62,7 +62,6 @@ private extension LivithNavigationView {
             Image.livithImage(.livithLogo)
                 .resizable()
                 .frame(width: 100, height: 24)
-                .padding(.leading, 16)
 
             Spacer()
 
@@ -70,7 +69,6 @@ private extension LivithNavigationView {
                 Button(action: onNoticeTap) {
                     Image.livithIcon(hasNewNotice ? .noticeEnabled : .noticeDefault)
                 }
-                .padding(.trailing, 16)
             }
         }
         .padding(.top, 20)
@@ -89,7 +87,6 @@ private extension LivithNavigationView {
                     .resizable()
                     .frame(width: 36, height: 36)
             }
-            .padding(.leading, 16)
 
             Text(title)
                 .notosans(.body1Semibold)
@@ -100,7 +97,6 @@ private extension LivithNavigationView {
 
             if let rightButtonTitle, let onRightButtonTap {
                 LivithTextButton(rightButtonTitle, color: .livithColor(.white100), action: onRightButtonTap)
-                    .padding(.trailing, 16)
             }
         }
         .padding(.top, 12)
@@ -113,7 +109,6 @@ private extension LivithNavigationView {
                     .resizable()
                     .frame(width: 38, height: 38)
             }
-            .padding(.leading, 16)
 
             Spacer()
         }
@@ -126,6 +121,7 @@ private extension LivithNavigationView {
 #Preview("Logo Type") {
     VStack {
         LivithNavigationView(type: .logo())
+            .padding(.horizontal, 16)
         Spacer()
     }
     .background(Color.livithColor(.black100))
@@ -134,7 +130,9 @@ private extension LivithNavigationView {
 #Preview("Logo with Notice") {
     VStack {
         LivithNavigationView(type: .logo(hasNewNotice: false, onNoticeTap: {}))
+            .padding(.horizontal, 16)
         LivithNavigationView(type: .logo(hasNewNotice: true, onNoticeTap: {}))
+            .padding(.horizontal, 16)
         Spacer()
     }
     .background(Color.livithColor(.black100))
@@ -143,6 +141,7 @@ private extension LivithNavigationView {
 #Preview("Back Type") {
     VStack {
         LivithNavigationView(type: .back(title: "공연 설정하기", onBack: {}))
+            .padding(.horizontal, 16)
         Spacer()
     }
     .background(Color.livithColor(.black100))

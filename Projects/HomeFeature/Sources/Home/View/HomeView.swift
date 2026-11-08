@@ -108,6 +108,7 @@ private extension HomeView {
             hasNewNotice: store.state.hasNewNotice,
             onNoticeTap: { homeRouter.push(.notice) }
         ))
+        .padding(.horizontal, 16)
     }
 
     var segmentedTabBar: some View {

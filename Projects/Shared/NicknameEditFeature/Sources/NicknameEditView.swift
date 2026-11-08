@@ -53,27 +53,23 @@ public struct NicknameEditView: View {
                 if config.showStepIndicator {
                     stepIndicator
                         .padding(.top, 10)
-                        .padding(.horizontal, 16)
                 }
 
                 title
                     .padding(.top, 32)
-                    .padding(.horizontal, 16)
 
                 nicknameInputSection
                     .padding(.top, 20)
-                    .padding(.horizontal, 16)
 
                 nicknameStatus
                     .padding(.top, 8)
-                    .padding(.horizontal, 16)
 
                 Spacer()
 
                 submitButton
                     .padding(.bottom, 50)
-                    .padding(.horizontal, 16)
             }
+            .padding(.horizontal, 16)
         }
         .ignoresSafeArea(.all, edges: .bottom)
         .onChange(of: store.state.submitResult) { _, result in

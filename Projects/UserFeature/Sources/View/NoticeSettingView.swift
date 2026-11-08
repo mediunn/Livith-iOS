@@ -92,6 +92,7 @@ public struct NoticeSettingView: View {
 private extension NoticeSettingView {
     var navigationBar: some View {
         LivithNavigationView(type: .back(title: Literals.title, onBack: onBack))
+            .padding(.horizontal, 16)
     }
 
     var deviceNotificationSection: some View {

@@ -43,7 +43,7 @@ struct SetlistTabView: View {
 private extension SetlistTabView {
     var emptyView: some View {
         LivithEmptyView(text: "셋리스트가 없어요")
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .frame(height: 300)
     }
 }

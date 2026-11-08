@@ -118,25 +118,29 @@ private extension LivithCard {
 private extension LivithCard {
     @ViewBuilder
     var thumbnailImage: some View {
-        if let imageURL {
-            if isFlexible {
-                Color.clear
-                    .aspectRatio(108/158, contentMode: .fit)
-                    .overlay {
-                        AsyncImageView(url: imageURL)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            } else {
-                AsyncImageView(url: imageURL)
-                    .frame(width: 108, height: 158)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            }
+        if isFlexible {
+            Color.clear
+                .aspectRatio(108/158, contentMode: .fit)
+                .overlay {
+                    thumbnail
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 6))
         } else {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.livithColor(.black80))
-                .aspectRatio(108/158, contentMode: isFlexible ? .fit : .fill)
-                .frame(width: isFlexible ? nil : 108, height: isFlexible ? nil : 158)
+            thumbnail
+                .frame(width: 108, height: 158)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
         }
+    }
+
+    var thumbnail: some View {
+        ZStack {
+            Image.livithImage(.concertCardPlaceholder)
+                .resizable()
+                .scaledToFill()
+
+            AsyncImageView(url: imageURL)
+        }
+        .id(imageURL)
     }
 
     var titleText: some View {

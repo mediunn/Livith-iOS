@@ -49,6 +49,8 @@ struct PreferredGenreSettingView: View {
                     isDiscardChangesModalPresented = false
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
     }
 }

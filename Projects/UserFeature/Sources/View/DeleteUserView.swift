@@ -39,7 +39,6 @@ struct DeleteUserView: View {
 
                 titleSection
                     .padding(.top, 30)
-                    .padding(.horizontal, 16)
                     .padding(.bottom, 20)
 
                 ZStack(alignment: .top) {
@@ -50,7 +49,6 @@ struct DeleteUserView: View {
                                     .padding(.top, 20)
                                     .padding(.bottom, keyboardHeight > 0 ? keyboardHeight - 100 : 20)
                             }
-                            .padding(.horizontal, 16)
                         }
                         .onChange(of: isTextFieldFocused) { _, isFocused in
                             if isFocused {
@@ -75,9 +73,9 @@ struct DeleteUserView: View {
 
                 confirmButton
                     .padding(.top, 40)
-                    .padding(.horizontal, 16)
                     .padding(.bottom, 50)
             }
+            .padding(.horizontal, 16)
             .background(Color.livithColor(.black100))
             .ignoresSafeArea(.all, edges: .bottom)
             .onTapGesture { isTextFieldFocused = false }

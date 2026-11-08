@@ -49,6 +49,7 @@ struct SettingView: View {
 
             Spacer()
         }
+        .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
         .sheet(isPresented: isSheetPresented) {
@@ -73,6 +74,8 @@ struct SettingView: View {
                     overlayType = .none
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: logoutStore.state.logoutResult) { _, newResult in
             handleLogoutResult(newResult)
