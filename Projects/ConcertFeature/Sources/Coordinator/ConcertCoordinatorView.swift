@@ -48,10 +48,14 @@ public struct ConcertCoordinatorView: View {
     private func destinationView(for route: ConcertRoute) -> some View {
         switch route {
         case .setlistDetail(let concertID, let setlistID):
+            #if DEBUG
+            SetlistWebView(concertID: concertID, setlistID: setlistID)
+            #else
             SetlistDetailContainerView(
                 concertID: concertID,
                 setlistID: setlistID
             )
+            #endif
         case .songLyrics(let songID, let setlistID, let songTitle):
             SongLyricsView(
                 songID: songID,
