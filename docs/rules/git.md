@@ -1,198 +1,48 @@
-# Git
-
-## Purpose
-- 커밋 히스토리의 일관성을 유지하고, 변경 사유를 빠르게 파악하기 위해 사용한다.
-- 브랜치 전략과 커밋 컨벤션을 통일하여 협업 충돌과 리뷰 비용을 줄인다.
+# Git workflow
 
 ## Scope
-- 이 프로젝트의 모든 Git 작업(커밋, 브랜치, PR, 머지)에 적용한다.
-- 현재 프론트엔드는 1인 개발 체제이며 별도 리뷰어가 없다.
+Common solo-maintainer workflow. Platform build and release details: [platform.md](platform.md).
 
-## Do
+## Start work
+1. Inspect status and preserve unrelated edits. Fetch and inspect the latest `origin/develop` before branching; do not overwrite an existing feature branch or pull unrelated work into it.
+2. Create a GitHub issue using `.github/ISSUE_TEMPLATE/issue-template.md`: problem, goal, scope, observable acceptance criteria. Bugs include reproduction, actual result and expected result.
+3. Create a work branch from the reviewed `develop` commit before editing.
+4. Apply [plan.md](plan.md); implement, verify, archive when required, then open a PR to `develop`.
 
-### 사용자 승인
-- 커밋과 푸시는 **반드시** 사용자에게 명시적인 승인을 받은 뒤 수행한다.
-- 사용자가 "커밋해", "푸시해"처럼 명시적으로 지시한 경우에만 진행한다.
-- 사용자가 코드 수정만 요청한 경우, 빌드 검증 후 변경 내용을 보고하고 승인을 기다린다.
-- `git commit --amend`, `git push --force` 등 히스토리 변경 작업도 동일하게 사용자 승인이 필요하다.
+A trivial edit changes no execution behavior: documentation typos, broken documentation links, comments, or whitespace. It may skip the issue, but still needs a work branch and PR. Line/file count alone does not qualify. Logic, constants, dependencies, API/auth/state, build/deployment settings and hotfixes are not trivial edits.
 
-### 브랜치
-- `main`은 릴리즈 가능한 상태만 유지한다.
-- `develop`은 다음 릴리즈를 위한 통합 브랜치로 사용한다.
-- 일반 작업 브랜치는 `develop`에서 분기한다 (Hotfix는 아래 규칙을 따른다).
-- 일반 작업 브랜치는 `develop`으로 PR을 통해 머지한다.
-- 운영 배포는 `develop`에서 분기한 `release/*`에서 준비하고 `main`으로 PR을 통해 머지한다.
-- 작업 시작 전 `develop`에서 최신 코드를 pull 받는다.
-- 충돌 발생 시 로컬에서 해결한 뒤 머지한다.
+## Names
+| Item | With issue | Trivial edit without issue |
+|------|------------|----------------------------|
+| Branch | `type/#123-description` | `docs/fix-readme-typo` |
+| Commit | `[Type] #123 - 한국어 요약` | `[Docs] 문서 오타 수정` |
+| PR title | `[Type] 한국어 요약` | `[Docs] 문서 오타 수정` |
 
-### 브랜치 네이밍
-- 새 작업의 이슈 식별자는 GitHub 기준을 사용하며 Linear 키를 새로 부여하지 않는다.
-- 릴리즈 브랜치는 `release/<앱 버전>` 형식을 사용한다 (예: `release/1.2.1`).
-- 아래 형식과 허용 타입은 일반 작업 브랜치에 적용한다.
-- 형식: `type/이슈번호-간략한-설명`
-- 이슈 번호는 이 저장소의 GitHub 이슈 번호를 `#번호`로 표기한다 (예: `#322`).
-- 설명은 영문 소문자와 하이픈(`-`)으로 작성한다.
-- 허용 타입:
+- Branch types: `add`, `feat`, `fix`, `refactor`, `style`, `setting`, `hotfix`, `chore`, `docs`, `test`; lowercase English slug with hyphens.
+- Commit/PR types: `Add`, `Feat`, `Fix`, `Refactor`, `Style`, `Setting`, `Hotfix`, `Merge`, `Chore`, `Docs`, `Test`. Choose the type matching the change.
+- Commit summaries are concise Korean, one line, normally within 50 characters, without a final period. One logical change per commit. No tool ads or `Co-Authored-By` trailer.
+- Link the local issue in the PR body with `Resolved: #123`; use a full URL for another repository. Use `Refs:` when not closing an issue. Omit issue-closing text for issue-free work.
 
-| 타입 | 용도 |
-|------|------|
-| `add` | 새로운 리소스, 에셋 추가 |
-| `feat` | 새로운 기능 추가 |
-| `fix` | 버그 수정 |
-| `refactor` | 동작 변경 없는 구조 개선 |
-| `style` | UI 리소스 변경 (이미지, 색상, 폰트) |
-| `setting` | 프로젝트 설정, 환경 구성 |
-| `hotfix` | 릴리즈 후 긴급 수정 |
-| `chore` | 빌드, CI 등 코드·문서 외 변경 |
-| `docs` | 규칙·계획·아키텍처 등 문서만 변경 |
-| `test` | 테스트 코드 추가 또는 수정 |
+## Permissions
+- Agents may create local commits within the authorized work after inspecting the diff and performing relevant verification.
+- Push requires explicit user instruction, including the intended branch/scope. Commit permission does not authorize push, merge or deployment.
+- History rewriting (amend, rebase of published history, force push) requires explicit instruction. Never force push shared branches.
+- Do not implement or push directly on `develop` or `main`; the explicitly instructed emergency exception below is separate.
 
-- 예시: `feat/#10-network`, `fix/#237-amplitude`, `docs/#336-rules`
+## PR and merge
+- Use `.github/PULL_REQUEST_TEMPLATE.md`: connected issue, problem and resulting behavior, key changes and decision reasons, actual verification evidence.
+- For many or complex acceptance criteria, add an optional criteria-to-evidence table based on the current plan (or issue if no plan). Do not duplicate checklists for routine work.
+- Verify against the latest agreed goal/scope and criteria. A completed sub-plan does not by itself complete an issue. Report failures, skipped checks and pending manual confirmation separately; do not call them success.
+- Update the PR description after follow-up changes. Describe the final implementation, not a file inventory or work diary.
+- UI appearance changes include after screenshots and before screenshots when comparison is needed. Gesture, scroll, keyboard or animation changes include video/GIF and device/environment details.
+- Use a focused Mermaid diagram when cross-environment flow, failure/retry paths or state transitions are needed to review the change. Skip diagrams for trivial edits.
+- Complete the required archive cycle in [plan.md](plan.md) before opening a PR.
+- Ordinary work uses a **merge commit**, preserving work commits; do not squash or rebase-merge ordinary PRs. The solo maintainer needs no external reviewer approval. Merge/deploy still require user authorization.
+- Delete the remote work branch after an authorized successful merge. Follow platform-specific release branch lifetime rules.
 
-### 릴리즈 준비·배포·재반영
-- 배포할 변경 범위와 앱 버전을 확정한 뒤 해당 `develop` 커밋에서 `release/<앱 버전>`을 분기한다.
-- 분기 후에는 릴리즈 브랜치에 앱 버전 변경과 해당 배포에 필요한 수정만 포함한다.
-- 분기 후 `develop`의 새 기능을 릴리즈 브랜치에 일괄 머지하지 않는다.
-- 앱과 Share Extension의 `CFBundleShortVersionString`을 같은 버전으로 변경하고 릴리즈 브랜치에 커밋한다.
-- `CFBundleVersion`은 기존 CI가 배포 시 갱신·커밋하므로 수동으로 배포용 빌드 번호 커밋을 만들지 않는다.
-- 릴리즈 브랜치에서 Release 빌드와 변경 범위의 검증을 완료한 뒤 `main` 대상 PR을 머지한다.
-- `main` 머지로 기존 운영 배포 CI를 실행하며 App Store 심사 신청은 수동으로 진행한다.
-- `main` 머지 후 같은 릴리즈 브랜치에서 `develop` 대상 PR을 만들어 앱 버전 변경과 배포 전 수정을 모두 재반영한다.
-- `develop` 재반영을 위해 CI 빌드 번호 커밋이 포함된 `main` 전체를 머지하지 않는다.
-- 재반영 시 `develop`에 더 높은 앱 버전이 있으면 그 버전을 유지하고 배포 전 수정의 누락 여부를 확인한다.
-- 릴리즈 브랜치의 `main`·`develop` PR은 Squash 없이 머지한다.
-- 운영 배포 CI의 업로드 성공과 `develop` 재반영 완료를 모두 확인한 뒤 원격·로컬 릴리즈 브랜치를 삭제한다.
-- `main` 머지 후 추가 수정은 Hotfix 규칙을 따르고 `develop`에도 반영한다.
-
-### 커밋 메시지
-- 형식: `[Type] 이슈번호 - 변경 내용 요약`
-- 이슈 번호는 이 저장소의 GitHub 이슈 번호를 `#번호`로 표기한다 (예: `#322`).
-- 이슈 번호와 변경 내용 사이 구분자는 반드시 ` - `를 사용한다.
-- 이슈 번호와 변경 내용 사이에 ` - ` 이외의 구분자는 사용하지 않는다.
-- 변경 내용 요약은 한글로 작성한다.
-- 변경 내용 요약은 **간결체**(명사구·서술 생략)로 작성한다.
-- 한 줄로 작성하며, 50자 이내로 작성한다.
-- 끝에 마침표를 붙이지 않는다.
-- 커밋 타입과 실제 변경 내용을 일치시킨다.
-- 최근 커밋에 다른 형식이 있어도 현재 문서의 커밋 메시지 형식을 우선한다.
-- 커밋 전 변경 내용을 `git diff`로 확인한다.
-- 좋은 예: `[Chore] #363 - 회원가입 계획 문서 추가`
-- 나쁜 예: `[Chore] #363: 회원가입 계획 문서 추가`
-- 나쁜 예: `[Chore] #363 / 회원가입 계획 문서 추가`
-- 나쁜 예: `[Feat] #447 - Home 시트를 entry-alerts에 연결한다.`
-
-### 커밋 타입
-
-| 타입 | 용도 | 예시 |
-|------|------|------|
-| `[Add]` | 새로운 리소스, 에셋 추가 | `[Add] #224 - 이미지 에셋 추가` |
-| `[Feat]` | 새로운 기능 추가 | `[Feat] #223 - 마이페이지 트래킹 코드 삽입` |
-| `[Fix]` | 버그 수정 | `[Fix] #231 - 7일 이내 탈퇴 회원 재가입 시 에러 처리 로직 수정` |
-| `[Refactor]` | 동작 변경 없는 구조 개선 | `[Refactor] #231 - 불필요한 바인딩 변수 전달 제거` |
-| `[Style]` | UI 리소스 변경 (이미지, 색상, 폰트) | `[Style] #231 - 로그인 화면 온보딩 이미지 교체` |
-| `[Setting]` | 프로젝트 설정, 의존성 변경 | `[Setting] #223 - Concert Feature에 Amplitude 의존성 추가` |
-| `[Hotfix]` | 릴리즈 후 긴급 수정 | `[Hotfix] 버전 1.0.1로 변경` |
-| `[Merge]` | PR 머지 커밋 | `[Merge] #238 from fix/#237-amplitude` |
-| `[Chore]` | 빌드, CI 등 코드·문서 외 변경 | `[Chore] #336 - CI 스크립트 정리` |
-| `[Docs]` | 규칙·계획·아키텍처 등 문서만 변경 | `[Docs] #336 - 규칙 문서 추가` |
-| `[Test]` | 테스트 코드 추가 또는 수정 | `[Test] #50 - 로그인 Store 단위 테스트 추가` |
-
-### 커밋 단위
-- 하나의 커밋은 하나의 논리적 변경만 포함한다.
-- 기능 추가와 리팩터링을 같은 커밋에 섞지 않는다.
-- 동작하는 상태에서만 커밋한다 (빌드가 깨지는 커밋을 남기지 않는다).
-
-### Hotfix
-- `main` 또는 `develop` 브랜치에서 직접 작업하거나, `hotfix/설명` 브랜치를 사용한다.
-- `main`에서 수정한 경우 `develop`에도 반영한다.
-
-### 이슈 작성
-- 작업 추적은 이 저장소의 GitHub 이슈를 기준으로 한다.
-- 이슈는 작업 시작 전에 문제·목표·범위·완료 조건을 정의한다.
-- GitHub 이슈 본문은 `.github/ISSUE_TEMPLATE/issue-template.md` 양식을 따른다.
-- 배경·문제에는 현재 상황과 작업이 필요한 이유를 작성한다.
-- 버그 이슈에는 재현 순서·실제 결과·기대 결과를 작성한다.
-- 목표에는 완료 후 사용자 또는 시스템의 동작을 작성한다.
-- 범위에는 변경 대상과 관련 작업 중 제외할 대상을 작성한다.
-- 완료 조건은 확인 가능한 결과를 체크박스로 작성한다.
-- 완료 조건을 “구현 완료”, “정상 동작” 같은 표현만으로 작성하지 않는다.
-- 작업 목록은 구현 순서가 필요할 때만 추가하며 완료 조건과 구분한다.
-
-### Pull Request
-- PR 제목 형식: `[Type] 작업 설명` (예: `[Fix] 위젯 관련 코드 삭제 및 크래시 수정`)
-- PR 제목에 이슈 번호를 포함하지 않는다.
-- PR 본문은 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따른다.
-- PR에는 연결 이슈·변경 요약·주요 변경과 결정 이유·검증 결과를 작성한다.
-- 변경 요약의 첫 문단에는 문제와 변경 후 동작을 작성한다.
-- 주요 변경에는 동작·책임·계약의 변화를 작성한다.
-- 구조·공개 인터페이스·데이터 모델을 변경하면 선택 이유와 기존 호출자에 미치는 영향을 작성한다.
-- 검증에는 실제 수행한 방법과 결과를 작성한다.
-- 검증의 미실행·실패·수동 확인 대기는 성공 결과와 구분한다.
-- 버그 수정 PR에는 이슈의 재현 조건에서 수정 후 확인한 결과를 작성한다.
-- PR 본문은 최종 코드 기준으로 갱신한다.
-- PR에 이슈의 완료 조건 체크리스트를 복사하지 않는다.
-- PR에 파일 목록이나 diff를 그대로 풀어 쓰지 않는다.
-- 작업 과정과 폐기한 시도는 현재 선택의 이유를 설명할 때만 작성한다.
-- 남은 제한이나 후속 작업이 있으면 검증 결과와 구분해 작성한다.
-- 배포 준비 PR에는 앱 버전·포함 범위·Release 검증 결과·`develop` 재반영 상태를 작성한다.
-- 빈 선택 항목과 해당하지 않는 예시·표는 삭제한다.
-- 관련 GitHub 이슈 번호를 본문에 명시한다 (예: `Resolved: #322`).
-- 다른 저장소의 이슈는 전체 GitHub URL로 연결하고, 해당 PR이 해결하는 이슈에만 `Resolved`를 사용한다.
-- PR을 만들기 전에 현재 브랜치 `슬러그`에 대응하는 `docs/plans/`, `docs/troubleshooting/` 문서가 없는지 확인한다.
-- 해당 `슬러그` 문서가 남아 있으면 `docs/rules/plan.md`의 `컴파운딩 게이트`를 완료한 뒤에 PR을 만든다.
-- PR은 리뷰어 지정과 타인의 승인 없이 작성자가 직접 머지할 수 있다.
-- 별도 리뷰어가 없어도 PR을 통한 머지와 변경 범위에 필요한 검증은 유지한다.
-- 머지 커밋 메시지 형식: `[Merge] 이슈번호 from 브랜치명`
-- Squash Merge는 사용하지 않는다 (커밋 히스토리를 보존한다).
-- 일반 작업 브랜치는 머지 후 원격 브랜치를 삭제한다. 릴리즈 브랜치는 위의 삭제 조건을 따른다.
-
-### 이슈·PR의 시각 자료
-- UI 외형 변경 PR에는 변경 후 캡처를 첨부한다.
-- 기존 화면과 차이를 비교해야 하는 UI 변경에는 변경 전 캡처도 첨부한다.
-- 키보드·스크롤·제스처·애니메이션 변경 PR에는 동작 영상 또는 GIF와 확인한 기기·OS를 기록한다.
-- 변경한 흐름이 모듈 또는 실행 환경 두 곳 이상을 오가면 Mermaid 다이어그램을 작성한다.
-- 실패·취소·재시도 분기를 이해해야 변경을 검토할 수 있으면 Mermaid 다이어그램을 작성한다.
-- 여러 화면이나 상태 사이의 전환 규칙을 변경하면 Mermaid 다이어그램을 작성한다.
-- 호출 순서는 `sequenceDiagram`, 조건 분기는 `flowchart`, 상태 전이는 `stateDiagram-v2`를 사용한다.
-- 다이어그램에는 해당 작업을 설명하는 경로만 담는다.
-- 이슈에는 계획한 흐름을, PR에는 최종 구현과 일치하는 흐름을 작성한다.
-- 단순 문구·여백·버전 변경에는 Mermaid 다이어그램을 생략한다.
-
-## Don't
-- `main` 브랜치에 직접 push하지 않는다 (Hotfix 제외).
-- `develop` 브랜치에 직접 push하지 않는다 (Hotfix 제외).
-- 운영 배포를 위해 `develop`을 `main`에 직접 머지하지 않는다 (Hotfix는 별도 규칙을 따른다).
-- `main`·`develop` 반영 또는 운영 배포 CI의 업로드 성공 확인 전에 릴리즈 브랜치를 삭제하지 않는다.
-- `git push --force`를 공유 브랜치(`main`, `develop`)에 사용하지 않는다.
-- 커밋 메시지에서 이슈 번호와 변경 내용 사이에 ` - ` 이외의 구분자를 사용하지 않는다.
-- 커밋 메시지 요약에 `~한다`, `~한다.` 같은 한다체·종결어미를 사용하지 않는다.
-- 최근 커밋 스타일을 이유로 현재 규칙과 다른 커밋 메시지 형식을 따르지 않는다.
-- 하나의 커밋에 서로 다른 타입의 변경을 섞지 않는다.
-- 이슈와 무관한 변경을 작업 브랜치에 포함하지 않는다.
-- 빌드가 깨지는 상태로 커밋하지 않는다.
-- 커밋 메시지에 `Co-Authored-By`를 넣지 않는다.
-- 해당 `슬러그`의 계획·트러블슈팅 문서가 `docs/plans/` 또는 `docs/troubleshooting/`에 남은 채로 PR을 만들지 않는다.
-
-## Exception
-- `[Hotfix]`는 `main`과 `develop`에서 직접 작업할 수 있다.
-- `[Hotfix]`는 이슈 번호 없이 커밋할 수 있다.
-- 초기 프로젝트 설정 등 이슈가 없는 경우 이슈 번호를 생략할 수 있다.
-- 원래 계획·트러블슈팅이 없는 단순 작업은 PR 전 아카이브 확인을 건너뛴다.
-- 유저가 이번 PR의 아카이브 보류를 명시한 경우에는 PR 전 아카이브를 건너뛰고 보류 사유를 PR 본문 또는 응답에 남긴다.
-
-## Checklist
-- 커밋 메시지가 `[Type] 이슈번호 - 설명` 형식을 따르는가
-- 이슈 번호와 설명 사이 구분자가 ` - `인가
-- 변경 내용 요약이 간결체인가 (한다체·마침표 없음)
-- 최근 커밋이 아니라 현재 규칙 문서를 기준으로 메시지를 작성했는가
-- 커밋 타입이 변경 내용과 일치하는가
-- 하나의 커밋에 하나의 논리적 변경만 포함되어 있는가
-- 일반 작업 브랜치 이름이 `type/이슈번호-설명` 형식을 따르는가
-- 릴리즈 브랜치라면 `release/<앱 버전>` 형식과 분기·검증·재반영·삭제 조건을 따르는가
-- PR 제목과 본문이 작성 규칙을 따르는가
-- PR 본문이 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따르는가
-- 이슈에 문제·목표·범위·확인 가능한 완료 조건이 있는가
-- PR이 완료 조건을 복사하지 않고 최종 변경과 실제 검증 결과를 설명하는가
-- 변경 유형에 필요한 캡처·동작 자료·Mermaid가 있는가
-- PR 전에 해당 `슬러그` 계획·트러블슈팅이 `plans/`·`troubleshooting/`에 없는가 (보류·해당 없음 제외)
-- 일반 작업 브랜치는 머지 후 원격에서 삭제했는가
+## Hotfix
+- Branch from the actual deployed revision, not automatically from the latest `develop`.
+- Default: dedicated hotfix branch → PR and relevant verification → authorized deployment → reflect the fix into `develop`.
+- Only an explicit emergency instruction may allow direct editing/pushing on the deployment branch. This does not grant standing bypass permission and does not waive verification or `develop` reconciliation.
+- Preserve an issue/incident record; do not use the trivial-edit exception for hotfixes. For an explicitly authorized emergency without an issue yet, record it afterward.
+- A project without a production release does not need a store hotfix/release gate in daily work.

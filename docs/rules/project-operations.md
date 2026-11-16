@@ -37,7 +37,7 @@
 - Swift Testing 기반 테스트가 포함된 scheme은 `xcodebuild test` 출력에서 `Executed 0 tests`가 표시되어도 테스트가 실행되지 않은 것으로 단정하지 않는다. 테스트 로그에서 `Test suite` 메시지·`Test run with N tests`·결과 번들(.xcresult)의 테스트 식별자를 함께 확인한다.
 - 특정 테스트만 실행할 때는 `-only-testing:<Module>/<TypeName>`(또는 XCTest의 `<Module>/<Class>`)으로 스위트·클래스를 지정한다. 예: `-only-testing:HomeFeatureTests/InterestConcertEntryAlertPresentationTests`.
 - 메서드 단위 `-only-testing:<Module>/<TypeName>/<method>`는 Swift Testing에서 0건으로 나올 수 있다. 스위트 필터를 우선한다.
-- TDD 루프에서 무엇을 돌릴지의 범위 규범은 `docs/rules/tdd.md`를 따른다. 이 문서는 실행 명령·필터 문법의 정본이다.
+- 검증 선택·범위는 `docs/rules/testing.md`를 따른다. 이 문서는 실행 명령·필터 문법의 정본이며 TDD를 강제하지 않는다.
 - `xcodebuild test`가 실패하면 실패 지점이 현재 브랜치 diff에 있는지 `git diff`로 먼저 확인한다.
 - `선행 실패`는 이번 브랜치에서 수정하지 않고, 트러블슈팅 문서 또는 최종 보고에 실패 이름만 남긴다.
 
