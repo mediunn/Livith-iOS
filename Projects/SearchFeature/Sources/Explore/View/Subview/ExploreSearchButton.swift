@@ -35,13 +35,11 @@ struct ExploreSearchButton: View {
             )
             .cornerRadius(10)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
     }
 }
 
 #Preview {
     ExploreSearchButton(onTap: { print("버튼이 눌렸다.") })
+        .padding(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
         .background(Color.livithColor(.black100))
 }

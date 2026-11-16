@@ -59,6 +59,8 @@ struct UserGenreUpdateView: View {
                 AmplitudeService.shared.trackEvent(tag: .click(.cancelPreference))
                 isDiscardChangesModalPresented = false
             }
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: store.state.result) { _, result in
             switch result {

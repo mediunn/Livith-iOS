@@ -66,19 +66,29 @@ private extension AppRootView {
         guard currentRoute == .launch else { return }
         
         Task {
-            guard fetchLocalUser() != nil else {
-                try? await tokenManager.remove()
-                await MainActor.run { transition(to: .login) }
-                return
-            }
-            
-            do {
-                try await tokenManager.refresh()
-                _ = try? await userRepository.fetchUser()
-                await MainActor.run { transition(to: .main) }
-            } catch {
-                await MainActor.run { transition(to: .login) }
-            }
+            async let minimumDisplay: Void = sleepMinimumDisplayDuration()
+            let nextRoute = await resolveLaunchRoute()
+            await minimumDisplay
+            await MainActor.run { transition(to: nextRoute) }
+        }
+    }
+    
+    func sleepMinimumDisplayDuration() async {
+        try? await Task.sleep(for: .seconds(Constants.minimumDisplayDuration))
+    }
+    
+    func resolveLaunchRoute() async -> AppRoute {
+        guard fetchLocalUser() != nil else {
+            try? await tokenManager.remove()
+            return .login
+        }
+        
+        do {
+            try await tokenManager.refresh()
+            _ = try? await userRepository.fetchUser()
+            return .main
+        } catch {
+            return .login
         }
     }
     
@@ -97,6 +107,7 @@ private extension AppRootView {
 
 private extension AppRootView {
     enum Constants {
+        static let minimumDisplayDuration = 1
         static let animationDuration = 0.5
     }
 }

@@ -47,7 +47,7 @@ private extension CommunityTabView {
                 .padding(.bottom, 20)
 
             LivithEmptyView(text: "첫 댓글을 달아보세요!")
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .frame(height: 200)
         }
     }

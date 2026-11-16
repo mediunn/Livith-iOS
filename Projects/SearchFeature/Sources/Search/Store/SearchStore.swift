@@ -47,34 +47,39 @@ public enum SearchIntent {
     case _setConcertActive(Bool)
     case _setErrorMessage(String)
     case _setConcertList([Concert])
+    case _searchDebounceElapsed
+    case _nextPageDelayElapsed
+    case _searchResult(Result<SearchResult, SearchError>, isNextPage: Bool)
 }
 
+@MainActor
 final class SearchStore: ObservableObject {
     private var searchTask: Task<Void, Never>?
     private var fetchTask: Task<Void, Never>?
     @Published private(set) var state = SearchState()
     @Injected private var repository: SearchRepository
 
-    @MainActor
     func send(_ intent: SearchIntent) {
         switch intent {
         case .viewDidLoad:
-            fetchFilterSearchResult()
+            performSearch()
         case .loadNextPage:
-            loadNextPageIfNeeded()
+            guard !state.isLoadingMore, state.hasMorePages else { return }
+            state.isLoadingMore = true
+            performNextPageLoad()
         case .updateSearchMessage(let newSearchMessage):
             let previousSearchMessage = state.searchMessage
             state.searchMessage = newSearchMessage
             if newSearchMessage.isEmpty && !previousSearchMessage.isEmpty {
                 state.cursor = nil
                 state.hasMorePages = true
-                fetchFilterSearchResult()
+                performSearch()
             }
         case .sortStateChanged(let sort):
             state.cursor = nil
             state.sortState = sort
             state.hasMorePages = true
-            fetchFilterSearchResult()
+            performSearch()
         case .resetButtonTapped:
             state.selectedGenreList.removeAll()
             state.selectedStatusList.removeAll()
@@ -82,54 +87,71 @@ final class SearchStore: ObservableObject {
             state.searchMessage = ""
             state.cursor = nil
             state.hasMorePages = true
-            fetchFilterSearchResult()
+            performSearch()
         case .searchButtonTapped:
-            searchWithDebounce()
+            performDebouncedSearch()
         case .settingButtonTapped(genres: let genres, status: let status):
             state.cursor = nil
             state.hasMorePages = true
             state.selectedGenreList = genres
             state.selectedStatusList = status
-            fetchFilterSearchResult()
+            performSearch()
         case ._setErrorMessage(let message):
             state.errorMessage = message
         case ._setConcertList(let concerts):
             state.searchedConcertList = concerts
         case ._setConcertActive(let isActive):
             state.isSearchActive = isActive
+        case ._searchDebounceElapsed:
+            state.cursor = nil
+            state.hasMorePages = true
+            performSearch()
+        case ._nextPageDelayElapsed:
+            performSearch(isNextPage: true)
+        case ._searchResult(let result, let isNextPage):
+            switch result {
+            case .success(let result):
+                state.isSearchActive = true
+                if isNextPage {
+                    state.searchedConcertList.append(contentsOf: result.concerts)
+                } else {
+                    state.searchedConcertList = result.concerts
+                }
+                state.cursor = result.cursor
+                state.hasMorePages = result.cursor != nil
+            case .failure(let error):
+                state.errorMessage = error.localizedDescription
+            }
+            state.isLoadingMore = false
         }
     }
 }
 
 private extension SearchStore {
-    func loadNextPageIfNeeded() {
-        guard !state.isLoadingMore, state.hasMorePages else { return }
-        state.isLoadingMore = true
+    func performNextPageLoad() {
         Task {
             try? await Task.sleep(for: .milliseconds(500))
-            fetchFilterSearchResult(isNextPage: true)
+            send(._nextPageDelayElapsed)
         }
     }
     
-    func searchWithDebounce() {
+    func performDebouncedSearch() {
         searchTask?.cancel()
         
         searchTask = Task {
             guard await Task.wait(for: .milliseconds(300)) else { return }
             
-            state.cursor = nil
-            state.hasMorePages = true
-            fetchFilterSearchResult()
+            send(._searchDebounceElapsed)
         }
     }
     
-    func fetchFilterSearchResult(isNextPage: Bool = false) {
+    func performSearch(isNextPage: Bool = false) {
         if !isNextPage {
             fetchTask?.cancel()
         }
 
         fetchTask = Task { @MainActor in
-            do {
+            do throws(SearchError) {
                 let result = try await repository.fetchFilterSearchResult(
                     genre: state.selectedGenreList,
                     sort: state.sortState,
@@ -141,21 +163,10 @@ private extension SearchStore {
 
                 guard await Task.wait() else { return }
 
-                state.isSearchActive = true
-
-                if isNextPage {
-                    state.searchedConcertList.append(contentsOf: result.concerts)
-                } else {
-                    state.searchedConcertList = result.concerts
-                }
-
-                state.cursor = result.cursor
-                state.hasMorePages = result.cursor != nil
-                state.isLoadingMore = false
+                send(._searchResult(.success(result), isNextPage: isNextPage))
             } catch {
                 guard await Task.wait() else { return }
-                state.errorMessage = error.localizedDescription
-                state.isLoadingMore = false
+                send(._searchResult(.failure(error), isNextPage: isNextPage))
             }
         }
     }

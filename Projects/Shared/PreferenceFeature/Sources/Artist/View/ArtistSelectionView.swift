@@ -127,6 +127,7 @@ private extension ArtistSelectionView {
             Spacer()
             
             LivithEmptyView(text: "검색 결과가 없어요")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             Spacer()
         }

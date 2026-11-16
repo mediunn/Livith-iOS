@@ -78,6 +78,7 @@ private extension RecommendedConcertSectionView {
     
     var emptyStateView: some View {
         LivithEmptyView(text: Literals.emptyMessage)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .aspectRatio(Constants.emptyViewRatio, contentMode: .fit)
     }
 }

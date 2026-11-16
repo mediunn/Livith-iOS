@@ -11,6 +11,7 @@ import SwiftUI
 public extension Image {
     enum LivithImage: String {
         case concertCardEmpty = "image_concert_card_empty"
+        case concertCardPlaceholder = "image_concert_card_placeholder"
         case instagram = "image_instagram"
         case twitter = "image_twitter"
         case livithLogo = "image_livith_logo"

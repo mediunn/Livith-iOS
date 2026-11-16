@@ -51,6 +51,7 @@ public struct SetlistDetailView: View {
     public var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(type: .back(title: store.state.setlist?.title ?? "", onBack: { dismiss() }))
+                .padding(.horizontal, 16)
 
             ZStack {
                 Color.livithColor(.black100)
@@ -109,11 +110,11 @@ private extension SetlistDetailView {
                             isReportSheetPresented = true
                         }
                     )
-                    .padding(.horizontal, 16)
                     .padding(.top, 24)
 
                     songListView
                 }
+                .padding(.horizontal, 16)
                 .padding(.bottom, 40)
             }
         }

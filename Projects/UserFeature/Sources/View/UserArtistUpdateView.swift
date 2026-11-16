@@ -59,6 +59,8 @@ struct UserArtistUpdateView: View {
                 AmplitudeService.shared.trackEvent(tag: .click(.cancelPreference))
                 isDiscardChangesModalPresented = false
             }
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .livithToast(
             isPresented: $isFailureToastPresented,

@@ -228,6 +228,7 @@ private extension SearchView {
     @ViewBuilder
     var searchEmptyView: some View {
         LivithEmptyView(text: "검색 결과가 없어요")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         Spacer()
     }

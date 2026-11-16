@@ -54,6 +54,7 @@ public struct ConcertView: View {
             LivithNavigationView(
                 type: .back(title: navigationTitle, onBack: { dismiss() })
             )
+            .padding(.horizontal, 16)
 
             if showEmptyView {
                 emptyContentView
@@ -93,6 +94,8 @@ public struct ConcertView: View {
                     communityStore.send(.dismissDialog)
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .crossDissolve(isPresented: isReportDialogPresented, dismissOnTapOutside: true) {
             LivithDangerModal(
@@ -106,6 +109,8 @@ public struct ConcertView: View {
                     communityStore.send(.dismissDialog)
                 }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout(avoidsKeyboard: true)
         }
         .overlay { ticketReturnBannerOverlay }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: store.state.showTicketReturnBanner)
@@ -228,13 +233,14 @@ private extension ConcertView {
                 actionTitle: "콘서트 설정",
                 onActionTapped: {
                     store.send(.onTicketBannerDismiss)
-                    AmplitudeService.shared.trackEvent(tag: .confirm(.changeInterest))
                     store.send(.interestButtonTapped)
                 },
                 onDismiss: {
                     store.send(.onTicketBannerDismiss)
                 }
             )
+            .padding([.horizontal, .bottom], 16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }

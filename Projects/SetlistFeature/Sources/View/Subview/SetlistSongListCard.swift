@@ -37,7 +37,6 @@ struct SetlistSongListCard: View {
         .padding(.vertical, 16)
         .background(Color.livithColor(.black90))
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .padding(.horizontal, 16)
     }
 }
 
@@ -55,5 +54,6 @@ struct SetlistSongListCard: View {
             onPlaySong: nil
         )
     }
+    .padding(.horizontal, 16)
     .background(Color.livithColor(.black100))
 }

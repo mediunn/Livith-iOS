@@ -66,8 +66,8 @@ public struct GenreEditView: View {
                 .disabled(isSubmitButtonDisabled)
                 .padding(.bottom, Constants.bottomPadding)
             }
-            .padding(.horizontal, Constants.horizontalPadding)
         }
+        .padding(.horizontal, Constants.horizontalPadding)
         .background(Color.livithColor(.black100))
         .navigationBarHidden(true)
     }

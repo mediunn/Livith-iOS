@@ -76,6 +76,8 @@ struct InstagramMatchConfirmView: View {
                 }),
                 onCancel: { store.send(.dismissCancelModal) }
             )
+            .padding(.horizontal, 24)
+            .livithModalLayout()
         }
         .onChange(of: store.state.errorMessage) { _, errorMessage in
             if !errorMessage.isEmpty {

@@ -36,7 +36,7 @@ struct ArtistDetailTabView: View {
     var body: some View {
         if hasNoContent {
             LivithEmptyView(text: "가수 정보가 없어요")
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.top, 98)
         } else {
             VStack(spacing: 30) {

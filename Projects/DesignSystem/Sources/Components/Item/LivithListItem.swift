@@ -67,7 +67,6 @@ public struct LivithListItem: View {
             trailingView
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 16)
         .contentShape(Rectangle())
     }
 }
@@ -102,5 +101,6 @@ private extension LivithListItem {
         LivithListItem("버전 정보", type: .value("1.0.1"))
         LivithListItem("로그아웃", type: .action) {}
     }
+    .padding(.horizontal, 16)
     .background(Color.livithColor(.black90))
 }

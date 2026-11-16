@@ -14,6 +14,7 @@
 - `Executed 0 tests`: `xcodebuild` 출력에서 테스트 실행 로그에 `Executed 0 tests`가 표시되는 상태
 - `생산 코드 검증 명령`: `tuist build` 명령
 - `테스트 검증 명령`: `xcodebuild test` 명령
+- `선행 실패`: 현재 브랜치 diff에 포함되지 않은 파일에서 난 테스트 실패
 
 ## Do
 
@@ -37,6 +38,8 @@
 - 특정 테스트만 실행할 때는 `-only-testing:<Module>/<TypeName>`(또는 XCTest의 `<Module>/<Class>`)으로 스위트·클래스를 지정한다. 예: `-only-testing:HomeFeatureTests/InterestConcertEntryAlertPresentationTests`.
 - 메서드 단위 `-only-testing:<Module>/<TypeName>/<method>`는 Swift Testing에서 0건으로 나올 수 있다. 스위트 필터를 우선한다.
 - TDD 루프에서 무엇을 돌릴지의 범위 규범은 `docs/rules/tdd.md`를 따른다. 이 문서는 실행 명령·필터 문법의 정본이다.
+- `xcodebuild test`가 실패하면 실패 지점이 현재 브랜치 diff에 있는지 `git diff`로 먼저 확인한다.
+- `선행 실패`는 이번 브랜치에서 수정하지 않고, 트러블슈팅 문서 또는 최종 보고에 실패 이름만 남긴다.
 
 ### 생산 코드 컴파일 검증
 - `xcodebuild test` 실행이 불가능한 scheme은 `tuist build <Target>`으로 생산 코드 컴파일을 검증한다.
@@ -52,6 +55,7 @@
 - `xcodebuild test`의 destination 시뮬레이터를 사용 가능 여부 확인 없이 고정값으로 지정하지 않는다.
 - `tuist clean`을 테스트 scheme 확인이나 프로젝트 파일 동기화 목적으로 먼저 사용하지 않는다.
 - `xcodebuild test` 실패 후 생산 코드 컴파일 검증을 생략하지 않는다.
+- `선행 실패`를 이번 작업의 실패로 보고 수정하지 않는다.
 
 ## Exception
 - `tuist test`는 `xcodebuild test`의 scheme destination이 지속적으로 실패하는 환경에서만 fallback으로 사용할 수 있다.
@@ -68,3 +72,4 @@
 - 테스트 실행 불가 시 `tuist build`로 생산 코드 컴파일을 대신 검증했는가
 - `tuist clean` 실행 전에 영향 범위와 예상 시간을 사용자에게 보고하고 승인을 받았는가
 - 모든 `tuist` 명령이 병렬이 아닌 순차로 실행되었는가
+- 테스트 실패를 `선행 실패`와 이번 변경으로 구분했는가

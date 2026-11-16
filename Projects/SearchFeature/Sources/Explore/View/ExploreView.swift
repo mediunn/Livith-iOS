@@ -30,9 +30,11 @@ struct ExploreView: View {
     var body: some View {
         VStack(spacing: 0) {
             LivithNavigationView(type: .logo())
+                .padding(.horizontal, 16)
 
             ZStack(alignment: .top) {
                 ExploreSearchButton(onTap: handleSearchTap)
+                    .padding(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
                     .zIndex(2)
                     .background(
                         scrollOffset > Constants.bannerHeight - 60
@@ -249,6 +251,7 @@ private extension ExploreView {
 
     var emptyView: some View {
         LivithEmptyView(text: "콘서트가 없어요")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

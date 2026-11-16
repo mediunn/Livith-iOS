@@ -89,6 +89,7 @@ private extension CalendarDayScheduleModalView {
             Spacer(minLength: .zero)
 
             LivithEmptyView(text: Constants.emptyMessage)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .fixedSize(horizontal: false, vertical: true)
 
             Button(action: onInterestSettingTap) {

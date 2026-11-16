@@ -22,7 +22,7 @@
 - Surgical Changes: Every changed line should trace directly to the request; match the surrounding style and clean up only artifacts introduced by the current change.
 - Goal-Driven Execution: For bug fixes and behavior changes, define or reproduce the expected behavior first, then verify with focused tests or an equivalent check.
 - Conciseness: User-facing responses only. Drop filler (just/really/basically), pleasantries (sure/certainly/of course), and hedging. Be direct. Technical accuracy over verbosity. Analysis and planning remain thorough.
-- If goal, scope, or completion criteria are unclear, use `.agents/skills/deep-interview/SKILL.md`. Do not fill load-bearing decisions with a “reasonable default.”
+- If goal, scope, or completion criteria are unclear, follow `docs/rules/plan.md` and confirm open design choices with the user before changing code. Do not fill load-bearing decisions with a “reasonable default.”
 
 ## Rule Documents
 

@@ -24,6 +24,13 @@ let project = Project.make(
                 .core(.livithFoundation),
                 .core(.amplitude)
             ]
+        ),
+        .make(
+            target: .search(.searchFeatureTests),
+            product: .unitTests,
+            dependencies: [
+                .search(.searchFeature)
+            ]
         )
     ]
 )

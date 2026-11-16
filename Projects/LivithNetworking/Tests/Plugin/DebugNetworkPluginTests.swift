@@ -90,7 +90,29 @@ struct DebugNetworkPluginTests {
         let message = try #require(recorder.messages().first)
         #expect(message.contains("❌ ERROR"))
         #expect(message.contains("Reason:  unknown"))
+        #expect(message.contains("secret-underlying-error"))
         #expect(message.contains("/concerts"))
+    }
+
+    @Test("unknown URLError는 도메인과 코드를 출력해야 한다")
+    func unknown_URLError는_도메인과_코드를_출력해야_한다() async throws {
+        let recorder = OutputRecorder()
+        let sut = DebugNetworkPlugin { message in
+            recorder.append(message)
+        }
+        let request = URLRequest(url: try #require(URL(string: "https://api.example.com/auth/kakao/mobile")))
+        let endpoint = NetworkEndpoint(path: "/auth/kakao/mobile", method: .post)
+
+        await sut.didReceive(
+            .failure(.unknown(URLError(.secureConnectionFailed))),
+            request: request,
+            endpoint: endpoint
+        )
+
+        let message = try #require(recorder.messages().first)
+        #expect(message.contains("Reason:  unknown"))
+        #expect(message.contains("NSURLErrorDomain"))
+        #expect(message.contains("-1200"))
     }
 
     @Test("디버그 로그는 header와 body 원문을 출력하지 않아야 한다")

@@ -8,20 +8,13 @@
 
 import SwiftUI
 
-// MARK: - Position
-
-public enum LivithSnackBarPosition {
-    case top
-    case bottom
-}
-
 public struct LivithSnackBar: View {
 
     // MARK: - Property
 
     private let message: String
     private let actionTitle: String
-    private let position: LivithSnackBarPosition
+    private let dismissEdge: VerticalEdge
     private let onActionTapped: () -> Void
     private let onDismiss: () -> Void
 
@@ -37,13 +30,13 @@ public struct LivithSnackBar: View {
     public init(
         message: String,
         actionTitle: String,
-        position: LivithSnackBarPosition = .bottom,
+        dismissEdge: VerticalEdge = .bottom,
         onActionTapped: @escaping () -> Void,
         onDismiss: @escaping () -> Void
     ) {
         self.message = message
         self.actionTitle = actionTitle
-        self.position = position
+        self.dismissEdge = dismissEdge
         self.onActionTapped = onActionTapped
         self.onDismiss = onDismiss
     }
@@ -51,26 +44,14 @@ public struct LivithSnackBar: View {
     // MARK: - Body
 
     public var body: some View {
-        VStack {
-            if position == .bottom {
-                Spacer()
+        bannerContent
+            .offset(y: offset)
+            .gesture(dragGesture)
+            .task(id: timerResetCount) {
+                try? await Task.sleep(for: .seconds(autoDismissDelay))
+                guard !Task.isCancelled, !isDragging else { return }
+                onDismiss()
             }
-
-            bannerContent
-                .offset(y: offset)
-                .gesture(dragGesture)
-                .padding(.horizontal, 16)
-                .padding(position == .top ? .top : .bottom, 16)
-            
-            if position == .top {
-                Spacer()
-            }
-        }
-        .task(id: timerResetCount) {
-            try? await Task.sleep(for: .seconds(autoDismissDelay))
-            guard !Task.isCancelled, !isDragging else { return }
-            onDismiss()
-        }
     }
 }
 
@@ -106,19 +87,19 @@ private extension LivithSnackBar {
                 let translation = value.translation.height
                 
                 // top: 위로 드래그 시, bottom: 아래로 드래그 시만 반응
-                if (position == .top && translation < 0) || (position == .bottom && translation > 0) {
+                if (dismissEdge == .top && translation < 0) || (dismissEdge == .bottom && translation > 0) {
                     offset = translation
                 }
             }
             .onEnded { value in
                 isDragging = false
                 let translation = value.translation.height
-                let shouldDismiss = (position == .top && translation < -dismissThreshold) ||
-                                   (position == .bottom && translation > dismissThreshold)
+                let shouldDismiss = (dismissEdge == .top && translation < -dismissThreshold) ||
+                                   (dismissEdge == .bottom && translation > dismissThreshold)
                 
                 if shouldDismiss {
                     withAnimation(.easeOut(duration: 0.2)) {
-                        offset = position == .top ? -200 : 200
+                        offset = dismissEdge == .top ? -200 : 200
                     }
                     Task { @MainActor in
                         try? await Task.sleep(for: .milliseconds(200))
@@ -145,10 +126,12 @@ private extension LivithSnackBar {
         LivithSnackBar(
             message: "웹사이트를 보셨나요?\n관심 콘서트 설정하고 공연 알림을 받으세요",
             actionTitle: "콘서트 설정",
-            position: .bottom,
+            dismissEdge: .bottom,
             onActionTapped: {},
             onDismiss: {}
         )
+        .padding([.horizontal, .bottom], 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 }
 
@@ -160,9 +143,11 @@ private extension LivithSnackBar {
         LivithSnackBar(
             message: "선호 장르가 변경되었어요",
             actionTitle: "확인",
-            position: .top,
+            dismissEdge: .top,
             onActionTapped: {},
             onDismiss: {}
         )
+        .padding([.horizontal, .top], 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
