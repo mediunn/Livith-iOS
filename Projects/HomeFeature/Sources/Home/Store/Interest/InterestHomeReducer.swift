@@ -65,7 +65,8 @@ final class InterestHomeReducer {
     }
 
     @Injected private var userRepository: UserRepository
-    @Injected private var homeSectionRepository: HomeSectionRepository
+    @Injected private var concertSectionRepository: ConcertSectionRepository
+    @Injected private var concertRecommendationRepository: ConcertRecommendationRepository
     @Injected private var interestConcertRepository: InterestConcertRepository
     @Injected private var interestConcertEntryAlertRepository: InterestConcertEntryAlertRepository
 
@@ -314,7 +315,7 @@ private extension InterestHomeReducer {
 
     func fetchSections() async -> Result<[ConcertSection], Error> {
         do {
-            let sections = try await homeSectionRepository.fetchHomeConcertSectionList()
+            let sections = try await concertSectionRepository.fetchHomeConcertSectionList()
             return .success(sections)
         } catch {
             return .failure(error)
@@ -372,7 +373,7 @@ private extension InterestHomeReducer {
         cancellables[.sections]?.cancel()
         cancellables[.sections] = Task {
             do {
-                async let sections = homeSectionRepository.fetchHomeConcertSectionList()
+                async let sections = concertSectionRepository.fetchHomeConcertSectionList()
                 async let recommendations = fetchRecommendationsIfNeeded(user: user)
 
                 let sectionList = try await sections
@@ -400,7 +401,7 @@ private extension InterestHomeReducer {
         guard user.hasPreferences else { return nil }
 
         do {
-            return try await homeSectionRepository.fetchRecommendedConcertList()
+            return try await concertRecommendationRepository.fetchRecommendedConcertList()
         } catch {
             return []
         }

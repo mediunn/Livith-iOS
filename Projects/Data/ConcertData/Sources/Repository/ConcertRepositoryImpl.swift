@@ -12,7 +12,8 @@ import Domain
 import LivithNetworking
 import LivithFoundation
 
-struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository, HomeSectionRepository, ConcertRequestRepository {
+struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository,
+    ConcertSectionRepository, ConcertRecommendationRepository, ConcertRequestRepository {
     private let networkClient: NetworkClient
     private let mapper: ConcertMapper = .init()
     private let errorMapper: ConcertErrorMapper = .init()

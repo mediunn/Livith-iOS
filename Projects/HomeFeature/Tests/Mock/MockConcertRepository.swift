@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 
-final class MockConcertRepository: ConcertCatalogRepository, HomeSectionRepository {
+final class MockConcertRepository: ConcertCatalogRepository, ConcertSectionRepository, ConcertRecommendationRepository {
     var concertListStub: [Concert] = []
     var artistStub: Artist?
     var setlistListStub: [Setlist] = []
