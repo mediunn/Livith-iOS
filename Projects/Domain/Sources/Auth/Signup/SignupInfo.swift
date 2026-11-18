@@ -22,7 +22,7 @@ public struct SignupInfo: Hashable {
     
     // MARK: - Initializer
     
-    public init(
+    init(
         provider: SocialLoginProvider,
         providerID: String,
         email: String?,
