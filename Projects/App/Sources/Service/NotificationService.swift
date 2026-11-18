@@ -18,7 +18,7 @@ import FirebaseMessaging
 final class NotificationService: NSObject {
     static let shared = NotificationService()
 
-    @Injected private var notificationRepository: NotificationRepository
+    @Injected private var notificationTokenRepository: NotificationTokenRepository
 
     private override init() {
         super.init()
@@ -53,7 +53,7 @@ final class NotificationService: NSObject {
     func registerFCMTokenToServer() {
         Task {
             guard let token = await getFCMToken() else { return }
-            try? await notificationRepository.registerFCMToken(token)
+            try? await notificationTokenRepository.registerFCMToken(token)
         }
     }
 

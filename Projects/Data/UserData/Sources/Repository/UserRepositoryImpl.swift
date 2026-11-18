@@ -13,7 +13,7 @@ import LivithFoundation
 import LivithNetworking
 import Persistence
 
-struct UserRepositoryImpl: UserRepository {
+struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestConcertEntryAlertRepository {
     private let networkClient: NetworkClient
     private let userCache: UserDiskCache
     private let mapper: UserMapper = .init()
@@ -27,10 +27,10 @@ struct UserRepositoryImpl: UserRepository {
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
     }
 
-    func updateNickname(_ nickname: String) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) {
         do {
             let response: DTO.Response.UpdateUserNickname = try await networkClient.request(
-                UserAPI.updateNickname(nickname)
+                UserAPI.updateNickname(nickname.value)
             )
             await userCache.updateUser { user in
                 user.nickname = response.nickname

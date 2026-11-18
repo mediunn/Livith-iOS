@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 
 enum DeleteUserReason: String, CaseIterable {
@@ -99,7 +100,7 @@ private extension DeleteUserStore {
                 }
             } catch {
                 await MainActor.run {
-                    send(._setDeleteUserResult(.failure(error.localizedDescription)))
+                    send(._setDeleteUserResult(.failure(DisplayErrorMessage.message(for: error))))
                 }
             }
         }

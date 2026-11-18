@@ -87,8 +87,8 @@ public final class ConcertStore: ObservableObject {
     private var fetchTask: Task<Void, Never>?
     @Published private(set) var state = ConcertState()
 
-    @Injected private var repository: ConcertRepository
-    @Injected private var userRepository: UserRepository
+    @Injected private var repository: ConcertDetailRepository
+    @Injected private var interestConcertRepository: InterestConcertRepository
 
     // MARK: - Initializer
 
@@ -151,7 +151,7 @@ private extension ConcertStore {
         fetchTask?.cancel()
 
         let repo = repository
-        let userRepo = userRepository
+        let userRepo = interestConcertRepository
 
         fetchTask = Task { @MainActor in
             send(._setLoading(true))
@@ -213,7 +213,7 @@ private extension ConcertStore {
 
         let isInterested = state.isCurrentConcertInterested ?? false
         let concertID = state.concertID
-        let userRepo = userRepository
+        let userRepo = interestConcertRepository
 
         Task { @MainActor in
             send(._setInterestStatus(.inProgress))
@@ -241,7 +241,7 @@ private extension ConcertStore {
         }
     }
 
-    func fetchAllInterestedConcertIDs(using repository: UserRepository) async throws(UserError) -> [Int] {
+    func fetchAllInterestedConcertIDs(using repository: InterestConcertRepository) async throws(UserError) -> [Int] {
         var ids: [Int] = []
         var nextToken: (any NextToken)? = nil
 

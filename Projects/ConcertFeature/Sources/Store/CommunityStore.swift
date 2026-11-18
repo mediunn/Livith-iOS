@@ -244,11 +244,9 @@ private extension CommunityStore {
     }
 
     func submitComment() {
-        guard !state.commentText.isEmpty, !state.isSubmitting else { return }
+        guard !state.isSubmitting, let content = try? ConcertCommentContent(state.commentText) else { return }
 
         submitTask?.cancel()
-
-        let content = state.commentText
 
         submitTask = Task { @MainActor in
             send(._setSubmitting(true))

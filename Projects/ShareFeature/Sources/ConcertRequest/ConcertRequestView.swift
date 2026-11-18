@@ -9,6 +9,7 @@
 import SwiftUI
 
 import Amplitude
+import Domain
 import LivithDesignSystem
 
 public struct ConcertRequestView: View {
@@ -160,7 +161,7 @@ private extension ConcertRequestView {
     }
 
     var isSubmitEnabled: Bool {
-        !trimmed(concertName).isEmpty
+        ConcertRequest.isTitleValid(concertName)
     }
 
     var failureToastBinding: Binding<Bool> {
@@ -207,7 +208,7 @@ private extension ConcertRequestView {
             LivithTextField(
                 text: $concertName,
                 isFocused: $isConcertNameFocused,
-                type: .text(maxLength: Constants.concertNameMaxLength),
+                type: .text(maxLength: ConcertRequest.maxTitleLength),
                 placeholder: Literals.concertNamePlaceholder,
                 onSubmit: { focusField(.url) }
             )
@@ -309,13 +310,11 @@ private extension ConcertRequestView {
     }
 
     func submit(shouldAutoRegister: Bool) {
-        let url = trimmed(urlText)
-        let note = trimmed(additionalNote)
         store.send(.submit(
-            title: trimmed(concertName),
-            url: url.isEmpty ? nil : url,
+            title: concertName,
+            url: urlText,
             shouldAutoRegister: shouldAutoRegister,
-            requestContent: note.isEmpty ? nil : note
+            requestContent: additionalNote
         ))
     }
 }
@@ -324,7 +323,6 @@ private extension ConcertRequestView {
 
 private extension ConcertRequestView {
     enum Constants {
-        static let concertNameMaxLength = 50
         static let additionalNoteMinHeight: CGFloat = 248
         /// 버튼 영역(상단 16 + 높이 52) + 추가작성과의 간격 20
         static let scrollBottomPadding: CGFloat = 16 + 52 + 20

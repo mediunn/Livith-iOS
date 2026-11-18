@@ -12,7 +12,7 @@ import Domain
 import LivithNetworking
 import Persistence
 
-struct NotificationRepositoryImpl: NotificationRepository {
+struct NotificationRepositoryImpl: NotificationRepository, NotificationSettingsRepository, NotificationTokenRepository {
     private let networkClient: NetworkClient
     private let userdefaultsStorage: UserDefaultsStorage
     private let mapper: NotificationMapper = .init()

@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 
-final class MockUserRepository: UserRepository {
+final class MockUserRepository: UserRepository, InterestConcertRepository, InterestConcertEntryAlertRepository {
     var userStub: User?
     var interestConcertListStub: [InterestConcert] = []
     var interestConcertListResultStub: ListResult<InterestConcert>?
@@ -39,7 +39,7 @@ final class MockUserRepository: UserRepository {
     var updateNicknameCallCount: Int = 0
     var fetchInterestConcertEntryAlertsCallCount: Int = 0
 
-    func updateNickname(_ nickname: String) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) {
         updateNicknameCallCount += 1
         if let error = errorStub {
             throw error

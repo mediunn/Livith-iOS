@@ -9,6 +9,7 @@
 import SwiftUI
 import UIKit
 
+import Domain
 import LivithDesignSystem
 
 struct CommentInputView: View {
@@ -16,7 +17,6 @@ struct CommentInputView: View {
     // MARK: - Constants
 
     private enum Constants {
-        static let maxLength = 400
         static let maxLines = 15
         static let placeholder = "댓글은 400자까지 작성 가능해요"
         static let textFieldHorizontalPadding: CGFloat = 32
@@ -60,7 +60,7 @@ private extension CommentInputView {
     var textField: some View {
         LivithTextField(
             text: $text,
-            type: .comment(maxLength: Constants.maxLength),
+            type: .comment(maxLength: ConcertCommentContent.maxLength),
             placeholder: Constants.placeholder
         )
         .onChange(of: text) { _, newValue in
@@ -69,7 +69,7 @@ private extension CommentInputView {
             let textWidth = textFieldWidth - Constants.textFieldHorizontalPadding
             let lineCount = calculateActualLineCount(text: newValue, containerWidth: textWidth)
             isExceedingLineLimit = lineCount > Constants.maxLines
-            isExceedingCharacterLimit = newValue.count > Constants.maxLength
+            isExceedingCharacterLimit = newValue.count > ConcertCommentContent.maxLength
         }
     }
 

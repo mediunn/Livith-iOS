@@ -303,7 +303,7 @@ final class ConcertMapperTests: XCTestCase {
         XCTAssertEqual(result[0].concertList[0].status, .upcoming)
     }
     
-    func test_FetchSectionList_잘못된_날짜_형식인_경우_해당_콘서트는_제외되어야_한다() throws {
+    func test_FetchSectionList_잘못된_시작일은_nil로_변환하고_콘서트는_유지해야_한다() throws {
         // Given
         let json = JSONLiterals.sectionWithConcerts([
             JSONLiterals.validConcert,
@@ -316,8 +316,11 @@ final class ConcertMapperTests: XCTestCase {
         let result = sut.toDomain(from: dto)
         
         // Then
-        XCTAssertEqual(result[0].concertList.count, 1)
-        XCTAssertEqual(result[0].concertList[0].id, 1)
+        let section = try XCTUnwrap(result.first)
+        XCTAssertEqual(section.concertList.map(\.id), [1, 2])
+        let concertWithInvalidDate = try XCTUnwrap(section.concertList.last)
+        XCTAssertNil(concertWithInvalidDate.startDate)
+        XCTAssertNotNil(concertWithInvalidDate.endDate)
     }
     
     func test_FetchSectionList_잘못된_상태_형식인_경우_해당_콘서트는_제외되어야_한다() throws {
@@ -414,9 +417,10 @@ final class ConcertMapperTests: XCTestCase {
         let firstSchedule = result[0]
         XCTAssertEqual(firstSchedule.id, 2)
         XCTAssertEqual(firstSchedule.category, "티켓팅 오픈")
-        XCTAssertEqual(firstSchedule.type, .ticketing)
+        XCTAssertEqual(firstSchedule.type, .generalTicketing)
         
-        let calendar = Calendar.current
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Seoul"))
         let firstYear = calendar.component(.year, from: firstSchedule.scheduledAt)
         let firstMonth = calendar.component(.month, from: firstSchedule.scheduledAt)
         let firstDay = calendar.component(.day, from: firstSchedule.scheduledAt)
@@ -451,7 +455,8 @@ final class ConcertMapperTests: XCTestCase {
         XCTAssertEqual(result.count, 2)
         
         // 첫 번째 항목이 유효한 스케줄임을 확인
-        let calendar = Calendar.current
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Seoul"))
         let firstYear = calendar.component(.year, from: result[0].scheduledAt)
         let firstMonth = calendar.component(.month, from: result[0].scheduledAt)
         XCTAssertEqual(firstYear, 2025)
@@ -572,7 +577,7 @@ private enum JSONLiterals {
     // Concert Schedule literals
     static let validConcertScheduleList = """
     [
-        {"id": 2, "category": "티켓팅 오픈", "scheduledAt": "2025-06-15T12:00:00.000Z", "type": "TICKETING"},
+        {"id": 2, "category": "티켓팅 오픈", "scheduledAt": "2025-06-15T12:00:00.000Z", "type": "GENERAL_TICKETING"},
         {"id": 3, "category": "공식 굿즈 사전 판매", "scheduledAt": "2025-08-01T10:00:00.000Z", "type": null},
         {"id": 1, "category": "공연", "scheduledAt": "2025-08-10T19:00:00.000Z", "type": null}
     ]
@@ -580,7 +585,7 @@ private enum JSONLiterals {
     
     static let concertScheduleWithInvalidDate = """
     [
-        {"id": 2, "category": "티켓팅 오픈", "scheduledAt": "2025-06-15T12:00:00.000Z", "type": "TICKETING"},
+        {"id": 2, "category": "티켓팅 오픈", "scheduledAt": "2025-06-15T12:00:00.000Z", "type": "GENERAL_TICKETING"},
         {"id": 3, "category": "공식 굿즈 사전 판매", "scheduledAt": "invalid-date", "type": null},
         {"id": 1, "category": "공연", "scheduledAt": "2025-08-10T19:00:00.000Z", "type": null}
     ]

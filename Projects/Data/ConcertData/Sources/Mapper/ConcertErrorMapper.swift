@@ -66,8 +66,18 @@ struct ConcertErrorMapper {
     }
     
     private func mapMessageToConcertError(_ message: String) -> ConcertError? {
-        let error = ConcertError.from(message: message)
-        return error == .unknown ? nil : error
+        switch message {
+        case "id는 양의 정수여야 합니다.", "id must not be less than 1":
+            return .invalidID
+        case "size must not be less than 1":
+            return .invalidSize
+        case "해당 콘서트를 찾을 수 없습니다.", "해당 콘서트가 존재하지 않습니다.":
+            return .concertNotFound
+        case "해당 아티스트를 찾을 수 없습니다.":
+            return .artistNotFound
+        default:
+            return nil
+        }
     }
     
     private func checkForCancellation(_ error: any Error) -> ConcertError? {

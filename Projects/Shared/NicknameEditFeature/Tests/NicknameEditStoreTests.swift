@@ -24,9 +24,9 @@ final class MockAuthRepository: AuthRepository {
     var lastCheckedNickname: String?
     var lastSignupNickname: String?
 
-    func checkNicknameDuplicate(nickname: String) async throws(AuthError) -> Bool {
+    func checkNicknameDuplicate(nickname: Nickname) async throws(AuthError) -> Bool {
         checkNicknameCallCount += 1
-        lastCheckedNickname = nickname
+        lastCheckedNickname = nickname.value
         switch checkNicknameResult {
         case .success(let isAvailable):
             return isAvailable
@@ -59,9 +59,9 @@ final class MockUserRepository: UserRepository {
     var updateNicknameCallCount = 0
     var lastUpdatedNickname: String?
 
-    func updateNickname(_ nickname: String) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) {
         updateNicknameCallCount += 1
-        lastUpdatedNickname = nickname
+        lastUpdatedNickname = nickname.value
         switch updateNicknameResult {
         case .success:
             return
@@ -257,6 +257,8 @@ struct NicknameEditStoreTests {
         mockAuthRepository.signupResult = .success(())
         let sut = NicknameEditStore(config: .signup)
         sut.updateNickname("테스트")
+        sut.checkDuplicate()
+        try? await Task.sleep(for: .milliseconds(100))
 
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))

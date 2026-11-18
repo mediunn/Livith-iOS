@@ -18,10 +18,10 @@ struct PreferredGenreSettingView: View {
 
     @State private var isDiscardChangesModalPresented: Bool = false
     
-    private let builder: SignupBuilder
+    private let session: SignupSession
     
-    init(builder: SignupBuilder) {
-        self.builder = builder
+    init(session: SignupSession) {
+        self.session = session
     }
     
     var body: some View {
@@ -33,8 +33,9 @@ struct PreferredGenreSettingView: View {
             }
         } onSubmit: { selectedGenreList in
             AmplitudeService.shared.trackEvent(tag: .confirm(.genrePreference))
-            let updated = builder.withPreferredGenreList(selectedGenreList)
-            router.push(.preferredArtist(updated))
+            var updatedSession = session
+            updatedSession.selectPreferredGenres(selectedGenreList)
+            router.push(.preferredArtist(updatedSession))
         }
         .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
             LivithDangerModal(

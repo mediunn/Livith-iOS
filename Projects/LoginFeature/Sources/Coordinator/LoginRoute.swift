@@ -14,7 +14,7 @@ import LivithDesignSystem
 enum LoginRoute: Hashable {
     case login
     case terms(TempUser)
-    case nickname(SignupBuilder)
-    case preferredGenre(SignupBuilder)
-    case preferredArtist(SignupBuilder)
+    case nickname(SignupSession)
+    case preferredGenre(SignupSession)
+    case preferredArtist(SignupSession)
 }

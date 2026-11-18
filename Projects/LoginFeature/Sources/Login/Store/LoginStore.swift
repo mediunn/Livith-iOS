@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 
 enum LoginIntent {
@@ -110,14 +111,14 @@ private extension LoginStore {
     }
 
     func getErrorMessage(from error: Error) -> String {
-        let unknownMessage = AuthError.unknown.errorDescription ?? ""
+        let unknownMessage = DisplayErrorMessage.message(for: AuthError.unknown)
         guard let authError = error as? AuthError else { return unknownMessage }
 
         switch authError {
         case .cancelled, .recentlyWithdrawn, .withdrawn:
             return ""
         case .noConnection, .serverError, .userNotFound:
-            return authError.errorDescription ?? unknownMessage
+            return DisplayErrorMessage.message(for: authError)
         default:
             return unknownMessage
         }

@@ -12,7 +12,8 @@ import Domain
 import LivithNetworking
 import LivithFoundation
 
-struct ConcertRepositoryImpl: ConcertRepository {
+struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository,
+    ConcertSectionRepository, ConcertRecommendationRepository, ConcertRequestRepository {
     private let networkClient: NetworkClient
     private let mapper: ConcertMapper = .init()
     private let errorMapper: ConcertErrorMapper = .init()
@@ -169,19 +170,14 @@ struct ConcertRepositoryImpl: ConcertRepository {
         }
     }
 
-    func requestConcert(
-        title: String,
-        url: String?,
-        shouldAutoRegister: Bool,
-        requestContent: String?
-    ) async throws(ConcertError) {
+    func requestConcert(_ request: ConcertRequest) async throws(ConcertError) {
         do {
             try await networkClient.request(
                 ConcertAPI.requestConcert(
-                    title: title,
-                    url: url,
-                    shouldAutoRegister: shouldAutoRegister,
-                    requestContent: requestContent
+                    title: request.title,
+                    url: request.url,
+                    shouldAutoRegister: request.shouldAutoRegister,
+                    requestContent: request.requestContent
                 )
             )
         } catch {

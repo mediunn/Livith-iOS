@@ -34,6 +34,8 @@ private extension UserDataAssembler {
         )
         
         container.register(userRepo, for: UserRepository.self)
+        container.register(userRepo, for: InterestConcertRepository.self)
+        container.register(userRepo, for: InterestConcertEntryAlertRepository.self)
     }
 
     func registerConcertMatchingRepository(to container: any DependencyContainer) {

@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 
 // MARK: - State
@@ -43,7 +44,7 @@ final class InterestConcertListStore: ObservableObject {
 
     @Published private(set) var state: InterestConcertListState = .init()
 
-    @Injected private var userRepository: UserRepository
+    @Injected private var interestConcertRepository: InterestConcertRepository
 
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var currentRequestID: Int = 0
@@ -164,7 +165,7 @@ private extension InterestConcertListStore {
                 limit: pageSize,
                 nextToken: nextToken
             )
-            let page = try await userRepository.fetchInterestedConcertList(filter: filter)
+            let page = try await interestConcertRepository.fetchInterestedConcertList(filter: filter)
             return .success(page)
         } catch {
             return .failure(error)
@@ -180,6 +181,6 @@ private extension InterestConcertListStore {
             return ""
         }
 
-        return error.localizedDescription
+        return DisplayErrorMessage.message(for: error)
     }
 }

@@ -28,6 +28,10 @@ private extension ConcertDataAssembler {
         let concertRepo = ConcertRepositoryImpl(
             networkClient: client
         )
-        container.register(concertRepo, for: ConcertRepository.self)
+        container.register(concertRepo, for: ConcertCatalogRepository.self)
+        container.register(concertRepo, for: ConcertDetailRepository.self)
+        container.register(concertRepo, for: ConcertSectionRepository.self)
+        container.register(concertRepo, for: ConcertRecommendationRepository.self)
+        container.register(concertRepo, for: ConcertRequestRepository.self)
     }
 }

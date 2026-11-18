@@ -77,7 +77,9 @@ public struct NicknameEditView: View {
             case .idle:
                 break
             case .success:
-                onSubmitSuccess(store.nickname)
+                if let nickname = store.state.submittedNickname {
+                    onSubmitSuccess(nickname.value)
+                }
             case .failure(let message):
                 onSubmitFailure?(message)
             }

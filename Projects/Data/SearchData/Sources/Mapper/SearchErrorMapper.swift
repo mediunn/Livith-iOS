@@ -63,8 +63,24 @@ struct SearchErrorMapper {
     }
     
     private func mapMessageToSearchError(_ message: String) -> SearchError? {
-        let error = SearchError.from(message: message)
-        return error == .unknown ? nil : error
+        switch message {
+        case "genre는 JPOP | ROCK_METAL | RAP_HIPHOP | POP | INDIE | ALL 중 하나여야 해요":
+            return .invalidGenre
+        case "status는 ONGOING | UPCOMING | COMPLETED | CANCELED | ALL 중 하나여야 해요":
+            return .invalidStatus
+        case "sort는 LATEST | ALPHABETICAL 중 하나여야 해요":
+            return .invalidSort
+        case "size must be a positive number", "size must not be less than 1":
+            return .invalidSize
+        case "콘서트를 찾을 수 없어요.":
+            return .invalidCursor
+        case "id must not be less than 1":
+            return .invalidID
+        case "검색어(letter)는 필수입니다.":
+            return .missingKeyword
+        default:
+            return nil
+        }
     }
     
     private func checkForCancellation(_ error: any Error) -> SearchError? {

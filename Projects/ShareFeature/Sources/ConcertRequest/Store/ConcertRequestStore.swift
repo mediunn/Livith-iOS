@@ -32,7 +32,7 @@ enum ConcertRequestIntent {
 final class ConcertRequestStore: ObservableObject {
     @Published private(set) var state = ConcertRequestState()
 
-    @Injected private var concertRepository: ConcertRepository
+    @Injected private var concertRequestRepository: ConcertRequestRepository
 
     @MainActor
     func send(_ intent: ConcertRequestIntent) {
@@ -74,12 +74,13 @@ private extension ConcertRequestStore {
     ) {
         Task {
             do {
-                try await concertRepository.requestConcert(
+                let request = try ConcertRequest(
                     title: title,
                     url: url,
                     shouldAutoRegister: shouldAutoRegister,
                     requestContent: requestContent
                 )
+                try await concertRequestRepository.requestConcert(request)
                 await MainActor.run {
                     send(._submitResult(.success(())))
                 }

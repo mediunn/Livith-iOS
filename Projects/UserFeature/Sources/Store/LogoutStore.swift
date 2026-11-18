@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 
 enum LogoutResult: Equatable {
@@ -59,7 +60,7 @@ private extension LogoutStore {
                 }
             } catch {
                 await MainActor.run {
-                    send(._setLogoutResult(.failure(error.localizedDescription)))
+                    send(._setLogoutResult(.failure(DisplayErrorMessage.message(for: error))))
                 }
             }
         }

@@ -63,8 +63,36 @@ struct AuthErrorMapper {
     }
     
     private func mapMessageToAuthError(_ message: String) -> AuthError? {
-        let error = AuthError.from(message: message)
-        return error == .unknown ? nil : error
+        switch message {
+        case "탈퇴한 회원입니다.":
+            return .withdrawn
+        case "탈퇴 후 7일이 지나지 않았어요":
+            return .recentlyWithdrawn
+        case "이미 존재하는 닉네임이에요.":
+            return .duplicateNickname
+        case "nickname must be shorter than or equal to 10 characters":
+            return .nicknameTooLong
+        case "nickname should not be empty":
+            return .emptyNickname
+        case "해당 유저가 존재하지 않습니다.":
+            return .userNotFound
+        case "이미 탈퇴한 회원입니다.", "이미 탈퇴한 회원이에요.":
+            return .withdrawn
+        case "reason should not be empty":
+            return .emptyReason
+        case "최소 1개의 장르는 선택해야 합니다.":
+            return .emptyGenreList
+        case "해당 장르를 찾을 수 없습니다.":
+            return .genreNotFound
+        case "최대 3개의 장르만 선택할 수 있습니다.":
+            return .genreExceedsLimit
+        case "해당 아티스를 찾을 수 없습니다.":
+            return .artistNotFound
+        case "최대 3개의 아티스트만 선택할 수 있습니다.":
+            return .artistExceedsLimit
+        default:
+            return nil
+        }
     }
     
     private func checkForCancellation(_ error: any Error) -> AuthError? {

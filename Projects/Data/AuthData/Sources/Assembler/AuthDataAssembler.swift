@@ -33,7 +33,7 @@ private extension AuthDataAssembler {
         let authRepo = AuthRepositoryImpl(
             socialAuthService: container.resolve(SocialAuthService.self),
             networkClient: client,
-            notificationRepository: container.resolve(NotificationRepository.self),
+            notificationTokenRepository: container.resolve(NotificationTokenRepository.self),
             userdefaultsStorage: container.resolve(UserDefaultsStorage.self),
             tokenManager: tokenManager
         )
