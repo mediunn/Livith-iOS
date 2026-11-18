@@ -38,7 +38,7 @@ struct SearchStoreTests {
         // Then
         #expect(recorder.count > 0)
         #expect(recorder.allOnMainThread)
-        #expect(sut.state.cursor == 1)
+        #expect(sut.state.hasMorePages)
         #expect(sut.state.searchMessage == "공연")
         #expect(sut.state.searchedConcertList.map(\.id) == [1])
     }
@@ -48,14 +48,14 @@ struct SearchStoreTests {
         // Given
         let sut = SearchStore()
         sut.send(.viewDidLoad)
-        try await waitForState { sut.state.cursor == 1 }
+        try await waitForState { sut.state.hasMorePages }
         let recorder = StatePublicationRecorder()
         let subscription = sut.$state.dropFirst().sink { _ in recorder.record() }
         defer { subscription.cancel() }
 
         // When
         sut.send(.loadNextPage)
-        try await waitForState { !sut.state.isLoadingMore && sut.state.cursor == nil }
+        try await waitForState { !sut.state.isLoadingMore && !sut.state.hasMorePages }
 
         // Then
         #expect(recorder.count > 0)
@@ -69,7 +69,7 @@ struct SearchStoreTests {
         // Given
         let sut = SearchStore()
         sut.send(.viewDidLoad)
-        try await waitForState { sut.state.cursor == 1 }
+        try await waitForState { sut.state.hasMorePages }
         DIContainer.shared.register(SearchRepositoryStub(error: .unknown), for: SearchRepository.self)
         let recorder = StatePublicationRecorder()
         let subscription = sut.$state.dropFirst().sink { _ in recorder.record() }
@@ -128,14 +128,13 @@ private struct SearchRepositoryStub: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        cursor: Int?,
+        after nextToken: (any NextToken)?,
         size: Int?
-    ) async throws(SearchError) -> SearchResult {
+    ) async throws(SearchError) -> ListResult<Concert> {
         if let error { throw error }
-        return SearchResult(
-            concerts: [makeConcert(id: cursor == nil ? 1 : 2)],
-            cursor: cursor == nil ? 1 : nil,
-            totalCount: 2
+        return ListResult(
+            items: [makeConcert(id: nextToken == nil ? 1 : 2)],
+            nextToken: nextToken == nil ? TestSearchNextToken() : nil
         )
     }
 
@@ -161,3 +160,5 @@ private extension SearchRepositoryStub {
         )
     }
 }
+
+private struct TestSearchNextToken: NextToken {}

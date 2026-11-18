@@ -65,7 +65,7 @@ enum InstagramManualSearchIntent {
     case clearSuccessMessage
     case _fetchFirstPageResult(Result<ListResult<Concert>, Error>)
     case _fetchNextPageResult(Result<ListResult<Concert>, Error>)
-    case _fetchSearchResult(keyword: String, isNextPage: Bool, Result<SearchResult, Error>)
+    case _fetchSearchResult(keyword: String, isNextPage: Bool, Result<ListResult<Concert>, Error>)
     case _registerResult(concert: Concert, Result<Void, Error>)
 }
 
@@ -85,7 +85,7 @@ final class InstagramManualSearchStore: ObservableObject {
     private var baseConcertList: [Concert]
     private var concertByID: [Int: Concert]
     private var baseNextToken: (any NextToken)?
-    private var searchCursor: Int?
+    private var searchNextToken: (any NextToken)?
     private var searchDebounceTask: Task<Void, Never>?
     private var searchFetchTask: Task<Void, Never>?
 
@@ -95,7 +95,7 @@ final class InstagramManualSearchStore: ObservableObject {
         self.baseConcertList = []
         self.concertByID = [:]
         self.baseNextToken = nil
-        self.searchCursor = nil
+        self.searchNextToken = nil
         self.state = InstagramManualSearchState(context: context)
 
         performFetchFirstPage()
@@ -124,7 +124,7 @@ final class InstagramManualSearchStore: ObservableObject {
 
             state.isLoadingMore = true
             if let keyword = currentSearchKeyword() {
-                guard searchCursor != nil else {
+                guard searchNextToken != nil else {
                     state.isLoadingMore = false
                     return
                 }
@@ -198,17 +198,17 @@ final class InstagramManualSearchStore: ObservableObject {
             state.isLoadingMore = false
             switch result {
             case .success(let searchResult):
-                mergeConcertList(searchResult.concerts)
+                mergeConcertList(searchResult.items)
                 if isNextPage {
-                    state.displayedConcertList.append(contentsOf: searchResult.concerts)
+                    state.displayedConcertList.append(contentsOf: searchResult.items)
                 } else {
-                    state.displayedConcertList = searchResult.concerts
+                    state.displayedConcertList = searchResult.items
                 }
-                searchCursor = searchResult.cursor
-                state.hasMoreConcertList = searchResult.cursor != nil
+                searchNextToken = searchResult.nextToken
+                state.hasMoreConcertList = searchResult.nextToken != nil
             case .failure(let error):
                 state.displayedConcertList = []
-                searchCursor = nil
+                searchNextToken = nil
                 state.hasMoreConcertList = false
                 state.errorMessage = DisplayErrorMessage.message(for: error)
             }
@@ -261,7 +261,7 @@ private extension InstagramManualSearchStore {
         }
 
         let repository = searchRepository
-        let cursor = isNextPage ? searchCursor : nil
+        let nextToken = isNextPage ? searchNextToken : nil
 
         searchFetchTask = Task {
             do {
@@ -270,7 +270,7 @@ private extension InstagramManualSearchStore {
                     sort: nil,
                     status: Constants.searchStatusList,
                     keyword: keyword,
-                    cursor: cursor,
+                    after: nextToken,
                     size: Constants.pageSize
                 )
                 guard !Task.isCancelled else { return }
@@ -335,7 +335,7 @@ private extension InstagramManualSearchStore {
 
         searchDebounceTask?.cancel()
         searchFetchTask?.cancel()
-        searchCursor = nil
+        searchNextToken = nil
 
         searchDebounceTask = Task {
             try? await Task.sleep(for: Constants.searchDebounceDuration)
@@ -350,7 +350,7 @@ private extension InstagramManualSearchStore {
         searchFetchTask?.cancel()
         searchDebounceTask = nil
         searchFetchTask = nil
-        searchCursor = nil
+        searchNextToken = nil
         state.isSearchLoading = false
         state.isLoadingMore = false
     }

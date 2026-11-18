@@ -26,8 +26,8 @@ struct SearchMapper {
         }
     }
 
-    func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> SearchResult {
-        let concerts = response.data.compactMap { dto -> Concert? in
+    func toDomain(from response: DTO.Response.FetchFilterSearchResult) -> ListResult<Concert> {
+        let concertList = response.data.compactMap { dto -> Concert? in
             guard let status = ConcertStatus(rawValue: dto.status) else {
                 return nil
             }
@@ -49,10 +49,9 @@ struct SearchMapper {
             )
         }
 
-        return SearchResult(
-            concerts: concerts,
-            cursor: response.cursor,
-            totalCount: response.totalCount
+        return ListResult(
+            items: concertList,
+            nextToken: response.cursor.map { ConcertSearchNextToken(cursor: $0) }
         )
     }
 }

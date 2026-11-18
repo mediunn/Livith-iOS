@@ -13,8 +13,8 @@ import Domain
 final class MockSearchRepository: SearchRepository {
     var bannerStub: [Banner] = []
     var recommendedSearchResultStub: [String] = []
-    var searchResultStub: SearchResult?
-    var searchResultQueue: [Result<SearchResult, SearchError>] = []
+    var searchResultStub: ListResult<Concert>?
+    var searchResultQueue: [Result<ListResult<Concert>, SearchError>] = []
     var fetchFilterSearchResultDelayQueue: [UInt64] = []
     var errorStub: SearchError?
 
@@ -23,7 +23,7 @@ final class MockSearchRepository: SearchRepository {
     var fetchFilterSearchResultSortList: [SearchSort?] = []
     var fetchFilterSearchResultStatusList: [[ConcertStatus]] = []
     var fetchFilterSearchResultKeywordList: [String?] = []
-    var fetchFilterSearchResultCursorList: [Int?] = []
+    var fetchFilterSearchResultTokenValueList: [Int?] = []
     var fetchFilterSearchResultSizeList: [Int?] = []
 
     func fetchBanners() async throws(SearchError) -> [Banner] {
@@ -38,9 +38,9 @@ final class MockSearchRepository: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        cursor: Int?,
+        after nextToken: (any NextToken)?,
         size: Int?
-    ) async throws(SearchError) -> SearchResult {
+    ) async throws(SearchError) -> ListResult<Concert> {
         let delay: UInt64
         if !fetchFilterSearchResultDelayQueue.isEmpty {
             delay = fetchFilterSearchResultDelayQueue.removeFirst()
@@ -53,7 +53,7 @@ final class MockSearchRepository: SearchRepository {
         fetchFilterSearchResultSortList.append(sort)
         fetchFilterSearchResultStatusList.append(status)
         fetchFilterSearchResultKeywordList.append(keyword)
-        fetchFilterSearchResultCursorList.append(cursor)
+        fetchFilterSearchResultTokenValueList.append((nextToken as? TestSearchNextToken)?.value)
         fetchFilterSearchResultSizeList.append(size)
 
         if delay > 0 {
@@ -77,7 +77,7 @@ final class MockSearchRepository: SearchRepository {
             return searchResultStub
         }
 
-        return SearchResult(concerts: [], cursor: nil, totalCount: 0)
+        return ListResult(items: [], nextToken: nil)
     }
 
     func fetchRecommendedSearchResult(keyword: String) async throws(SearchError) -> [String] {
@@ -86,4 +86,8 @@ final class MockSearchRepository: SearchRepository {
         }
         return recommendedSearchResultStub
     }
+}
+
+struct TestSearchNextToken: NextToken {
+    let value: Int
 }

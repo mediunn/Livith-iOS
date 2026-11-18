@@ -139,7 +139,7 @@ struct SearchMapperTests {
         #expect(result[6].linkURL == nil)
     }
 
-    @Test("FetchFilterSearchResult DTO가 SearchResult Entity로 변환되어야 한다")
+    @Test("공연 검색 응답을 목록과 다음 토큰으로 변환한다")
     func fetchFilterSearchResultDTO를SearchResultEntity로변환해야한다() throws {
         // Given
         let json = """
@@ -204,13 +204,12 @@ struct SearchMapperTests {
         let result = sut.toDomain(from: dto)
 
         // Then
-        #expect(result.concerts.count == 3)
-        #expect(result.concerts[0].title == "Ariana Grande Live in Tokyo2")
-        #expect(result.concerts[0].status == .upcoming)
-        #expect(result.cursor == 1)
-        #expect(result.totalCount == 5)
+        #expect(result.items.count == 3)
+        #expect(result.items[0].title == "Ariana Grande Live in Tokyo2")
+        #expect(result.items[0].status == .upcoming)
+        #expect((result.nextToken as? ConcertSearchNextToken)?.cursor == 1)
 
-        let startDate = try #require(result.concerts[0].startDate)
+        let startDate = try #require(result.items[0].startDate)
         let yearStart = Calendar.current.component(.year, from: startDate)
         #expect(yearStart == 2025)
     }
@@ -246,12 +245,11 @@ struct SearchMapperTests {
 
         // When
         let result = sut.toDomain(from: dto)
-        let concert = try #require(result.concerts.first)
+        let concert = try #require(result.items.first)
 
         // Then
-        #expect(result.cursor == 1641)
-        #expect(result.totalCount == 1)
-        #expect(result.concerts.count == 1)
+        #expect((result.nextToken as? ConcertSearchNextToken)?.cursor == 1641)
+        #expect(result.items.count == 1)
         #expect(concert.id == 1641)
         #expect(concert.status == .upcoming)
         #expect(concert.artist == "Freedom Call (프리덤 콜)")

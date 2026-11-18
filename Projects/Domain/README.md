@@ -411,6 +411,8 @@ classDiagram
 
 ## 선호 장르와 아티스트
 
+`PreferenceRepository`의 아티스트 검색은 `ListResult<PreferredArtist>`를 반환한다.
+
 `PreferenceSelection<Item>`은 장르와 아티스트 선택에 쓰이는 제네릭 모델이다. 선택 상한은 `PreferenceSelectionRule`에 있고, `SignupInfo`도 제출 정보를 만들 때 같은 상한을 적용한다. [선호 소스](Sources/Preference)
 
 ```mermaid
@@ -418,7 +420,7 @@ classDiagram
     class PreferenceRepository {
         <<protocol>>
         +fetchGenreList() PreferredGenre[]
-        +searchArtistList(keyword, size, cursor) ArtistSearchResult
+        +searchArtistList(keyword, size, after) ListResult
         +fetchUserPreferredGenreList() PreferredGenre[]
         +fetchUserPreferredArtistList() PreferredArtist[]
         +updateUserPreferredGenreList(genreIDs) PreferredGenre[]
@@ -428,10 +430,7 @@ classDiagram
     class PreferredArtist {
         +genreID: Int
     }
-    class ArtistSearchResult {
-        +cursor: Int?
-        +totalCount: Int?
-    }
+    class ListResult~Item~
     class PreferenceSelection~Item~ {
         +items: Item[]
         +hasChangesToSave: Bool
@@ -450,9 +449,9 @@ classDiagram
 
     PreferenceRepository ..> PreferredGenre : 장르 조회 및 수정 결과
     PreferenceRepository ..> PreferredArtist : 아티스트 조회 및 수정 결과
-    PreferenceRepository ..> ArtistSearchResult : 아티스트 검색 결과
+    PreferenceRepository ..> ListResult : 아티스트 검색 페이지
     PreferenceRepository ..> PreferenceError : throws
-    ArtistSearchResult --> "0..*" PreferredArtist : artists
+    ListResult ..> PreferredArtist : Item 타입
     PreferredArtist ..> PreferredGenre : genreID
     PreferenceSelection ..> PreferredGenre : 장르 선택에서 사용하는 Item
     PreferenceSelection ..> PreferredArtist : 아티스트 선택에서 사용하는 Item
@@ -513,14 +512,14 @@ classDiagram
 
 ## 검색
 
-`SearchRepository`의 필터 검색은 장르, 정렬, 공연 상태를 입력받는다. `SearchResult`는 공통 공연 모델에 검색 커서와 전체 개수를 더한다. [검색 소스](Sources/Search)
+`SearchRepository`의 필터 검색은 장르, 정렬, 공연 상태를 입력받는다. 필터 검색은 공연 목록과 다음 페이지 토큰을 `ListResult<Concert>`로 반환한다. [검색 소스](Sources/Search)
 
 ```mermaid
 classDiagram
     class SearchRepository {
         <<protocol>>
         +fetchBanners() Banner[]
-        +fetchFilterSearchResult(genre, sort, status, keyword, cursor, size) SearchResult
+        +fetchFilterSearchResult(genre, sort, status, keyword, after, size) ListResult
         +fetchRecommendedSearchResult(keyword) String[]
     }
     class Banner
@@ -530,10 +529,7 @@ classDiagram
     class SearchSort {
         <<enum>>
     }
-    class SearchResult {
-        +cursor: Int?
-        +totalCount: Int
-    }
+    class ListResult~Item~
     class SearchError {
         <<enum>>
     }
@@ -546,9 +542,9 @@ classDiagram
     SearchRepository ..> ConcertGenre : 장르 필터
     SearchRepository ..> SearchSort : 정렬 입력
     SearchRepository ..> ConcertStatus : 상태 필터
-    SearchRepository ..> SearchResult : 필터 검색 결과
+    SearchRepository ..> ListResult : 필터 검색 페이지
     SearchRepository ..> SearchError : throws
-    SearchResult --> "0..*" Concert : concerts
+    ListResult ..> Concert : Item 타입
 ```
 
 ## 셋리스트와 곡
@@ -611,7 +607,9 @@ classDiagram
 
 ## 페이지네이션
 
-`ListResult<Item>`은 원소 목록과 선택적인 `NextToken`을 담는다. 전체 공연 조회에는 `Concert`를, 관심 공연 조회에는 `InterestConcert`를 원소 타입으로 사용한다. 검색과 선호 아티스트 조회는 각각 `SearchResult`, `ArtistSearchResult`의 정수 커서를 사용한다. [페이지네이션 소스](Sources/Pagination)
+`ListResult<Item>`은 원소 목록과 선택적인 `NextToken`을 담는다. 전체 공연 조회와 필터 검색은 `Concert`, 관심 공연 조회는 `InterestConcert`, 아티스트 검색은 `PreferredArtist`를 원소 타입으로 사용한다. [페이지네이션 소스](Sources/Pagination)
+
+검색을 시작하거나 조건을 바꿀 때는 Repository의 `after`에 `nil`을 전달한다. 같은 조건의 다음 페이지는 응답의 `nextToken`을 `after`에 전달해서 조회한다. Data는 서버 커서와 토큰을 변환한다. 토큰이 없으면 더 조회할 페이지가 없다.
 
 ```mermaid
 classDiagram
@@ -627,9 +625,16 @@ classDiagram
     class InterestConcertRepository {
         <<protocol>>
     }
+    class SearchRepository {
+        <<protocol>>
+    }
+    class PreferenceRepository {
+        <<protocol>>
+    }
     class InterestConcertListFilter
     class Concert
     class InterestConcert
+    class PreferredArtist
 
     ListResult --> "0..1" NextToken : nextToken
     ConcertCatalogRepository ..> ListResult : 공연 페이지 반환
@@ -639,4 +644,10 @@ classDiagram
     InterestConcertRepository ..> InterestConcert : Item 타입
     InterestConcertRepository ..> InterestConcertListFilter : 조회 입력
     InterestConcertListFilter --> "0..1" NextToken : nextToken
+    SearchRepository ..> ListResult : 공연 검색 페이지 반환
+    SearchRepository ..> Concert : Item 타입
+    SearchRepository ..> NextToken : 다음 페이지 입력
+    PreferenceRepository ..> ListResult : 아티스트 검색 페이지 반환
+    PreferenceRepository ..> PreferredArtist : Item 타입
+    PreferenceRepository ..> NextToken : 다음 페이지 입력
 ```

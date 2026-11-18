@@ -296,10 +296,9 @@ struct InterestConcertSettingStoreTests {
         container.concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
         ]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: nil,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            nextToken: nil
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -322,10 +321,9 @@ struct InterestConcertSettingStoreTests {
         container.concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
         ]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: 3,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            nextToken: TestSearchNextToken(value: 3)
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -344,10 +342,10 @@ struct InterestConcertSettingStoreTests {
         }
         #expect(container.searchRepository.fetchFilterSearchResultStatusList.first == [.ongoing, .upcoming])
         #expect(container.searchRepository.fetchFilterSearchResultKeywordList.first == "freedom")
-        #expect(container.searchRepository.fetchFilterSearchResultCursorList.isEmpty == false)
-        if let cursor = container.searchRepository.fetchFilterSearchResultCursorList.first,
-           cursor != nil {
-            Issue.record("검색 첫 요청은 cursor 없이 호출해야 한다")
+        #expect(container.searchRepository.fetchFilterSearchResultTokenValueList.isEmpty == false)
+        if let tokenValue = container.searchRepository.fetchFilterSearchResultTokenValueList.first,
+           tokenValue != nil {
+            Issue.record("검색 첫 요청은 토큰 없이 호출해야 한다")
         }
         #expect(container.searchRepository.fetchFilterSearchResultSizeList.first == 12)
         #expect(sut.state.displayedConcertList.map(\.id) == [3])
@@ -360,10 +358,9 @@ struct InterestConcertSettingStoreTests {
             .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
         ]
         container.searchRepository.fetchFilterSearchResultDelayQueue = [300_000_000]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: nil,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            nextToken: nil
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -406,15 +403,15 @@ struct InterestConcertSettingStoreTests {
         #expect(!sut.state.errorMessage.isEmpty)
     }
 
-    @Test("검색 다음 페이지 조회 시 search cursor를 넘기고 목록 뒤에 추가해야 한다")
-    func 검색_다음_페이지_조회_시_search_cursor를_넘기고_목록_뒤에_추가해야_한다() async throws {
+    @Test("검색 다음 페이지 조회 시 다음 토큰을 넘기고 목록 뒤에 추가해야 한다")
+    func 검색_다음_페이지_조회_시_다음_토큰을_넘기고_목록_뒤에_추가해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), nextToken: TestNextToken()))
         ]
         container.searchRepository.searchResultQueue = [
-            .success(SearchResult(concerts: makeConcertList([3]), cursor: 3, totalCount: 2)),
-            .success(SearchResult(concerts: makeConcertList([4]), cursor: nil, totalCount: 2))
+            .success(ListResult(items: makeConcertList([3]), nextToken: TestSearchNextToken(value: 3))),
+            .success(ListResult(items: makeConcertList([4]), nextToken: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -428,7 +425,7 @@ struct InterestConcertSettingStoreTests {
         // Then
         #expect(container.concertRepository.fetchAllConcertListCallCount == 1)
         #expect(container.searchRepository.fetchFilterSearchResultCallCount == 2)
-        #expect(container.searchRepository.fetchFilterSearchResultCursorList == [nil, 3])
+        #expect(container.searchRepository.fetchFilterSearchResultTokenValueList == [nil, 3])
         #expect(sut.state.displayedConcertList.map(\.id) == [3, 4])
         #expect(!sut.state.hasMoreConcertList)
         #expect(!sut.state.isLoadingMore)
@@ -440,10 +437,9 @@ struct InterestConcertSettingStoreTests {
         container.concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
         ]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: nil,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            nextToken: nil
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()

@@ -28,12 +28,12 @@ final class MockPreferenceRepository: PreferenceRepository {
     func searchArtistList(
         keyword: String?,
         size: Int?,
-        cursor: String?
-    ) async throws(PreferenceError) -> Domain.ArtistSearchResult {
+        after nextToken: (any NextToken)?
+    ) async throws(PreferenceError) -> ListResult<PreferredArtist> {
         if let error = errorStub {
             throw error
         }
-        return ArtistSearchResult(artists: [], cursor: nil, totalCount: 0)
+        return ListResult(items: [], nextToken: nil)
     }
     
     func fetchUserPreferredGenreList() async throws(PreferenceError) -> [PreferredGenre] {

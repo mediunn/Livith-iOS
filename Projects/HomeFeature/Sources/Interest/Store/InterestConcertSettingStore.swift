@@ -75,7 +75,7 @@ enum InterestConcertSettingIntent {
     case _fetchInitialSelectionResult(Result<ListResult<InterestConcert>, Error>)
     case _fetchFirstPageResult(Result<ListResult<Concert>, Error>)
     case _fetchNextPageResult(Result<ListResult<Concert>, Error>)
-    case _fetchSearchResult(keyword: String, isNextPage: Bool, Result<SearchResult, Error>)
+    case _fetchSearchResult(keyword: String, isNextPage: Bool, Result<ListResult<Concert>, Error>)
     case _submitResult(Result<[Concert], Error>, submittedConcertIDs: [Int])
 }
 
@@ -95,7 +95,7 @@ final class InterestConcertSettingStore: ObservableObject {
     private var baseConcertList: [Concert]
     private var selectedConcertByID: [Int: Concert]
     private var baseNextToken: (any NextToken)?
-    private var searchCursor: Int?
+    private var searchNextToken: (any NextToken)?
     private var isBaseConcertListLoading: Bool {
         didSet {
             updateInitialLoadingState()
@@ -115,7 +115,7 @@ final class InterestConcertSettingStore: ObservableObject {
         self.baseConcertList = []
         self.selectedConcertByID = [:]
         self.baseNextToken = nil
-        self.searchCursor = nil
+        self.searchNextToken = nil
         self.isBaseConcertListLoading = true
         self.isInitialSelectionLoading = mode == .update
 
@@ -157,7 +157,7 @@ final class InterestConcertSettingStore: ObservableObject {
 
             state.isLoadingMore = true
             if let keyword = currentSearchKeyword() {
-                guard searchCursor != nil else {
+                guard searchNextToken != nil else {
                     state.isLoadingMore = false
                     return
                 }
@@ -237,18 +237,18 @@ final class InterestConcertSettingStore: ObservableObject {
             state.isLoadingMore = false
             switch result {
             case .success(let searchResult):
-                mergeSelectedConcerts(searchResult.concerts)
+                mergeSelectedConcerts(searchResult.items)
                 if isNextPage {
-                    state.displayedConcertList.append(contentsOf: searchResult.concerts)
+                    state.displayedConcertList.append(contentsOf: searchResult.items)
                 } else {
-                    state.displayedConcertList = searchResult.concerts
+                    state.displayedConcertList = searchResult.items
                 }
-                searchCursor = searchResult.cursor
-                state.hasMoreConcertList = searchResult.cursor != nil
+                searchNextToken = searchResult.nextToken
+                state.hasMoreConcertList = searchResult.nextToken != nil
                 syncSelectionState()
             case .failure(let error):
                 state.displayedConcertList = []
-                searchCursor = nil
+                searchNextToken = nil
                 state.hasMoreConcertList = false
                 state.errorMessage = DisplayErrorMessage.message(for: error)
             }
@@ -318,7 +318,7 @@ private extension InterestConcertSettingStore {
         }
 
         let repository = searchRepository
-        let cursor = isNextPage ? searchCursor : nil
+        let nextToken = isNextPage ? searchNextToken : nil
 
         searchFetchTask = Task {
             do {
@@ -327,7 +327,7 @@ private extension InterestConcertSettingStore {
                     sort: nil,
                     status: Constants.searchStatusList,
                     keyword: keyword,
-                    cursor: cursor,
+                    after: nextToken,
                     size: Constants.pageSize
                 )
                 guard !Task.isCancelled else { return }
@@ -408,7 +408,7 @@ private extension InterestConcertSettingStore {
 
         searchDebounceTask?.cancel()
         searchFetchTask?.cancel()
-        searchCursor = nil
+        searchNextToken = nil
 
         searchDebounceTask = Task {
             try? await Task.sleep(for: Constants.searchDebounceDuration)
@@ -423,7 +423,7 @@ private extension InterestConcertSettingStore {
         searchFetchTask?.cancel()
         searchDebounceTask = nil
         searchFetchTask = nil
-        searchCursor = nil
+        searchNextToken = nil
         state.isSearchLoading = false
     }
 

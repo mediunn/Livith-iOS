@@ -53,7 +53,7 @@ struct InstagramManualSearchStoreTests {
         // Given
         let sut = try await makeLoadedStore(concertIDList: [1, 2])
         container.searchRepository.searchResultQueue = [
-            .success(SearchResult(concerts: makeConcertList([5]), cursor: nil, totalCount: 1))
+            .success(ListResult(items: makeConcertList([5]), nextToken: nil))
         ]
 
         // When
@@ -72,7 +72,7 @@ struct InstagramManualSearchStoreTests {
         // Given
         let sut = try await makeLoadedStore(concertIDList: [1, 2])
         container.searchRepository.searchResultQueue = [
-            .success(SearchResult(concerts: makeConcertList([5]), cursor: nil, totalCount: 1))
+            .success(ListResult(items: makeConcertList([5]), nextToken: nil))
         ]
         sut.send(.updateSearchText("원 오크 록"))
         try await waitForDebounceTask()
@@ -89,7 +89,7 @@ struct InstagramManualSearchStoreTests {
         // Given
         let sut = try await makeLoadedStore(concertIDList: [1, 2])
         container.searchRepository.searchResultQueue = [
-            .success(SearchResult(concerts: makeConcertList([5]), cursor: 5, totalCount: 2))
+            .success(ListResult(items: makeConcertList([5]), nextToken: TestSearchNextToken(value: 5)))
         ]
         sut.send(.updateSearchText("원 오크 록"))
         try await waitForDebounceTask()

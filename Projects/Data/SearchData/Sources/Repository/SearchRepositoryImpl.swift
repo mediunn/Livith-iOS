@@ -36,9 +36,12 @@ struct SearchRepositoryImpl: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        cursor: Int?,
+        after nextToken: (any NextToken)?,
         size: Int?
-    ) async throws(SearchError) -> SearchResult {
+    ) async throws(SearchError) -> ListResult<Concert> {
+        let pageToken = nextToken as? ConcertSearchNextToken
+        guard nextToken == nil || pageToken != nil else { throw .invalidCursor }
+
         do {
             let response: DTO.Response.FetchFilterSearchResult = try await networkClient.request(
                 SearchAPI.fetchFilterSearchResult(
@@ -46,7 +49,7 @@ struct SearchRepositoryImpl: SearchRepository {
                     sort: sort.map(\.rawValue),
                     status: status.map(\.rawValue),
                     keyword: keyword,
-                    cursor: cursor,
+                    cursor: pageToken?.cursor,
                     size: size
                 )
             )

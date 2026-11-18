@@ -18,9 +18,8 @@ enum ArtistSelectionIntent {
     case toggle(id: Int)
     case resetMaxSelectionToast
     case resetErrorToast
-    case _searchResult(Result<[PreferredArtist], Error>)
     case loadMore
-    case _searchMoreResult(Result<[PreferredArtist], Error>)
+    case _searchResult(Result<ListResult<PreferredArtist>, PreferenceError>, isNextPage: Bool)
 }
 
 public struct ArtistSelectionState: Equatable {
@@ -28,7 +27,7 @@ public struct ArtistSelectionState: Equatable {
     public var selectedArtistList: [PreferredArtist] { selection.items }
     var isLoading: Bool = false
     var isLoadingMore: Bool = false
-    var hasNextPage: Bool = true
+    var hasNextPage: Bool = false
     var artistList: [PreferredArtist] = []
     var searchKeyword: String = ""
     var isMaxSelectionToastPresented: Bool = false
@@ -48,6 +47,7 @@ public final class ArtistSelectionStore: ObservableObject {
     @Injected private var preferenceRepository: PreferenceRepository
     
     private var searchTask: Task<Void, Never>?
+    private var nextToken: (any NextToken)?
     
     public init(selectedArtistList: [PreferredArtist] = []) {
         self.state = ArtistSelectionState(selectedArtistList: selectedArtistList)
@@ -58,23 +58,13 @@ public final class ArtistSelectionStore: ObservableObject {
         switch intent {
         case .onAppear:
             state.isLoading = true
-            searchArtistList(keyword: nil)
-            
+            let keyword = state.searchKeyword
+            performSearch(keyword: keyword.isEmpty ? nil : keyword)
+
         case .search(let keyword):
             state.searchKeyword = keyword
-            
-            searchTask?.cancel()
-            searchTask = Task {
-                try? await Task.sleep(nanoseconds: 300_000_000)
-                guard !Task.isCancelled else { return }
-                
-                if keyword.isEmpty {
-                    searchArtistList(keyword: nil)
-                } else {
-                    searchArtistList(keyword: keyword)
-                }
-            }
-            
+            performSearch(keyword: keyword.isEmpty ? nil : keyword, delay: .milliseconds(300))
+
         case .toggle(let id):
             let item = state.artistList.first { $0.id == id }
             switch state.selection.toggle(id: id, availableItem: item) {
@@ -92,33 +82,26 @@ public final class ArtistSelectionStore: ObservableObject {
         case .resetErrorToast:
             state.isErrorToastPresented = false
             
-        case ._searchResult(let result):
-            state.isLoading = false
-            switch result {
-            case .success(let artists):
-                state.artistList = artists
-                state.hasNextPage = true
-            case .failure(let error):
-                state.errorMessage = DisplayErrorMessage.message(for: error)
-                state.isErrorToastPresented = true
-            }
-            
         case .loadMore:
-            guard !state.isLoading, !state.isLoadingMore, state.hasNextPage else { return }
-            guard let lastID = state.artistList.last?.id else { return }
-            
+            guard !state.isLoading, !state.isLoadingMore, let nextToken else { return }
+
             state.isLoadingMore = true
-            searchMoreArtistList(keyword: state.searchKeyword, cursor: String(lastID))
-            
-        case ._searchMoreResult(let result):
+            let keyword = state.searchKeyword
+            performSearch(keyword: keyword.isEmpty ? nil : keyword, after: nextToken)
+
+        case ._searchResult(let result, let isNextPage):
+            state.isLoading = false
             state.isLoadingMore = false
+
             switch result {
-            case .success(let artists):
-                if artists.isEmpty {
-                    state.hasNextPage = false
+            case .success(let page):
+                if isNextPage {
+                    state.artistList.append(contentsOf: page.items)
                 } else {
-                    state.artistList.append(contentsOf: artists)
+                    state.artistList = page.items
                 }
+                nextToken = page.nextToken
+                state.hasNextPage = page.nextToken != nil
             case .failure(let error):
                 state.errorMessage = DisplayErrorMessage.message(for: error)
                 state.isErrorToastPresented = true
@@ -130,25 +113,33 @@ public final class ArtistSelectionStore: ObservableObject {
 // MARK: - Helpers
 
 private extension ArtistSelectionStore {
-    func searchArtistList(keyword: String?) {
-        Task {
-            do {
-                let result = try await preferenceRepository.searchArtistList(keyword: keyword, size: 18, cursor: nil)
-                await send(._searchResult(.success(result.artists)))
-            } catch {
-                await send(._searchResult(.failure(error)))
-            }
+    @MainActor
+    func performSearch(
+        keyword: String?,
+        after nextToken: (any NextToken)? = nil,
+        delay: Duration? = nil
+    ) {
+        let isNextPage = nextToken != nil
+        searchTask?.cancel()
+        if !isNextPage {
+            self.nextToken = nil
+            state.hasNextPage = false
+            state.isLoadingMore = false
         }
-    }
-    
-    func searchMoreArtistList(keyword: String, cursor: String) {
-        Task {
-            do {
-                let searchKeyword = keyword.isEmpty ? nil : keyword
-                let result = try await preferenceRepository.searchArtistList(keyword: searchKeyword, size: 18, cursor: cursor)
-                await send(._searchMoreResult(.success(result.artists)))
+
+        searchTask = Task {
+            if let delay {
+                try? await Task.sleep(for: delay)
+            }
+            guard !Task.isCancelled else { return }
+
+            do throws(PreferenceError) {
+                let page = try await preferenceRepository.searchArtistList(keyword: keyword, size: 18, after: nextToken)
+                guard !Task.isCancelled else { return }
+                send(._searchResult(.success(page), isNextPage: isNextPage))
             } catch {
-                await send(._searchMoreResult(.failure(error)))
+                guard !Task.isCancelled else { return }
+                send(._searchResult(.failure(error), isNextPage: isNextPage))
             }
         }
     }

@@ -25,7 +25,7 @@ enum ExploreIntent {
     case _fetchBannersResult(Result<[Banner], Error>)
     case _setConcertList([Concert])
     case _appendConcertList([Concert])
-    case _setCursor(Int?)
+    case _setNextToken((any NextToken)?)
     case _setLoadingMore(Bool)
 }
 
@@ -38,8 +38,7 @@ struct ExploreState {
     var sortState: SearchSort = .latest
 
     var concertList: [Concert] = []
-    var cursor: Int? = nil
-    var hasMorePages: Bool = true
+    var nextToken: (any NextToken)?
     var isLoadingMore: Bool = false
 
     var isLoading: Bool = false
@@ -67,8 +66,8 @@ final class ExploreStore: ObservableObject {
             state.currentPage = .zero
             state.banners = []
             state.concertList = []
-            state.cursor = nil
-            state.hasMorePages = true
+            state.nextToken = nil
+            state.isLoadingMore = false
             state.errorMessage = ""
 
             performInitialFetch()
@@ -80,21 +79,21 @@ final class ExploreStore: ObservableObject {
             guard state.selectedGenre != genre else { return }
             state.selectedGenre = genre
             state.sortState = .latest
-            state.cursor = nil
-            state.hasMorePages = true
+            state.nextToken = nil
+            state.isLoadingMore = false
             performFetchConcertList()
 
         case .statusListChanged(let statusList):
             state.selectedStatusList = statusList
             state.sortState = .latest
-            state.cursor = nil
-            state.hasMorePages = true
+            state.nextToken = nil
+            state.isLoadingMore = false
             performFetchConcertList()
 
         case .sortStateChanged(let sort):
             state.sortState = sort
-            state.cursor = nil
-            state.hasMorePages = true
+            state.nextToken = nil
+            state.isLoadingMore = false
             performFetchConcertList()
 
         case .loadNextPage:
@@ -117,9 +116,8 @@ final class ExploreStore: ObservableObject {
         case ._appendConcertList(let concerts):
             state.concertList.append(contentsOf: concerts)
 
-        case ._setCursor(let cursor):
-            state.cursor = cursor
-            state.hasMorePages = cursor != nil
+        case ._setNextToken(let nextToken):
+            state.nextToken = nextToken
 
         case ._setLoadingMore(let isLoadingMore):
             state.isLoadingMore = isLoadingMore
@@ -145,7 +143,7 @@ private extension ExploreStore {
                 sort: sort,
                 status: statusList,
                 keyword: nil,
-                cursor: nil,
+                after: nil,
                 size: 12
             )
 
@@ -161,8 +159,8 @@ private extension ExploreStore {
             do {
                 let result = try await concertResult
                 guard await Task.wait() else { return }
-                send(._setConcertList(result.concerts))
-                send(._setCursor(result.cursor))
+                send(._setConcertList(result.items))
+                send(._setNextToken(result.nextToken))
                 send(._setLoadingMore(false))
             } catch is CancellationError {
                 return
@@ -175,44 +173,41 @@ private extension ExploreStore {
     }
 
     func loadNextPageIfNeeded() {
-        guard !state.isLoadingMore, state.hasMorePages else { return }
+        guard !state.isLoadingMore, let nextToken = state.nextToken else { return }
         state.isLoadingMore = true
-        Task {
-            try? await Task.sleep(for: .milliseconds(500))
-            performFetchConcertList(isNextPage: true)
-        }
+        performFetchConcertList(after: nextToken)
     }
 
-    func performFetchConcertList(isNextPage: Bool = false) {
-        if !isNextPage {
-            fetchTask?.cancel()
-        }
+    func performFetchConcertList(after nextToken: (any NextToken)? = nil) {
+        let isNextPage = nextToken != nil
+        fetchTask?.cancel()
 
         let repository = searchRepository
         let genreList: [ConcertGenre] = state.selectedGenre == .all ? [] : [state.selectedGenre]
         let statusList = state.selectedStatusList
         let sort = state.sortState
-        let cursor = state.cursor
 
         fetchTask = Task { @MainActor in
+            if isNextPage, !(await Task.wait(for: .milliseconds(500))) { return }
+
             do {
                 let result = try await repository.fetchFilterSearchResult(
                     genre: genreList,
                     sort: sort,
                     status: statusList,
                     keyword: nil,
-                    cursor: cursor,
+                    after: nextToken,
                     size: 12
                 )
 
                 guard await Task.wait() else { return }
 
                 if isNextPage {
-                    send(._appendConcertList(result.concerts))
+                    send(._appendConcertList(result.items))
                 } else {
-                    send(._setConcertList(result.concerts))
+                    send(._setConcertList(result.items))
                 }
-                send(._setCursor(result.cursor))
+                send(._setNextToken(result.nextToken))
                 send(._setLoadingMore(false))
             } catch is CancellationError {
                 return
