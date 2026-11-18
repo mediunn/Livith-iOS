@@ -34,7 +34,7 @@ struct InterestConcertSettingStoreTests {
     func 초기화_시_콘서트_첫_페이지를_조회하고_목록을_설정해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: TestNextToken()))
+            .success(ListResult(items: makeConcertList([1, 2]), position: TestPosition()))
         ]
 
         // When
@@ -43,10 +43,10 @@ struct InterestConcertSettingStoreTests {
 
         // Then
         #expect(container.concertRepository.fetchAllConcertListCallCount == 1)
-        #expect(container.concertRepository.fetchAllConcertListNextTokenList.isEmpty == false)
-        if let nextToken = container.concertRepository.fetchAllConcertListNextTokenList.first,
-           nextToken != nil {
-            Issue.record("첫 페이지 조회는 nextToken 없이 호출해야 한다")
+        #expect(container.concertRepository.fetchAllConcertListPositionList.isEmpty == false)
+        if let position = container.concertRepository.fetchAllConcertListPositionList.first,
+           position != nil {
+            Issue.record("첫 페이지 조회는 position 없이 호출해야 한다")
         }
         #expect(container.concertRepository.fetchAllConcertListSizeList.first == 12)
         #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
@@ -54,13 +54,13 @@ struct InterestConcertSettingStoreTests {
         #expect(!sut.state.isInitialLoading)
     }
 
-    @Test("다음 페이지 조회 시 nextToken을 그대로 넘기고 목록 뒤에 추가해야 한다")
-    func 다음_페이지_조회_시_nextToken을_그대로_넘기고_목록_뒤에_추가해야_한다() async throws {
+    @Test("다음 페이지 조회 시 position을 그대로 넘기고 목록 뒤에 추가해야 한다")
+    func 다음_페이지_조회_시_position을_그대로_넘기고_목록_뒤에_추가해야_한다() async throws {
         // Given
-        let nextToken = TestNextToken()
+        let position = TestPosition()
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nextToken)),
-            .success(ListResult(items: makeConcertList([3]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: position)),
+            .success(ListResult(items: makeConcertList([3]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -71,7 +71,7 @@ struct InterestConcertSettingStoreTests {
 
         // Then
         #expect(container.concertRepository.fetchAllConcertListCallCount == 2)
-        #expect(container.concertRepository.fetchAllConcertListNextTokenList.dropFirst().first != nil)
+        #expect(container.concertRepository.fetchAllConcertListPositionList.dropFirst().first != nil)
         #expect(sut.state.displayedConcertList.map(\.id) == [1, 2, 3])
         #expect(!sut.state.hasMoreConcertList)
         #expect(!sut.state.isLoadingMore)
@@ -81,10 +81,10 @@ struct InterestConcertSettingStoreTests {
     func update_모드는_저장된_관심_콘서트를_조회해_초기_선택값으로_사용해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([2, 4]), nextToken: nil))
+            .success(ListResult(items: makeInterestConcertList([2, 4]), position: nil))
         ]
 
         // When
@@ -95,23 +95,23 @@ struct InterestConcertSettingStoreTests {
         #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == nil)
         #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 50)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.nextToken == nil)
+        #expect(container.userRepository.fetchInterestedConcertListFilter?.position == nil)
         #expect(sut.state.selectedConcertIDList == [2, 4])
         #expect(sut.state.selectedConcertList.map(\.id) == [2, 4])
         #expect(!sut.state.isCTAEnabled)
         #expect(!sut.state.hasUnsavedChanges)
     }
 
-    @Test("update 모드는 저장된 관심 콘서트 다음 token이 없을 때까지 조회해 초기 선택값으로 사용해야 한다")
+    @Test("update 모드는 저장된 관심 콘서트 목록을 이어 조회할 위치가 없을 때까지 조회해 초기 선택값으로 사용해야 한다")
     func update_모드는_저장된_관심_콘서트를_마지막_페이지까지_조회해_초기_선택값으로_사용해야_한다() async throws {
         // Given
-        let nextToken = InitialSelectionNextToken(id: 2)
+        let position = InitialSelectionPosition(id: 2)
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([2, 4]), nextToken: nextToken)),
-            .success(ListResult(items: makeInterestConcertList([5]), nextToken: nil))
+            .success(ListResult(items: makeInterestConcertList([2, 4]), position: position)),
+            .success(ListResult(items: makeInterestConcertList([5]), position: nil))
         ]
 
         // When
@@ -123,8 +123,8 @@ struct InterestConcertSettingStoreTests {
         let filterList = container.userRepository.fetchInterestedConcertListFilterList
         #expect(filterList.map(\.sort) == [nil, nil])
         #expect(filterList.map(\.limit) == [50, 50])
-        #expect(filterList.first?.nextToken == nil)
-        #expect(filterList.dropFirst().first?.nextToken as? InitialSelectionNextToken == nextToken)
+        #expect(filterList.first?.position == nil)
+        #expect(filterList.dropFirst().first?.position as? InitialSelectionPosition == position)
         #expect(sut.state.selectedConcertIDList == [2, 4, 5])
         #expect(sut.state.selectedConcertList.map(\.id) == [2, 4, 5])
         #expect(!sut.state.isInitialLoading)
@@ -136,11 +136,11 @@ struct InterestConcertSettingStoreTests {
     func update_모드는_관심_콘서트_전체_조회가_끝날_때까지_초기_로딩_상태를_유지해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.fetchInterestedConcertListDelayQueue = [300_000_000]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([2]), nextToken: nil))
+            .success(ListResult(items: makeInterestConcertList([2]), position: nil))
         ]
 
         // When
@@ -162,11 +162,11 @@ struct InterestConcertSettingStoreTests {
     func update_모드는_초기_로딩_중_선택_변경과_제출을_무시해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.fetchInterestedConcertListDelayQueue = [300_000_000]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([2]), nextToken: nil))
+            .success(ListResult(items: makeInterestConcertList([2]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .update)
         try await waitForAsyncTask()
@@ -188,10 +188,10 @@ struct InterestConcertSettingStoreTests {
     func update_모드는_관심_콘서트_다음_페이지_조회_실패_시_부분_선택값을_반영하지_않아야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([2]), nextToken: InitialSelectionNextToken(id: 2))),
+            .success(ListResult(items: makeInterestConcertList([2]), position: InitialSelectionPosition(id: 2))),
             .failure(.serverError)
         ]
 
@@ -211,7 +211,7 @@ struct InterestConcertSettingStoreTests {
     func initialSetup_모드는_선택_변경에_따라_CTA_활성화_상태를_갱신해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -241,10 +241,10 @@ struct InterestConcertSettingStoreTests {
     func update_모드는_초기_선택과_달라질_때만_CTA를_활성화해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeInterestConcertList([1, 2]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .update)
         try await waitForAsyncTask()
@@ -270,7 +270,7 @@ struct InterestConcertSettingStoreTests {
     func 검색어_입력은_원문을_저장하고_초기화는_기본_목록과_포커스_상태를_갱신해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -294,12 +294,11 @@ struct InterestConcertSettingStoreTests {
     func 검색어_입력_후_debounce_전에는_검색_API를_호출하지_않아야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: nil,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            position: nil
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -320,12 +319,11 @@ struct InterestConcertSettingStoreTests {
     func 검색어_입력_후_debounce가_지나면_고정_status로_검색_API를_호출하고_결과를_표시해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: 3,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            position: TestSearchPosition(value: 3)
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -344,10 +342,10 @@ struct InterestConcertSettingStoreTests {
         }
         #expect(container.searchRepository.fetchFilterSearchResultStatusList.first == [.ongoing, .upcoming])
         #expect(container.searchRepository.fetchFilterSearchResultKeywordList.first == "freedom")
-        #expect(container.searchRepository.fetchFilterSearchResultCursorList.isEmpty == false)
-        if let cursor = container.searchRepository.fetchFilterSearchResultCursorList.first,
-           cursor != nil {
-            Issue.record("검색 첫 요청은 cursor 없이 호출해야 한다")
+        #expect(container.searchRepository.fetchFilterSearchResultPositionValueList.isEmpty == false)
+        if let positionValue = container.searchRepository.fetchFilterSearchResultPositionValueList.first,
+           positionValue != nil {
+            Issue.record("검색 첫 요청은 조회 위치 없이 호출해야 한다")
         }
         #expect(container.searchRepository.fetchFilterSearchResultSizeList.first == 12)
         #expect(sut.state.displayedConcertList.map(\.id) == [3])
@@ -357,13 +355,12 @@ struct InterestConcertSettingStoreTests {
     func 검색_첫_요청_중에는_로딩_상태를_표시해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.searchRepository.fetchFilterSearchResultDelayQueue = [300_000_000]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: nil,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            position: nil
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -387,7 +384,7 @@ struct InterestConcertSettingStoreTests {
     func 검색_실패_시_표시_목록을_비우고_errorMessage를_설정해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.searchRepository.searchResultQueue = [
             .failure(.serverError)
@@ -406,15 +403,15 @@ struct InterestConcertSettingStoreTests {
         #expect(!sut.state.errorMessage.isEmpty)
     }
 
-    @Test("검색 다음 페이지 조회 시 search cursor를 넘기고 목록 뒤에 추가해야 한다")
-    func 검색_다음_페이지_조회_시_search_cursor를_넘기고_목록_뒤에_추가해야_한다() async throws {
+    @Test("검색 다음 페이지 조회 시 이어 조회할 위치를 넘기고 목록 뒤에 추가해야 한다")
+    func 검색_다음_페이지_조회_시_이어_조회할_위치를_넘기고_목록_뒤에_추가해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: TestNextToken()))
+            .success(ListResult(items: makeConcertList([1, 2]), position: TestPosition()))
         ]
         container.searchRepository.searchResultQueue = [
-            .success(SearchResult(concerts: makeConcertList([3]), cursor: 3, totalCount: 2)),
-            .success(SearchResult(concerts: makeConcertList([4]), cursor: nil, totalCount: 2))
+            .success(ListResult(items: makeConcertList([3]), position: TestSearchPosition(value: 3))),
+            .success(ListResult(items: makeConcertList([4]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -428,7 +425,7 @@ struct InterestConcertSettingStoreTests {
         // Then
         #expect(container.concertRepository.fetchAllConcertListCallCount == 1)
         #expect(container.searchRepository.fetchFilterSearchResultCallCount == 2)
-        #expect(container.searchRepository.fetchFilterSearchResultCursorList == [nil, 3])
+        #expect(container.searchRepository.fetchFilterSearchResultPositionValueList == [nil, 3])
         #expect(sut.state.displayedConcertList.map(\.id) == [3, 4])
         #expect(!sut.state.hasMoreConcertList)
         #expect(!sut.state.isLoadingMore)
@@ -438,12 +435,11 @@ struct InterestConcertSettingStoreTests {
     func 검색어를_비우면_검색_API를_추가_호출하지_않고_기본_목록으로_복귀해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
-        container.searchRepository.searchResultStub = SearchResult(
-            concerts: makeConcertList([3]),
-            cursor: nil,
-            totalCount: 1
+        container.searchRepository.searchResultStub = ListResult(
+            items: makeConcertList([3]),
+            position: nil
         )
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -483,7 +479,7 @@ struct InterestConcertSettingStoreTests {
     func 다음_페이지_조회_실패_시_기존_목록을_유지하고_로딩을_종료해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: TestNextToken())),
+            .success(ListResult(items: makeConcertList([1, 2]), position: TestPosition())),
             .failure(.serverError)
         ]
         let sut = InterestConcertSettingStore(mode: .initialSetup)
@@ -503,7 +499,7 @@ struct InterestConcertSettingStoreTests {
     func 설정_제출_성공_시_선택한_콘서트_ID_목록으로_API를_호출하고_설정_성공_문구를_설정해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.updatedConcertListStub = makeConcertList([1, 2])
         let sut = InterestConcertSettingStore(mode: .initialSetup)
@@ -527,10 +523,10 @@ struct InterestConcertSettingStoreTests {
     func 변경_제출_성공_시_선택한_콘서트_ID_목록으로_API를_호출하고_변경_성공_문구를_설정해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([1]), nextToken: nil))
+            .success(ListResult(items: makeInterestConcertList([1]), position: nil))
         ]
         container.userRepository.updatedConcertListStub = makeConcertList([1, 2])
         let sut = InterestConcertSettingStore(mode: .update)
@@ -553,7 +549,7 @@ struct InterestConcertSettingStoreTests {
     func CTA_비활성_상태에서_제출하면_관심_콘서트_설정_API를_호출하지_않아야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .initialSetup)
         try await waitForAsyncTask()
@@ -570,7 +566,7 @@ struct InterestConcertSettingStoreTests {
     func 설정_제출_실패_시_설정_실패_문구를_설정하고_제출_로딩을_종료해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1]), position: nil))
         ]
         container.userRepository.errorStub = .serverError
         let sut = InterestConcertSettingStore(mode: .initialSetup)
@@ -591,10 +587,10 @@ struct InterestConcertSettingStoreTests {
     func 변경_제출_실패_시_변경_실패_문구를_설정하고_제출_로딩을_종료해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         container.userRepository.interestConcertListResultQueue = [
-            .success(ListResult(items: makeInterestConcertList([1]), nextToken: nil))
+            .success(ListResult(items: makeInterestConcertList([1]), position: nil))
         ]
         let sut = InterestConcertSettingStore(mode: .update)
         try await waitForAsyncTask()
@@ -655,8 +651,8 @@ private extension InterestConcertSettingStoreTests {
     }
 }
 
-private struct TestNextToken: NextToken {}
+private struct TestPosition: PagePosition {}
 
-private struct InitialSelectionNextToken: NextToken, Equatable {
+private struct InitialSelectionPosition: PagePosition, Equatable {
     let id: Int
 }

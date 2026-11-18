@@ -39,25 +39,25 @@ public struct InterestConcertTicketingSchedule: Hashable, Codable {
 public struct InterestConcertListFilter {
     public let sort: InterestConcertSort?
     public let limit: Int?
-    public let nextToken: (any NextToken)?
+    public let position: (any PagePosition)?
 
     public init(
         sort: InterestConcertSort? = nil,
         limit: Int? = nil,
-        nextToken: (any NextToken)? = nil
+        position: (any PagePosition)? = nil
     ) {
         self.sort = sort
         self.limit = limit
-        self.nextToken = nextToken
+        self.position = position
     }
 }
 
 public extension InterestConcertListFilter {
     static func initialSelectionPage(
         limit: Int,
-        nextToken: (any NextToken)? = nil
+        position: (any PagePosition)? = nil
     ) -> InterestConcertListFilter {
-        InterestConcertListFilter(limit: limit, nextToken: nextToken)
+        InterestConcertListFilter(limit: limit, position: position)
     }
 
     static func homeSection(sort: InterestConcertSort = .ticketing) -> InterestConcertListFilter {
@@ -67,9 +67,9 @@ public extension InterestConcertListFilter {
     static func page(
         sort: InterestConcertSort,
         limit: Int,
-        nextToken: (any NextToken)? = nil
+        position: (any PagePosition)? = nil
     ) -> InterestConcertListFilter {
-        InterestConcertListFilter(sort: sort, limit: limit, nextToken: nextToken)
+        InterestConcertListFilter(sort: sort, limit: limit, position: position)
     }
 }
 

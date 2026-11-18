@@ -1,5 +1,5 @@
 //
-//  InterestConcertListNextToken.swift
+//  InterestConcertListPosition.swift
 //  UserData
 //
 //  Created by 김진웅 on 5/1/26.
@@ -8,7 +8,7 @@
 
 import Domain
 
-struct InterestConcertListNextToken: NextToken {
+struct InterestConcertListPosition: PagePosition {
     let cursorDate: String
     let id: Int
 }

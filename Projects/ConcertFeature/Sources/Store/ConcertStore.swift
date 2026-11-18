@@ -243,15 +243,15 @@ private extension ConcertStore {
 
     func fetchAllInterestedConcertIDs(using repository: InterestConcertRepository) async throws(UserError) -> [Int] {
         var ids: [Int] = []
-        var nextToken: (any NextToken)? = nil
+        var position: (any PagePosition)? = nil
 
         repeat {
             let page = try await repository.fetchInterestedConcertList(
-                filter: InterestConcertListFilter(nextToken: nextToken)
+                filter: InterestConcertListFilter(position: position)
             )
             ids.append(contentsOf: page.items.map { $0.concert.id })
-            nextToken = page.nextToken
-        } while nextToken != nil
+            position = page.position
+        } while position != nil
 
         return ids
     }

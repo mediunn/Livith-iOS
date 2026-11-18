@@ -23,12 +23,12 @@ struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository,
     }
     
     func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert] {
-        let nextToken = concertID.map { ConcertListNextToken(cursor: $0) }
-        return try await fetchAllConcertList(after: nextToken, size: 12).items
+        let position = concertID.map { ConcertListPosition(cursor: $0) }
+        return try await fetchAllConcertList(after: position, size: 12).items
     }
 
-    func fetchAllConcertList(after nextToken: (any NextToken)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
-        let cursor = try makeCursor(from: nextToken)
+    func fetchAllConcertList(after position: (any PagePosition)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
+        let cursor = try makeCursor(from: position)
 
         do {
             let response: DTO.Response.FetchConcertList = try await networkClient.request(
@@ -189,12 +189,12 @@ struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository,
 // MARK: - Helpers
 
 private extension ConcertRepositoryImpl {
-    func makeCursor(from nextToken: (any NextToken)?) throws(ConcertError) -> Int? {
-        guard let nextToken else { return nil }
-        guard let concertListNextToken = nextToken as? ConcertListNextToken else {
+    func makeCursor(from position: (any PagePosition)?) throws(ConcertError) -> Int? {
+        guard let position else { return nil }
+        guard let concertListPosition = position as? ConcertListPosition else {
             throw ConcertError.invalidRequest
         }
 
-        return concertListNextToken.cursor
+        return concertListPosition.cursor
     }
 }

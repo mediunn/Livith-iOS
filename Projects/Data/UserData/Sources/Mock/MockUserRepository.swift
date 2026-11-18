@@ -45,7 +45,7 @@ public struct MockUserRepository: UserRepository {
         let interestConcertList = filter.limit.map { Array(sortedConcertList.prefix(max($0, 0))) } ?? sortedConcertList
         return ListResult(
             items: interestConcertList,
-            nextToken: nil
+            position: nil
         )
     }
 

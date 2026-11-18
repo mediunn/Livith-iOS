@@ -8,17 +8,17 @@
 
 public struct ListResult<Item> {
     public let items: [Item]
-    public let nextToken: (any NextToken)?
+    public let position: (any PagePosition)?
 
     public init(
         items: [Item],
-        nextToken: (any NextToken)?
+        position: (any PagePosition)?
     ) {
         self.items = items
-        self.nextToken = nextToken
+        self.position = position
     }
 }
 
-// MARK: - NextToken
+// MARK: - PagePosition
 
-public protocol NextToken: Sendable {}
+public protocol PagePosition: Sendable {}
