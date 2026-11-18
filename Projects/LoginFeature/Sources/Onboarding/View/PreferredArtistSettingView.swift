@@ -20,11 +20,11 @@ struct PreferredArtistSettingView: View {
     @State private var isSignupFailureModalPresented: Bool = false
     @State private var isDiscardChangesModalPresented: Bool = false
     
-    private let builder: SignupBuilder
+    private let session: SignupSession
     
-    init(builder: SignupBuilder) {
-        self.builder = builder
-        self._store = StateObject(wrappedValue: SignupStore(builder: builder))
+    init(session: SignupSession) {
+        self.session = session
+        self._store = StateObject(wrappedValue: SignupStore(session: session))
     }
     
     var body: some View {
@@ -84,7 +84,8 @@ private extension PreferredArtistSettingView {
         case .idle:
             break
         case .success:
-            router.completeSignup(with: builder.nickname)
+            guard let nickname = session.nickname else { return }
+            router.completeSignup(with: nickname.value)
         case .failure:
             isSignupFailureModalPresented = true
         }

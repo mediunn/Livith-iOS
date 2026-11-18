@@ -8,6 +8,7 @@
 
 import Foundation
 
+import DisplaySupport
 import Domain
 import DIContainer
 
@@ -23,7 +24,8 @@ enum ArtistSelectionIntent {
 }
 
 public struct ArtistSelectionState: Equatable {
-    public var selectedArtistList: [PreferredArtist] = []
+    var selection: PreferenceSelection<PreferredArtist>
+    public var selectedArtistList: [PreferredArtist] { selection.items }
     var isLoading: Bool = false
     var isLoadingMore: Bool = false
     var hasNextPage: Bool = true
@@ -33,14 +35,11 @@ public struct ArtistSelectionState: Equatable {
     var isErrorToastPresented: Bool = false
     var errorMessage: String = ""
     
-    private let initialSelectedArtistList: [PreferredArtist]
-    
     init(selectedArtistList: [PreferredArtist] = []) {
-        self.selectedArtistList = selectedArtistList
-        self.initialSelectedArtistList = selectedArtistList
+        self.selection = PreferenceSelection(selectedArtistList)
     }
     
-    var isModified: Bool { selectedArtistList != initialSelectedArtistList && !selectedArtistList.isEmpty }
+    var isModified: Bool { selection.hasChangesToSave }
 }
 
 public final class ArtistSelectionStore: ObservableObject {
@@ -77,20 +76,16 @@ public final class ArtistSelectionStore: ObservableObject {
             }
             
         case .toggle(let id):
-            if let index = state.selectedArtistList.firstIndex(where: { $0.id == id }) {
-                state.selectedArtistList.remove(at: index)
+            let item = state.artistList.first { $0.id == id }
+            switch state.selection.toggle(id: id, availableItem: item) {
+            case .changed:
                 state.isMaxSelectionToastPresented = false
-                return
-            }
-            
-            if state.selectedArtistList.count < PreferenceSelectionRule.maxCount {
-                guard let artist = state.artistList.first(where: { $0.id == id }) else { return }
-                state.selectedArtistList.append(artist)
-                state.isMaxSelectionToastPresented = false
-            } else {
+            case .limitReached:
                 state.isMaxSelectionToastPresented = true
+            case .itemUnavailable:
+                break
             }
-            
+
         case .resetMaxSelectionToast:
             state.isMaxSelectionToastPresented = false
             
@@ -104,7 +99,7 @@ public final class ArtistSelectionStore: ObservableObject {
                 state.artistList = artists
                 state.hasNextPage = true
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = DisplayErrorMessage.message(for: error)
                 state.isErrorToastPresented = true
             }
             
@@ -125,7 +120,7 @@ public final class ArtistSelectionStore: ObservableObject {
                     state.artistList.append(contentsOf: artists)
                 }
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = DisplayErrorMessage.message(for: error)
                 state.isErrorToastPresented = true
             }
         }

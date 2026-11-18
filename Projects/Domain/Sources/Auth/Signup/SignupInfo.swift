@@ -10,11 +10,6 @@ import Foundation
 
 public struct SignupInfo: Hashable {
     
-    // MARK: - Constants
-    
-    private static let maxGenreCount = 3
-    private static let maxArtistCount = 3
-    
     // MARK: - Properties
     
     public let provider: SocialLoginProvider
@@ -35,15 +30,15 @@ public struct SignupInfo: Hashable {
         isMarketingAgreed: Bool,
         preferredGenreIDList: [Int],
         preferredArtistIDList: [Int]
-    ) throws {
+    ) throws(AuthError) {
         guard !preferredGenreIDList.isEmpty else {
             throw AuthError.emptyGenreList
         }
-        guard preferredGenreIDList.count <= Self.maxGenreCount else {
+        guard preferredGenreIDList.count <= PreferenceSelectionRule.maxCount else {
             throw AuthError.genreExceedsLimit
         }
         
-        guard preferredArtistIDList.count <= Self.maxArtistCount else {
+        guard preferredArtistIDList.count <= PreferenceSelectionRule.maxCount else {
             throw AuthError.artistExceedsLimit
         }
         

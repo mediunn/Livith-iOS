@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 
 enum SignupIntent {
@@ -33,10 +34,10 @@ final class SignupStore: ObservableObject {
     
     @Injected private var authRepository: AuthRepository
     
-    private let builder: SignupBuilder
+    private let session: SignupSession
     
-    init(builder: SignupBuilder) {
-        self.builder = builder
+    init(session: SignupSession) {
+        self.session = session
     }
     
     @MainActor
@@ -53,7 +54,7 @@ final class SignupStore: ObservableObject {
             case .success:
                 state.result = .success
             case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
+                state.errorMessage = DisplayErrorMessage.message(for: error)
                 state.result = .failure
             }
         }
@@ -66,7 +67,7 @@ private extension SignupStore {
     func performSignup(preferredArtistList: [PreferredArtist]) {
         Task {
             do {
-                let signup = try builder.build(preferredArtistList: preferredArtistList)
+                let signup = try session.makeSignupInfo(preferredArtistList: preferredArtistList)
                 
                 try await authRepository.signup(signup)
                 
@@ -77,9 +78,4 @@ private extension SignupStore {
         }
     }
     
-    func getErrorMessage(from error: Error) -> String {
-        let unknownMessage = AuthError.unknown.errorDescription ?? "로그인에서 다시 시도 주세요"
-        guard let authError = error as? AuthError else { return error.localizedDescription }
-        return authError.errorDescription ?? unknownMessage
-    }
 }

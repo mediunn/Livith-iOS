@@ -8,6 +8,7 @@
 
 import Foundation
 
+import DisplaySupport
 import Domain
 import DIContainer
 
@@ -97,6 +98,6 @@ private extension PreferenceUpdateStore {
         if error is CancellationError {
             return ""
         }
-        return error.localizedDescription
+        return DisplayErrorMessage.message(for: error)
     }
 }

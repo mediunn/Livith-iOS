@@ -11,7 +11,7 @@ import Foundation
 public protocol AuthRepository {
     func withdraw(reason: String) async throws(AuthError)
     func logout() async throws(AuthError)
-    func checkNicknameDuplicate(nickname: String) async throws(AuthError) -> Bool
+    func checkNicknameDuplicate(nickname: Nickname) async throws(AuthError) -> Bool
     func signup(_ signup: SignupInfo) async throws(AuthError)
     func kakaoLogin() async throws(AuthError) -> LoginStatus
     func appleLogin() async throws(AuthError) -> LoginStatus

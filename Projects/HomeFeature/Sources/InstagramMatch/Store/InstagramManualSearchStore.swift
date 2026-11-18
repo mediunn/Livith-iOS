@@ -172,7 +172,7 @@ final class InstagramManualSearchStore: ObservableObject {
                 state.displayedConcertList = []
                 baseNextToken = nil
                 state.hasMoreConcertList = false
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = DisplayErrorMessage.message(for: error)
             }
             state.isInitialLoading = false
         case ._fetchNextPageResult(let result):
@@ -187,7 +187,7 @@ final class InstagramManualSearchStore: ObservableObject {
                     restoreBaseConcertList()
                 }
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = DisplayErrorMessage.message(for: error)
             }
         case ._fetchSearchResult(let keyword, let isNextPage, let result):
             guard currentSearchKeyword() == keyword else { return }
@@ -210,7 +210,7 @@ final class InstagramManualSearchStore: ObservableObject {
                 state.displayedConcertList = []
                 searchCursor = nil
                 state.hasMoreConcertList = false
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = DisplayErrorMessage.message(for: error)
             }
         case ._registerResult(_, let result):
             state.isRegistering = false

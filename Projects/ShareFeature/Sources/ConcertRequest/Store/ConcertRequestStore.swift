@@ -74,12 +74,13 @@ private extension ConcertRequestStore {
     ) {
         Task {
             do {
-                try await concertRequestRepository.requestConcert(
+                let request = try ConcertRequest(
                     title: title,
                     url: url,
                     shouldAutoRegister: shouldAutoRegister,
                     requestContent: requestContent
                 )
+                try await concertRequestRepository.requestConcert(request)
                 await MainActor.run {
                     send(._submitResult(.success(())))
                 }

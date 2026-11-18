@@ -143,9 +143,11 @@ private extension TermsView {
     
     var nextButton: some View {
         LivithButton(Literals.nextButtonText, variant: .primary) {
-            router.push(.nickname(.start(tempUser: tempUser, isMarketingAgreed: isMarketingAgreed)))
+            var session = SignupSession(tempUser: tempUser)
+            session.recordTermsAgreement(termsAgreement)
+            router.push(.nickname(session))
         }
-        .disabled(!canProceed)
+        .disabled(!termsAgreement.hasAgreedToRequiredTerms)
     }
     
     func moreButton(urlString: String) -> some View {
@@ -167,7 +169,9 @@ private extension TermsView {
     var isPrivacyAgreed: Bool { store.state.isPrivacyAgreed }
     var isMarketingAgreed: Bool { store.state.isMarketingAgreed }
     var isAllAgreed: Bool { isTermsAgreed && isPrivacyAgreed && isMarketingAgreed }
-    var canProceed: Bool { isTermsAgreed && isPrivacyAgreed }
+    var termsAgreement: SignupTermsAgreement {
+        SignupTermsAgreement(termsOfService: isTermsAgreed, privacy: isPrivacyAgreed, marketing: isMarketingAgreed)
+    }
 }
 
 // MARK: - Literals

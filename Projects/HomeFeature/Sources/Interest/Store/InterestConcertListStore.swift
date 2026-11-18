@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 
 // MARK: - State
@@ -180,6 +181,6 @@ private extension InterestConcertListStore {
             return ""
         }
 
-        return error.localizedDescription
+        return DisplayErrorMessage.message(for: error)
     }
 }

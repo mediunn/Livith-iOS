@@ -66,7 +66,7 @@ struct GenreSelectionStoreTests {
         
         // Then
         #expect(sut.state.isErrorToastPresented)
-        #expect(sut.state.errorMessage == PreferenceError.serverError.localizedDescription)
+        #expect(sut.state.errorMessage == "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.")
     }
     
     @Test("장르를 토글하면 선택된 목록에 추가되어야 한다")

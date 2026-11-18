@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 import LivithFoundation
 
@@ -120,7 +121,7 @@ final class SearchStore: ObservableObject {
                 state.cursor = result.cursor
                 state.hasMorePages = result.cursor != nil
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = DisplayErrorMessage.message(for: error)
             }
             state.isLoadingMore = false
         }

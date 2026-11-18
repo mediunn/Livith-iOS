@@ -20,7 +20,7 @@ public struct Nickname: Hashable {
     
     // MARK: - Initializer
     
-    public init(_ value: String) throws {
+    public init(_ value: String) throws(AuthError) {
         guard !value.isEmpty else {
             throw AuthError.emptyNickname
         }

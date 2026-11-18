@@ -42,12 +42,12 @@ public struct LoginCoordinatorView: View {
             LoginView()
         case .terms(let tempUser):
             TermsView(tempUser: tempUser)
-        case .nickname(let builder):
-            NicknameSettingView(builder: builder)
-        case .preferredGenre(let builder):
-            PreferredGenreSettingView(builder: builder)
-        case .preferredArtist(let builder):
-            PreferredArtistSettingView(builder: builder)
+        case .nickname(let session):
+            NicknameSettingView(session: session)
+        case .preferredGenre(let session):
+            PreferredGenreSettingView(session: session)
+        case .preferredArtist(let session):
+            PreferredArtistSettingView(session: session)
         }
     }
 }

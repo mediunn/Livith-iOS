@@ -1,8 +1,3 @@
 public protocol ConcertRequestRepository {
-    func requestConcert(
-        title: String,
-        url: String?,
-        shouldAutoRegister: Bool,
-        requestContent: String?
-    ) async throws(ConcertError)
+    func requestConcert(_ request: ConcertRequest) async throws(ConcertError)
 }

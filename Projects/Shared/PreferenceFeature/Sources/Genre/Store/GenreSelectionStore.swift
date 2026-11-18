@@ -8,6 +8,7 @@
 
 import Foundation
 
+import DisplaySupport
 import Domain
 import DIContainer
 
@@ -20,21 +21,19 @@ enum GenreSelectionIntent {
 }
 
 public struct GenreSelectionState: Equatable {
-    public var selectedGenreList: [PreferredGenre] = []
+    var selection: PreferenceSelection<PreferredGenre>
+    public var selectedGenreList: [PreferredGenre] { selection.items }
     var isLoading: Bool = false
     var genreList: [PreferredGenre] = []
     var isMaxSelectionToastPresented: Bool = false
     var isErrorToastPresented: Bool = false
     var errorMessage: String = ""
     
-    private let initialSelectedGenreList: [PreferredGenre]
-    
     init(selectedGenreList: [PreferredGenre] = []) {
-        self.selectedGenreList = selectedGenreList
-        self.initialSelectedGenreList = selectedGenreList
+        self.selection = PreferenceSelection(selectedGenreList)
     }
     
-    var isModified: Bool { selectedGenreList != initialSelectedGenreList && !selectedGenreList.isEmpty }
+    var isModified: Bool { selection.hasChangesToSave }
 }
 
 public final class GenreSelectionStore: ObservableObject {    
@@ -54,18 +53,16 @@ public final class GenreSelectionStore: ObservableObject {
             fetchGenreList()
             
         case .toggle(let id):
-            guard let genre = state.genreList.first(where: { $0.id == id }) else { return }
-            
-            if let index = state.selectedGenreList.firstIndex(where: { $0.id == id }) {
-                state.selectedGenreList.remove(at: index)
+            guard let item = state.genreList.first(where: { $0.id == id }) else { return }
+            switch state.selection.toggle(id: id, availableItem: item) {
+            case .changed:
                 state.isMaxSelectionToastPresented = false
-            } else if state.selectedGenreList.count < PreferenceSelectionRule.maxCount {
-                state.selectedGenreList.append(genre)
-                state.isMaxSelectionToastPresented = false
-            } else {
+            case .limitReached:
                 state.isMaxSelectionToastPresented = true
+            case .itemUnavailable:
+                break
             }
-            
+
         case .resetMaxSelectionToast:
             state.isMaxSelectionToastPresented = false
             
@@ -78,7 +75,7 @@ public final class GenreSelectionStore: ObservableObject {
             case .success(let genres):
                 state.genreList = genres
             case .failure(let error):
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = DisplayErrorMessage.message(for: error)
                 state.isErrorToastPresented = true
             }
         }

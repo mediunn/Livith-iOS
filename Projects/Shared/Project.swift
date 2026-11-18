@@ -31,6 +31,7 @@ let project = Project.make(
             target: .shared(.nicknameEditFeature),
             product: .framework,
             dependencies: [
+                .shared(.displaySupport),
                 .designSystem(.designSystem),
                 .core(.diContainer),
                 .domain(.domain)
@@ -47,6 +48,7 @@ let project = Project.make(
             target: .shared(.preferenceFeature),
             product: .framework,
             dependencies: [
+                .shared(.displaySupport),
                 .designSystem(.designSystem),
                 .core(.diContainer),
                 .core(.amplitude),

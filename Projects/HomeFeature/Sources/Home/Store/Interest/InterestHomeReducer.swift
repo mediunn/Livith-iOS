@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 import DIContainer
+import DisplaySupport
 import Domain
 
 // MARK: - InterestHomeState
@@ -417,7 +418,7 @@ private extension InterestHomeReducer {
         if isCancellationError(error) {
             return ""
         }
-        return error.localizedDescription
+        return DisplayErrorMessage.message(for: error)
     }
 
     func isCancellationError(_ error: Error) -> Bool {

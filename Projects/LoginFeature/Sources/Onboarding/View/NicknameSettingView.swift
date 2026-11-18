@@ -18,17 +18,21 @@ struct NicknameSettingView: View {
     @State private var isSignupFailureModalPresented: Bool = false
     @State private var signupFailureMessage: String = ""
 
-    private let builder: SignupBuilder
+    private let session: SignupSession
 
-    init(builder: SignupBuilder) {
-        self.builder = builder
+    init(session: SignupSession) {
+        self.session = session
     }
 
     var body: some View {
         NicknameEditView(config: .signup) {
             router.pop()
         } onSubmitSuccess: { nickname in
-            router.push(.preferredGenre(builder.withNickname(nickname)))
+            guard let nickname = try? Nickname(nickname) else { return }
+            var updatedSession = session
+            updatedSession.changeNickname(to: nickname)
+            updatedSession.confirmNickname(nickname)
+            router.push(.preferredGenre(updatedSession))
         }
         .crossDissolve(isPresented: $isSignupFailureModalPresented, dismissOnTapOutside: false) {
             LivithModal(

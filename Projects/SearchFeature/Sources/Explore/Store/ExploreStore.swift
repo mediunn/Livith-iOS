@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import DisplaySupport
 import Domain
 import LivithFoundation
 
@@ -225,7 +226,7 @@ private extension ExploreStore {
 
     func getErrorMessage(from error: Error) -> String {
         if let searchError = error as? SearchError {
-            return searchError.errorDescription ?? "알 수 없는 오류가 발생했어요."
+            return DisplayErrorMessage.message(for: searchError)
         }
         return "알 수 없는 오류가 발생했어요."
     }

@@ -63,8 +63,18 @@ struct SetlistErrorMapper {
     }
     
     private func mapMessageToSetlistError(_ message: String) -> SetlistError? {
-        let error = SetlistError.from(message: message)
-        return error == .unknown ? nil : error
+        switch message {
+        case "id는 양의 정수여야 합니다.":
+            return .invalidID
+        case "해당 셋리스트가 존재하지 않습니다.":
+            return .notFound
+        case "해당 콘서트가 찾을 수 없습니다.":
+            return .concertNotFound
+        case "해당 셋리스트와 콘서트의 조합이 존재하지 않습니다.":
+            return .combinationNotFound
+        default:
+            return nil
+        }
     }
     
     private func checkForCancellation(_ error: any Error) -> SetlistError? {

@@ -23,8 +23,9 @@ enum CalendarConcertScope {
 // MARK: - CalendarHomeState
 
 struct CalendarHomeState {
-    var isTicketingDateSelected: Bool = true
-    var isPerformanceDateSelected: Bool = true
+    var scheduleSelection = CalendarScheduleSelection()
+    var isTicketingDateSelected: Bool { scheduleSelection.contains(.ticketing) }
+    var isPerformanceDateSelected: Bool { scheduleSelection.contains(.concert) }
     var concertScope: CalendarConcertScope = .all
     var rangeStartDate: String?
     var rangeEndDate: String?
@@ -104,12 +105,10 @@ final class CalendarHomeReducer {
             return .none
 
         case .ticketingDateTapped:
-            guard toggleTicketingDateFilter() else { return .none }
-            return scheduleFetchMonth(showInitialLoading: false)
+            return toggleScheduleType(.ticketing)
 
         case .performanceDateTapped:
-            guard togglePerformanceDateFilter() else { return .none }
-            return scheduleFetchMonth(showInitialLoading: false)
+            return toggleScheduleType(.concert)
 
         case .allConcertsTapped:
             guard state.concertScope != .all else { return .none }
@@ -214,7 +213,7 @@ private extension CalendarHomeReducer {
 
         monthRequestID += 1
         let requestID = monthRequestID
-        let scheduleTypes = scheduleTypeFilterList(state)
+        let scheduleTypes = state.scheduleSelection.scheduleTypes
         let concertType = concertTypeFilter(state)
 
         if showInitialLoading {
@@ -241,7 +240,7 @@ private extension CalendarHomeReducer {
 
         dayEventsRequestID += 1
         let requestID = dayEventsRequestID
-        let scheduleTypes = scheduleTypeFilterList(state)
+        let scheduleTypes = state.scheduleSelection.scheduleTypes
         let concertType = concertTypeFilter(state)
 
         cancellables[.fetchDayEvents] = Task {
@@ -290,13 +289,6 @@ private extension CalendarHomeReducer {
         }
     }
 
-    func scheduleTypeFilterList(_ state: CalendarHomeState) -> [CalendarScheduleTypeFilter] {
-        var filterList: [CalendarScheduleTypeFilter] = []
-        if state.isTicketingDateSelected { filterList.append(.ticketing) }
-        if state.isPerformanceDateSelected { filterList.append(.concert) }
-        return filterList
-    }
-
     func concertTypeFilter(_ state: CalendarHomeState) -> CalendarConcertTypeFilter {
         switch state.concertScope {
         case .all: return .all
@@ -304,30 +296,14 @@ private extension CalendarHomeReducer {
         }
     }
 
-    func toggleTicketingDateFilter() -> Bool {
-        guard state.isTicketingDateSelected else {
-            state.isTicketingDateSelected = true
-            return true
-        }
-        guard state.isPerformanceDateSelected else {
+    func toggleScheduleType(_ type: CalendarScheduleTypeFilter) -> DiscardableTask {
+        switch state.scheduleSelection.toggle(type) {
+        case .changed:
+            return scheduleFetchMonth(showInitialLoading: false)
+        case .lastSelectionRequired:
             presentSelectionBlockedToast()
-            return false
+            return .none
         }
-        state.isTicketingDateSelected = false
-        return true
-    }
-
-    func togglePerformanceDateFilter() -> Bool {
-        guard state.isPerformanceDateSelected else {
-            state.isPerformanceDateSelected = true
-            return true
-        }
-        guard state.isTicketingDateSelected else {
-            presentSelectionBlockedToast()
-            return false
-        }
-        state.isPerformanceDateSelected = false
-        return true
     }
 
     func presentSelectionBlockedToast() {

@@ -62,10 +62,10 @@ struct AuthRepositoryImpl: AuthRepository {
         await handleLogout()
     }
     
-    func checkNicknameDuplicate(nickname: String) async throws(AuthError) -> Bool {
+    func checkNicknameDuplicate(nickname: Nickname) async throws(AuthError) -> Bool {
         do {
             let response: DTO.Response.CheckNicknameDuplicate = try await networkClient.request(
-                UserAPI.checkNicknameDuplicate(nickname: nickname)
+                UserAPI.checkNicknameDuplicate(nickname: nickname.value)
             )
             return mapper.toDomain(from: response)
         } catch {

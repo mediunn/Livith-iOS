@@ -169,19 +169,14 @@ struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository,
         }
     }
 
-    func requestConcert(
-        title: String,
-        url: String?,
-        shouldAutoRegister: Bool,
-        requestContent: String?
-    ) async throws(ConcertError) {
+    func requestConcert(_ request: ConcertRequest) async throws(ConcertError) {
         do {
             try await networkClient.request(
                 ConcertAPI.requestConcert(
-                    title: title,
-                    url: url,
-                    shouldAutoRegister: shouldAutoRegister,
-                    requestContent: requestContent
+                    title: request.title,
+                    url: request.url,
+                    shouldAutoRegister: request.shouldAutoRegister,
+                    requestContent: request.requestContent
                 )
             )
         } catch {

@@ -7,7 +7,7 @@
 //
 
 public protocol UserRepository {
-    func updateNickname(_ nickname: String) async throws(UserError)
+    func updateNickname(_ nickname: Nickname) async throws(UserError)
     func fetchUser() async throws(UserError) -> User
     @discardableResult
     func refreshUser() async throws(UserError) -> User

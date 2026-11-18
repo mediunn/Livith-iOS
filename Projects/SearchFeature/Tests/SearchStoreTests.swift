@@ -81,7 +81,7 @@ struct SearchStoreTests {
 
         // Then
         #expect(recorder.allOnMainThread)
-        #expect(sut.state.errorMessage == SearchError.unknown.localizedDescription)
+        #expect(sut.state.errorMessage == "알 수 없는 오류가 발생했습니다.")
         #expect(!sut.state.isLoadingMore)
         #expect(sut.state.searchedConcertList.map(\.id) == [1])
     }
