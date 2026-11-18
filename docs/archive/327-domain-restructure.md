@@ -34,9 +34,15 @@
 
 관심 공연을 저장하는 중에 편집하면, 저장 성공 후 화면이 닫힐 때 그 변경 내용은 사라진다.
 
+`ArtistSearchResult`와 `SearchResult`의 `ListResult` 통합은 보류한다. Repository와 Data 매퍼에 이어 검색 화면의 Store도 수정해야 한다. 다시 진행할 때 아티스트 검색 응답의 커서가 없으면 마지막 페이지인지 확인한다.
+
 ## 추가 기록
 
 2026-11-18에 드러난 기존 실패를 별도 테스트 커밋 `b65eb0b0`으로 수정했다. 공연 일정 테스트의 `.ticketing` 기대값과 응답을 `.generalTicketing` 및 `GENERAL_TICKETING`으로 맞췄다. 잘못된 시작일이 있는 공연은 목록에 남고 시작일만 `nil`이 되는 동작을 검증했다. 관심 공연 표시 테스트에는 실행 시각 기준의 미래 예매일을 사용했다. 수정 뒤 `ConcertMapperTests.swift`를 다시 포함해 통합 테스트를 실행했다.
+
+2026-11-18 리뷰 후속으로 `SignupInfo`의 생성자를 Domain 내부로 제한했다. 다른 모듈은 `SignupSession.makeSignupInfo`에서 검증된 값을 받는다. `Livith-iOS-Dev` 빌드와 `SignupSessionTests` 3건이 통과했다.
+
+2026-11-18에 `HomeSectionRepository`를 `ConcertSectionRepository`와 `ConcertRecommendationRepository`로 나눴다. 홈 기능이 두 조회를 조합하고, 각각 기존 API와 Data 구현을 사용한다. `Livith-iOS-Dev` 빌드와 `HomeStoreTests` 54건이 통과했다.
 
 ## 참조
 
