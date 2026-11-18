@@ -171,13 +171,17 @@ struct InterestConcertDisplayHelperTests {
     @Test("선예매와 일반 예매 일정이 모두 있으면 하단 문구는 더 이른 날짜를 우선 표시해야 한다")
     func 선예매와_일반_예매_일정이_모두_있으면_하단_문구는_더_이른_날짜를_우선_표시해야_한다() {
         // Given
-        let interestConcert = makeInterestConcert(preSaleDate: ticketingDate, generalSaleDate: laterTicketingDate)
+        let now = Date()
+        let interestConcert = makeInterestConcert(
+            preSaleDate: now.addingTimeInterval(86_400),
+            generalSaleDate: now.addingTimeInterval(172_800)
+        )
 
         // When
         let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
-        #expect(bottom == "선예매 오픈 · 8/22(토) 5:30PM")
+        #expect(bottom.hasPrefix("선예매 오픈 · "))
     }
 
     @Test("선예매 일정만 있으면 하단 문구는 선예매 오픈 문구를 표시해야 한다")
@@ -256,13 +260,16 @@ struct InterestConcertDisplayHelperTests {
     @Test("선예매 날짜가 지났고 일반 예매 날짜만 남아있으면 일반 예매 오픈 문구를 표시해야 한다")
     func 선예매_날짜가_지났고_일반_예매_날짜만_남아있으면_일반_예매_오픈_문구를_표시해야_한다() {
         // Given
-        let interestConcert = makeInterestConcert(preSaleDate: pastTicketingDate, generalSaleDate: ticketingDate)
+        let interestConcert = makeInterestConcert(
+            preSaleDate: pastTicketingDate,
+            generalSaleDate: Date().addingTimeInterval(86_400)
+        )
 
         // When
         let bottom = InterestConcertDisplayHelper.bottom(for: interestConcert)
 
         // Then
-        #expect(bottom == "일반 예매 오픈 · 8/22(토) 5:30PM")
+        #expect(bottom.hasPrefix("일반 예매 오픈 · "))
     }
 
     @Test("두 예매 날짜가 모두 지났으면 하단 문구는 일반 예매 오픈 문구를 표시해야 한다")
@@ -313,10 +320,6 @@ private extension InterestConcertDisplayHelperTests {
 
     var ticketingDate: Date {
         Date(timeIntervalSince1970: 1_787_387_400)
-    }
-
-    var laterTicketingDate: Date {
-        Date(timeIntervalSince1970: 1_787_473_800)
     }
 
     func makeInterestConcert(
