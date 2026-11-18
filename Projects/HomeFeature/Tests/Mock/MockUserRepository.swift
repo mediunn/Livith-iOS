@@ -122,7 +122,7 @@ final class MockUserRepository: UserRepository, InterestConcertRepository, Inter
                 return .success(interestConcertListResultStub)
             }
 
-            return .success(ListResult(items: interestConcertListStub, nextToken: nil))
+            return .success(ListResult(items: interestConcertListStub, position: nil))
         }
 
         switch fallbackResult {

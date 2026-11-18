@@ -41,7 +41,7 @@ struct PreferenceMapperTests {
         #expect(result[1].displayName == "락/메탈")
     }
     
-    @Test("아티스트 검색 응답을 목록과 다음 토큰으로 변환한다")
+    @Test("아티스트 검색 응답을 목록과 이어 조회할 위치로 변환한다")
     func fetchArtistListToDomain() {
         // Given
         let json = """
@@ -62,7 +62,7 @@ struct PreferenceMapperTests {
         
         // Then
         #expect(result.items.count == 2)
-        #expect((result.nextToken as? ArtistSearchNextToken)?.cursor == 3)
+        #expect((result.position as? ArtistSearchPosition)?.cursor == 3)
         #expect(result.items[0].name == "YOASOBI")
         #expect(result.items[0].genreID == 1)
         #expect(result.items[1].imageURL == nil)

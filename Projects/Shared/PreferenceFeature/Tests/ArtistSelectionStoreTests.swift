@@ -36,7 +36,7 @@ struct ArtistSelectionStoreTests {
             PreferredArtist(id: 1, name: "IU", genreID: 1, imageURL: nil),
             PreferredArtist(id: 2, name: "BTS", genreID: 1, imageURL: nil)
         ]
-        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, nextToken: nil)
+        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, position: nil)
         
         let sut = ArtistSelectionStore()
         
@@ -55,7 +55,7 @@ struct ArtistSelectionStoreTests {
     func testSearchLoadsArtists() async throws {
         // Given
         let artists = [PreferredArtist(id: 1, name: "IU", genreID: 1, imageURL: nil)]
-        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, nextToken: nil)
+        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, position: nil)
         
         let sut = ArtistSelectionStore()
         
@@ -92,7 +92,7 @@ struct ArtistSelectionStoreTests {
     func testToggleAddsArtist() async throws {
         // Given
         let artist = PreferredArtist(id: 1, name: "IU", genreID: 1, imageURL: nil)
-        container.preferenceRepository.artistSearchResultStub = ListResult(items: [artist], nextToken: nil)
+        container.preferenceRepository.artistSearchResultStub = ListResult(items: [artist], position: nil)
         
         let sut = ArtistSelectionStore()
         sut.send(.onAppear)
@@ -128,7 +128,7 @@ struct ArtistSelectionStoreTests {
             PreferredArtist(id: 3, name: "C", genreID: 1, imageURL: nil),
             PreferredArtist(id: 4, name: "D", genreID: 1, imageURL: nil)
         ]
-        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, nextToken: nil)
+        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, position: nil)
         
         let initialSelection = [artists[0], artists[1], artists[2]]
         let sut = ArtistSelectionStore(selectedArtistList: initialSelection)
@@ -143,25 +143,25 @@ struct ArtistSelectionStoreTests {
         #expect(sut.state.isMaxSelectionToastPresented)
     }
     
-    @Test("서버가 준 다음 토큰으로 조회하고 결과를 목록에 추가해야 한다")
+    @Test("응답의 조회 위치로 다음 페이지를 조회하고 결과를 목록에 추가해야 한다")
     func testLoadMoreAppendsArtists() async throws {
         let firstArtist = PreferredArtist(id: 1, name: "A", genreID: 1, imageURL: nil)
         let secondArtist = PreferredArtist(id: 2, name: "B", genreID: 1, imageURL: nil)
         container.preferenceRepository.artistSearchResultStub = ListResult(
             items: [firstArtist],
-            nextToken: TestSearchNextToken(value: 42)
+            position: TestSearchPosition(value: 42)
         )
 
         let sut = ArtistSelectionStore()
         sut.send(.onAppear)
         try await Task.sleep(for: .milliseconds(100))
 
-        container.preferenceRepository.artistSearchResultStub = ListResult(items: [secondArtist], nextToken: nil)
+        container.preferenceRepository.artistSearchResultStub = ListResult(items: [secondArtist], position: nil)
         sut.send(.loadMore)
         try await Task.sleep(for: .milliseconds(100))
 
         #expect(sut.state.artistList.map(\.id) == [1, 2])
-        #expect(container.preferenceRepository.searchArtistListTokenValueList == [nil, 42])
+        #expect(container.preferenceRepository.searchArtistListPositionValueList == [nil, 42])
         #expect(!sut.state.hasNextPage)
     }
 
@@ -169,7 +169,7 @@ struct ArtistSelectionStoreTests {
     func testLoadMoreIgnoredWhenLoading() async throws {
         // Given
         let artists = [PreferredArtist(id: 1, name: "A", genreID: 1, imageURL: nil)]
-        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, nextToken: TestSearchNextToken(value: 2))
+        container.preferenceRepository.artistSearchResultStub = ListResult(items: artists, position: TestSearchPosition(value: 2))
         
         let sut = ArtistSelectionStore()
         sut.send(.onAppear)
@@ -186,10 +186,10 @@ struct ArtistSelectionStoreTests {
         #expect(container.preferenceRepository.searchArtistListCallCount == 2)
     }
     
-    @Test("첫 페이지에 결과가 있어도 다음 토큰이 없으면 추가 조회하지 않아야 한다")
+    @Test("첫 페이지에 결과가 있어도 이어 조회할 위치가 없으면 추가 조회하지 않아야 한다")
     func testLoadMoreIgnoredWhenNoNextPage() async throws {
         let artist = PreferredArtist(id: 1, name: "A", genreID: 1, imageURL: nil)
-        container.preferenceRepository.artistSearchResultStub = ListResult(items: [artist], nextToken: nil)
+        container.preferenceRepository.artistSearchResultStub = ListResult(items: [artist], position: nil)
 
         let sut = ArtistSelectionStore()
         sut.send(.onAppear)
@@ -200,16 +200,16 @@ struct ArtistSelectionStoreTests {
 
         #expect(sut.state.artistList.map(\.id) == [1])
         #expect(!sut.state.hasNextPage)
-        #expect(container.preferenceRepository.searchArtistListTokenValueList == [nil])
+        #expect(container.preferenceRepository.searchArtistListPositionValueList == [nil])
     }
 
-    @Test("검색어가 바뀌면 이전 페이지의 토큰을 버리고 새 검색 결과로 교체해야 한다")
+    @Test("검색어가 바뀌면 이전 페이지의 조회 위치를 버리고 새 검색 결과로 교체해야 한다")
     func testSearchResetsArtistList() async throws {
         let firstArtist = PreferredArtist(id: 1, name: "A", genreID: 1, imageURL: nil)
         let newArtist = PreferredArtist(id: 2, name: "B", genreID: 1, imageURL: nil)
         container.preferenceRepository.artistSearchResultStub = ListResult(
             items: [firstArtist],
-            nextToken: TestSearchNextToken(value: 42)
+            position: TestSearchPosition(value: 42)
         )
 
         let sut = ArtistSelectionStore()
@@ -218,7 +218,7 @@ struct ArtistSelectionStoreTests {
 
         container.preferenceRepository.artistSearchResultStub = ListResult(
             items: [newArtist],
-            nextToken: TestSearchNextToken(value: 55)
+            position: TestSearchPosition(value: 55)
         )
         sut.send(.search(keyword: "B"))
         sut.send(.loadMore)
@@ -226,6 +226,6 @@ struct ArtistSelectionStoreTests {
 
         #expect(sut.state.artistList.map(\.id) == [2])
         #expect(sut.state.hasNextPage)
-        #expect(container.preferenceRepository.searchArtistListTokenValueList == [nil, nil])
+        #expect(container.preferenceRepository.searchArtistListPositionValueList == [nil, nil])
     }
 }

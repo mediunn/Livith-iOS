@@ -48,8 +48,8 @@ final class InterestConcertListStore: ObservableObject {
 
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var currentRequestID: Int = 0
-    private var nextToken: (any NextToken)?
-    private var firstPageSnapshot: (state: InterestConcertListState, nextToken: (any NextToken)?)?
+    private var position: (any PagePosition)?
+    private var firstPageSnapshot: (state: InterestConcertListState, position: (any PagePosition)?)?
     private let pageSize: Int = 12
 
     // MARK: - Public Interface
@@ -65,10 +65,10 @@ final class InterestConcertListStore: ObservableObject {
             guard state.hasMorePages else { return }
             guard !state.isInitialLoading else { return }
             guard !state.isLoadingMore else { return }
-            guard let nextToken else { return }
+            guard let position else { return }
 
             state.isLoadingMore = true
-            performFetchNextPage(nextToken: nextToken)
+            performFetchNextPage(position: position)
 
         case .sortSelected(let sort):
             guard state.selectedSort != sort else { return }
@@ -85,16 +85,16 @@ final class InterestConcertListStore: ObservableObject {
                 firstPageSnapshot = nil
                 state.selectedSort = sort
                 state.interestConcertList = page.items
-                nextToken = page.nextToken
-                state.hasMorePages = page.nextToken != nil
+                position = page.position
+                state.hasMorePages = page.position != nil
                 state.errorMessage = ""
             case .failure(let error):
                 if let snapshot = firstPageSnapshot {
                     state = snapshot.state
-                    nextToken = snapshot.nextToken
+                    position = snapshot.position
                     firstPageSnapshot = nil
                 } else if state.interestConcertList.isEmpty {
-                    nextToken = nil
+                    position = nil
                     state.hasMorePages = false
                 }
                 state.errorMessage = getErrorMessage(from: error)
@@ -108,8 +108,8 @@ final class InterestConcertListStore: ObservableObject {
             switch result {
             case .success(let page):
                 state.interestConcertList.append(contentsOf: page.items)
-                nextToken = page.nextToken
-                state.hasMorePages = page.nextToken != nil
+                position = page.position
+                state.hasMorePages = page.position != nil
                 state.errorMessage = ""
             case .failure(let error):
                 state.errorMessage = getErrorMessage(from: error)
@@ -128,42 +128,42 @@ private extension InterestConcertListStore {
         cancellables[.fetchFirstPage]?.cancel()
         cancellables[.fetchNextPage]?.cancel()
 
-        firstPageSnapshot = sort == state.selectedSort ? nil : (state, nextToken)
+        firstPageSnapshot = sort == state.selectedSort ? nil : (state, position)
         state.isInitialLoading = true
         state.isLoadingMore = false
 
         if firstPageSnapshot != nil {
             state.selectedSort = sort
             state.interestConcertList = []
-            nextToken = nil
+            position = nil
             state.hasMorePages = true
         }
 
         cancellables[.fetchFirstPage] = Task {
-            let result = await fetchInterestConcertListResult(sort: sort, nextToken: nil)
+            let result = await fetchInterestConcertListResult(sort: sort, position: nil)
             send(._fetchFirstPageResult(result, sort: sort, requestID: requestID))
         }
     }
 
-    func performFetchNextPage(nextToken: any NextToken) {
+    func performFetchNextPage(position: any PagePosition) {
         let requestID = currentRequestID
 
         cancellables[.fetchNextPage]?.cancel()
         cancellables[.fetchNextPage] = Task {
-            let result = await fetchInterestConcertListResult(sort: state.selectedSort, nextToken: nextToken)
+            let result = await fetchInterestConcertListResult(sort: state.selectedSort, position: position)
             send(._fetchNextPageResult(result, requestID: requestID))
         }
     }
 
     func fetchInterestConcertListResult(
         sort: InterestConcertSort,
-        nextToken: (any NextToken)?
+        position: (any PagePosition)?
     ) async -> Result<ListResult<InterestConcert>, Error> {
         do {
             let filter = InterestConcertListFilter.page(
                 sort: sort,
                 limit: pageSize,
-                nextToken: nextToken
+                position: position
             )
             let page = try await interestConcertRepository.fetchInterestedConcertList(filter: filter)
             return .success(page)

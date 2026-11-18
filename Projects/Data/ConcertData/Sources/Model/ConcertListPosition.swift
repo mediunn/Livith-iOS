@@ -1,5 +1,5 @@
 //
-//  ConcertListNextToken.swift
+//  ConcertListPosition.swift
 //  ConcertData
 //
 //  Created by 김진웅 on 5/1/26.
@@ -8,6 +8,6 @@
 
 import Domain
 
-struct ConcertListNextToken: NextToken {
+struct ConcertListPosition: PagePosition {
     let cursor: Int
 }

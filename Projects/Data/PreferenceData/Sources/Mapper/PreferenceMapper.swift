@@ -34,7 +34,7 @@ struct PreferenceMapper {
         }
         return ListResult(
             items: artistList,
-            nextToken: dto.cursor.map { ArtistSearchNextToken(cursor: $0) }
+            position: dto.cursor.map { ArtistSearchPosition(cursor: $0) }
         )
     }
     

@@ -66,7 +66,7 @@ struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestCo
             )
             return mapper.toDomain(from: response)
         } catch NetworkError.noData {
-            return ListResult(items: [], nextToken: nil)
+            return ListResult(items: [], position: nil)
         } catch let error as UserError {
             throw error
         } catch {
@@ -194,25 +194,25 @@ private extension UserRepositoryImpl {
     func makeFetchInterestConcertListRequest(
         from filter: InterestConcertListFilter
     ) throws(UserError) -> DTO.Request.FetchInterestConcertList {
-        let nextToken = try makeInterestConcertListNextToken(from: filter.nextToken)
+        let position = try makeInterestConcertListPosition(from: filter.position)
 
         return DTO.Request.FetchInterestConcertList(
             sort: filter.sort.map(makeFetchInterestConcertListSort),
             size: filter.limit,
-            cursorDate: nextToken?.cursorDate,
-            cursorID: nextToken?.id
+            cursorDate: position?.cursorDate,
+            cursorID: position?.id
         )
     }
 
-    func makeInterestConcertListNextToken(
-        from nextToken: (any NextToken)?
-    ) throws(UserError) -> InterestConcertListNextToken? {
-        guard let nextToken else { return nil }
-        guard let interestConcertListNextToken = nextToken as? InterestConcertListNextToken else {
+    func makeInterestConcertListPosition(
+        from position: (any PagePosition)?
+    ) throws(UserError) -> InterestConcertListPosition? {
+        guard let position else { return nil }
+        guard let interestConcertListPosition = position as? InterestConcertListPosition else {
             throw UserError.invalidRequest
         }
 
-        return interestConcertListNextToken
+        return interestConcertListPosition
     }
 
     func makeFetchInterestConcertListSort(

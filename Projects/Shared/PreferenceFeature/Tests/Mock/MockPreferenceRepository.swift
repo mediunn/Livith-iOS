@@ -12,12 +12,12 @@ import Domain
 
 final class MockPreferenceRepository: PreferenceRepository {
     var genreListStub: [PreferredGenre] = []
-    var artistSearchResultStub: ListResult<PreferredArtist> = ListResult(items: [], nextToken: nil)
+    var artistSearchResultStub: ListResult<PreferredArtist> = ListResult(items: [], position: nil)
     var errorStub: PreferenceError?
     
     var fetchGenreListCallCount: Int = 0
     var searchArtistListCallCount: Int = 0
-    var searchArtistListTokenValueList: [Int?] = []
+    var searchArtistListPositionValueList: [Int?] = []
     
     func fetchGenreList() async throws(PreferenceError) -> [PreferredGenre] {
         fetchGenreListCallCount += 1
@@ -27,9 +27,9 @@ final class MockPreferenceRepository: PreferenceRepository {
         return genreListStub
     }
     
-    func searchArtistList(keyword: String?, size: Int?, after nextToken: (any NextToken)?) async throws(PreferenceError) -> ListResult<PreferredArtist> {
+    func searchArtistList(keyword: String?, size: Int?, after position: (any PagePosition)?) async throws(PreferenceError) -> ListResult<PreferredArtist> {
         searchArtistListCallCount += 1
-        searchArtistListTokenValueList.append((nextToken as? TestSearchNextToken)?.value)
+        searchArtistListPositionValueList.append((position as? TestSearchPosition)?.value)
         if let error = errorStub {
             throw error
         }
@@ -53,6 +53,6 @@ final class MockPreferenceRepository: PreferenceRepository {
     }
 }
 
-struct TestSearchNextToken: NextToken {
+struct TestSearchPosition: PagePosition {
     let value: Int
 }

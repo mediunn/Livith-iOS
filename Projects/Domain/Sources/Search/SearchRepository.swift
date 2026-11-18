@@ -15,7 +15,7 @@ public protocol SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        after nextToken: (any NextToken)?,
+        after position: (any PagePosition)?,
         size: Int?
     ) async throws(SearchError) -> ListResult<Concert>
     func fetchRecommendedSearchResult(keyword: String) async throws(SearchError) -> [String]

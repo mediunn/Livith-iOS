@@ -25,7 +25,7 @@ enum ExploreIntent {
     case _fetchBannersResult(Result<[Banner], Error>)
     case _setConcertList([Concert])
     case _appendConcertList([Concert])
-    case _setNextToken((any NextToken)?)
+    case _setPosition((any PagePosition)?)
     case _setLoadingMore(Bool)
 }
 
@@ -38,7 +38,7 @@ struct ExploreState {
     var sortState: SearchSort = .latest
 
     var concertList: [Concert] = []
-    var nextToken: (any NextToken)?
+    var position: (any PagePosition)?
     var isLoadingMore: Bool = false
 
     var isLoading: Bool = false
@@ -66,7 +66,7 @@ final class ExploreStore: ObservableObject {
             state.currentPage = .zero
             state.banners = []
             state.concertList = []
-            state.nextToken = nil
+            state.position = nil
             state.isLoadingMore = false
             state.errorMessage = ""
 
@@ -79,20 +79,20 @@ final class ExploreStore: ObservableObject {
             guard state.selectedGenre != genre else { return }
             state.selectedGenre = genre
             state.sortState = .latest
-            state.nextToken = nil
+            state.position = nil
             state.isLoadingMore = false
             performFetchConcertList()
 
         case .statusListChanged(let statusList):
             state.selectedStatusList = statusList
             state.sortState = .latest
-            state.nextToken = nil
+            state.position = nil
             state.isLoadingMore = false
             performFetchConcertList()
 
         case .sortStateChanged(let sort):
             state.sortState = sort
-            state.nextToken = nil
+            state.position = nil
             state.isLoadingMore = false
             performFetchConcertList()
 
@@ -116,8 +116,8 @@ final class ExploreStore: ObservableObject {
         case ._appendConcertList(let concerts):
             state.concertList.append(contentsOf: concerts)
 
-        case ._setNextToken(let nextToken):
-            state.nextToken = nextToken
+        case ._setPosition(let position):
+            state.position = position
 
         case ._setLoadingMore(let isLoadingMore):
             state.isLoadingMore = isLoadingMore
@@ -160,7 +160,7 @@ private extension ExploreStore {
                 let result = try await concertResult
                 guard await Task.wait() else { return }
                 send(._setConcertList(result.items))
-                send(._setNextToken(result.nextToken))
+                send(._setPosition(result.position))
                 send(._setLoadingMore(false))
             } catch is CancellationError {
                 return
@@ -173,13 +173,13 @@ private extension ExploreStore {
     }
 
     func loadNextPageIfNeeded() {
-        guard !state.isLoadingMore, let nextToken = state.nextToken else { return }
+        guard !state.isLoadingMore, let position = state.position else { return }
         state.isLoadingMore = true
-        performFetchConcertList(after: nextToken)
+        performFetchConcertList(after: position)
     }
 
-    func performFetchConcertList(after nextToken: (any NextToken)? = nil) {
-        let isNextPage = nextToken != nil
+    func performFetchConcertList(after position: (any PagePosition)? = nil) {
+        let isNextPage = position != nil
         fetchTask?.cancel()
 
         let repository = searchRepository
@@ -196,7 +196,7 @@ private extension ExploreStore {
                     sort: sort,
                     status: statusList,
                     keyword: nil,
-                    after: nextToken,
+                    after: position,
                     size: 12
                 )
 
@@ -207,7 +207,7 @@ private extension ExploreStore {
                 } else {
                     send(._setConcertList(result.items))
                 }
-                send(._setNextToken(result.nextToken))
+                send(._setPosition(result.position))
                 send(._setLoadingMore(false))
             } catch is CancellationError {
                 return

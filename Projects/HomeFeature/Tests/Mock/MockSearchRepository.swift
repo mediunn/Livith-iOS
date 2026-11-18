@@ -23,7 +23,7 @@ final class MockSearchRepository: SearchRepository {
     var fetchFilterSearchResultSortList: [SearchSort?] = []
     var fetchFilterSearchResultStatusList: [[ConcertStatus]] = []
     var fetchFilterSearchResultKeywordList: [String?] = []
-    var fetchFilterSearchResultTokenValueList: [Int?] = []
+    var fetchFilterSearchResultPositionValueList: [Int?] = []
     var fetchFilterSearchResultSizeList: [Int?] = []
 
     func fetchBanners() async throws(SearchError) -> [Banner] {
@@ -38,7 +38,7 @@ final class MockSearchRepository: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        after nextToken: (any NextToken)?,
+        after position: (any PagePosition)?,
         size: Int?
     ) async throws(SearchError) -> ListResult<Concert> {
         let delay: UInt64
@@ -53,7 +53,7 @@ final class MockSearchRepository: SearchRepository {
         fetchFilterSearchResultSortList.append(sort)
         fetchFilterSearchResultStatusList.append(status)
         fetchFilterSearchResultKeywordList.append(keyword)
-        fetchFilterSearchResultTokenValueList.append((nextToken as? TestSearchNextToken)?.value)
+        fetchFilterSearchResultPositionValueList.append((position as? TestSearchPosition)?.value)
         fetchFilterSearchResultSizeList.append(size)
 
         if delay > 0 {
@@ -77,7 +77,7 @@ final class MockSearchRepository: SearchRepository {
             return searchResultStub
         }
 
-        return ListResult(items: [], nextToken: nil)
+        return ListResult(items: [], position: nil)
     }
 
     func fetchRecommendedSearchResult(keyword: String) async throws(SearchError) -> [String] {
@@ -88,6 +88,6 @@ final class MockSearchRepository: SearchRepository {
     }
 }
 
-struct TestSearchNextToken: NextToken {
+struct TestSearchPosition: PagePosition {
     let value: Int
 }

@@ -13,7 +13,7 @@ public protocol PreferenceRepository {
     func searchArtistList(
         keyword: String?,
         size: Int?,
-        after nextToken: (any NextToken)?
+        after position: (any PagePosition)?
     ) async throws(PreferenceError) -> ListResult<PreferredArtist>
     func fetchUserPreferredGenreList() async throws(PreferenceError) -> [PreferredGenre]
     func fetchUserPreferredArtistList() async throws(PreferenceError) -> [PreferredArtist]

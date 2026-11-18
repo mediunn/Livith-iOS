@@ -1,12 +1,12 @@
 //
-//  ArtistSearchNextToken.swift
-//  PreferenceData
+//  ConcertSearchPosition.swift
+//  SearchData
 //
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
 import Domain
 
-struct ArtistSearchNextToken: NextToken {
+struct ConcertSearchPosition: PagePosition {
     let cursor: Int
 }

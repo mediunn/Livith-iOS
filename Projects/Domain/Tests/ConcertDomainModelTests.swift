@@ -67,18 +67,18 @@ struct ConcertDomainModelTests {
         #expect(interestConcert.ticketingSchedule.generalSaleDate == nil)
     }
 
-    @Test("InterestConcertListFilter initialSelectionPage는 정렬 없이 페이지 크기와 다음 token을 제공해야 한다")
-    func interestConcertListFilter_initialSelectionPage는_정렬_없이_페이지_크기와_다음_token을_제공해야_한다() {
+    @Test("InterestConcertListFilter initialSelectionPage는 정렬 없이 페이지 크기와 이어 조회할 위치를 제공해야 한다")
+    func interestConcertListFilter_initialSelectionPage는_정렬_없이_페이지_크기와_이어_조회할_위치를_제공해야_한다() {
         // Given
-        let nextToken = TestNextToken()
+        let position = TestPosition()
 
         // When
-        let filter = InterestConcertListFilter.initialSelectionPage(limit: 20, nextToken: nextToken)
+        let filter = InterestConcertListFilter.initialSelectionPage(limit: 20, position: position)
 
         // Then
         #expect(filter.sort == nil)
         #expect(filter.limit == 20)
-        #expect(filter.nextToken != nil)
+        #expect(filter.position != nil)
     }
 
     @Test("InterestConcertListFilter는 홈 섹션 조회 조건을 제공해야 한다")
@@ -89,7 +89,7 @@ struct ConcertDomainModelTests {
         // Then
         #expect(filter.sort == .ticketing)
         #expect(filter.limit == 5)
-        #expect(filter.nextToken == nil)
+        #expect(filter.position == nil)
     }
 
     @Test("InterestConcertEntryAlertKind는 4가지 엔트리 알림 종류를 표현해야 한다")
@@ -106,10 +106,10 @@ struct ConcertDomainModelTests {
         ])
     }
 
-    @Test("ListResult는 관심 콘서트 목록과 다음 token을 보관해야 한다")
-    func listResult는_관심_콘서트_목록과_다음_token을_보관해야_한다() {
+    @Test("ListResult는 관심 콘서트 목록과 이어 조회할 위치를 보관해야 한다")
+    func listResult는_관심_콘서트_목록과_이어_조회할_위치를_보관해야_한다() {
         // Given
-        let nextToken = TestNextToken()
+        let position = TestPosition()
         let interestConcert = InterestConcert(
             concert: makeConcert(),
             ticketingSchedule: InterestConcertTicketingSchedule(preSaleDate: nil, generalSaleDate: nil)
@@ -118,17 +118,17 @@ struct ConcertDomainModelTests {
         // When
         let result = ListResult(
             items: [interestConcert],
-            nextToken: nextToken
+            position: position
         )
 
         // Then
         #expect(result.items.count == 1)
         #expect(result.items[0].id == interestConcert.id)
-        #expect(result.nextToken != nil)
+        #expect(result.position != nil)
     }
 }
 
-private struct TestNextToken: NextToken {}
+private struct TestPosition: PagePosition {}
 
 private extension ConcertDomainModelTests {
     func makeConcert() -> Concert {

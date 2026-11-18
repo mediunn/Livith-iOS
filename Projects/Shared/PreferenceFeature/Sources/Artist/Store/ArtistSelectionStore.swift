@@ -47,7 +47,7 @@ public final class ArtistSelectionStore: ObservableObject {
     @Injected private var preferenceRepository: PreferenceRepository
     
     private var searchTask: Task<Void, Never>?
-    private var nextToken: (any NextToken)?
+    private var position: (any PagePosition)?
     
     public init(selectedArtistList: [PreferredArtist] = []) {
         self.state = ArtistSelectionState(selectedArtistList: selectedArtistList)
@@ -83,11 +83,11 @@ public final class ArtistSelectionStore: ObservableObject {
             state.isErrorToastPresented = false
             
         case .loadMore:
-            guard !state.isLoading, !state.isLoadingMore, let nextToken else { return }
+            guard !state.isLoading, !state.isLoadingMore, let position else { return }
 
             state.isLoadingMore = true
             let keyword = state.searchKeyword
-            performSearch(keyword: keyword.isEmpty ? nil : keyword, after: nextToken)
+            performSearch(keyword: keyword.isEmpty ? nil : keyword, after: position)
 
         case ._searchResult(let result, let isNextPage):
             state.isLoading = false
@@ -100,8 +100,8 @@ public final class ArtistSelectionStore: ObservableObject {
                 } else {
                     state.artistList = page.items
                 }
-                nextToken = page.nextToken
-                state.hasNextPage = page.nextToken != nil
+                position = page.position
+                state.hasNextPage = page.position != nil
             case .failure(let error):
                 state.errorMessage = DisplayErrorMessage.message(for: error)
                 state.isErrorToastPresented = true
@@ -116,13 +116,13 @@ private extension ArtistSelectionStore {
     @MainActor
     func performSearch(
         keyword: String?,
-        after nextToken: (any NextToken)? = nil,
+        after position: (any PagePosition)? = nil,
         delay: Duration? = nil
     ) {
-        let isNextPage = nextToken != nil
+        let isNextPage = position != nil
         searchTask?.cancel()
         if !isNextPage {
-            self.nextToken = nil
+            self.position = nil
             state.hasNextPage = false
             state.isLoadingMore = false
         }
@@ -134,7 +134,7 @@ private extension ArtistSelectionStore {
             guard !Task.isCancelled else { return }
 
             do throws(PreferenceError) {
-                let page = try await preferenceRepository.searchArtistList(keyword: keyword, size: 18, after: nextToken)
+                let page = try await preferenceRepository.searchArtistList(keyword: keyword, size: 18, after: position)
                 guard !Task.isCancelled else { return }
                 send(._searchResult(.success(page), isNextPage: isNextPage))
             } catch {

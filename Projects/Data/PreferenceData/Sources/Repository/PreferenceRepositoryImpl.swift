@@ -34,14 +34,14 @@ struct PreferenceRepositoryImpl: PreferenceRepository {
     func searchArtistList(
         keyword: String?,
         size: Int?,
-        after nextToken: (any NextToken)?
+        after position: (any PagePosition)?
     ) async throws(PreferenceError) -> ListResult<PreferredArtist> {
-        let pageToken = nextToken as? ArtistSearchNextToken
-        guard nextToken == nil || pageToken != nil else { throw .invalidCursor }
+        let pagePosition = position as? ArtistSearchPosition
+        guard position == nil || pagePosition != nil else { throw .invalidCursor }
 
         do {
             let response: DTO.Response.SearchArtistList = try await networkClient.request(
-                PreferenceAPI.searchArtistList(keyword: keyword, size: size, cursor: pageToken.map { String($0.cursor) })
+                PreferenceAPI.searchArtistList(keyword: keyword, size: size, cursor: pagePosition.map { String($0.cursor) })
             )
             return mapper.toDomain(from: response)
         } catch {

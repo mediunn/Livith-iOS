@@ -51,7 +51,7 @@ struct SearchMapper {
 
         return ListResult(
             items: concertList,
-            nextToken: response.cursor.map { ConcertSearchNextToken(cursor: $0) }
+            position: response.cursor.map { ConcertSearchPosition(cursor: $0) }
         )
     }
 }

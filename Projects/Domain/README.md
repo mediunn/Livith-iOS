@@ -179,14 +179,14 @@ classDiagram
     }
     class Setlist
     class ListResult~Item~
-    class NextToken {
+    class PagePosition {
         <<protocol>>
     }
 
     ConcertCatalogRepository ..> Concert : 공연 목록
     ConcertCatalogRepository ..> ConcertSection : 검색 섹션
     ConcertCatalogRepository ..> ListResult : 공연 페이지
-    ConcertCatalogRepository ..> NextToken : 다음 페이지 입력
+    ConcertCatalogRepository ..> PagePosition : 다음 페이지 입력
     ConcertCatalogRepository ..> ConcertError : throws
     ConcertSectionRepository ..> ConcertSection : 섹션 조회 결과
     ConcertSectionRepository ..> ConcertError : throws
@@ -253,7 +253,7 @@ classDiagram
         <<enum>>
     }
     class ListResult~Item~
-    class NextToken {
+    class PagePosition {
         <<protocol>>
     }
 
@@ -267,7 +267,7 @@ classDiagram
     InterestConcert --> Concert : concert
     InterestConcert --> InterestConcertTicketingSchedule : ticketingSchedule
     InterestConcertListFilter --> "0..1" InterestConcertSort : sort
-    InterestConcertListFilter --> "0..1" NextToken : nextToken
+    InterestConcertListFilter --> "0..1" PagePosition : position
     InterestConcertEntryAlert --> InterestConcertEntryAlertKind : kind
     InterestConcertEntryAlert ..> Concert : 선택적인 concertID
     InterestConcertSelection ..> Concert : 선택한 concertIDs
@@ -512,7 +512,7 @@ classDiagram
 
 ## 검색
 
-`SearchRepository`의 필터 검색은 장르, 정렬, 공연 상태를 입력받는다. 필터 검색은 공연 목록과 다음 페이지 토큰을 `ListResult<Concert>`로 반환한다. [검색 소스](Sources/Search)
+`SearchRepository`의 필터 검색은 장르, 정렬, 공연 상태를 입력받는다. 필터 검색은 공연 목록과 이어 조회할 위치를 `ListResult<Concert>`로 반환한다. [검색 소스](Sources/Search)
 
 ```mermaid
 classDiagram
@@ -607,16 +607,16 @@ classDiagram
 
 ## 페이지네이션
 
-`ListResult<Item>`은 원소 목록과 선택적인 `NextToken`을 담는다. 전체 공연 조회와 필터 검색은 `Concert`, 관심 공연 조회는 `InterestConcert`, 아티스트 검색은 `PreferredArtist`를 원소 타입으로 사용한다. [페이지네이션 소스](Sources/Pagination)
+`ListResult<Item>`은 원소 목록과 이어 조회할 위치(`PagePosition?`)를 담는다. 전체 공연 조회와 필터 검색은 `Concert`, 관심 공연 조회는 `InterestConcert`, 아티스트 검색은 `PreferredArtist`를 원소 타입으로 사용한다. [페이지네이션 소스](Sources/Pagination)
 
-검색을 시작하거나 조건을 바꿀 때는 Repository의 `after`에 `nil`을 전달한다. 같은 조건의 다음 페이지는 응답의 `nextToken`을 `after`에 전달해서 조회한다. Data는 서버 커서와 토큰을 변환한다. 토큰이 없으면 더 조회할 페이지가 없다.
+검색을 시작하거나 조건을 바꿀 때는 Repository의 `after`에 `nil`을 전달한다. 같은 조건의 다음 페이지는 응답의 `position`을 `after`에 전달해서 조회한다. Data는 서버 커서와 조회 위치를 서로 변환한다. `position`이 `nil`이면 더 조회할 페이지가 없다.
 
 ```mermaid
 classDiagram
     class ListResult~Item~ {
         +items: Item[]
     }
-    class NextToken {
+    class PagePosition {
         <<protocol>>
     }
     class ConcertCatalogRepository {
@@ -636,18 +636,18 @@ classDiagram
     class InterestConcert
     class PreferredArtist
 
-    ListResult --> "0..1" NextToken : nextToken
+    ListResult --> "0..1" PagePosition : position
     ConcertCatalogRepository ..> ListResult : 공연 페이지 반환
     ConcertCatalogRepository ..> Concert : Item 타입
-    ConcertCatalogRepository ..> NextToken : 다음 페이지 입력
+    ConcertCatalogRepository ..> PagePosition : 다음 페이지 입력
     InterestConcertRepository ..> ListResult : 관심 공연 페이지 반환
     InterestConcertRepository ..> InterestConcert : Item 타입
     InterestConcertRepository ..> InterestConcertListFilter : 조회 입력
-    InterestConcertListFilter --> "0..1" NextToken : nextToken
+    InterestConcertListFilter --> "0..1" PagePosition : position
     SearchRepository ..> ListResult : 공연 검색 페이지 반환
     SearchRepository ..> Concert : Item 타입
-    SearchRepository ..> NextToken : 다음 페이지 입력
+    SearchRepository ..> PagePosition : 다음 페이지 입력
     PreferenceRepository ..> ListResult : 아티스트 검색 페이지 반환
     PreferenceRepository ..> PreferredArtist : Item 타입
-    PreferenceRepository ..> NextToken : 다음 페이지 입력
+    PreferenceRepository ..> PagePosition : 다음 페이지 입력
 ```

@@ -30,7 +30,7 @@ final class MockConcertRepository: ConcertCatalogRepository, ConcertSectionRepos
     var errorStub: ConcertError?
     
     var fetchAllConcertListCallCount: Int = 0
-    var fetchAllConcertListNextTokenList: [(any NextToken)?] = []
+    var fetchAllConcertListPositionList: [(any PagePosition)?] = []
     var fetchAllConcertListSizeList: [Int] = []
     var fetchConcertScheduleListCallCount: Int = 0
     var fetchHomeConcertSectionListCallCount: Int = 0
@@ -45,9 +45,9 @@ final class MockConcertRepository: ConcertCatalogRepository, ConcertSectionRepos
         return concertListStub
     }
 
-    func fetchAllConcertList(after nextToken: (any NextToken)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
+    func fetchAllConcertList(after position: (any PagePosition)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
         fetchAllConcertListCallCount += 1
-        fetchAllConcertListNextTokenList.append(nextToken)
+        fetchAllConcertListPositionList.append(position)
         fetchAllConcertListSizeList.append(size)
         if let error = errorStub {
             throw error
@@ -64,7 +64,7 @@ final class MockConcertRepository: ConcertCatalogRepository, ConcertSectionRepos
         if let concertListResultStub {
             return concertListResultStub
         }
-        return ListResult(items: concertListStub, nextToken: nil)
+        return ListResult(items: concertListStub, position: nil)
     }
     
     func fetchConcertArtistInfo(concertID: Int) async throws(ConcertError) -> Artist {

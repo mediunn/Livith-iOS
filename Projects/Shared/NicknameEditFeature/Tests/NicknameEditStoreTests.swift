@@ -95,7 +95,7 @@ final class MockUserRepository: UserRepository {
     }
 
     func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
-        ListResult(items: [], nextToken: nil)
+        ListResult(items: [], position: nil)
     }
 
     func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {

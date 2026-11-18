@@ -128,13 +128,13 @@ private struct SearchRepositoryStub: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        after nextToken: (any NextToken)?,
+        after position: (any PagePosition)?,
         size: Int?
     ) async throws(SearchError) -> ListResult<Concert> {
         if let error { throw error }
         return ListResult(
-            items: [makeConcert(id: nextToken == nil ? 1 : 2)],
-            nextToken: nextToken == nil ? TestSearchNextToken() : nil
+            items: [makeConcert(id: position == nil ? 1 : 2)],
+            position: position == nil ? TestSearchPosition() : nil
         )
     }
 
@@ -161,4 +161,4 @@ private extension SearchRepositoryStub {
     }
 }
 
-private struct TestSearchNextToken: NextToken {}
+private struct TestSearchPosition: PagePosition {}

@@ -94,8 +94,8 @@ final class InterestConcertSettingStore: ObservableObject {
 
     private var baseConcertList: [Concert]
     private var selectedConcertByID: [Int: Concert]
-    private var baseNextToken: (any NextToken)?
-    private var searchNextToken: (any NextToken)?
+    private var basePosition: (any PagePosition)?
+    private var searchPosition: (any PagePosition)?
     private var isBaseConcertListLoading: Bool {
         didSet {
             updateInitialLoadingState()
@@ -114,8 +114,8 @@ final class InterestConcertSettingStore: ObservableObject {
     init(mode: InterestConcertSettingMode) {
         self.baseConcertList = []
         self.selectedConcertByID = [:]
-        self.baseNextToken = nil
-        self.searchNextToken = nil
+        self.basePosition = nil
+        self.searchPosition = nil
         self.isBaseConcertListLoading = true
         self.isInitialSelectionLoading = mode == .update
 
@@ -157,19 +157,19 @@ final class InterestConcertSettingStore: ObservableObject {
 
             state.isLoadingMore = true
             if let keyword = currentSearchKeyword() {
-                guard searchNextToken != nil else {
+                guard searchPosition != nil else {
                     state.isLoadingMore = false
                     return
                 }
 
                 performFetchSearch(keyword: keyword, isNextPage: true)
             } else {
-                guard let baseNextToken else {
+                guard let basePosition else {
                     state.isLoadingMore = false
                     return
                 }
 
-                performFetchNextPage(nextToken: baseNextToken)
+                performFetchNextPage(position: basePosition)
             }
         case .submit:
             guard state.isCTAEnabled, !state.isSubmitting else { return }
@@ -199,8 +199,8 @@ final class InterestConcertSettingStore: ObservableObject {
             case .success(let listResult):
                 baseConcertList = listResult.items
                 mergeSelectedConcerts(listResult.items)
-                baseNextToken = listResult.nextToken
-                state.hasMoreConcertList = listResult.nextToken != nil
+                basePosition = listResult.position
+                state.hasMoreConcertList = listResult.position != nil
                 syncSelectionState()
                 if currentSearchKeyword() == nil {
                     restoreBaseConcertList()
@@ -208,7 +208,7 @@ final class InterestConcertSettingStore: ObservableObject {
             case .failure(let error):
                 baseConcertList = []
                 state.displayedConcertList = []
-                baseNextToken = nil
+                basePosition = nil
                 state.hasMoreConcertList = false
                 state.errorMessage = DisplayErrorMessage.message(for: error)
             }
@@ -219,8 +219,8 @@ final class InterestConcertSettingStore: ObservableObject {
             case .success(let listResult):
                 baseConcertList.append(contentsOf: listResult.items)
                 mergeSelectedConcerts(listResult.items)
-                baseNextToken = listResult.nextToken
-                state.hasMoreConcertList = listResult.nextToken != nil
+                basePosition = listResult.position
+                state.hasMoreConcertList = listResult.position != nil
                 syncSelectionState()
                 if currentSearchKeyword() == nil {
                     restoreBaseConcertList()
@@ -243,12 +243,12 @@ final class InterestConcertSettingStore: ObservableObject {
                 } else {
                     state.displayedConcertList = searchResult.items
                 }
-                searchNextToken = searchResult.nextToken
-                state.hasMoreConcertList = searchResult.nextToken != nil
+                searchPosition = searchResult.position
+                state.hasMoreConcertList = searchResult.position != nil
                 syncSelectionState()
             case .failure(let error):
                 state.displayedConcertList = []
-                searchNextToken = nil
+                searchPosition = nil
                 state.hasMoreConcertList = false
                 state.errorMessage = DisplayErrorMessage.message(for: error)
             }
@@ -298,12 +298,12 @@ private extension InterestConcertSettingStore {
         }
     }
 
-    func performFetchNextPage(nextToken: any NextToken) {
+    func performFetchNextPage(position: any PagePosition) {
         let repository = concertCatalogRepository
 
         Task {
             do {
-                let result = try await repository.fetchAllConcertList(after: nextToken, size: Constants.pageSize)
+                let result = try await repository.fetchAllConcertList(after: position, size: Constants.pageSize)
                 send(._fetchNextPageResult(.success(result)))
             } catch {
                 send(._fetchNextPageResult(.failure(error)))
@@ -318,7 +318,7 @@ private extension InterestConcertSettingStore {
         }
 
         let repository = searchRepository
-        let nextToken = isNextPage ? searchNextToken : nil
+        let position = isNextPage ? searchPosition : nil
 
         searchFetchTask = Task {
             do {
@@ -327,7 +327,7 @@ private extension InterestConcertSettingStore {
                     sort: nil,
                     status: Constants.searchStatusList,
                     keyword: keyword,
-                    after: nextToken,
+                    after: position,
                     size: Constants.pageSize
                 )
                 guard !Task.isCancelled else { return }
@@ -361,20 +361,20 @@ private extension InterestConcertSettingStore {
         repository: InterestConcertRepository
     ) async throws(UserError) -> ListResult<InterestConcert> {
         var interestConcertList: [InterestConcert] = []
-        var nextToken: (any NextToken)?
+        var position: (any PagePosition)?
 
         repeat {
             let page = try await repository.fetchInterestedConcertList(
                 filter: .initialSelectionPage(
                     limit: Constants.initialSelectionPageSize,
-                    nextToken: nextToken
+                    position: position
                 )
             )
             interestConcertList.append(contentsOf: page.items)
-            nextToken = page.nextToken
-        } while nextToken != nil
+            position = page.position
+        } while position != nil
 
-        return ListResult(items: interestConcertList, nextToken: nil)
+        return ListResult(items: interestConcertList, position: nil)
     }
 
     func mergeSelectedConcerts(_ concertList: [Concert]) {
@@ -408,7 +408,7 @@ private extension InterestConcertSettingStore {
 
         searchDebounceTask?.cancel()
         searchFetchTask?.cancel()
-        searchNextToken = nil
+        searchPosition = nil
 
         searchDebounceTask = Task {
             try? await Task.sleep(for: Constants.searchDebounceDuration)
@@ -423,13 +423,13 @@ private extension InterestConcertSettingStore {
         searchFetchTask?.cancel()
         searchDebounceTask = nil
         searchFetchTask = nil
-        searchNextToken = nil
+        searchPosition = nil
         state.isSearchLoading = false
     }
 
     func restoreBaseConcertList() {
         state.displayedConcertList = baseConcertList
-        state.hasMoreConcertList = baseNextToken != nil
+        state.hasMoreConcertList = basePosition != nil
     }
 
     func updateInitialLoadingState() {

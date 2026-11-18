@@ -44,17 +44,19 @@
 
 ### 공연·아티스트 검색 페이지네이션
 
-도메인 구조 변경에서 보류한 검색 결과 모델 통합을 후속 작업으로 완료했다. 기준점은 `develop`의 도메인 구조 변경 머지 커밋 `ba91e774`다. 공연과 아티스트 검색은 각각 `ListResult<Concert>`와 `ListResult<PreferredArtist>`를 반환한다. Repository는 다음 요청에 `NextToken`을 받으며 Data에서 서버 커서로 변환한다. 화면에서 사용하지 않는 전체 개수는 서버 DTO에 남겼다.
+도메인 구조 변경에서 보류한 검색 결과 모델 통합을 후속 작업으로 완료했다. 기준점은 `develop`의 도메인 구조 변경 머지 커밋 `ba91e774`다. 공연과 아티스트 검색은 각각 `ListResult<Concert>`와 `ListResult<PreferredArtist>`를 반환한다. Repository는 다음 요청에 `PagePosition`을 받으며 Data에서 서버 커서로 변환한다. `ListResult.position`에 이어 조회할 위치를 담는다. 화면에서 사용하지 않는 전체 개수는 서버 DTO에 남겼다.
 
 공연 검색·둘러보기·관심 공연 설정·인스타그램 수동 매칭과 온보딩·선호 아티스트 편집에 적용했다. 새 검색은 첫 페이지부터 시작한다. 아티스트 검색은 같은 API를 사용하는 Android 구현과 같이 서버의 커서를 그대로 사용하고, 커서가 없으면 추가 조회를 중단한다.
 
 | 방법·명령 | 기대 신호 | 실제 결과 |
 |---|---|---|
 | `tuist generate --no-open` | 검색 모델 파일 추가·삭제 반영 | 성공 |
-| `xcodebuild test`, Workspace 스킴의 검색 매퍼 및 Store 6개 스위트 | 커서 매핑, 다음 토큰 전달, 마지막 페이지 종료, 검색 조건 변경 | iPhone 17, iOS 26.5에서 54건 통과 |
+| `xcodebuild test`, Workspace 스킴의 검색 매퍼 및 Store 6개 스위트 | 커서 매핑, 이어 조회할 위치 전달, 마지막 페이지 종료, 검색 조건 변경 | iPhone 17, iOS 26.5에서 54건 통과 |
 | `xcodebuild build`, Dev 스킴 | 앱과 전체 호출부 컴파일 | 성공 |
 
 실제 서버 응답을 사용하는 검색 흐름은 수동 확인이 남아 있다. [Domain README](../../Projects/Domain/README.md#페이지네이션)에 검색 Repository의 페이지 계약과 호출 흐름을 반영했다. 후속 계획 `docs/plans/327-search-pagination.md`의 범위와 결과를 이 항목에 통합했다.
+
+2026-11-19에 공통 페이지 타입 이름을 `PagePosition`, 프로퍼티 이름을 `position`으로 정리했다. 검색과 함께 전체 공연 및 관심 공연 조회의 호출부·매퍼·테스트에 적용했다. iPhone 17, iOS 26.5에서 관련 스위트 10개에 포함된 테스트 87건과 Dev 앱 빌드가 통과했다.
 
 ## 참조
 

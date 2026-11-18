@@ -34,7 +34,7 @@ struct InstagramManualSearchStoreTests {
     func 초기화_시_콘서트_첫_페이지를_조회하고_목록을_설정해야_한다() async throws {
         // Given
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList([1, 2]), nextToken: TestNextToken()))
+            .success(ListResult(items: makeConcertList([1, 2]), position: TestPosition()))
         ]
 
         // When
@@ -53,7 +53,7 @@ struct InstagramManualSearchStoreTests {
         // Given
         let sut = try await makeLoadedStore(concertIDList: [1, 2])
         container.searchRepository.searchResultQueue = [
-            .success(ListResult(items: makeConcertList([5]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([5]), position: nil))
         ]
 
         // When
@@ -72,7 +72,7 @@ struct InstagramManualSearchStoreTests {
         // Given
         let sut = try await makeLoadedStore(concertIDList: [1, 2])
         container.searchRepository.searchResultQueue = [
-            .success(ListResult(items: makeConcertList([5]), nextToken: nil))
+            .success(ListResult(items: makeConcertList([5]), position: nil))
         ]
         sut.send(.updateSearchText("원 오크 록"))
         try await waitForDebounceTask()
@@ -89,7 +89,7 @@ struct InstagramManualSearchStoreTests {
         // Given
         let sut = try await makeLoadedStore(concertIDList: [1, 2])
         container.searchRepository.searchResultQueue = [
-            .success(ListResult(items: makeConcertList([5]), nextToken: TestSearchNextToken(value: 5)))
+            .success(ListResult(items: makeConcertList([5]), position: TestSearchPosition(value: 5)))
         ]
         sut.send(.updateSearchText("원 오크 록"))
         try await waitForDebounceTask()
@@ -200,7 +200,7 @@ struct InstagramManualSearchStoreTests {
 private extension InstagramManualSearchStoreTests {
     func makeLoadedStore(concertIDList: [Int]) async throws -> InstagramManualSearchStore {
         container.concertRepository.concertListResultQueue = [
-            .success(ListResult(items: makeConcertList(concertIDList), nextToken: nil))
+            .success(ListResult(items: makeConcertList(concertIDList), position: nil))
         ]
         let store = InstagramManualSearchStore(context: .matchFailed)
         try await waitForAsyncTask()
@@ -238,4 +238,4 @@ private extension InstagramManualSearchStoreTests {
     }
 }
 
-private struct TestNextToken: NextToken {}
+private struct TestPosition: PagePosition {}

@@ -14,12 +14,12 @@ import Domain
 import LivithFoundation
 
 public struct SearchState {
-    var nextToken: (any NextToken)?
+    var position: (any PagePosition)?
 
     public var errorMessage: String = ""
     public var searchMessage: String = ""
 
-    public var hasMorePages: Bool { nextToken != nil }
+    public var hasMorePages: Bool { position != nil }
     public var isLoadingMore: Bool = false
 
     public var isSortShown: Bool = false
@@ -65,9 +65,9 @@ final class SearchStore: ObservableObject {
         case .viewDidLoad:
             performSearch()
         case .loadNextPage:
-            guard !state.isLoadingMore, let nextToken = state.nextToken else { return }
+            guard !state.isLoadingMore, let position = state.position else { return }
             state.isLoadingMore = true
-            performSearch(after: nextToken)
+            performSearch(after: position)
         case .updateSearchMessage(let newSearchMessage):
             let previousSearchMessage = state.searchMessage
             state.searchMessage = newSearchMessage
@@ -106,7 +106,7 @@ final class SearchStore: ObservableObject {
                 } else {
                     state.searchedConcertList = result.items
                 }
-                state.nextToken = result.nextToken
+                state.position = result.position
             case .failure(let error):
                 state.errorMessage = DisplayErrorMessage.message(for: error)
             }
@@ -126,12 +126,12 @@ private extension SearchStore {
         }
     }
     
-    func performSearch(after nextToken: (any NextToken)? = nil) {
-        let isNextPage = nextToken != nil
+    func performSearch(after position: (any PagePosition)? = nil) {
+        let isNextPage = position != nil
         fetchTask?.cancel()
         if !isNextPage {
             submittedKeyword = state.searchMessage
-            state.nextToken = nil
+            state.position = nil
             state.isLoadingMore = false
         }
 
@@ -145,7 +145,7 @@ private extension SearchStore {
                     sort: state.sortState,
                     status: state.selectedStatusList,
                     keyword: keyword,
-                    after: nextToken,
+                    after: position,
                     size: 12
                 )
 

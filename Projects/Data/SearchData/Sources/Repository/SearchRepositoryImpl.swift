@@ -36,11 +36,11 @@ struct SearchRepositoryImpl: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        after nextToken: (any NextToken)?,
+        after position: (any PagePosition)?,
         size: Int?
     ) async throws(SearchError) -> ListResult<Concert> {
-        let pageToken = nextToken as? ConcertSearchNextToken
-        guard nextToken == nil || pageToken != nil else { throw .invalidCursor }
+        let pagePosition = position as? ConcertSearchPosition
+        guard position == nil || pagePosition != nil else { throw .invalidCursor }
 
         do {
             let response: DTO.Response.FetchFilterSearchResult = try await networkClient.request(
@@ -49,7 +49,7 @@ struct SearchRepositoryImpl: SearchRepository {
                     sort: sort.map(\.rawValue),
                     status: status.map(\.rawValue),
                     keyword: keyword,
-                    cursor: pageToken?.cursor,
+                    cursor: pagePosition?.cursor,
                     size: size
                 )
             )
