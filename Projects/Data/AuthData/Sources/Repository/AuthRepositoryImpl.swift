@@ -17,7 +17,7 @@ import FirebaseMessaging
 struct AuthRepositoryImpl: AuthRepository {
     private let socialAuthService: SocialAuthService
     private let networkClient: NetworkClient
-    private let notificationRepository: NotificationRepository
+    private let notificationTokenRepository: NotificationTokenRepository
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenManager: any TokenManager
     private let mapper: AuthMapper = .init()
@@ -26,13 +26,13 @@ struct AuthRepositoryImpl: AuthRepository {
     init(
         socialAuthService: SocialAuthService,
         networkClient: NetworkClient,
-        notificationRepository: NotificationRepository,
+        notificationTokenRepository: NotificationTokenRepository,
         userdefaultsStorage: UserDefaultsStorage,
         tokenManager: any TokenManager
     ) {
         self.socialAuthService = socialAuthService
         self.networkClient = networkClient
-        self.notificationRepository = notificationRepository
+        self.notificationTokenRepository = notificationTokenRepository
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenManager = tokenManager
     }
@@ -165,12 +165,12 @@ private extension AuthRepositoryImpl {
 
     func registerFCMToken() async {
         guard let fcmToken = try? await Messaging.messaging().token() else { return }
-        try? await notificationRepository.registerFCMToken(fcmToken)
+        try? await notificationTokenRepository.registerFCMToken(fcmToken)
     }
 
     func deleteFCMToken() async {
         guard let fcmToken = try? await Messaging.messaging().token() else { return }
-        try? await notificationRepository.deleteFCMToken(fcmToken)
+        try? await notificationTokenRepository.deleteFCMToken(fcmToken)
     }
     
     func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws {

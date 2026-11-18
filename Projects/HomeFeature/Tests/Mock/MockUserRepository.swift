@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 
-final class MockUserRepository: UserRepository {
+final class MockUserRepository: UserRepository, InterestConcertRepository, InterestConcertEntryAlertRepository {
     var userStub: User?
     var interestConcertListStub: [InterestConcert] = []
     var interestConcertListResultStub: ListResult<InterestConcert>?

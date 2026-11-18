@@ -78,9 +78,9 @@ final class InstagramManualSearchStore: ObservableObject {
 
     @Published private(set) var state: InstagramManualSearchState
 
-    @Injected private var concertRepository: ConcertRepository
+    @Injected private var concertCatalogRepository: ConcertCatalogRepository
     @Injected private var searchRepository: SearchRepository
-    @Injected private var userRepository: UserRepository
+    @Injected private var interestConcertRepository: InterestConcertRepository
 
     private var baseConcertList: [Concert]
     private var concertByID: [Int: Concert]
@@ -229,7 +229,7 @@ final class InstagramManualSearchStore: ObservableObject {
 
 private extension InstagramManualSearchStore {
     func performFetchFirstPage() {
-        let repository = concertRepository
+        let repository = concertCatalogRepository
 
         Task {
             do {
@@ -242,7 +242,7 @@ private extension InstagramManualSearchStore {
     }
 
     func performFetchNextPage(nextToken: any NextToken) {
-        let repository = concertRepository
+        let repository = concertCatalogRepository
 
         Task {
             do {
@@ -287,7 +287,7 @@ private extension InstagramManualSearchStore {
     }
 
     func performRegister(concert: Concert) {
-        let repository = userRepository
+        let repository = interestConcertRepository
 
         Task {
             do {

@@ -87,9 +87,9 @@ final class InterestConcertSettingStore: ObservableObject {
 
     @Published private(set) var state: InterestConcertSettingState
 
-    @Injected private var concertRepository: ConcertRepository
+    @Injected private var concertCatalogRepository: ConcertCatalogRepository
     @Injected private var searchRepository: SearchRepository
-    @Injected private var userRepository: UserRepository
+    @Injected private var interestConcertRepository: InterestConcertRepository
 
     private var baseConcertList: [Concert]
     private var initialSelectedConcertIDList: [Int]
@@ -281,7 +281,7 @@ private extension InterestConcertSettingStore {
     func performFetchInitialSelectionIfNeeded() {
         guard state.mode == .update else { return }
 
-        let repository = userRepository
+        let repository = interestConcertRepository
 
         Task {
             do {
@@ -294,7 +294,7 @@ private extension InterestConcertSettingStore {
     }
 
     func performFetchFirstPage() {
-        let repository = concertRepository
+        let repository = concertCatalogRepository
 
         Task {
             do {
@@ -307,7 +307,7 @@ private extension InterestConcertSettingStore {
     }
 
     func performFetchNextPage(nextToken: any NextToken) {
-        let repository = concertRepository
+        let repository = concertCatalogRepository
 
         Task {
             do {
@@ -352,7 +352,7 @@ private extension InterestConcertSettingStore {
     }
 
     func performSubmit() {
-        let repository = userRepository
+        let repository = interestConcertRepository
         let selectedConcertIDList = state.selectedConcertIDList
 
         Task {
@@ -366,7 +366,7 @@ private extension InterestConcertSettingStore {
     }
 
     func fetchInitialSelectionPageList(
-        repository: UserRepository
+        repository: InterestConcertRepository
     ) async throws(UserError) -> ListResult<InterestConcert> {
         var interestConcertList: [InterestConcert] = []
         var nextToken: (any NextToken)?

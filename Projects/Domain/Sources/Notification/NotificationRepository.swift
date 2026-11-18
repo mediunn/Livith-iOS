@@ -13,12 +13,4 @@ public protocol NotificationRepository {
     func markNotificationAsRead(id: Int) async throws(NotificationError)
     func markAllNotificationsAsRead() async throws(NotificationError)
     func fetchUnreadNotificationCount() async throws(NotificationError) -> Int
-    func updateNotificationConsent(
-        field: NotificationConsentField,
-        isAgreed: Bool
-    ) async throws(NotificationError) -> NotificationConsentResult
-    func updateMarketingConsent() async throws(NotificationError) -> NotificationConsentResult
-    func fetchNotificationSettings() async throws(NotificationError) -> NotificationSettings
-    func registerFCMToken(_ token: String) async throws(NotificationError)
-    func deleteFCMToken(_ token: String) async throws(NotificationError)
 }

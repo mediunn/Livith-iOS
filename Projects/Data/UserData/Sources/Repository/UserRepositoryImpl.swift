@@ -13,7 +13,7 @@ import LivithFoundation
 import LivithNetworking
 import Persistence
 
-struct UserRepositoryImpl: UserRepository {
+struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestConcertEntryAlertRepository {
     private let networkClient: NetworkClient
     private let userCache: UserDiskCache
     private let mapper: UserMapper = .init()

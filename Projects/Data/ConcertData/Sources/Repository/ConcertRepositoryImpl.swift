@@ -12,7 +12,7 @@ import Domain
 import LivithNetworking
 import LivithFoundation
 
-struct ConcertRepositoryImpl: ConcertRepository {
+struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository, HomeSectionRepository, ConcertRequestRepository {
     private let networkClient: NetworkClient
     private let mapper: ConcertMapper = .init()
     private let errorMapper: ConcertErrorMapper = .init()

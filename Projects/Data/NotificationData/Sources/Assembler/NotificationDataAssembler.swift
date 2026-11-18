@@ -41,5 +41,7 @@ private extension NotificationDataAssembler {
         )
 
         container.register(notificationRepo, for: NotificationRepository.self)
+        container.register(notificationRepo, for: NotificationSettingsRepository.self)
+        container.register(notificationRepo, for: NotificationTokenRepository.self)
     }
 }

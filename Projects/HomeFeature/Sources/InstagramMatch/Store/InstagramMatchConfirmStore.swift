@@ -54,7 +54,7 @@ final class InstagramMatchConfirmStore: ObservableObject {
     @Published private(set) var state: InstagramMatchConfirmState
 
     @Injected private var concertMatchingRepository: ConcertMatchingRepository
-    @Injected private var userRepository: UserRepository
+    @Injected private var interestConcertRepository: InterestConcertRepository
 
     private let sourceURL: URL
     private var fetchMatchTask: Task<Void, Never>?
@@ -148,7 +148,7 @@ private extension InstagramMatchConfirmStore {
     }
 
     func performRegister(concert: Concert) {
-        let repository = userRepository
+        let repository = interestConcertRepository
 
         Task {
             do {

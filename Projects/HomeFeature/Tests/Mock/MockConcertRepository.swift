@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 
-final class MockConcertRepository: ConcertRepository {
+final class MockConcertRepository: ConcertCatalogRepository, HomeSectionRepository {
     var concertListStub: [Concert] = []
     var artistStub: Artist?
     var setlistListStub: [Setlist] = []
@@ -158,16 +158,5 @@ final class MockConcertRepository: ConcertRepository {
             throw error
         }
         return recommendedConcertListStub
-    }
-
-    func requestConcert(
-        title: String,
-        url: String?,
-        shouldAutoRegister: Bool,
-        requestContent: String?
-    ) async throws(ConcertError) {
-        if let error = errorStub {
-            throw error
-        }
     }
 }

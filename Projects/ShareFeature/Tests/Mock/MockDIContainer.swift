@@ -12,9 +12,9 @@ import DIContainer
 import Domain
 
 final class MockDIContainer {
-    let concertRepository = MockConcertRepository()
+    let concertRepository = MockConcertRequestRepository()
 
     func registerDependencies() {
-        DIContainer.shared.register(concertRepository, for: ConcertRepository.self)
+        DIContainer.shared.register(concertRepository, for: ConcertRequestRepository.self)
     }
 }
