@@ -6,13 +6,12 @@
 //  Copyright © 2026 Livith. All rights reserved.
 //
 
-import Foundation
-
 import Domain
 
+@MainActor
 final class MockConcertRequestRepository: ConcertRequestRepository {
     var requestConcertErrorStub: ConcertError?
-    var requestConcertDelay: UInt64 = 0
+    var onRequest: (@MainActor () async -> Void)?
 
     var requestConcertCallCount: Int = 0
     var requestConcertTitle: String?
@@ -26,9 +25,9 @@ final class MockConcertRequestRepository: ConcertRequestRepository {
         requestConcertURL = request.url
         requestConcertAutoRegister = request.shouldAutoRegister
         requestConcertContent = request.requestContent
-        if requestConcertDelay > 0 {
-            try? await Task.sleep(nanoseconds: requestConcertDelay)
-        }
+        let onRequest = onRequest
+        self.onRequest = nil
+        await onRequest?()
         if let error = requestConcertErrorStub {
             throw error
         }

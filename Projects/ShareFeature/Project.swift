@@ -15,7 +15,6 @@ let project = Project.make(
             dependencies: [
                 .domain(.domain),
                 .designSystem(.designSystem),
-                .core(.diContainer),
                 .core(.amplitude)
             ]
         ),
@@ -23,7 +22,8 @@ let project = Project.make(
             target: .share(.shareFeatureTests),
             product: .unitTests,
             dependencies: [
-                .share(.shareFeature)
+                .share(.shareFeature),
+                .domain(.domain)
             ]
         )
     ]

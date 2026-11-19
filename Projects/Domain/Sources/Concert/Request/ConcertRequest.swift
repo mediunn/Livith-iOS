@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ConcertRequest {
+public struct ConcertRequest: Sendable {
     public static let maxTitleLength = 50
 
     public let title: String

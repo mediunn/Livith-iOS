@@ -9,6 +9,7 @@
 import Foundation
 
 import DIContainer
+import Domain
 import LivithNetworking
 import AuthData
 import CommentData
@@ -22,12 +23,13 @@ import PreferenceData
 import CalendarData
 import HomeFeature
 
-extension LivithApp {
-    func registerDependency() {
-        registerNetworkingClient()
-        registerCalendarWebConfig()
+@MainActor
+struct AppComposition {
+    func makeRootView(in container: DIContainer) -> AppRootView {
+        registerNetworkingClient(in: container)
+        registerCalendarWebConfig(in: container)
 
-        DIContainer.shared.register(
+        container.register(
             assemblers: [
                 NotificationDataAssembler(),
                 AuthDataAssembler(),
@@ -41,13 +43,16 @@ extension LivithApp {
                 CalendarDataAssembler()
             ]
         )
+        return AppRootView(
+            concertRequestRepository: container.resolve(ConcertRequestRepository.self)
+        )
     }
 }
 
-// MARK: - Networking Client Registration
+// MARK: - Registration
 
-private extension LivithApp {
-    func registerNetworkingClient() {
+private extension AppComposition {
+    func registerNetworkingClient(in container: any DependencyRegistable) {
         guard let baseURLString = Bundle.main.infoDictionary?["BASE_URL"] as? String,
               let baseURL = URL(string: baseURLString)
         else {
@@ -68,17 +73,17 @@ private extension LivithApp {
             config: config,
             onAuthenticationExpired: onAuthenticationExpired
         )
-        DIContainer.shared.register(client, for: NetworkClient.self)
-        DIContainer.shared.register(tokenManager, for: TokenManager.self)
+        container.register(client, for: NetworkClient.self)
+        container.register(tokenManager, for: TokenManager.self)
     }
 
-    func registerCalendarWebConfig() {
+    func registerCalendarWebConfig(in container: any DependencyRegistable) {
         let urlString = Bundle.main.infoDictionary?["CALENDAR_WEB_URL"] as? String
         let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines)
         let url = trimmed.flatMap { value -> URL? in
             guard !value.isEmpty else { return nil }
             return URL(string: value)
         }
-        DIContainer.shared.register(CalendarWebConfig(url: url), for: CalendarWebConfig.self)
+        container.register(CalendarWebConfig(url: url), for: CalendarWebConfig.self)
     }
 }

@@ -12,15 +12,13 @@ import Amplitude
 import Domain
 import LivithDesignSystem
 
+@MainActor
 public struct ConcertRequestView: View {
 
     // MARK: - Properties
 
-    @StateObject private var store = ConcertRequestStore()
+    @State private var viewModel: ConcertRequestViewModel
 
-    @State private var concertName: String
-    @State private var urlText: String
-    @State private var additionalNote: String
     @State private var isConcertNameFocused: Bool = false
     @State private var isURLFocused: Bool = false
     @State private var isAdditionalNoteFocused: Bool = false
@@ -33,19 +31,20 @@ public struct ConcertRequestView: View {
     // MARK: - Initializer
 
     public init(
+        repository: any ConcertRequestRepository,
         onDismiss: @escaping () -> Void,
         onRequestSuccess: @escaping () -> Void
     ) {
-        self.onDismiss = onDismiss
-        self.onRequestSuccess = onRequestSuccess
-        self._concertName = State(initialValue: "")
-        self._urlText = State(initialValue: "")
-        self._additionalNote = State(initialValue: "")
-        self._isBottomSheetPresented = State(initialValue: false)
-        self._isCancelModalPresented = State(initialValue: false)
+        self.init(
+            repository: repository,
+            concertName: "",
+            onDismiss: onDismiss,
+            onRequestSuccess: onRequestSuccess
+        )
     }
 
     init(
+        repository: any ConcertRequestRepository,
         concertName: String,
         urlText: String = "",
         additionalNote: String = "",
@@ -54,11 +53,14 @@ public struct ConcertRequestView: View {
         onDismiss: @escaping () -> Void = {},
         onRequestSuccess: @escaping () -> Void = {}
     ) {
+        self._viewModel = State(initialValue: ConcertRequestViewModel(
+            repository: repository,
+            concertName: concertName,
+            urlText: urlText,
+            additionalNote: additionalNote
+        ))
         self.onDismiss = onDismiss
         self.onRequestSuccess = onRequestSuccess
-        self._concertName = State(initialValue: concertName)
-        self._urlText = State(initialValue: urlText)
-        self._additionalNote = State(initialValue: additionalNote)
         self._isBottomSheetPresented = State(initialValue: isBottomSheetPresented)
         self._isCancelModalPresented = State(initialValue: isCancelModalPresented)
     }
@@ -66,6 +68,8 @@ public struct ConcertRequestView: View {
     // MARK: - Body
 
     public var body: some View {
+        @Bindable var model = viewModel
+
         ZStack(alignment: .bottom) {
             Color.livithColor(.black100)
                 .ignoresSafeArea()
@@ -76,9 +80,9 @@ public struct ConcertRequestView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         headerSection
-                        concertNameSection
-                        urlSection
-                        additionalNoteSection
+                        concertNameSection(text: $model.concertName)
+                        urlSection(text: $model.urlText)
+                        additionalNoteSection(text: $model.additionalNote)
                     }
                     .padding(.top, 20)
                     .padding(.bottom, Constants.scrollBottomPadding)
@@ -124,8 +128,8 @@ public struct ConcertRequestView: View {
                 message: Literals.failureToast
             )
         }
-        .onChange(of: store.state.didSubmitSucceed) { _, didSucceed in
-            guard didSucceed else { return }
+        .onChange(of: viewModel.submission) { _, submission in
+            guard submission == .succeeded else { return }
             isBottomSheetPresented = false
             onRequestSuccess()
         }
@@ -154,22 +158,12 @@ public struct ConcertRequestView: View {
 // MARK: - Computed Properties
 
 private extension ConcertRequestView {
-    var hasInput: Bool {
-        !trimmed(concertName).isEmpty
-            || !trimmed(urlText).isEmpty
-            || !trimmed(additionalNote).isEmpty
-    }
-
-    var isSubmitEnabled: Bool {
-        ConcertRequest.isTitleValid(concertName)
-    }
-
     var failureToastBinding: Binding<Bool> {
         Binding(
-            get: { store.state.showFailureToast },
+            get: { viewModel.submission == .failed },
             set: { isPresented in
                 if !isPresented {
-                    store.send(.onFailureToastDisappear)
+                    viewModel.dismissFailure()
                 }
             }
         )
@@ -200,13 +194,13 @@ private extension ConcertRequestView {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    var concertNameSection: some View {
+    func concertNameSection(text: Binding<String>) -> some View {
         fieldSection(
             title: Literals.concertNameTitle,
             badge: Literals.required
         ) {
             LivithTextField(
-                text: $concertName,
+                text: text,
                 isFocused: $isConcertNameFocused,
                 type: .text(maxLength: ConcertRequest.maxTitleLength),
                 placeholder: Literals.concertNamePlaceholder,
@@ -215,13 +209,13 @@ private extension ConcertRequestView {
         }
     }
 
-    var urlSection: some View {
+    func urlSection(text: Binding<String>) -> some View {
         fieldSection(
             title: Literals.urlTitle,
             badge: Literals.optional
         ) {
             UnlimitedTextField(
-                text: $urlText,
+                text: text,
                 isFocused: $isURLFocused,
                 placeholder: Literals.urlPlaceholder,
                 submitLabel: .next,
@@ -230,13 +224,13 @@ private extension ConcertRequestView {
         }
     }
 
-    var additionalNoteSection: some View {
+    func additionalNoteSection(text: Binding<String>) -> some View {
         fieldSection(
             title: Literals.additionalNoteTitle,
             badge: Literals.optional
         ) {
             UnlimitedTextField(
-                text: $additionalNote,
+                text: text,
                 isFocused: $isAdditionalNoteFocused,
                 placeholder: Literals.additionalNotePlaceholder,
                 isMultiline: true,
@@ -271,17 +265,13 @@ private extension ConcertRequestView {
             dismissKeyboard()
             isBottomSheetPresented = true
         }
-        .disabled(!isSubmitEnabled)
+        .disabled(!viewModel.isSubmitEnabled)
     }
 }
 
 // MARK: - Helpers
 
 private extension ConcertRequestView {
-    func trimmed(_ value: String) -> String {
-        value.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     enum Field {
         case concertName
         case url
@@ -302,7 +292,7 @@ private extension ConcertRequestView {
 
     func handleBack() {
         dismissKeyboard()
-        if hasInput {
+        if viewModel.hasInput {
             isCancelModalPresented = true
         } else {
             onDismiss()
@@ -310,12 +300,9 @@ private extension ConcertRequestView {
     }
 
     func submit(shouldAutoRegister: Bool) {
-        store.send(.submit(
-            title: concertName,
-            url: urlText,
-            shouldAutoRegister: shouldAutoRegister,
-            requestContent: additionalNote
-        ))
+        Task {
+            await viewModel.submit(shouldAutoRegister: shouldAutoRegister)
+        }
     }
 }
 
@@ -354,18 +341,24 @@ private extension ConcertRequestView {
 
 // MARK: - Preview
 
+private struct PreviewConcertRequestRepository: ConcertRequestRepository {
+    func requestConcert(_ request: ConcertRequest) async throws(ConcertError) {}
+}
+
 #Preview("빈 폼") {
-    ConcertRequestView(onDismiss: {}, onRequestSuccess: {})
+    ConcertRequestView(repository: PreviewConcertRequestRepository(), onDismiss: {}, onRequestSuccess: {})
 }
 
 #Preview("공연명 입력") {
     ConcertRequestView(
+        repository: PreviewConcertRequestRepository(),
         concertName: "수만 입력하면 이렇게 다음 버튼 활성화가 됩니다."
     )
 }
 
 #Preview("바텀시트") {
     ConcertRequestView(
+        repository: PreviewConcertRequestRepository(),
         concertName: "수만 입력하면 이렇게 다음 버튼 활성화가 됩니다.",
         isBottomSheetPresented: true
     )
@@ -373,6 +366,7 @@ private extension ConcertRequestView {
 
 #Preview("취소 모달") {
     ConcertRequestView(
+        repository: PreviewConcertRequestRepository(),
         concertName: "테스트 공연",
         isCancelModalPresented: true
     )

@@ -24,6 +24,7 @@ public struct HomeCoordinatorView: View {
 
     // MARK: - Property
 
+    @Environment(\.concertRequestRepository) private var concertRequestRepository
     @StateObject private var router: HomeRouter
 
     @State private var showConcertRequestSuccessToast: Bool = false
@@ -138,13 +139,24 @@ public struct HomeCoordinatorView: View {
         case .instagramManualSearch(let context):
             InstagramManualSearchView(context: context)
         case .concertRequest:
-            ConcertRequestView(
-                onDismiss: { router.pop() },
-                onRequestSuccess: {
-                    router.popToRoot()
-                    showConcertRequestSuccessToast = true
+            if let concertRequestRepository {
+                ConcertRequestView(
+                    repository: concertRequestRepository,
+                    onDismiss: { router.pop() },
+                    onRequestSuccess: {
+                        router.popToRoot()
+                        showConcertRequestSuccessToast = true
+                    }
+                )
+            } else {
+                ContentUnavailableView {
+                    Label("공연 요청 화면을 열 수 없어요", systemImage: "exclamationmark.circle")
+                } description: {
+                    Text("이전 화면으로 돌아가 주세요.")
+                } actions: {
+                    Button("돌아가기") { router.pop() }
                 }
-            )
+            }
         }
     }
 }
