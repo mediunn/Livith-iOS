@@ -35,6 +35,7 @@ App에서 기존 Assembler를 등록한 뒤 `ConcertRequestRepository`를 조회
 ## 추가 기록
 
 - 2026-11-19 Mac 빌드에서 `LivithApp.init()`이 `concertRequestRepository`를 초기화하기 전에 인스턴스의 `registerDependency()`를 호출해 컴파일이 실패했다. 등록 메서드와 헬퍼를 타입 메서드로 바꾸고, 등록 후 Repository를 조회하는 순서를 유지했다. Swift 6 최소 재현에서 변경 전 오류를 확인했고 변경 후에는 컴파일과 등록 순서 검증을 통과했다. Xcode 앱 빌드는 재확인이 남아 있다.
+- 후속 리뷰에서 등록 책임을 `LivithApp` 타입 밖의 `registerAppDependencies(in:)` 함수로 옮겼다. App은 같은 컨테이너로 등록을 요청하고 Repository를 조회한다. 실제 등록 함수와 앱 초기화 코드를 사용한 Swift 6 검증에서 대역 컨테이너를 통해 등록·조회 순서를 확인했다.
 
 ## 참조
 

@@ -22,63 +22,59 @@ import PreferenceData
 import CalendarData
 import HomeFeature
 
-extension LivithApp {
-    static func registerDependency() {
-        registerNetworkingClient()
-        registerCalendarWebConfig()
+func registerAppDependencies(in container: DIContainer) {
+    registerNetworkingClient(in: container)
+    registerCalendarWebConfig(in: container)
 
-        DIContainer.shared.register(
-            assemblers: [
-                NotificationDataAssembler(),
-                AuthDataAssembler(),
-                CommentDataAssembler(),
-                ConcertDataAssembler(),
-                SearchDataAssembler(),
-                SetlistDataAssembler(),
-                SongDataAssembler(),
-                UserDataAssembler(),
-                PreferenceDataAssembler(),
-                CalendarDataAssembler()
-            ]
-        )
-    }
+    container.register(
+        assemblers: [
+            NotificationDataAssembler(),
+            AuthDataAssembler(),
+            CommentDataAssembler(),
+            ConcertDataAssembler(),
+            SearchDataAssembler(),
+            SetlistDataAssembler(),
+            SongDataAssembler(),
+            UserDataAssembler(),
+            PreferenceDataAssembler(),
+            CalendarDataAssembler()
+        ]
+    )
 }
 
 // MARK: - Networking Client Registration
 
-private extension LivithApp {
-    static func registerNetworkingClient() {
-        guard let baseURLString = Bundle.main.infoDictionary?["BASE_URL"] as? String,
-              let baseURL = URL(string: baseURLString)
-        else {
-            fatalError("BASE_URL is missing or invalid in Info.plist")
-        }
-
-        let onAuthenticationExpired: @Sendable () -> Void = {
-            Task { @MainActor in
-                NotificationCenter.default.post(
-                    name: Notification.Name("reloginRequired"),
-                    object: nil
-                )
-            }
-        }
-
-        let config = NetworkConfig(baseURL: baseURL)
-        let (client, tokenManager) = NetworkingFactory.build(
-            config: config,
-            onAuthenticationExpired: onAuthenticationExpired
-        )
-        DIContainer.shared.register(client, for: NetworkClient.self)
-        DIContainer.shared.register(tokenManager, for: TokenManager.self)
+private func registerNetworkingClient(in container: any DependencyRegistable) {
+    guard let baseURLString = Bundle.main.infoDictionary?["BASE_URL"] as? String,
+          let baseURL = URL(string: baseURLString)
+    else {
+        fatalError("BASE_URL is missing or invalid in Info.plist")
     }
 
-    static func registerCalendarWebConfig() {
-        let urlString = Bundle.main.infoDictionary?["CALENDAR_WEB_URL"] as? String
-        let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let url = trimmed.flatMap { value -> URL? in
-            guard !value.isEmpty else { return nil }
-            return URL(string: value)
+    let onAuthenticationExpired: @Sendable () -> Void = {
+        Task { @MainActor in
+            NotificationCenter.default.post(
+                name: Notification.Name("reloginRequired"),
+                object: nil
+            )
         }
-        DIContainer.shared.register(CalendarWebConfig(url: url), for: CalendarWebConfig.self)
     }
+
+    let config = NetworkConfig(baseURL: baseURL)
+    let (client, tokenManager) = NetworkingFactory.build(
+        config: config,
+        onAuthenticationExpired: onAuthenticationExpired
+    )
+    container.register(client, for: NetworkClient.self)
+    container.register(tokenManager, for: TokenManager.self)
+}
+
+private func registerCalendarWebConfig(in container: any DependencyRegistable) {
+    let urlString = Bundle.main.infoDictionary?["CALENDAR_WEB_URL"] as? String
+    let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines)
+    let url = trimmed.flatMap { value -> URL? in
+        guard !value.isEmpty else { return nil }
+        return URL(string: value)
+    }
+    container.register(CalendarWebConfig(url: url), for: CalendarWebConfig.self)
 }
