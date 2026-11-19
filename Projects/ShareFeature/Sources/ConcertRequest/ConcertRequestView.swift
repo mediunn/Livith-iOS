@@ -16,7 +16,7 @@ public struct ConcertRequestView: View {
 
     // MARK: - Properties
 
-    @StateObject private var store = ConcertRequestStore()
+    @StateObject private var store: ConcertRequestStore
 
     @State private var concertName: String
     @State private var urlText: String
@@ -33,9 +33,11 @@ public struct ConcertRequestView: View {
     // MARK: - Initializer
 
     public init(
+        repository: any ConcertRequestRepository,
         onDismiss: @escaping () -> Void,
         onRequestSuccess: @escaping () -> Void
     ) {
+        self._store = StateObject(wrappedValue: ConcertRequestStore(repository: repository))
         self.onDismiss = onDismiss
         self.onRequestSuccess = onRequestSuccess
         self._concertName = State(initialValue: "")
@@ -46,6 +48,7 @@ public struct ConcertRequestView: View {
     }
 
     init(
+        repository: any ConcertRequestRepository,
         concertName: String,
         urlText: String = "",
         additionalNote: String = "",
@@ -54,6 +57,7 @@ public struct ConcertRequestView: View {
         onDismiss: @escaping () -> Void = {},
         onRequestSuccess: @escaping () -> Void = {}
     ) {
+        self._store = StateObject(wrappedValue: ConcertRequestStore(repository: repository))
         self.onDismiss = onDismiss
         self.onRequestSuccess = onRequestSuccess
         self._concertName = State(initialValue: concertName)
@@ -354,18 +358,24 @@ private extension ConcertRequestView {
 
 // MARK: - Preview
 
+private struct PreviewConcertRequestRepository: ConcertRequestRepository {
+    func requestConcert(_ request: ConcertRequest) async throws(ConcertError) {}
+}
+
 #Preview("빈 폼") {
-    ConcertRequestView(onDismiss: {}, onRequestSuccess: {})
+    ConcertRequestView(repository: PreviewConcertRequestRepository(), onDismiss: {}, onRequestSuccess: {})
 }
 
 #Preview("공연명 입력") {
     ConcertRequestView(
+        repository: PreviewConcertRequestRepository(),
         concertName: "수만 입력하면 이렇게 다음 버튼 활성화가 됩니다."
     )
 }
 
 #Preview("바텀시트") {
     ConcertRequestView(
+        repository: PreviewConcertRequestRepository(),
         concertName: "수만 입력하면 이렇게 다음 버튼 활성화가 됩니다.",
         isBottomSheetPresented: true
     )
@@ -373,6 +383,7 @@ private extension ConcertRequestView {
 
 #Preview("취소 모달") {
     ConcertRequestView(
+        repository: PreviewConcertRequestRepository(),
         concertName: "테스트 공연",
         isCancelModalPresented: true
     )

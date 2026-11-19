@@ -1,18 +1,23 @@
 import SwiftUI
 
+import DIContainer
+import Domain
+import HomeFeature
+import LivithFoundation
+
 import FirebaseCore
 import KakaoSDKCommon
-
-import LivithFoundation
 
 @main
 struct LivithApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    private let concertRequestRepository: any ConcertRequestRepository
 
     // MARK: - LifeCycle
 
     init() {
         registerDependency()
+        concertRequestRepository = DIContainer.shared.resolve(ConcertRequestRepository.self)
         initializeFirebase()
         initializeKakaoSDK()
     }
@@ -20,6 +25,7 @@ struct LivithApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView()
+                .environment(\.concertRequestRepository, concertRequestRepository)
                 .task {
                     await NotificationService.shared.requestAuthorization()
                     NotificationService.shared.registerForRemoteNotifications()

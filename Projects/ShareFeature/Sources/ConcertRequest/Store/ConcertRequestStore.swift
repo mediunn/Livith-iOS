@@ -8,7 +8,6 @@
 
 import Foundation
 
-import DIContainer
 import Domain
 
 // MARK: - State
@@ -32,7 +31,11 @@ enum ConcertRequestIntent {
 final class ConcertRequestStore: ObservableObject {
     @Published private(set) var state = ConcertRequestState()
 
-    @Injected private var concertRequestRepository: ConcertRequestRepository
+    private let concertRequestRepository: any ConcertRequestRepository
+
+    init(repository: any ConcertRequestRepository) {
+        self.concertRequestRepository = repository
+    }
 
     @MainActor
     func send(_ intent: ConcertRequestIntent) {
