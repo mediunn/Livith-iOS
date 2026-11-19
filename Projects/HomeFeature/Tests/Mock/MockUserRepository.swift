@@ -39,11 +39,12 @@ final class MockUserRepository: UserRepository, InterestConcertRepository, Inter
     var updateNicknameCallCount: Int = 0
     var fetchInterestConcertEntryAlertsCallCount: Int = 0
 
-    func updateNickname(_ nickname: Nickname) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) -> String {
         updateNicknameCallCount += 1
         if let error = errorStub {
             throw error
         }
+        return nickname.value
     }
     
     func fetchUser() async throws(UserError) -> User {

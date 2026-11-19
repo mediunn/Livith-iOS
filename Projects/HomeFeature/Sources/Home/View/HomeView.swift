@@ -22,6 +22,9 @@ struct HomeView: View {
     @State private var isPreferenceBannerExpanded: Bool = true
     @State private var interestResultSheetHeight: CGFloat = 320
 
+    let nickname: String?
+    let onRefreshNickname: @MainActor @Sendable () async -> Void
+
     // MARK: - Body
 
     var body: some View {
@@ -129,6 +132,8 @@ private extension HomeView {
         case .interestConcert:
             InterestHomeContentView(
                 scope: store.scope(\.interest, intent: HomeIntent.interest),
+                nickname: nickname,
+                onRefreshNickname: onRefreshNickname,
                 isPreferenceBannerExpanded: $isPreferenceBannerExpanded
             )
         case .calendar:

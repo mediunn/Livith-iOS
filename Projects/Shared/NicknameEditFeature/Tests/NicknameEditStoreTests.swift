@@ -54,17 +54,17 @@ final class MockAuthRepository: AuthRepository {
 }
 
 final class MockUserRepository: UserRepository {
-    var updateNicknameResult: Result<Void, UserError> = .success(())
+    var updateNicknameResult: Result<String, UserError> = .success("서버닉네임")
 
     var updateNicknameCallCount = 0
     var lastUpdatedNickname: String?
 
-    func updateNickname(_ nickname: Nickname) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) -> String {
         updateNicknameCallCount += 1
         lastUpdatedNickname = nickname.value
         switch updateNicknameResult {
-        case .success:
-            return
+        case .success(let nickname):
+            return nickname
         case .failure(let error):
             throw error
         }
@@ -272,8 +272,9 @@ struct NicknameEditStoreTests {
 
     @Test("update 제출 성공하면 success 상태여야 한다")
     func updateSuccessShouldBeSuccess() async {
-        mockUserRepository.updateNicknameResult = .success(())
-        let sut = NicknameEditStore(config: .update)
+        mockUserRepository.updateNicknameResult = .success("서버닉네임")
+        var savedNickname: String?
+        let sut = NicknameEditStore(config: .update) { savedNickname = $0 }
         sut.updateNickname("새닉네임")
 
         sut.submit()
@@ -283,12 +284,15 @@ struct NicknameEditStoreTests {
         #expect(sut.state.isSubmitting == false)
         #expect(mockUserRepository.updateNicknameCallCount == 1)
         #expect(mockUserRepository.lastUpdatedNickname == "새닉네임")
+        #expect(savedNickname == "서버닉네임")
+        #expect(sut.state.submittedNickname == "서버닉네임")
     }
 
     @Test("update 제출 실패하면 failure 상태여야 한다")
     func updateFailureShouldBeFailure() async {
         mockUserRepository.updateNicknameResult = .failure(.serverError)
-        let sut = NicknameEditStore(config: .update)
+        var savedNickname: String?
+        let sut = NicknameEditStore(config: .update) { savedNickname = $0 }
         sut.updateNickname("새닉네임")
 
         sut.submit()
@@ -299,6 +303,7 @@ struct NicknameEditStoreTests {
             return
         }
         #expect(sut.state.isSubmitting == false)
+        #expect(savedNickname == nil)
     }
 
     // MARK: - Reset Tests
@@ -312,7 +317,7 @@ struct NicknameEditStoreTests {
 
     @Test("닉네임 변경하면 submitResult가 idle로 리셋되어야 한다")
     func nicknameChangeShouldResetSubmitResult() async {
-        mockUserRepository.updateNicknameResult = .success(())
+        mockUserRepository.updateNicknameResult = .success("서버닉네임")
         let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트")
         sut.submit()

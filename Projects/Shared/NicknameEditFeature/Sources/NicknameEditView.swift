@@ -30,9 +30,13 @@ public struct NicknameEditView: View {
         config: NicknameEditConfig,
         onDismiss: @escaping () -> Void,
         onSubmitSuccess: @escaping (String) -> Void,
-        onSubmitFailure: ((String) -> Void)? = nil
+        onSubmitFailure: ((String) -> Void)? = nil,
+        onNicknameSaved: @escaping @MainActor (String) -> Void = { _ in }
     ) {
-        self._store = StateObject(wrappedValue: NicknameEditStore(config: config))
+        self._store = StateObject(wrappedValue: NicknameEditStore(
+            config: config,
+            onNicknameSaved: onNicknameSaved
+        ))
         self.config = config
         self.onDismiss = onDismiss
         self.onSubmitSuccess = onSubmitSuccess
@@ -78,7 +82,7 @@ public struct NicknameEditView: View {
                 break
             case .success:
                 if let nickname = store.state.submittedNickname {
-                    onSubmitSuccess(nickname.value)
+                    onSubmitSuccess(nickname)
                 }
             case .failure(let message):
                 onSubmitFailure?(message)

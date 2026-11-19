@@ -20,6 +20,8 @@ struct NicknameUpdateView: View {
 
     @EnvironmentObject private var router: UserRouter
 
+    let onNicknameUpdated: @MainActor (String) -> Void
+
     var body: some View {
         NicknameEditView(
             config: .update,
@@ -30,7 +32,8 @@ struct NicknameUpdateView: View {
             onSubmitFailure: { _ in
                 toastMessage = "닉네임 변경에 실패했어요"
                 withAnimation { showFailureToast = true }
-            }
+            },
+            onNicknameSaved: onNicknameUpdated
         )
         .livithToast(
             isPresented: $showFailureToast,

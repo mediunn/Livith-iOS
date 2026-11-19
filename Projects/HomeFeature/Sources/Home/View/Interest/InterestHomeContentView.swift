@@ -18,6 +18,8 @@ struct InterestHomeContentView: View {
 
     @EnvironmentObject private var homeRouter: HomeRouter
     let scope: HomeScope<InterestHomeState, InterestHomeIntent>
+    let nickname: String?
+    let onRefreshNickname: @MainActor @Sendable () async -> Void
 
     @Binding var isPreferenceBannerExpanded: Bool
 
@@ -68,7 +70,12 @@ private extension InterestHomeContentView {
             }
         }
         .scrollIndicators(.never)
-        .refreshable { await scope.send(.onRefresh).wait() }
+        .refreshable {
+            let refreshNickname = onRefreshNickname
+            async let reloadNickname: Void = refreshNickname()
+            await scope.send(.onRefresh).wait()
+            await reloadNickname
+        }
         .ignoresSafeArea(edges: .bottom)
     }
 
@@ -129,7 +136,7 @@ private extension InterestHomeContentView {
             )
         } else {
             EmptyInterestConcertSectionView(
-                nickname: scope.state.user?.nickname ?? "라이빗",
+                nickname: nickname,
                 onSettingTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.interestConcertMain))
                     homeRouter.push(.interestConcertSetting(mode: .initialSetup))
@@ -140,7 +147,7 @@ private extension InterestHomeContentView {
 
     var concertContentSection: some View {
         HomeConcertContentSectionView(
-            nickname: scope.state.user?.nickname ?? "라이빗",
+            nickname: nickname,
             sectionList: scope.state.concertSectionList,
             recommendedConcertList: scope.state.recommendedConcertList,
             shouldShowRecommendedConcertSection: !scope.state.shouldShowPreferenceBanner,

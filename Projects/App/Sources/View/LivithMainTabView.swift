@@ -25,6 +25,8 @@ struct LivithMainTabView: View {
 
     // MARK: - Property
 
+    private let sessionNickname: SessionNickname
+
     @State private var selectedTab: Tab = .home
     @State private var deepLinkConcertID: Int?
     @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
@@ -34,7 +36,8 @@ struct LivithMainTabView: View {
 
     // MARK: - LifeCycle
 
-    init() {
+    init(sessionNickname: SessionNickname) {
+        self.sessionNickname = sessionNickname
         configureTabBarAppearance()
     }
 
@@ -47,7 +50,9 @@ struct LivithMainTabView: View {
                 deepLinkInitialTab: $deepLinkInitialTab,
                 deepLinkInitialSection: $deepLinkInitialSection,
                 deepLinkShowInterest: $deepLinkShowInterest,
-                deepLinkInstagramURL: $deepLinkInstagramURL
+                deepLinkInstagramURL: $deepLinkInstagramURL,
+                nickname: sessionNickname.nickname,
+                onRefreshNickname: { await sessionNickname.loadIfNeeded() }
             )
             .tag(Tab.home)
             .tabItem {
@@ -61,6 +66,8 @@ struct LivithMainTabView: View {
                 }
 
             UserCoordinatorView(
+                nickname: sessionNickname.nickname,
+                onNicknameUpdated: { sessionNickname.applySavedNickname($0) },
                 onNavigateToHome: {
                     selectedTab = .home
                 }

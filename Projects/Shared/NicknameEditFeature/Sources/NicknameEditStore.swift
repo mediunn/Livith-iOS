@@ -19,7 +19,7 @@ public struct NicknameEditState: Equatable {
     public var validationState: NicknameValidationState = .idle
     public var isSubmitting: Bool = false
     public var submitResult: NicknameSubmitResult = .idle
-    var submittedNickname: Nickname?
+    var submittedNickname: String?
 
     public init() {}
 }
@@ -40,10 +40,15 @@ public final class NicknameEditStore: ObservableObject {
     @Injected private var userRepository: UserRepository
 
     private let config: NicknameEditConfig
+    private let onNicknameSaved: @MainActor (String) -> Void
     private var nicknameCheckID: UUID?
 
-    public init(config: NicknameEditConfig) {
+    public init(
+        config: NicknameEditConfig,
+        onNicknameSaved: @escaping @MainActor (String) -> Void = { _ in }
+    ) {
         self.config = config
+        self.onNicknameSaved = onNicknameSaved
     }
 
     // MARK: - Public Interface
@@ -114,13 +119,15 @@ private extension NicknameEditStore {
     func performSubmit(_ nickname: Nickname) {
         Task {
             do {
+                let submittedNickname: String
                 switch config {
                 case .signup:
-                    break // 회원가입 API는 PreferredArtistSettingView에서 호출
+                    submittedNickname = nickname.value
                 case .update:
-                    try await userRepository.updateNickname(nickname)
+                    submittedNickname = try await userRepository.updateNickname(nickname)
+                    onNicknameSaved(submittedNickname)
                 }
-                state.submittedNickname = nickname
+                state.submittedNickname = submittedNickname
                 state.isSubmitting = false
                 state.submitResult = .success
             } catch {
