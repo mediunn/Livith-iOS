@@ -2,7 +2,7 @@
 
 ## 결과·범위
 
-App에서 기존 Assembler를 등록한 뒤 `ConcertRequestRepository`를 조회해 Home의 SwiftUI Environment에 전달한다. `HomeCoordinatorView`는 공연 요청 경로에서 값을 읽어 화면 모델에 생성자로 전달한다. 미주입 경로에서는 이전 화면으로 돌아갈 수 있다. 독립 Preview와 테스트는 각각 대역을 직접 제공한다.
+`AppComposition`이 기존 Assembler를 등록한 뒤 `ConcertRequestRepository`를 조회해 `AppRootView`를 만든다. 루트 View는 메인 화면의 SwiftUI Environment에 Repository를 전달한다. `HomeCoordinatorView`는 공연 요청 경로에서 값을 읽어 화면 모델에 생성자로 전달한다. 미주입 경로에서는 이전 화면으로 돌아갈 수 있다. 독립 Preview와 테스트는 각각 대역을 직접 제공한다.
 
 화면별 `@MainActor @Observable` ViewModel이 입력 초안과 제출 단계를 소유한다. 기존 도메인 입력 정규화와 자동 등록 선택을 사용한다. 화면은 포커스, 확인 시트, 실패 토스트와 닫기 모달을 표시하고 성공·닫기 콜백을 호출한다. DI 이전과 ViewModel 전환은 별도 커밋으로 남겼다.
 
@@ -36,6 +36,7 @@ App에서 기존 Assembler를 등록한 뒤 `ConcertRequestRepository`를 조회
 
 - 2026-11-19 Mac 빌드에서 `LivithApp.init()`이 `concertRequestRepository`를 초기화하기 전에 인스턴스의 `registerDependency()`를 호출해 컴파일이 실패했다. 등록 메서드와 헬퍼를 타입 메서드로 바꾸고, 등록 후 Repository를 조회하는 순서를 유지했다. Swift 6 최소 재현에서 변경 전 오류를 확인했고 변경 후에는 컴파일과 등록 순서 검증을 통과했다. Xcode 앱 빌드는 재확인이 남아 있다.
 - 후속 리뷰에서 등록 책임을 `LivithApp` 타입 밖의 `registerAppDependencies(in:)` 함수로 옮겼다. App은 같은 컨테이너로 등록을 요청하고 Repository를 조회한다. 실제 등록 함수와 앱 초기화 코드를 사용한 Swift 6 검증에서 대역 컨테이너를 통해 등록·조회 순서를 확인했다.
+- `AppComposition` 인스턴스에 등록·조회와 `AppRootView` 생성을 맡겼다. 루트 View는 생성자로 Repository를 받아 `.main`에 전달한다. Swift 6에서 대역으로 조립 순서와 메인 경로 주입을 확인하고 공연 요청 테스트 5건을 다시 실행했다. Xcode 앱 빌드와 실제 SwiftUI 경로 확인은 남아 있다.
 
 ## 참조
 

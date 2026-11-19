@@ -11,17 +11,24 @@ import SwiftUI
 import LivithDesignSystem
 import Domain
 import LoginFeature
+import HomeFeature
 import Persistence
 import DIContainer
 import LivithNetworking
 
 struct AppRootView: View {
+    private let concertRequestRepository: any ConcertRequestRepository
+
     @State private var currentRoute: AppRoute = .launch
     @State private var nickname: String = ""
     @State private var showWelcomeSheet: Bool = false
     
     @Injected private var userRepository: UserRepository
     @Injected private var tokenManager: TokenManager
+
+    init(concertRequestRepository: any ConcertRequestRepository) {
+        self.concertRequestRepository = concertRequestRepository
+    }
     
     var body: some View {
         contentView
@@ -59,6 +66,7 @@ private extension AppRootView {
             )
         case .main:
             LivithMainTabView()
+                .environment(\.concertRequestRepository, concertRequestRepository)
         }
     }
     
