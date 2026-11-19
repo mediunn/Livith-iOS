@@ -5,6 +5,7 @@
 ## 진행 중인 계획 목록
 
 - 기존 진행 중인 계획은 원래 경로에 유지한다.
+- [#330 공연 요청 화면의 Environment DI와 Observable MVVM 적용](330-concert-request-mvvm-pilot.md)
 
 완료 기록은 [작업 아카이브](../archive/README.md)에 남긴다.
 
