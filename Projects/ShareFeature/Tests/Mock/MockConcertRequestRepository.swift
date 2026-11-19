@@ -8,9 +8,10 @@
 
 import Domain
 
+@MainActor
 final class MockConcertRequestRepository: ConcertRequestRepository {
     var requestConcertErrorStub: ConcertError?
-    var onRequest: (() async -> Void)?
+    var onRequest: (@MainActor () async -> Void)?
 
     var requestConcertCallCount: Int = 0
     var requestConcertTitle: String?
