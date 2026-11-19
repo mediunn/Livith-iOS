@@ -23,7 +23,7 @@ import CalendarData
 import HomeFeature
 
 extension LivithApp {
-    func registerDependency() {
+    static func registerDependency() {
         registerNetworkingClient()
         registerCalendarWebConfig()
 
@@ -47,7 +47,7 @@ extension LivithApp {
 // MARK: - Networking Client Registration
 
 private extension LivithApp {
-    func registerNetworkingClient() {
+    static func registerNetworkingClient() {
         guard let baseURLString = Bundle.main.infoDictionary?["BASE_URL"] as? String,
               let baseURL = URL(string: baseURLString)
         else {
@@ -72,7 +72,7 @@ private extension LivithApp {
         DIContainer.shared.register(tokenManager, for: TokenManager.self)
     }
 
-    func registerCalendarWebConfig() {
+    static func registerCalendarWebConfig() {
         let urlString = Bundle.main.infoDictionary?["CALENDAR_WEB_URL"] as? String
         let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines)
         let url = trimmed.flatMap { value -> URL? in

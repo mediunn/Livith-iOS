@@ -16,7 +16,7 @@ struct LivithApp: App {
     // MARK: - LifeCycle
 
     init() {
-        registerDependency()
+        Self.registerDependency()
         concertRequestRepository = DIContainer.shared.resolve(ConcertRequestRepository.self)
         initializeFirebase()
         initializeKakaoSDK()

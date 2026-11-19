@@ -32,6 +32,10 @@ App에서 기존 Assembler를 등록한 뒤 `ConcertRequestRepository`를 조회
 - 세션 사용자 상태는 홈과 프로필이 같은 `currentUser`를 읽도록 후속 작업에서 다룬다. 콜드 스타트 및 푸시의 `.currentUser` 사용을 확인한 뒤 디스크 저장 정책을 결정한다.
 - 앱 전체 전역 DI 제거, 공용 Environment 타깃 도입, `ShareFeature` 이름 변경은 후속 범위다.
 
+## 추가 기록
+
+- 2026-11-19 Mac 빌드에서 `LivithApp.init()`이 `concertRequestRepository`를 초기화하기 전에 인스턴스의 `registerDependency()`를 호출해 컴파일이 실패했다. 등록 메서드와 헬퍼를 타입 메서드로 바꾸고, 등록 후 Repository를 조회하는 순서를 유지했다. Swift 6 최소 재현에서 변경 전 오류를 확인했고 변경 후에는 컴파일과 등록 순서 검증을 통과했다. Xcode 앱 빌드는 재확인이 남아 있다.
+
 ## 참조
 
 - [GitHub 이슈 #330](https://github.com/mediunn/Livith-iOS/issues/330)
