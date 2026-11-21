@@ -30,6 +30,10 @@
 - Mac에서 앱 빌드와 실제 홈·프로필 동작, 자동 로그인과 푸시 등록을 검증한다.
 - `User` 전체의 세션 상태 공유, 디스크 캐시 정책과 전역 DI 전환은 후속 범위다.
 
+## 추가 기록
+
+- Xcode Debug 빌드에서 `UserData`의 `MockUserRepository.updateNickname`에 `String` 반환 타입이 빠져 `UserRepository` 채택에 실패했다. 수정 전 소스에서 같은 오류를 재현했고, 반환 타입을 명시한 뒤 실제 Domain 모듈과 Debug mock을 `swiftc -D DEBUG -typecheck`로 검사해 통과했다. 전체 Xcode 빌드는 재확인이 남아 있다.
+
 ## 참조
 
 - [GitHub 이슈 #332](https://github.com/mediunn/Livith-iOS/issues/332)
