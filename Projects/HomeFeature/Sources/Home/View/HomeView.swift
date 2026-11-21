@@ -23,7 +23,7 @@ struct HomeView: View {
     @State private var isPreferenceBannerExpanded: Bool = true
     @State private var interestResultSheetHeight: CGFloat = 320
 
-    init(sessionNickname: SessionNickname?) {
+    init(sessionNickname: SessionNickname) {
         _store = StateObject(wrappedValue: HomeStore(sessionNickname: sessionNickname))
     }
 
@@ -38,9 +38,6 @@ struct HomeView: View {
             tabContent
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
-        .task {
-            await store.send(.loadNickname).wait()
-        }
         .onAppear {
             isPreferenceBannerExpanded = true
             store.send(.homeAppear)

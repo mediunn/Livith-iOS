@@ -13,10 +13,10 @@ import NicknameEditFeature
 
 public struct UserCoordinatorView: View {
     @StateObject private var router: UserRouter
-    private let sessionNickname: SessionNickname?
+    private let sessionNickname: SessionNickname
 
     public init(
-        sessionNickname: SessionNickname? = nil,
+        sessionNickname: SessionNickname,
         onNavigateToHome: (() -> Void)? = nil
     ) {
         self.sessionNickname = sessionNickname
@@ -29,7 +29,7 @@ public struct UserCoordinatorView: View {
 
     public var body: some View {
         NavigationStack(path: $router.path) {
-            UserView(nickname: sessionNickname?.nickname)
+            UserView(nickname: sessionNickname.nickname)
                 .navigationDestination(for: UserRoute.self) { route in
                     destinationView(for: route)
                         .toolbar(.hidden, for: .navigationBar)
@@ -44,7 +44,7 @@ public struct UserCoordinatorView: View {
     private func destinationView(for route: UserRoute) -> some View {
         switch route {
         case .user:
-            UserView(nickname: sessionNickname?.nickname)
+            UserView(nickname: sessionNickname.nickname)
         case .setting:
             SettingView()
         case .noticeSetting:

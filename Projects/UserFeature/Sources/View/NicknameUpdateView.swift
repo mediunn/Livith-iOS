@@ -20,7 +20,7 @@ struct NicknameUpdateView: View {
 
     @EnvironmentObject private var router: UserRouter
 
-    let sessionNickname: SessionNickname?
+    let sessionNickname: SessionNickname
 
     var body: some View {
         NicknameEditView(

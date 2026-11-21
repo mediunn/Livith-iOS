@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct DiscardableTask: Sendable {
+struct DiscardableTask {
     static let none = DiscardableTask(task: nil)
 
     private let task: Task<Void, Never>?

@@ -36,7 +36,7 @@ public struct HomeCoordinatorView: View {
     @Binding private var deepLinkShowInterest: Bool
     @Binding private var deepLinkInstagramURL: URL?
 
-    private let sessionNickname: SessionNickname?
+    private let sessionNickname: SessionNickname
 
     // MARK: - Initializer
 
@@ -46,7 +46,7 @@ public struct HomeCoordinatorView: View {
         deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil),
         deepLinkShowInterest: Binding<Bool> = .constant(false),
         deepLinkInstagramURL: Binding<URL?> = .constant(nil),
-        sessionNickname: SessionNickname? = nil
+        sessionNickname: SessionNickname
     ) {
         _router = StateObject(wrappedValue: HomeRouter())
         self._deepLinkConcertID = deepLinkConcertID
