@@ -68,7 +68,6 @@ private extension AppRootView {
         case .main:
             if let sessionNickname {
                 LivithMainTabView(sessionNickname: sessionNickname)
-                    .id(ObjectIdentifier(sessionNickname))
                     .environment(\.concertRequestRepository, concertRequestRepository)
             }
         }
