@@ -10,20 +10,22 @@ import SwiftUI
 
 import Amplitude
 import LivithDesignSystem
+import NicknameEditFeature
 
 struct HomeView: View {
 
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @StateObject private var store: HomeStore = .init()
+    @StateObject private var store: HomeStore
 
     @State private var showErrorToast = false
     @State private var isPreferenceBannerExpanded: Bool = true
     @State private var interestResultSheetHeight: CGFloat = 320
 
-    let nickname: String?
-    let onRefreshNickname: @MainActor @Sendable () async -> Void
+    init(sessionNickname: SessionNickname?) {
+        _store = StateObject(wrappedValue: HomeStore(sessionNickname: sessionNickname))
+    }
 
     // MARK: - Body
 
@@ -36,6 +38,9 @@ struct HomeView: View {
             tabContent
         }
         .background(Color.livithColor(.black100).ignoresSafeArea())
+        .task {
+            await store.send(.loadNickname).wait()
+        }
         .onAppear {
             isPreferenceBannerExpanded = true
             store.send(.homeAppear)
@@ -132,8 +137,7 @@ private extension HomeView {
         case .interestConcert:
             InterestHomeContentView(
                 scope: store.scope(\.interest, intent: HomeIntent.interest),
-                nickname: nickname,
-                onRefreshNickname: onRefreshNickname,
+                nickname: store.nickname,
                 isPreferenceBannerExpanded: $isPreferenceBannerExpanded
             )
         case .calendar:

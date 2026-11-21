@@ -19,7 +19,6 @@ struct InterestHomeContentView: View {
     @EnvironmentObject private var homeRouter: HomeRouter
     let scope: HomeScope<InterestHomeState, InterestHomeIntent>
     let nickname: String?
-    let onRefreshNickname: @MainActor @Sendable () async -> Void
 
     @Binding var isPreferenceBannerExpanded: Bool
 
@@ -71,10 +70,7 @@ private extension InterestHomeContentView {
         }
         .scrollIndicators(.never)
         .refreshable {
-            let refreshNickname = onRefreshNickname
-            async let reloadNickname: Void = refreshNickname()
             await scope.send(.onRefresh).wait()
-            await reloadNickname
         }
         .ignoresSafeArea(edges: .bottom)
     }

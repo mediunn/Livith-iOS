@@ -9,19 +9,17 @@
 import SwiftUI
 
 import LivithDesignSystem
+import NicknameEditFeature
 
 public struct UserCoordinatorView: View {
     @StateObject private var router: UserRouter
-    private let nickname: String?
-    private let onNicknameUpdated: @MainActor (String) -> Void
+    private let sessionNickname: SessionNickname?
 
     public init(
-        nickname: String? = nil,
-        onNicknameUpdated: @escaping @MainActor (String) -> Void = { _ in },
+        sessionNickname: SessionNickname? = nil,
         onNavigateToHome: (() -> Void)? = nil
     ) {
-        self.nickname = nickname
-        self.onNicknameUpdated = onNicknameUpdated
+        self.sessionNickname = sessionNickname
         _router = StateObject(
             wrappedValue: UserRouter(
                 onNavigateToHome: onNavigateToHome ?? {}
@@ -31,7 +29,7 @@ public struct UserCoordinatorView: View {
 
     public var body: some View {
         NavigationStack(path: $router.path) {
-            UserView(nickname: nickname)
+            UserView(nickname: sessionNickname?.nickname)
                 .navigationDestination(for: UserRoute.self) { route in
                     destinationView(for: route)
                         .toolbar(.hidden, for: .navigationBar)
@@ -46,13 +44,13 @@ public struct UserCoordinatorView: View {
     private func destinationView(for route: UserRoute) -> some View {
         switch route {
         case .user:
-            UserView(nickname: nickname)
+            UserView(nickname: sessionNickname?.nickname)
         case .setting:
             SettingView()
         case .noticeSetting:
             NoticeSettingView(onBack: { router.pop() })
         case .nicknameUpdate:
-            NicknameUpdateView(onNicknameUpdated: onNicknameUpdated)
+            NicknameUpdateView(sessionNickname: sessionNickname)
         case .deleteUser:
             DeleteUserView(store: DeleteUserStore())
         case .genreUpdate(let genreList):

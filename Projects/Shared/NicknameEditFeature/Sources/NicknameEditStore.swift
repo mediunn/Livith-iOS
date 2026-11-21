@@ -40,15 +40,15 @@ public final class NicknameEditStore: ObservableObject {
     @Injected private var userRepository: UserRepository
 
     private let config: NicknameEditConfig
-    private let onNicknameSaved: @MainActor (String) -> Void
+    private let sessionNickname: SessionNickname?
     private var nicknameCheckID: UUID?
 
     public init(
         config: NicknameEditConfig,
-        onNicknameSaved: @escaping @MainActor (String) -> Void = { _ in }
+        sessionNickname: SessionNickname? = nil
     ) {
         self.config = config
-        self.onNicknameSaved = onNicknameSaved
+        self.sessionNickname = sessionNickname
     }
 
     // MARK: - Public Interface
@@ -125,7 +125,7 @@ private extension NicknameEditStore {
                     submittedNickname = nickname.value
                 case .update:
                     submittedNickname = try await userRepository.updateNickname(nickname)
-                    onNicknameSaved(submittedNickname)
+                    sessionNickname?.nickname = submittedNickname
                 }
                 state.submittedNickname = submittedNickname
                 state.isSubmitting = false

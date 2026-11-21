@@ -272,10 +272,11 @@ struct NicknameEditStoreTests {
 
     @Test("update 제출 성공하면 success 상태여야 한다")
     func updateSuccessShouldBeSuccess() async {
-        mockUserRepository.updateNicknameResult = .success("서버닉네임")
-        var savedNickname: String?
-        let sut = NicknameEditStore(config: .update) { savedNickname = $0 }
+        mockUserRepository.updateNicknameResult = .success("Livith_1")
+        let sessionNickname = SessionNickname(nickname: "기존닉네임")
+        let sut = NicknameEditStore(config: .update, sessionNickname: sessionNickname)
         sut.updateNickname("새닉네임")
+        #expect(sessionNickname.nickname == "기존닉네임")
 
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
@@ -284,15 +285,15 @@ struct NicknameEditStoreTests {
         #expect(sut.state.isSubmitting == false)
         #expect(mockUserRepository.updateNicknameCallCount == 1)
         #expect(mockUserRepository.lastUpdatedNickname == "새닉네임")
-        #expect(savedNickname == "서버닉네임")
-        #expect(sut.state.submittedNickname == "서버닉네임")
+        #expect(sessionNickname.nickname == "Livith_1")
+        #expect(sut.state.submittedNickname == "Livith_1")
     }
 
     @Test("update 제출 실패하면 failure 상태여야 한다")
     func updateFailureShouldBeFailure() async {
         mockUserRepository.updateNicknameResult = .failure(.serverError)
-        var savedNickname: String?
-        let sut = NicknameEditStore(config: .update) { savedNickname = $0 }
+        let sessionNickname = SessionNickname(nickname: "기존닉네임")
+        let sut = NicknameEditStore(config: .update, sessionNickname: sessionNickname)
         sut.updateNickname("새닉네임")
 
         sut.submit()
@@ -303,7 +304,7 @@ struct NicknameEditStoreTests {
             return
         }
         #expect(sut.state.isSubmitting == false)
-        #expect(savedNickname == nil)
+        #expect(sessionNickname.nickname == "기존닉네임")
     }
 
     // MARK: - Reset Tests

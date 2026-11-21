@@ -11,6 +11,7 @@ import SwiftUI
 import ConcertFeature
 import Coordinator
 import LivithDesignSystem
+import NicknameEditFeature
 import ShareFeature
 import UserFeature
 
@@ -35,8 +36,7 @@ public struct HomeCoordinatorView: View {
     @Binding private var deepLinkShowInterest: Bool
     @Binding private var deepLinkInstagramURL: URL?
 
-    private let nickname: String?
-    private let onRefreshNickname: @MainActor @Sendable () async -> Void
+    private let sessionNickname: SessionNickname?
 
     // MARK: - Initializer
 
@@ -46,8 +46,7 @@ public struct HomeCoordinatorView: View {
         deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil),
         deepLinkShowInterest: Binding<Bool> = .constant(false),
         deepLinkInstagramURL: Binding<URL?> = .constant(nil),
-        nickname: String? = nil,
-        onRefreshNickname: @escaping @MainActor @Sendable () async -> Void = {}
+        sessionNickname: SessionNickname? = nil
     ) {
         _router = StateObject(wrappedValue: HomeRouter())
         self._deepLinkConcertID = deepLinkConcertID
@@ -55,15 +54,14 @@ public struct HomeCoordinatorView: View {
         self._deepLinkInitialSection = deepLinkInitialSection
         self._deepLinkShowInterest = deepLinkShowInterest
         self._deepLinkInstagramURL = deepLinkInstagramURL
-        self.nickname = nickname
-        self.onRefreshNickname = onRefreshNickname
+        self.sessionNickname = sessionNickname
     }
 
     // MARK: - Body
 
     public var body: some View {
         NavigationStack(path: $router.path) {
-            HomeView(nickname: nickname, onRefreshNickname: onRefreshNickname)
+            HomeView(sessionNickname: sessionNickname)
                 .navigationDestination(for: HomeRoute.self) { route in
                     destinationView(for: route)
                         .toolbar(.hidden, for: .tabBar, .navigationBar)
@@ -109,7 +107,7 @@ public struct HomeCoordinatorView: View {
     private func destinationView(for route: HomeRoute) -> some View {
         switch route {
         case .home:
-            HomeView(nickname: nickname, onRefreshNickname: onRefreshNickname)
+            HomeView(sessionNickname: sessionNickname)
         case .interestConcertSetting(let mode):
             InterestConcertSettingView(mode: mode)
         case .interestConcertList:

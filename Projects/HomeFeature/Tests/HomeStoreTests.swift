@@ -14,6 +14,7 @@ import Testing
 import Domain
 import DIContainer
 import LivithDesignSystem
+import NicknameEditFeature
 
 @MainActor
 struct HomeStoreTests {
@@ -80,6 +81,37 @@ struct HomeStoreTests {
         // Then
         #expect(container.userRepository.fetchUserCallCount == 0)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
+    }
+
+    // MARK: - 닉네임 조회 테스트
+
+    @Test("닉네임 조회 실패 후 다시 조회하면 서버 값을 공유 상태에 반영한다")
+    func testNicknameLoadCanRetry() async {
+        let sessionNickname = SessionNickname()
+        let sut = HomeStore(sessionNickname: sessionNickname)
+        container.userRepository.errorStub = .serverError
+
+        await sut.send(.loadNickname).wait()
+        #expect(sut.nickname == nil)
+
+        container.userRepository.errorStub = nil
+        container.userRepository.userStub = makeMockUser(nickname: "Livith_1")
+        await sut.send(.loadNickname).wait()
+        #expect(sessionNickname.nickname == "Livith_1")
+    }
+
+    @Test("홈에서 조회한 닉네임이 프로필에서 저장한 값을 덮어쓰지 않는다")
+    func testNicknameLoadKeepsProfileUpdate() async {
+        let sessionNickname = SessionNickname()
+        let sut = HomeStore(sessionNickname: sessionNickname)
+        container.userRepository.userStub = makeMockUser(nickname: "이전닉네임")
+
+        let loadNickname = sut.send(.loadNickname)
+        sessionNickname.nickname = "새닉네임"
+        await loadNickname.wait()
+
+        #expect(container.userRepository.fetchUserCallCount == 1)
+        #expect(sut.nickname == "새닉네임")
     }
 
     // MARK: - homeAppear / interest(.onAppear) 분리 테스트

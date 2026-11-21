@@ -15,6 +15,7 @@ import HomeFeature
 import Persistence
 import DIContainer
 import LivithNetworking
+import NicknameEditFeature
 
 struct AppRootView: View {
     private let concertRequestRepository: any ConcertRequestRepository
@@ -23,7 +24,6 @@ struct AppRootView: View {
     @State private var sessionNickname: SessionNickname? = nil
     @State private var showWelcomeSheet: Bool = false
     
-    @Injected private var userRepository: UserRepository
     @Injected private var tokenManager: TokenManager
 
     init(concertRequestRepository: any ConcertRequestRepository) {
@@ -68,8 +68,8 @@ private extension AppRootView {
         case .main:
             if let sessionNickname {
                 LivithMainTabView(sessionNickname: sessionNickname)
+                    .id(ObjectIdentifier(sessionNickname))
                     .environment(\.concertRequestRepository, concertRequestRepository)
-                    .task { await sessionNickname.loadIfNeeded() }
             }
         }
     }
@@ -113,13 +113,9 @@ private extension AppRootView {
     func transition(to route: AppRoute, initialNickname: String? = nil) {
         if route == .main {
             if sessionNickname == nil {
-                let repository = userRepository
-                sessionNickname = SessionNickname(nickname: initialNickname) {
-                    try await repository.refreshUser().nickname
-                }
+                sessionNickname = SessionNickname(nickname: initialNickname)
             }
         } else {
-            sessionNickname?.end()
             sessionNickname = nil
             showWelcomeSheet = false
         }

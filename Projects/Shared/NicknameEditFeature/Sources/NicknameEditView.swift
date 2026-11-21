@@ -28,14 +28,14 @@ public struct NicknameEditView: View {
 
     public init(
         config: NicknameEditConfig,
+        sessionNickname: SessionNickname? = nil,
         onDismiss: @escaping () -> Void,
         onSubmitSuccess: @escaping (String) -> Void,
-        onSubmitFailure: ((String) -> Void)? = nil,
-        onNicknameSaved: @escaping @MainActor (String) -> Void = { _ in }
+        onSubmitFailure: ((String) -> Void)? = nil
     ) {
         self._store = StateObject(wrappedValue: NicknameEditStore(
             config: config,
-            onNicknameSaved: onNicknameSaved
+            sessionNickname: sessionNickname
         ))
         self.config = config
         self.onDismiss = onDismiss

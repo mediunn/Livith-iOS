@@ -12,6 +12,7 @@ import Amplitude
 import ConcertFeature
 import HomeFeature
 import LivithDesignSystem
+import NicknameEditFeature
 import SearchFeature
 import UserFeature
 
@@ -51,8 +52,7 @@ struct LivithMainTabView: View {
                 deepLinkInitialSection: $deepLinkInitialSection,
                 deepLinkShowInterest: $deepLinkShowInterest,
                 deepLinkInstagramURL: $deepLinkInstagramURL,
-                nickname: sessionNickname.nickname,
-                onRefreshNickname: { await sessionNickname.loadIfNeeded() }
+                sessionNickname: sessionNickname
             )
             .tag(Tab.home)
             .tabItem {
@@ -66,8 +66,7 @@ struct LivithMainTabView: View {
                 }
 
             UserCoordinatorView(
-                nickname: sessionNickname.nickname,
-                onNicknameUpdated: { sessionNickname.applySavedNickname($0) },
+                sessionNickname: sessionNickname,
                 onNavigateToHome: {
                     selectedTab = .home
                 }

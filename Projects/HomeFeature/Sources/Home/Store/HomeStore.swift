@@ -12,6 +12,7 @@ import SwiftUI
 import DIContainer
 import Domain
 import LivithDesignSystem
+import NicknameEditFeature
 
 // MARK: - State
 
@@ -26,6 +27,7 @@ struct HomeState {
 
 enum HomeIntent {
     case homeAppear
+    case loadNickname
     case homeTabSelected(SegmentedTabBarType.HomeTab)
     case checkUnreadNotification
     case interest(InterestHomeIntent)
@@ -45,6 +47,10 @@ final class HomeStore: ObservableObject {
     @Published private(set) var state: HomeState = .init()
 
     @Injected private var notificationRepository: NotificationRepository
+    @Injected private var userRepository: UserRepository
+
+    private let sessionNickname: SessionNickname?
+    private var isLoadingNickname = false
 
     private lazy var interestReducer = InterestHomeReducer(
         state: Binding(
@@ -63,13 +69,22 @@ final class HomeStore: ObservableObject {
 
     private var cancellables = [CancelID: Task<Void, Never>]()
 
+    init(sessionNickname: SessionNickname? = nil) {
+        self.sessionNickname = sessionNickname
+    }
+
     // MARK: - Public Interface
+
+    var nickname: String? { sessionNickname?.nickname }
 
     @discardableResult
     func send(_ intent: HomeIntent) -> DiscardableTask {
         switch intent {
         case .homeAppear:
             performFetchUnreadCount()
+
+        case .loadNickname:
+            return performLoadNicknameIfNeeded() ?? .none
 
         case .homeTabSelected(let tab):
             state.selectedHomeTab = tab
@@ -78,7 +93,15 @@ final class HomeStore: ObservableObject {
             performFetchUnreadCount()
 
         case .interest(let interestIntent):
-            return interestReducer.reduce(interestIntent)
+            let updateInterest = interestReducer.reduce(interestIntent)
+            guard case .onRefresh = interestIntent,
+                  let loadNickname = performLoadNicknameIfNeeded()
+            else { return updateInterest }
+            return DiscardableTask(task: Task {
+                async let interest: Void = updateInterest.wait()
+                async let nickname: Void = loadNickname.wait()
+                _ = await (interest, nickname)
+            })
 
         case .calendar(let calendarIntent):
             return calendarReducer.reduce(calendarIntent)
@@ -112,7 +135,22 @@ extension HomeStore {
 
 // MARK: - Shell Helpers
 
-extension HomeStore {
+private extension HomeStore {
+    func performLoadNicknameIfNeeded() -> DiscardableTask? {
+        guard let sessionNickname, sessionNickname.nickname == nil, !isLoadingNickname else { return nil }
+        isLoadingNickname = true
+
+        return DiscardableTask(task: Task {
+            defer { isLoadingNickname = false }
+            guard !Task.isCancelled,
+                  let nickname = try? await userRepository.refreshUser().nickname,
+                  !Task.isCancelled,
+                  sessionNickname.nickname == nil
+            else { return }
+            sessionNickname.nickname = nickname
+        })
+    }
+
     func performFetchUnreadCount() {
         cancellables[.unreadCount]?.cancel()
         cancellables[.unreadCount] = Task {
