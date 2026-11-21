@@ -21,7 +21,7 @@ struct AppRootView: View {
 
     @State private var currentRoute: AppRoute = .launch
     @State private var sessionNickname: SessionNickname? = nil
-    @State private var nickname: String = ""
+    @State private var signupWelcomeNickname: String = ""
     @State private var showWelcomeSheet: Bool = false
     
     @Injected private var userRepository: UserRepository
@@ -35,7 +35,7 @@ struct AppRootView: View {
         contentView
             .crossDissolve(isPresented: $showWelcomeSheet, dismissOnTapOutside: false) {
                 LivithModal(
-                    type: .welcome(nickname: nickname),
+                    type: .welcome(nickname: signupWelcomeNickname),
                     onConfirm: { showWelcomeSheet = false }
                 )
             }
@@ -60,7 +60,7 @@ private extension AppRootView {
             LoginCoordinatorView(
                 onLoginCompleted: { transition(to: .main) },
                 onSignupCompleted: { nickname in
-                    self.nickname = nickname
+                    self.signupWelcomeNickname = nickname
                     transition(to: .main)
                     self.showWelcomeSheet = true
                 }
