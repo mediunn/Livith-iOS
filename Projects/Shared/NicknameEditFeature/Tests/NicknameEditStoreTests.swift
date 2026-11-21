@@ -17,7 +17,7 @@ import Domain
 
 final class MockAuthRepository: AuthRepository {
     var checkNicknameResult: Result<Bool, AuthError> = .success(true)
-    var signupResult: Result<Void, AuthError> = .success(())
+    var signupResult: Result<String, AuthError> = .success("가입닉네임")
 
     var checkNicknameCallCount = 0
     var signupCallCount = 0
@@ -35,12 +35,12 @@ final class MockAuthRepository: AuthRepository {
         }
     }
 
-    func signup(_ signup: SignupInfo) async throws(AuthError) {
+    func signup(_ signup: SignupInfo) async throws(AuthError) -> String {
         signupCallCount += 1
         lastSignupNickname = signup.nickname.value
         switch signupResult {
-        case .success:
-            return
+        case .success(let nickname):
+            return nickname
         case .failure(let error):
             throw error
         }
@@ -254,7 +254,7 @@ struct NicknameEditStoreTests {
 
     @Test("signup 제출 성공하면 success 상태여야 한다")
     func signupSuccessShouldBeSuccess() async {
-        mockAuthRepository.signupResult = .success(())
+        mockAuthRepository.signupResult = .success("가입닉네임")
         let sut = NicknameEditStore(config: .signup)
         sut.updateNickname("테스트")
         sut.checkDuplicate()

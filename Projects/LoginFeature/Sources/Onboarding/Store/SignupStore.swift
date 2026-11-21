@@ -14,13 +14,13 @@ import Domain
 
 enum SignupIntent {
     case submit([PreferredArtist])
-    case _signupResult(Result<Void, Error>)
+    case _signupResult(Result<String, Error>)
 }
 
 struct SignupState: Equatable {
     enum Result: Equatable {
         case idle
-        case success
+        case success(nickname: String)
         case failure
     }
     
@@ -51,8 +51,8 @@ final class SignupStore: ObservableObject {
         case ._signupResult(let result):
             state.isSubmitting = false
             switch result {
-            case .success:
-                state.result = .success
+            case .success(let nickname):
+                state.result = .success(nickname: nickname)
             case .failure(let error):
                 state.errorMessage = DisplayErrorMessage.message(for: error)
                 state.result = .failure
@@ -69,9 +69,9 @@ private extension SignupStore {
             do {
                 let signup = try session.makeSignupInfo(preferredArtistList: preferredArtistList)
                 
-                try await authRepository.signup(signup)
+                let nickname = try await authRepository.signup(signup)
                 
-                await send(._signupResult(.success(())))
+                await send(._signupResult(.success(nickname)))
             } catch {
                 await send(._signupResult(.failure(error)))
             }

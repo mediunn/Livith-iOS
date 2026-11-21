@@ -33,6 +33,7 @@
 ## 추가 기록
 
 - Xcode Debug 빌드에서 `UserData`의 `MockUserRepository.updateNickname`에 `String` 반환 타입이 빠져 `UserRepository` 채택에 실패했다. 수정 전 소스에서 같은 오류를 재현했고, 반환 타입을 명시한 뒤 실제 Domain 모듈과 Debug mock을 `swiftc -D DEBUG -typecheck`로 검사해 통과했다. 전체 Xcode 빌드는 재확인이 남아 있다.
+- 가입 API 응답의 닉네임을 `AuthRepository.signup`에서 반환하도록 변경했다. 가입 성공 시 이 값으로 세션을 초기화하고, 환영 모달과 홈·프로필이 세션의 같은 값을 읽는다. 자동 로그인은 첫 서버 조회까지 이름 없이 표시한다. Linux에서 입력값과 다른 서버 닉네임이 가입 결과로 전달되는지 확인했고, 닉네임 편집 테스트를 포함한 18건이 통과했다. Swift 6 세션 검증에서 가입 시 초기값·중복 조회 생략과 기존 세션 시나리오를 확인했다. 실제 가입과 환영 모달 표시는 iOS에서 확인할 사항이다.
 
 ## 참조
 

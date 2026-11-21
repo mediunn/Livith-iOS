@@ -21,7 +21,6 @@ struct AppRootView: View {
 
     @State private var currentRoute: AppRoute = .launch
     @State private var sessionNickname: SessionNickname? = nil
-    @State private var signupWelcomeNickname: String = ""
     @State private var showWelcomeSheet: Bool = false
     
     @Injected private var userRepository: UserRepository
@@ -34,10 +33,12 @@ struct AppRootView: View {
     var body: some View {
         contentView
             .crossDissolve(isPresented: $showWelcomeSheet, dismissOnTapOutside: false) {
-                LivithModal(
-                    type: .welcome(nickname: signupWelcomeNickname),
-                    onConfirm: { showWelcomeSheet = false }
-                )
+                if let nickname = sessionNickname?.nickname {
+                    LivithModal(
+                        type: .welcome(nickname: nickname),
+                        onConfirm: { showWelcomeSheet = false }
+                    )
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("reloginRequired"))) { notification in
                 transition(to: .login)
@@ -60,9 +61,8 @@ private extension AppRootView {
             LoginCoordinatorView(
                 onLoginCompleted: { transition(to: .main) },
                 onSignupCompleted: { nickname in
-                    self.signupWelcomeNickname = nickname
-                    transition(to: .main)
-                    self.showWelcomeSheet = true
+                    transition(to: .main, initialNickname: nickname)
+                    showWelcomeSheet = true
                 }
             )
         case .main:
@@ -110,17 +110,18 @@ private extension AppRootView {
         try? UserDefaultsStorage().fetch(for: .currentUser)
     }
     
-    func transition(to route: AppRoute) {
+    func transition(to route: AppRoute, initialNickname: String? = nil) {
         if route == .main {
             if sessionNickname == nil {
                 let repository = userRepository
-                sessionNickname = SessionNickname {
+                sessionNickname = SessionNickname(nickname: initialNickname) {
                     try await repository.refreshUser().nickname
                 }
             }
         } else {
             sessionNickname?.end()
             sessionNickname = nil
+            showWelcomeSheet = false
         }
         withAnimation(.easeInOut(duration: Constants.animationDuration)) {
             currentRoute = route

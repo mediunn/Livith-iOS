@@ -9,7 +9,8 @@ final class SessionNickname {
     @ObservationIgnored private var isLoading = false
     @ObservationIgnored private var isActive = true
 
-    init(loadNickname: @escaping @MainActor () async throws -> String) {
+    init(nickname: String? = nil, loadNickname: @escaping @MainActor () async throws -> String) {
+        self.nickname = nickname
         self.loadNickname = loadNickname
     }
 
