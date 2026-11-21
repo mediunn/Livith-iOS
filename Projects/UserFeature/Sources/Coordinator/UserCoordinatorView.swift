@@ -9,13 +9,17 @@
 import SwiftUI
 
 import LivithDesignSystem
+import NicknameEditFeature
 
 public struct UserCoordinatorView: View {
     @StateObject private var router: UserRouter
+    private let sessionNickname: SessionNickname
 
     public init(
+        sessionNickname: SessionNickname,
         onNavigateToHome: (() -> Void)? = nil
     ) {
+        self.sessionNickname = sessionNickname
         _router = StateObject(
             wrappedValue: UserRouter(
                 onNavigateToHome: onNavigateToHome ?? {}
@@ -25,7 +29,7 @@ public struct UserCoordinatorView: View {
 
     public var body: some View {
         NavigationStack(path: $router.path) {
-            UserView()
+            UserView(nickname: sessionNickname.nickname)
                 .navigationDestination(for: UserRoute.self) { route in
                     destinationView(for: route)
                         .toolbar(.hidden, for: .navigationBar)
@@ -40,13 +44,13 @@ public struct UserCoordinatorView: View {
     private func destinationView(for route: UserRoute) -> some View {
         switch route {
         case .user:
-            UserView()
+            UserView(nickname: sessionNickname.nickname)
         case .setting:
             SettingView()
         case .noticeSetting:
             NoticeSettingView(onBack: { router.pop() })
         case .nicknameUpdate:
-            NicknameUpdateView()
+            NicknameUpdateView(sessionNickname: sessionNickname)
         case .deleteUser:
             DeleteUserView(store: DeleteUserStore())
         case .genreUpdate(let genreList):

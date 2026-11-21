@@ -16,13 +16,13 @@ struct EmptyInterestConcertSectionView: View {
 
     @State private var buttonHeight: CGFloat = .zero
 
-    let nickname: String
+    let nickname: String?
     let onSettingTap: () -> Void
 
     // MARK: - Initializer
 
     init(
-        nickname: String,
+        nickname: String?,
         onSettingTap: @escaping () -> Void
     ) {
         self.nickname = nickname
@@ -53,7 +53,7 @@ private extension EmptyInterestConcertSectionView {
             VStack(spacing: .zero) {
                 Spacer()
 
-                Text("\(nickname)님,\n기다리는\n콘서트가 있나요?")
+                Text((nickname.map { "\($0)님,\n" } ?? "") + "기다리는\n콘서트가 있나요?")
                     .notosans(.headSemibold)
                     .foregroundStyle(.livithColor(.white100))
                     .padding(.leading, 16)

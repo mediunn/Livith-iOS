@@ -19,6 +19,7 @@ let project = Project.make(
                 .user(.userFeature),
                 .designSystem(.designSystem),
                 .shared(.displaySupport),
+                .shared(.nicknameEditFeature),
                 .core(.coordinator),
                 .core(.diContainer),
                 .core(.livithFoundation),
@@ -30,6 +31,7 @@ let project = Project.make(
             product: .unitTests,
             dependencies: [
                 .home(.homeFeature),
+                .shared(.nicknameEditFeature),
                 .shared(.displaySupport)
             ]
         )

@@ -27,7 +27,7 @@ struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestCo
         self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
     }
 
-    func updateNickname(_ nickname: Nickname) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) -> String {
         do {
             let response: DTO.Response.UpdateUserNickname = try await networkClient.request(
                 UserAPI.updateNickname(nickname.value)
@@ -35,6 +35,7 @@ struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestCo
             await userCache.updateUser { user in
                 user.nickname = response.nickname
             }
+            return response.nickname
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError

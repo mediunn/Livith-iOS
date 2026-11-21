@@ -17,7 +17,7 @@ import Domain
 
 final class MockAuthRepository: AuthRepository {
     var checkNicknameResult: Result<Bool, AuthError> = .success(true)
-    var signupResult: Result<Void, AuthError> = .success(())
+    var signupResult: Result<String, AuthError> = .success("가입닉네임")
 
     var checkNicknameCallCount = 0
     var signupCallCount = 0
@@ -35,12 +35,12 @@ final class MockAuthRepository: AuthRepository {
         }
     }
 
-    func signup(_ signup: SignupInfo) async throws(AuthError) {
+    func signup(_ signup: SignupInfo) async throws(AuthError) -> String {
         signupCallCount += 1
         lastSignupNickname = signup.nickname.value
         switch signupResult {
-        case .success:
-            return
+        case .success(let nickname):
+            return nickname
         case .failure(let error):
             throw error
         }
@@ -54,17 +54,17 @@ final class MockAuthRepository: AuthRepository {
 }
 
 final class MockUserRepository: UserRepository {
-    var updateNicknameResult: Result<Void, UserError> = .success(())
+    var updateNicknameResult: Result<String, UserError> = .success("서버닉네임")
 
     var updateNicknameCallCount = 0
     var lastUpdatedNickname: String?
 
-    func updateNickname(_ nickname: Nickname) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) -> String {
         updateNicknameCallCount += 1
         lastUpdatedNickname = nickname.value
         switch updateNicknameResult {
-        case .success:
-            return
+        case .success(let nickname):
+            return nickname
         case .failure(let error):
             throw error
         }
@@ -254,7 +254,7 @@ struct NicknameEditStoreTests {
 
     @Test("signup 제출 성공하면 success 상태여야 한다")
     func signupSuccessShouldBeSuccess() async {
-        mockAuthRepository.signupResult = .success(())
+        mockAuthRepository.signupResult = .success("가입닉네임")
         let sut = NicknameEditStore(config: .signup)
         sut.updateNickname("테스트")
         sut.checkDuplicate()
@@ -272,9 +272,11 @@ struct NicknameEditStoreTests {
 
     @Test("update 제출 성공하면 success 상태여야 한다")
     func updateSuccessShouldBeSuccess() async {
-        mockUserRepository.updateNicknameResult = .success(())
-        let sut = NicknameEditStore(config: .update)
+        mockUserRepository.updateNicknameResult = .success("Livith_1")
+        let sessionNickname = SessionNickname(nickname: "기존닉네임")
+        let sut = NicknameEditStore(config: .update, sessionNickname: sessionNickname)
         sut.updateNickname("새닉네임")
+        #expect(sessionNickname.nickname == "기존닉네임")
 
         sut.submit()
         try? await Task.sleep(for: .milliseconds(100))
@@ -283,12 +285,15 @@ struct NicknameEditStoreTests {
         #expect(sut.state.isSubmitting == false)
         #expect(mockUserRepository.updateNicknameCallCount == 1)
         #expect(mockUserRepository.lastUpdatedNickname == "새닉네임")
+        #expect(sessionNickname.nickname == "Livith_1")
+        #expect(sut.state.submittedNickname == "Livith_1")
     }
 
     @Test("update 제출 실패하면 failure 상태여야 한다")
     func updateFailureShouldBeFailure() async {
         mockUserRepository.updateNicknameResult = .failure(.serverError)
-        let sut = NicknameEditStore(config: .update)
+        let sessionNickname = SessionNickname(nickname: "기존닉네임")
+        let sut = NicknameEditStore(config: .update, sessionNickname: sessionNickname)
         sut.updateNickname("새닉네임")
 
         sut.submit()
@@ -299,6 +304,7 @@ struct NicknameEditStoreTests {
             return
         }
         #expect(sut.state.isSubmitting == false)
+        #expect(sessionNickname.nickname == "기존닉네임")
     }
 
     // MARK: - Reset Tests
@@ -312,7 +318,7 @@ struct NicknameEditStoreTests {
 
     @Test("닉네임 변경하면 submitResult가 idle로 리셋되어야 한다")
     func nicknameChangeShouldResetSubmitResult() async {
-        mockUserRepository.updateNicknameResult = .success(())
+        mockUserRepository.updateNicknameResult = .success("서버닉네임")
         let sut = NicknameEditStore(config: .update)
         sut.updateNickname("테스트")
         sut.submit()

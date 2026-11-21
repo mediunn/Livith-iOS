@@ -12,7 +12,6 @@ import DIContainer
 import Domain
 
 struct UserState {
-    var nickname: String = ""
     var genres: [PreferredGenre] = []
     var artists: [PreferredArtist] = []
 
@@ -21,8 +20,7 @@ struct UserState {
 }
 
 enum UserIntent {
-    case fetchUserInfo
-    case _fetchUserResult(Result<User, Error>)
+    case fetchPreferences
     case _fetchGenreListResult(Result<[PreferredGenre], Error>)
     case _fetchArtistListResult(Result<[PreferredArtist], Error>)
 }
@@ -30,24 +28,14 @@ enum UserIntent {
 final class UserStore: ObservableObject {
     @Published private(set) var state = UserState()
 
-    @Injected private var userRepository: UserRepository
     @Injected private var preferenceRepository: PreferenceRepository
 
     @MainActor
     func send(_ intent: UserIntent) {
         switch intent {
-        case .fetchUserInfo:
-            performFetchUser()
+        case .fetchPreferences:
             performFetchGenreList()
             performFetchArtistList()
-
-        case ._fetchUserResult(let result):
-            switch result {
-            case .success(let user):
-                state.nickname = user.nickname
-            case .failure:
-                break
-            }
 
         case ._fetchGenreListResult(let result):
             switch result {
@@ -71,17 +59,6 @@ final class UserStore: ObservableObject {
 // MARK: - Helper
 
 private extension UserStore {
-    func performFetchUser() {
-        Task {
-            do {
-                let user = try await userRepository.fetchUser()
-                await send(._fetchUserResult(.success(user)))
-            } catch {
-                await send(._fetchUserResult(.failure(error)))
-            }
-        }
-    }
-
     func performFetchGenreList() {
         Task {
             do {

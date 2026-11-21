@@ -15,7 +15,7 @@ struct HomeConcertContentSectionView: View {
 
     // MARK: - Properties
 
-    let nickname: String
+    let nickname: String?
     let sectionList: [ConcertSection]
     let recommendedConcertList: [Concert]
     let shouldShowRecommendedConcertSection: Bool
@@ -44,7 +44,7 @@ private extension HomeConcertContentSectionView {
     var recommendedConcertSection: some View {
         if shouldShowRecommendedConcertSection {
             RecommendedConcertSectionView(
-                title: "\(nickname)님의\n취향이 담긴 콘서트",
+                title: (nickname.map { "\($0)님의\n" } ?? "") + "취향이 담긴 콘서트",
                 concertList: recommendedConcertList,
                 onConcertTap: onRecommendedConcertTap,
                 onSeeAllTap: onRecommendedSeeAllTap

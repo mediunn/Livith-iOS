@@ -14,7 +14,7 @@ import Domain
 public struct MockUserRepository: UserRepository {
     public init() {}
 
-    public func updateNickname(_ nickname: Nickname) async throws(UserError) {}
+    public func updateNickname(_ nickname: Nickname) async throws(UserError) -> String { nickname.value }
 
     public func fetchUser() async throws(UserError) -> User {
         User(

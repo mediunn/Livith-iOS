@@ -11,6 +11,7 @@ import SwiftUI
 import ConcertFeature
 import Coordinator
 import LivithDesignSystem
+import NicknameEditFeature
 import ShareFeature
 import UserFeature
 
@@ -35,6 +36,8 @@ public struct HomeCoordinatorView: View {
     @Binding private var deepLinkShowInterest: Bool
     @Binding private var deepLinkInstagramURL: URL?
 
+    private let sessionNickname: SessionNickname
+
     // MARK: - Initializer
 
     public init(
@@ -42,7 +45,8 @@ public struct HomeCoordinatorView: View {
         deepLinkInitialTab: Binding<SegmentedTabBarType.DetailTab> = .constant(.artistDetail),
         deepLinkInitialSection: Binding<ConcertInfoSection?> = .constant(nil),
         deepLinkShowInterest: Binding<Bool> = .constant(false),
-        deepLinkInstagramURL: Binding<URL?> = .constant(nil)
+        deepLinkInstagramURL: Binding<URL?> = .constant(nil),
+        sessionNickname: SessionNickname
     ) {
         _router = StateObject(wrappedValue: HomeRouter())
         self._deepLinkConcertID = deepLinkConcertID
@@ -50,13 +54,14 @@ public struct HomeCoordinatorView: View {
         self._deepLinkInitialSection = deepLinkInitialSection
         self._deepLinkShowInterest = deepLinkShowInterest
         self._deepLinkInstagramURL = deepLinkInstagramURL
+        self.sessionNickname = sessionNickname
     }
 
     // MARK: - Body
 
     public var body: some View {
         NavigationStack(path: $router.path) {
-            HomeView()
+            HomeView(sessionNickname: sessionNickname)
                 .navigationDestination(for: HomeRoute.self) { route in
                     destinationView(for: route)
                         .toolbar(.hidden, for: .tabBar, .navigationBar)
@@ -102,7 +107,7 @@ public struct HomeCoordinatorView: View {
     private func destinationView(for route: HomeRoute) -> some View {
         switch route {
         case .home:
-            HomeView()
+            HomeView(sessionNickname: sessionNickname)
         case .interestConcertSetting(let mode):
             InterestConcertSettingView(mode: mode)
         case .interestConcertList:

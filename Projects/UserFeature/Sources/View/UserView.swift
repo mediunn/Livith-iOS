@@ -39,6 +39,8 @@ struct UserView: View {
     @StateObject private var store = UserStore()
     
     @EnvironmentObject private var router: UserRouter
+
+    let nickname: String?
     
     // MARK: - Body
     
@@ -85,7 +87,7 @@ struct UserView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showGenreUpdateSuccessSnackBar)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showArtistUpdateSuccessSnackBar)
         .onAppear {
-            store.send(.fetchUserInfo)
+            store.send(.fetchPreferences)
         }
     }
 }
@@ -110,12 +112,18 @@ private extension UserView {
     }
     
     var titleText: some View {
-        Text.init(
-            String(format: Literals.titleFormat, store.state.nickname),
-            highlighting: "\(store.state.nickname)",
-            color: .livithColor(.white100),
-            font: .notosans(.headSemibold)
-        )
+        Group {
+            if let nickname {
+                Text(
+                    String(format: Literals.titleFormat, nickname),
+                    highlighting: nickname,
+                    color: .livithColor(.white100),
+                    font: .notosans(.headSemibold)
+                )
+            } else {
+                Text(Literals.titleWithoutNickname)
+            }
+        }
         .notosans(.headMedium)
         .foregroundStyle(Color.livithColor(.black30))
         .lineLimit(nil)
@@ -333,6 +341,7 @@ private extension UserView {
     
     enum Literals {
         static let titleFormat = "%@님, 반가워요!\n공연 준비 시작해볼까요?"
+        static let titleWithoutNickname = "반가워요!\n공연 준비 시작해볼까요?"
         static let editNickname = "닉네임 수정"
         static let toastSuccess = "닉네임이 수정되었어요"
         static let preferredGenre = "선호 장르"
@@ -347,5 +356,5 @@ private extension UserView {
 // MARK: - Preview
 
 #Preview {
-    UserView()
+    UserView(nickname: nil)
 }

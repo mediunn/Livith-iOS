@@ -73,7 +73,7 @@ struct AuthRepositoryImpl: AuthRepository {
         }
     }
     
-    func signup(_ signup: SignupInfo) async throws(AuthError) {
+    func signup(_ signup: SignupInfo) async throws(AuthError) -> String {
         do {
             let request: DTO.Request.Signup = .init(
                 nickname: signup.nickname.value,
@@ -94,7 +94,7 @@ struct AuthRepositoryImpl: AuthRepository {
                 email: signup.email
             )
             
-            try await handleSignup(response: response, tempUser: tempUser)
+            return try await handleSignup(response: response, tempUser: tempUser)
         } catch {
             throw errorMapper.mapToAuthError(error)
         }
@@ -173,7 +173,7 @@ private extension AuthRepositoryImpl {
         try? await notificationTokenRepository.deleteFCMToken(fcmToken)
     }
     
-    func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws {
+    func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws -> String {
         try await tokenManager.save(Token(
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
@@ -185,6 +185,7 @@ private extension AuthRepositoryImpl {
         try? userdefaultsStorage.save(tempUser.provider.description, for: .lastLoginPlatform)
 
         await registerFCMToken()
+        return user.nickname
     }
     
     func getCredential(for provider: SocialLoginProvider) async throws -> SocialAuthCredential {

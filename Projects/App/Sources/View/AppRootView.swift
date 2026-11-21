@@ -15,15 +15,15 @@ import HomeFeature
 import Persistence
 import DIContainer
 import LivithNetworking
+import NicknameEditFeature
 
 struct AppRootView: View {
     private let concertRequestRepository: any ConcertRequestRepository
 
     @State private var currentRoute: AppRoute = .launch
-    @State private var nickname: String = ""
+    @State private var sessionNickname: SessionNickname? = nil
     @State private var showWelcomeSheet: Bool = false
     
-    @Injected private var userRepository: UserRepository
     @Injected private var tokenManager: TokenManager
 
     init(concertRequestRepository: any ConcertRequestRepository) {
@@ -33,10 +33,12 @@ struct AppRootView: View {
     var body: some View {
         contentView
             .crossDissolve(isPresented: $showWelcomeSheet, dismissOnTapOutside: false) {
-                LivithModal(
-                    type: .welcome(nickname: nickname),
-                    onConfirm: { showWelcomeSheet = false }
-                )
+                if let nickname = sessionNickname?.nickname {
+                    LivithModal(
+                        type: .welcome(nickname: nickname),
+                        onConfirm: { showWelcomeSheet = false }
+                    )
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("reloginRequired"))) { notification in
                 transition(to: .login)
@@ -59,14 +61,15 @@ private extension AppRootView {
             LoginCoordinatorView(
                 onLoginCompleted: { transition(to: .main) },
                 onSignupCompleted: { nickname in
-                    self.nickname = nickname
-                    transition(to: .main)
-                    self.showWelcomeSheet = true
+                    transition(to: .main, initialNickname: nickname)
+                    showWelcomeSheet = true
                 }
             )
         case .main:
-            LivithMainTabView()
-                .environment(\.concertRequestRepository, concertRequestRepository)
+            if let sessionNickname {
+                LivithMainTabView(sessionNickname: sessionNickname)
+                    .environment(\.concertRequestRepository, concertRequestRepository)
+            }
         }
     }
     
@@ -77,7 +80,10 @@ private extension AppRootView {
             async let minimumDisplay: Void = sleepMinimumDisplayDuration()
             let nextRoute = await resolveLaunchRoute()
             await minimumDisplay
-            await MainActor.run { transition(to: nextRoute) }
+            await MainActor.run {
+                guard currentRoute == .launch else { return }
+                transition(to: nextRoute)
+            }
         }
     }
     
@@ -93,7 +99,6 @@ private extension AppRootView {
         
         do {
             try await tokenManager.refresh()
-            _ = try? await userRepository.fetchUser()
             return .main
         } catch {
             return .login
@@ -104,7 +109,15 @@ private extension AppRootView {
         try? UserDefaultsStorage().fetch(for: .currentUser)
     }
     
-    func transition(to route: AppRoute) {
+    func transition(to route: AppRoute, initialNickname: String? = nil) {
+        if route == .main {
+            if sessionNickname == nil {
+                sessionNickname = SessionNickname(nickname: initialNickname)
+            }
+        } else {
+            sessionNickname = nil
+            showWelcomeSheet = false
+        }
         withAnimation(.easeInOut(duration: Constants.animationDuration)) {
             currentRoute = route
         }

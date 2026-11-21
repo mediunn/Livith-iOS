@@ -12,6 +12,7 @@ import Amplitude
 import ConcertFeature
 import HomeFeature
 import LivithDesignSystem
+import NicknameEditFeature
 import SearchFeature
 import UserFeature
 
@@ -25,6 +26,8 @@ struct LivithMainTabView: View {
 
     // MARK: - Property
 
+    private let sessionNickname: SessionNickname
+
     @State private var selectedTab: Tab = .home
     @State private var deepLinkConcertID: Int?
     @State private var deepLinkInitialTab: SegmentedTabBarType.DetailTab = .artistDetail
@@ -34,7 +37,8 @@ struct LivithMainTabView: View {
 
     // MARK: - LifeCycle
 
-    init() {
+    init(sessionNickname: SessionNickname) {
+        self.sessionNickname = sessionNickname
         configureTabBarAppearance()
     }
 
@@ -47,7 +51,8 @@ struct LivithMainTabView: View {
                 deepLinkInitialTab: $deepLinkInitialTab,
                 deepLinkInitialSection: $deepLinkInitialSection,
                 deepLinkShowInterest: $deepLinkShowInterest,
-                deepLinkInstagramURL: $deepLinkInstagramURL
+                deepLinkInstagramURL: $deepLinkInstagramURL,
+                sessionNickname: sessionNickname
             )
             .tag(Tab.home)
             .tabItem {
@@ -61,6 +66,7 @@ struct LivithMainTabView: View {
                 }
 
             UserCoordinatorView(
+                sessionNickname: sessionNickname,
                 onNavigateToHome: {
                     selectedTab = .home
                 }

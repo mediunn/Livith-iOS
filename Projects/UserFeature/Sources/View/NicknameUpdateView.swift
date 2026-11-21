@@ -20,9 +20,12 @@ struct NicknameUpdateView: View {
 
     @EnvironmentObject private var router: UserRouter
 
+    let sessionNickname: SessionNickname
+
     var body: some View {
         NicknameEditView(
             config: .update,
+            sessionNickname: sessionNickname,
             onDismiss: { router.pop() },
             onSubmitSuccess: { _ in
                 router.pop()

@@ -83,9 +83,8 @@ private extension PreferredArtistSettingView {
         switch result {
         case .idle:
             break
-        case .success:
-            guard let nickname = session.nickname else { return }
-            router.completeSignup(with: nickname.value)
+        case .success(let nickname):
+            router.completeSignup(with: nickname)
         case .failure:
             isSignupFailureModalPresented = true
         }

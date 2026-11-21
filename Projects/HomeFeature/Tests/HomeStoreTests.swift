@@ -14,6 +14,13 @@ import Testing
 import Domain
 import DIContainer
 import LivithDesignSystem
+import NicknameEditFeature
+
+extension HomeStore {
+    convenience init() {
+        self.init(sessionNickname: SessionNickname(nickname: "테스트"))
+    }
+}
 
 @MainActor
 struct HomeStoreTests {
@@ -80,6 +87,43 @@ struct HomeStoreTests {
         // Then
         #expect(container.userRepository.fetchUserCallCount == 0)
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 0)
+    }
+
+    // MARK: - 닉네임 조회 테스트
+
+    @Test("닉네임 조회 실패 후 다시 조회하면 서버 값을 공유 상태에 반영한다")
+    func testNicknameLoadCanRetry() async {
+        let sessionNickname = SessionNickname()
+        let sut = HomeStore(sessionNickname: sessionNickname)
+        container.userRepository.fetchUserErrorStub = .serverError
+
+        await sut.send(.interest(.onRefresh)).wait()
+        #expect(sut.nickname == nil)
+
+        container.userRepository.fetchUserErrorStub = nil
+        container.userRepository.userStub = makeMockUser(nickname: "Livith_1", hasPreferences: true)
+        container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 99)]
+        await sut.send(.interest(.onRefresh)).wait()
+
+        #expect(container.userRepository.refreshUserCallCount == 2)
+        #expect(container.userRepository.fetchUserCallCount == 0)
+        #expect(sessionNickname.nickname == "Livith_1")
+        #expect(sut.state.interest.recommendedConcertList.map(\.id) == [99])
+    }
+
+    @Test("홈에서 조회한 닉네임이 프로필에서 저장한 값을 덮어쓰지 않는다")
+    func testNicknameLoadKeepsProfileUpdate() async {
+        let sessionNickname = SessionNickname()
+        let sut = HomeStore(sessionNickname: sessionNickname)
+        container.userRepository.userStub = makeMockUser(nickname: "이전닉네임")
+
+        let refresh = sut.send(.interest(.onRefresh))
+        sessionNickname.nickname = "새닉네임"
+        await refresh.wait()
+
+        #expect(container.userRepository.refreshUserCallCount == 1)
+        #expect(container.userRepository.fetchUserCallCount == 0)
+        #expect(sut.nickname == "새닉네임")
     }
 
     // MARK: - homeAppear / interest(.onAppear) 분리 테스트
@@ -191,7 +235,8 @@ struct HomeStoreTests {
         container.concertRepository.homeSectionListStub = [makeMockSection(id: 1)]
         container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 99)]
 
-        let sut = HomeStore()
+        let sessionNickname = SessionNickname()
+        let sut = HomeStore(sessionNickname: sessionNickname)
 
         // When
         sut.send(.interest(.onAppear))
@@ -201,11 +246,15 @@ struct HomeStoreTests {
         #expect(container.concertRepository.fetchHomeConcertSectionListCallCount == 1)
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 0)
         #expect(sut.state.interest.concertSectionList.isEmpty)
+        #expect(sessionNickname.nickname == nil)
 
         try await Task.sleep(nanoseconds: 250_000_000)
 
         // Then: 유저 조회가 끝나면 추천을 조회하고 섹션과 함께 반영한다.
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
+        #expect(container.userRepository.refreshUserCallCount == 1)
+        #expect(container.userRepository.fetchUserCallCount == 0)
+        #expect(sessionNickname.nickname == sut.state.interest.user?.nickname)
         #expect(sut.state.interest.concertSectionList.count == 1)
         #expect(sut.state.interest.recommendedConcertList.map(\.id) == [99])
     }
@@ -262,8 +311,8 @@ struct HomeStoreTests {
         #expect(!sut.state.interest.needsInitialSectionLoad)
     }
 
-    @Test("초기 로드 중 다시 진행하면 이전 Task를 취소하고 로드를 완료해야 한다")
-    func testOnAppearCancelsInFlightLoadAndCompletesNewLoad() async throws {
+    @Test("초기 로드 중 다시 진입하면 진행 중인 사용자 조회를 재사용한다")
+    func testOnAppearReusesInFlightUserLoad() async throws {
         // Given
         container.userRepository.userStub = makeMockUser(nickname: "홍길동")
         container.userRepository.fetchUserDelay = 300_000_000
@@ -274,12 +323,12 @@ struct HomeStoreTests {
         try await Task.sleep(nanoseconds: 30_000_000)
         #expect(sut.state.interest.isSectionLoading)
 
-        // When: 재요청으로 이전 Task 취소
-        container.userRepository.fetchUserDelay = 0
+        // When: 진입이 반복돼도 진행 중인 사용자 조회를 공유한다.
         sut.send(.interest(.onAppear))
-        try await Task.sleep(nanoseconds: 150_000_000)
+        try await Task.sleep(nanoseconds: 350_000_000)
 
         // Then
+        #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(!sut.state.interest.isSectionLoading)
         #expect(sut.state.interest.concertSectionList.count == 1)
     }

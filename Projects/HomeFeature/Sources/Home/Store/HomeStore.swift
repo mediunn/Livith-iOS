@@ -12,6 +12,7 @@ import SwiftUI
 import DIContainer
 import Domain
 import LivithDesignSystem
+import NicknameEditFeature
 
 // MARK: - State
 
@@ -45,8 +46,10 @@ final class HomeStore: ObservableObject {
     @Published private(set) var state: HomeState = .init()
 
     @Injected private var notificationRepository: NotificationRepository
+    private let sessionNickname: SessionNickname
 
     private lazy var interestReducer = InterestHomeReducer(
+        sessionNickname: sessionNickname,
         state: Binding(
             get: { [weak self] in self?.state.interest ?? InterestHomeState() },
             set: { [weak self] in self?.state.interest = $0 }
@@ -63,7 +66,13 @@ final class HomeStore: ObservableObject {
 
     private var cancellables = [CancelID: Task<Void, Never>]()
 
+    init(sessionNickname: SessionNickname) {
+        self.sessionNickname = sessionNickname
+    }
+
     // MARK: - Public Interface
+
+    var nickname: String? { sessionNickname.nickname }
 
     @discardableResult
     func send(_ intent: HomeIntent) -> DiscardableTask {
@@ -112,7 +121,7 @@ extension HomeStore {
 
 // MARK: - Shell Helpers
 
-extension HomeStore {
+private extension HomeStore {
     func performFetchUnreadCount() {
         cancellables[.unreadCount]?.cancel()
         cancellables[.unreadCount] = Task {

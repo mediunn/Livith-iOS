@@ -11,6 +11,7 @@ import SwiftUI
 import DIContainer
 import DisplaySupport
 import Domain
+import NicknameEditFeature
 
 // MARK: - InterestHomeState
 
@@ -72,13 +73,19 @@ final class InterestHomeReducer {
 
     @Binding private var state: InterestHomeState
 
+    private let sessionNickname: SessionNickname
     private let send: (InterestHomeIntent) -> DiscardableTask
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var pendingInterestResultAlertFetch = false
     private var pendingInterestSectionList: [ConcertSection]?
     private var userLoadFailed = false
 
-    init(state: Binding<InterestHomeState>, send: @escaping (InterestHomeIntent) -> DiscardableTask) {
+    init(
+        sessionNickname: SessionNickname,
+        state: Binding<InterestHomeState>,
+        send: @escaping (InterestHomeIntent) -> DiscardableTask
+    ) {
+        self.sessionNickname = sessionNickname
         self._state = state
         self.send = send
     }
@@ -97,15 +104,15 @@ final class InterestHomeReducer {
             if state.isInterestListLoadFailed {
                 state.isInterestListRetryLoading = true
             }
-            performFetchUserIfNeeded(user: state.user)
+            if !userLoadFailed {
+                performFetchUser()
+            }
             performAppear(loadsSections: loadsSections, sort: state.interestConcertSort)
             return .none
 
         case .onRefresh:
-            if state.user == nil {
-                performFetchUser()
-            }
-            return scheduleOnRefresh(sort: state.interestConcertSort, user: state.user)
+            performFetchUser()
+            return scheduleOnRefresh(sort: state.interestConcertSort)
 
         case .onErrorToastDisappear:
             state.errorMessage = ""
@@ -227,8 +234,8 @@ final class InterestHomeReducer {
 // MARK: - Helpers
 
 private extension InterestHomeReducer {
-    func scheduleOnRefresh(sort: InterestConcertSort, user: User?) -> DiscardableTask {
-        performFetchSections(user: user, preservesRecommendations: user == nil)
+    func scheduleOnRefresh(sort: InterestConcertSort) -> DiscardableTask {
+        performFetchSections(waitingFor: cancellables[.user])
         performFetchInterestList(filter: .homeSection(sort: sort))
 
         let sectionsTask = cancellables[.sections]
@@ -346,34 +353,40 @@ private extension InterestHomeReducer {
         }
     }
 
-    func performFetchUserIfNeeded(user: User?) {
-        guard user == nil, !userLoadFailed else { return }
-        performFetchUser()
-    }
-
     func performFetchUser() {
+        guard state.user == nil, cancellables[.user] == nil else { return }
         userLoadFailed = false
-        cancellables[.user]?.cancel()
+        let needsServerNickname = sessionNickname.nickname == nil
         cancellables[.user] = Task {
-            let result = await fetchUser()
+            defer { cancellables[.user] = nil }
+            let result = await fetchUser(requiresNetwork: needsServerNickname)
             if Task.isCancelled { return }
+            if needsServerNickname, sessionNickname.nickname == nil, case .success(let user) = result {
+                sessionNickname.nickname = user.nickname
+            }
             send(._userResult(result))
         }
     }
 
-    func fetchUser() async -> Result<User, Error> {
+    func fetchUser(requiresNetwork: Bool) async -> Result<User, Error> {
         do {
-            return .success(try await userRepository.fetchUser())
+            let user = requiresNetwork
+                ? try await userRepository.refreshUser()
+                : try await userRepository.fetchUser()
+            return .success(user)
         } catch {
             return .failure(error)
         }
     }
 
-    func performFetchSections(user: User?, preservesRecommendations: Bool) {
+    func performFetchSections(waitingFor userTask: Task<Void, Never>?) {
         cancellables[.sections]?.cancel()
         cancellables[.sections] = Task {
             do {
                 async let sections = concertSectionRepository.fetchHomeConcertSectionList()
+                await userTask?.value
+                if Task.isCancelled { return }
+                let user = state.user
                 async let recommendations = fetchRecommendationsIfNeeded(user: user)
 
                 let sectionList = try await sections
@@ -383,7 +396,7 @@ private extension InterestHomeReducer {
                 send(._sectionLoadResult(.success((
                     sectionList: sectionList,
                     recommendedConcertList: recommendedConcertList,
-                    preservesRecommendations: preservesRecommendations
+                    preservesRecommendations: user == nil
                 ))))
             } catch {
                 if Task.isCancelled || isCancellationError(error) { return }
