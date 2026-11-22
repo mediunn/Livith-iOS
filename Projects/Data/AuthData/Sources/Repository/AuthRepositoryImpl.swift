@@ -160,7 +160,6 @@ private extension AuthRepositoryImpl {
     func handleLogout() async {
         await deleteFCMToken()
         try? await tokenManager.remove()
-        userdefaultsStorage.remove(for: .currentUser)
     }
 
     func registerFCMToken() async {
@@ -181,7 +180,6 @@ private extension AuthRepositoryImpl {
         ))
 
         let user = mapper.toDomain(from: response.user)
-        try? userdefaultsStorage.save(user, for: .currentUser)
         try? userdefaultsStorage.save(tempUser.provider.description, for: .lastLoginPlatform)
 
         await registerFCMToken()
@@ -217,7 +215,6 @@ private extension AuthRepositoryImpl {
                 OnboardingAPI.fetchUserInfo()
             )
             let user = mapper.toDomain(from: userInfoResponse)
-            try? userdefaultsStorage.save(user, for: .currentUser)
 
             await registerFCMToken()
 

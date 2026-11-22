@@ -43,6 +43,10 @@ struct AppRootView: View {
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("reloginRequired"))) { notification in
                 transition(to: .login)
             }
+            .onReceive(NotificationCenter.default.publisher(for: NotificationService.fcmTokenDidChange)) { _ in
+                guard currentRoute == .main else { return }
+                NotificationService.shared.registerFCMTokenToServer()
+            }
             .onAppear {
                 handleOnAppear()
             }
@@ -83,6 +87,9 @@ private extension AppRootView {
             await MainActor.run {
                 guard currentRoute == .launch else { return }
                 transition(to: nextRoute)
+                if nextRoute == .main {
+                    NotificationService.shared.registerFCMTokenToServer()
+                }
             }
         }
     }
@@ -92,21 +99,13 @@ private extension AppRootView {
     }
     
     func resolveLaunchRoute() async -> AppRoute {
-        guard fetchLocalUser() != nil else {
-            try? await tokenManager.remove()
-            return .login
-        }
-        
+        UserDefaultsStorage().remove(for: .currentUser)
         do {
             try await tokenManager.refresh()
             return .main
         } catch {
             return .login
         }
-    }
-    
-    func fetchLocalUser() -> User? {
-        try? UserDefaultsStorage().fetch(for: .currentUser)
     }
     
     func transition(to route: AppRoute, initialNickname: String? = nil) {
