@@ -26,7 +26,6 @@ final class MockUserRepository: UserRepository, InterestConcertRepository, Inter
     var fetchInterestConcertEntryAlertsErrorStub: UserError?
     
     var fetchUserCallCount: Int = 0
-    var refreshUserCallCount: Int = 0
     var fetchInterestedConcertListCallCount: Int = 0
     var fetchInterestedConcertListFilter: InterestConcertListFilter?
     var fetchInterestedConcertListFilterList: [InterestConcertListFilter] = []
@@ -50,15 +49,6 @@ final class MockUserRepository: UserRepository, InterestConcertRepository, Inter
     
     func fetchUser() async throws(UserError) -> User {
         fetchUserCallCount += 1
-        return try await loadUser()
-    }
-
-    func refreshUser() async throws(UserError) -> User {
-        refreshUserCallCount += 1
-        return try await loadUser()
-    }
-
-    private func loadUser() async throws(UserError) -> User {
         if fetchUserDelay > 0 {
             try? await Task.sleep(nanoseconds: fetchUserDelay)
         }

@@ -101,7 +101,6 @@ classDiagram
     class UserRepository {
         <<protocol>>
         +fetchUser() User
-        +refreshUser() User
         +updateNickname(nickname)
     }
     class User {

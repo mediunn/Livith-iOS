@@ -28,11 +28,6 @@ public struct MockUserRepository: UserRepository {
         )
     }
 
-    @discardableResult
-    public func refreshUser() async throws(UserError) -> User {
-        try await fetchUser()
-    }
-
     public func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
         let sortedConcertList = Self.interestConcertList.sorted { lhs, rhs in
             switch filter.sort ?? .concert {

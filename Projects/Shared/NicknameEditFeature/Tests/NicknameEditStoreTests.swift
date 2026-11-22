@@ -82,18 +82,6 @@ final class MockUserRepository: UserRepository {
         )
     }
     
-    func refreshUser() async throws(UserError) -> User {
-        User(
-            id: 1,
-            provider: "kakao",
-            providerID: "123",
-            email: nil,
-            nickname: "test",
-            hasPreferences: false,
-            authority: UserAuthority(deviceNotification: true, marketingConsent: false)
-        )
-    }
-
     func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
         ListResult(items: [], position: nil)
     }

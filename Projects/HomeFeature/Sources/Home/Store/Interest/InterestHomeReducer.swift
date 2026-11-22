@@ -356,24 +356,20 @@ private extension InterestHomeReducer {
     func performFetchUser() {
         guard state.user == nil, cancellables[.user] == nil else { return }
         userLoadFailed = false
-        let needsServerNickname = sessionNickname.nickname == nil
         cancellables[.user] = Task {
             defer { cancellables[.user] = nil }
-            let result = await fetchUser(requiresNetwork: needsServerNickname)
+            let result = await fetchUser()
             if Task.isCancelled { return }
-            if needsServerNickname, sessionNickname.nickname == nil, case .success(let user) = result {
+            if sessionNickname.nickname == nil, case .success(let user) = result {
                 sessionNickname.nickname = user.nickname
             }
             send(._userResult(result))
         }
     }
 
-    func fetchUser(requiresNetwork: Bool) async -> Result<User, Error> {
+    func fetchUser() async -> Result<User, Error> {
         do {
-            let user = requiresNetwork
-                ? try await userRepository.refreshUser()
-                : try await userRepository.fetchUser()
-            return .success(user)
+            return .success(try await userRepository.fetchUser())
         } catch {
             return .failure(error)
         }

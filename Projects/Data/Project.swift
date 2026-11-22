@@ -143,8 +143,7 @@ let project = Project.make(
                 .domain(.domain),
                 .core(.diContainer),
                 .core(.livithFoundation),
-                .livithNetworking(.livithNetworking),
-                .core(.persistence)
+                .livithNetworking(.livithNetworking)
             ]
         ),
         .make(
@@ -161,8 +160,7 @@ let project = Project.make(
                 .domain(.domain),
                 .core(.diContainer),
                 .core(.livithFoundation),
-                .livithNetworking(.livithNetworking),
-                .core(.persistence)
+                .livithNetworking(.livithNetworking)
             ]
         ),
         .make(

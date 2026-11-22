@@ -11,20 +11,14 @@ import Foundation
 import Domain
 import LivithFoundation
 import LivithNetworking
-import Persistence
 
 struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestConcertEntryAlertRepository {
     private let networkClient: NetworkClient
-    private let userCache: UserDiskCache
     private let mapper: UserMapper = .init()
     private let errorMapper: UserErrorMapper = .init()
 
-    init(
-        networkClient: NetworkClient,
-        userdefaultsStorage: UserDefaultsStorage
-    ) {
+    init(networkClient: NetworkClient) {
         self.networkClient = networkClient
-        self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
     }
 
     func updateNickname(_ nickname: Nickname) async throws(UserError) -> String {
@@ -32,9 +26,6 @@ struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestCo
             let response: DTO.Response.UpdateUserNickname = try await networkClient.request(
                 UserAPI.updateNickname(nickname.value)
             )
-            await userCache.updateUser { user in
-                user.nickname = response.nickname
-            }
             return response.nickname
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
@@ -43,15 +34,15 @@ struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestCo
     }
 
     func fetchUser() async throws(UserError) -> User {
-        if let cachedUser = await userCache.fetchUserIfValid() {
-            return cachedUser
+        do {
+            let response: DTO.Response.FetchUserInfo = try await networkClient.request(
+                OnboardingAPI.fetchUserInfo()
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            let userError: UserError = errorMapper.mapToUserError(error)
+            throw userError
         }
-        return try await fetchUserFromNetwork()
-    }
-
-    @discardableResult
-    func refreshUser() async throws(UserError) -> User {
-        try await fetchUserFromNetwork()
     }
 
     func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
@@ -224,20 +215,6 @@ private extension UserRepositoryImpl {
             return .concert
         case .ticketing:
             return .ticketing
-        }
-    }
-
-    func fetchUserFromNetwork() async throws(UserError) -> User {
-        do {
-            let response: DTO.Response.FetchUserInfo = try await networkClient.request(
-                OnboardingAPI.fetchUserInfo()
-            )
-            let user: User = mapper.toDomain(from: response)
-            await userCache.saveUser(user)
-            return user
-        } catch {
-            let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError
         }
     }
 }
