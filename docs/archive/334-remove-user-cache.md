@@ -20,5 +20,6 @@
 
 - 실기기 FCM 등록, 구버전 앱 업데이트와 실계정 로그인 복원, 계정 전환 및 홈·프로필·커뮤니티·알림·선호 화면 수동 확인이 남았다.
 - 별도 백로그에서 AppDelegate가 NotificationService와 DeepLinkService를 소유하도록 변경한다. 외부 URL과 푸시 탭, 메인 탭의 대기 링크 소비가 같은 인스턴스를 사용하는지 확인한다.
+- `GET /users/me`의 ETag 재검증 도입 여부를 검토한다. 먼저 인증된 응답의 `ETag`와 `Cache-Control`을 확인한다. 도입한다면 HTTP 캐시는 메모리에만 두고 토큰은 계속 Keychain에서 읽는다. 조건부 요청에도 인증이 적용되는지, 로그아웃·계정 전환 후 이전 사용자의 응답이 재사용되지 않는지 검증한다.
 
 [이슈 #334](https://github.com/mediunn/Livith-iOS/issues/334)
