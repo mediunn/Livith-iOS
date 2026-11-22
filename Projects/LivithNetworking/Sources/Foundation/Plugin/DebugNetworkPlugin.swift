@@ -93,7 +93,14 @@ public struct DebugNetworkPlugin: NetworkPlugin {
             lines.append("📥 RESPONSE")
             lines.append("  Status:  \(response.response.statusCode) \(statusDescription(response.response.statusCode))")
             lines.append("  URL:     \(sanitizedURLString(from: request.url))")
-            lines.append("  Body:    \(formatBody(response.data))")
+            if endpoint.method == .get, endpoint.path == "/users/me" {
+                for header in ["ETag", "Cache-Control"] {
+                    let value = response.response.value(forHTTPHeaderField: header) ?? "(없음)"
+                    lines.append("  \(header): \(value)")
+                }
+            } else {
+                lines.append("  Body:    \(formatBody(response.data))")
+            }
             lines.append(Self.separator)
             output(lines.joined(separator: "\n"))
         case .failure(let error):
