@@ -31,7 +31,7 @@ classDiagram
     }
     class LoginStatus {
         <<enum>>
-        existingUser(nickname)
+        existingUser
         newUser(tempUser)
     }
     class SocialLoginProvider {

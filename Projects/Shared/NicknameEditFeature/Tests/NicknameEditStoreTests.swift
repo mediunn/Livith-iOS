@@ -48,8 +48,8 @@ final class MockAuthRepository: AuthRepository {
 
     func withdraw(reason: String) async throws(AuthError) {}
     func logout() async throws(AuthError) {}
-    func kakaoLogin() async throws(AuthError) -> LoginStatus { .existingUser(nickname: "test") }
-    func appleLogin() async throws(AuthError) -> LoginStatus { .existingUser(nickname: "test") }
+    func kakaoLogin() async throws(AuthError) -> LoginStatus { .existingUser }
+    func appleLogin() async throws(AuthError) -> LoginStatus { .existingUser }
     func fetchLastLoginPlatform() async throws(AuthError) -> SocialLoginProvider { .kakao }
 }
 

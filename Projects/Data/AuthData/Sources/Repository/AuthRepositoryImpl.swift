@@ -211,14 +211,9 @@ private extension AuthRepositoryImpl {
 
             try? userdefaultsStorage.save(provider.description, for: .lastLoginPlatform)
 
-            let userInfoResponse: DTO.Response.FetchUserInfo = try await networkClient.request(
-                OnboardingAPI.fetchUserInfo()
-            )
-            let user = mapper.toDomain(from: userInfoResponse)
-
             await registerFCMToken()
 
-            return .existingUser(nickname: user.nickname)
+            return .existingUser
         }
     }
 }
