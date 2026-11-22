@@ -47,7 +47,7 @@ enum NoticeSettingIntent {
     case cancelMarketingConsent
     case dismissModal
     case _setDeviceNotificationEnabled(Bool)
-    case _setNotificationSettings(NotificationSettings, marketingConsent: Bool)
+    case _setNotificationSettings(NotificationSettings, marketingConsent: Bool?)
     case _setConsentResult(NotificationConsentResult, field: NotificationConsentField, isAgreed: Bool)
     case _revertToggle(NotificationConsentField)
 }
@@ -117,7 +117,9 @@ final class NoticeSettingStore: ObservableObject {
             state.isDeviceNotificationEnabled = isEnabled
 
         case ._setNotificationSettings(let settings, let marketingConsent):
-            state.marketingConsent = marketingConsent
+            if let marketingConsent {
+                state.marketingConsent = marketingConsent
+            }
             state.benefitNotification = settings.benefitAlert
             state.nightNotification = settings.nightAlert
             state.ticketSchedule = settings.ticketAlert
@@ -171,7 +173,7 @@ private extension NoticeSettingStore {
     func performFetchNotificationSettings() {
         Task {
             guard let settings = try? await notificationSettingsRepository.fetchNotificationSettings() else { return }
-            let marketingConsent = (try? await userRepository.fetchUser())?.authority.marketingConsent ?? false
+            let marketingConsent = (try? await userRepository.fetchUser())?.authority.marketingConsent
 
             await MainActor.run {
                 send(._setNotificationSettings(settings, marketingConsent: marketingConsent))
