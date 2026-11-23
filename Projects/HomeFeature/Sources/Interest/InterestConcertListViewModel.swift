@@ -70,23 +70,7 @@ private extension InterestConcertListViewModel {
         isLoadingMore = cursor != nil
 
         let request = Task {
-            do throws(UserError) {
-                let filter = InterestConcertListFilter.page(sort: sort, limit: 12, position: cursor)
-                let page = try await repository.fetchInterestedConcertList(filter: filter)
-                guard !Task.isCancelled else { return }
-
-                if cursor == nil {
-                    loadedConcertList = page.items
-                    loadedSort = sort
-                } else {
-                    loadedConcertList.append(contentsOf: page.items)
-                }
-                position = page.position
-                errorMessage = ""
-            } catch {
-                guard !Task.isCancelled else { return }
-                errorMessage = error == .cancelled ? "" : DisplayErrorMessage.message(for: error)
-            }
+            await fetchAndApplyPage(sort: sort, after: cursor)
         }
         activeRequest = request
         await withTaskCancellationHandler {
@@ -98,5 +82,25 @@ private extension InterestConcertListViewModel {
         activeRequest = nil
         loadingSort = nil
         isLoadingMore = false
+    }
+
+    func fetchAndApplyPage(sort: InterestConcertSort, after cursor: (any PagePosition)?) async {
+        do throws(UserError) {
+            let filter = InterestConcertListFilter.page(sort: sort, limit: 12, position: cursor)
+            let page = try await repository.fetchInterestedConcertList(filter: filter)
+            guard !Task.isCancelled else { return }
+
+            if cursor == nil {
+                loadedConcertList = page.items
+                loadedSort = sort
+            } else {
+                loadedConcertList.append(contentsOf: page.items)
+            }
+            position = page.position
+            errorMessage = ""
+        } catch {
+            guard !Task.isCancelled else { return }
+            errorMessage = error == .cancelled ? "" : DisplayErrorMessage.message(for: error)
+        }
     }
 }
