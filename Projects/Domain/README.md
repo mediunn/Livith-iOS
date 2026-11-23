@@ -31,7 +31,7 @@ classDiagram
     }
     class LoginStatus {
         <<enum>>
-        existingUser(nickname)
+        existingUser
         newUser(tempUser)
     }
     class SocialLoginProvider {
@@ -101,7 +101,6 @@ classDiagram
     class UserRepository {
         <<protocol>>
         +fetchUser() User
-        +refreshUser() User
         +updateNickname(nickname)
     }
     class User {

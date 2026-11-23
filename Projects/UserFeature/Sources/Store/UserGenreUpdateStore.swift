@@ -30,7 +30,6 @@ final class UserGenreUpdateStore: ObservableObject {
     @Published private(set) var state: UserGenreUpdateState = .init()
     
     @Injected private var preferenceRepository: PreferenceRepository
-    @Injected private var userRepository: UserRepository
 
     func send(_ intent: UserGenreUpdateIntent) {
         switch intent {
@@ -56,7 +55,6 @@ private extension UserGenreUpdateStore {
         Task {
             do {
                 try await preferenceRepository.updateUserPreferredGenreList(genreIDs: genreList.map { $0.id })
-                _ = try? await userRepository.refreshUser()
                 state.result = .success
             } catch {
                 state.result = .failure

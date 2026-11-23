@@ -105,8 +105,7 @@ struct HomeStoreTests {
         container.concertRepository.recommendedConcertListStub = [makeMockConcert(id: 99)]
         await sut.send(.interest(.onRefresh)).wait()
 
-        #expect(container.userRepository.refreshUserCallCount == 2)
-        #expect(container.userRepository.fetchUserCallCount == 0)
+        #expect(container.userRepository.fetchUserCallCount == 2)
         #expect(sessionNickname.nickname == "Livith_1")
         #expect(sut.state.interest.recommendedConcertList.map(\.id) == [99])
     }
@@ -121,8 +120,7 @@ struct HomeStoreTests {
         sessionNickname.nickname = "새닉네임"
         await refresh.wait()
 
-        #expect(container.userRepository.refreshUserCallCount == 1)
-        #expect(container.userRepository.fetchUserCallCount == 0)
+        #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(sut.nickname == "새닉네임")
     }
 
@@ -252,8 +250,7 @@ struct HomeStoreTests {
 
         // Then: 유저 조회가 끝나면 추천을 조회하고 섹션과 함께 반영한다.
         #expect(container.concertRepository.fetchRecommendedConcertListCallCount == 1)
-        #expect(container.userRepository.refreshUserCallCount == 1)
-        #expect(container.userRepository.fetchUserCallCount == 0)
+        #expect(container.userRepository.fetchUserCallCount == 1)
         #expect(sessionNickname.nickname == sut.state.interest.user?.nickname)
         #expect(sut.state.interest.concertSectionList.count == 1)
         #expect(sut.state.interest.recommendedConcertList.map(\.id) == [99])

@@ -9,6 +9,6 @@
 import Foundation
 
 public enum LoginStatus: Equatable {
-    case existingUser(nickname: String)
+    case existingUser
     case newUser(tempUser: TempUser)
 }

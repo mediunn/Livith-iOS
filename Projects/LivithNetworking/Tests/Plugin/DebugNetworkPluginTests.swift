@@ -52,6 +52,29 @@ struct DebugNetworkPluginTests {
         #expect(message.contains("/concerts"))
     }
 
+    @Test("사용자 조회는 캐시 헤더와 누락 여부를 표시하고 본문을 생략한다")
+    func 사용자_조회_캐시_헤더를_확인한다() async throws {
+        let url = try #require(URL(string: "https://example.com/users/me"))
+        let recorder = OutputRecorder()
+        let plugin = DebugNetworkPlugin { recorder.append($0) }
+        for headers in [["etag": "W/\"sample\"", "cache-control": "private, no-cache"], [:]] {
+            let response = try #require(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: headers))
+            await plugin.didReceive(
+                .success(NetworkPluginResponse(data: Data(#"{"nickname":"sample-user"}"#.utf8), response: response)),
+                request: URLRequest(url: url),
+                endpoint: OnboardingAPI.fetchUserInfo()
+            )
+        }
+
+        let logs = recorder.messages()
+        #expect(logs.count == 2)
+        #expect(logs.first?.contains("ETag: W/\"sample\"") == true)
+        #expect(logs.first?.contains("Cache-Control: private, no-cache") == true)
+        #expect(logs.last?.contains("ETag: (없음)") == true)
+        #expect(logs.last?.contains("Cache-Control: (없음)") == true)
+        #expect(!logs.contains { $0.contains("sample-user") })
+    }
+
     @Test("400번대 응답은 Bad Request로 표시해야 한다")
     func client_error_응답은_Bad_Request로_표시해야_한다() async throws {
         let recorder = OutputRecorder()
