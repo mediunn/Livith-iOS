@@ -12,156 +12,91 @@ import Observation
 import DisplaySupport
 import Domain
 
-// MARK: - State
-
-struct InterestConcertListState {
-    var interestConcertList: [InterestConcert] = []
-    var selectedSort: InterestConcertSort = .ticketing
-    var hasMorePages: Bool = true
-    var isInitialLoading: Bool = false
-    var isLoadingMore: Bool = false
-    var errorMessage: String = ""
-}
-
 @MainActor
 @Observable
 final class InterestConcertListViewModel {
-    private(set) var state = InterestConcertListState()
+    private(set) var isLoadingMore = false
+    private(set) var errorMessage = ""
 
-    private let interestConcertRepository: any InterestConcertRepository
+    private let repository: any InterestConcertRepository
+    private var loadedConcertList: [InterestConcert] = []
+    private var loadedSort: InterestConcertSort = .ticketing
+    private var loadingSort: InterestConcertSort?
+    private var position: (any PagePosition)?
 
-    @ObservationIgnored private var firstPageTask: Task<Void, Never>?
-    @ObservationIgnored private var nextPageTask: Task<Void, Never>?
-    @ObservationIgnored private var currentRequestID: Int = 0
-    @ObservationIgnored private var position: (any PagePosition)?
-    @ObservationIgnored private var firstPageSnapshot: (state: InterestConcertListState, position: (any PagePosition)?)?
-    private let pageSize: Int = 12
+    @ObservationIgnored private var activeRequest: Task<Void, Never>?
 
     init(repository: any InterestConcertRepository) {
-        self.interestConcertRepository = repository
+        self.repository = repository
     }
 
-    // MARK: - Public Interface
-
-    func loadIfNeeded() {
-        guard state.interestConcertList.isEmpty, !state.isInitialLoading else { return }
-        performFetchFirstPage(sort: state.selectedSort)
+    var interestConcertList: [InterestConcert] {
+        isInitialLoading ? [] : loadedConcertList
     }
 
-    func loadNextPage() {
-        guard state.hasMorePages, !state.isInitialLoading, !state.isLoadingMore, let position else { return }
-        state.isLoadingMore = true
-        performFetchNextPage(position: position)
+    var selectedSort: InterestConcertSort {
+        loadingSort ?? loadedSort
     }
 
-    func selectSort(_ sort: InterestConcertSort) {
-        guard state.selectedSort != sort else { return }
-        performFetchFirstPage(sort: sort)
+    var isInitialLoading: Bool {
+        loadingSort != nil
+    }
+
+    var hasMorePages: Bool {
+        isInitialLoading || position != nil
+    }
+
+    func loadIfNeeded() async {
+        guard loadedConcertList.isEmpty, !isInitialLoading else { return }
+        await loadPage(sort: loadedSort, after: nil)
+    }
+
+    func selectSort(_ sort: InterestConcertSort) async {
+        guard sort != selectedSort else { return }
+        await loadPage(sort: sort, after: nil)
+    }
+
+    func loadNextPage() async {
+        guard !isInitialLoading, !isLoadingMore, let position else { return }
+        await loadPage(sort: loadedSort, after: position)
     }
 }
 
-// MARK: - Helpers
-
 private extension InterestConcertListViewModel {
-    func performFetchFirstPage(sort: InterestConcertSort) {
-        currentRequestID += 1
-        let requestID = currentRequestID
+    func loadPage(sort: InterestConcertSort, after cursor: (any PagePosition)?) async {
+        guard !Task.isCancelled else { return }
+        activeRequest?.cancel()
+        loadingSort = cursor == nil ? sort : nil
+        isLoadingMore = cursor != nil
 
-        firstPageTask?.cancel()
-        nextPageTask?.cancel()
+        let request = Task {
+            do throws(UserError) {
+                let filter = InterestConcertListFilter.page(sort: sort, limit: 12, position: cursor)
+                let page = try await repository.fetchInterestedConcertList(filter: filter)
+                guard !Task.isCancelled else { return }
 
-        if sort != state.selectedSort, firstPageSnapshot == nil {
-            firstPageSnapshot = (state, position)
-        }
-        state.isInitialLoading = true
-        state.isLoadingMore = false
-
-        if firstPageSnapshot != nil {
-            state.selectedSort = sort
-            state.interestConcertList = []
-            position = nil
-            state.hasMorePages = true
-        }
-
-        firstPageTask = Task {
-            let result = await fetchInterestConcertListResult(sort: sort, position: nil)
-            guard requestID == currentRequestID else { return }
-
-            state.isInitialLoading = false
-
-            switch result {
-            case .success(let page):
-                firstPageSnapshot = nil
-                state.selectedSort = sort
-                state.interestConcertList = page.items
-                position = page.position
-                state.hasMorePages = page.position != nil
-                state.errorMessage = ""
-            case .failure(let error):
-                if let snapshot = firstPageSnapshot {
-                    state = snapshot.state
-                    state.isInitialLoading = false
-                    state.isLoadingMore = false
-                    position = snapshot.position
-                    firstPageSnapshot = nil
-                } else if state.interestConcertList.isEmpty {
-                    position = nil
-                    state.hasMorePages = false
+                if cursor == nil {
+                    loadedConcertList = page.items
+                    loadedSort = sort
+                } else {
+                    loadedConcertList.append(contentsOf: page.items)
                 }
-                state.errorMessage = getErrorMessage(from: error)
+                position = page.position
+                errorMessage = ""
+            } catch {
+                guard !Task.isCancelled else { return }
+                errorMessage = error == .cancelled ? "" : DisplayErrorMessage.message(for: error)
             }
         }
-    }
-
-    func performFetchNextPage(position: any PagePosition) {
-        let requestID = currentRequestID
-        let sort = state.selectedSort
-
-        nextPageTask?.cancel()
-        nextPageTask = Task {
-            let result = await fetchInterestConcertListResult(sort: sort, position: position)
-            guard requestID == currentRequestID else { return }
-
-            state.isLoadingMore = false
-
-            switch result {
-            case .success(let page):
-                state.interestConcertList.append(contentsOf: page.items)
-                self.position = page.position
-                state.hasMorePages = page.position != nil
-                state.errorMessage = ""
-            case .failure(let error):
-                state.errorMessage = getErrorMessage(from: error)
-            }
+        activeRequest = request
+        await withTaskCancellationHandler {
+            await request.value
+        } onCancel: {
+            request.cancel()
         }
-    }
-
-    func fetchInterestConcertListResult(
-        sort: InterestConcertSort,
-        position: (any PagePosition)?
-    ) async -> Result<ListResult<InterestConcert>, Error> {
-        do {
-            let filter = InterestConcertListFilter.page(
-                sort: sort,
-                limit: pageSize,
-                position: position
-            )
-            let page = try await interestConcertRepository.fetchInterestedConcertList(filter: filter)
-            return .success(page)
-        } catch {
-            return .failure(error)
-        }
-    }
-
-    func getErrorMessage(from error: Error) -> String {
-        if error is CancellationError {
-            return ""
-        }
-
-        if case let error as UserError = error, error == .cancelled {
-            return ""
-        }
-
-        return DisplayErrorMessage.message(for: error)
+        guard activeRequest == request else { return }
+        activeRequest = nil
+        loadingSort = nil
+        isLoadingMore = false
     }
 }

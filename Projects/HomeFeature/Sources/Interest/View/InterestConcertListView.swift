@@ -44,7 +44,7 @@ struct InterestConcertListView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.livithColor(.black100))
-        .onAppear { viewModel.loadIfNeeded() }
+        .task { await viewModel.loadIfNeeded() }
     }
 }
 
@@ -104,7 +104,7 @@ private extension InterestConcertListView {
             showSortOption.toggle()
         } label: {
             HStack(spacing: 4) {
-                Text(viewModel.state.selectedSort.title)
+                Text(viewModel.selectedSort.title)
                     .notosans(.body4Medium)
                     .foregroundStyle(Color.livithColor(.white100))
 
@@ -125,7 +125,7 @@ private extension InterestConcertListView {
     var sortOptionView: some View {
         VStack(alignment: .center, spacing: .zero) {
             ForEach(InterestConcertSort.sortOptionList, id: \.self) { option in
-                LivithOptionButton(option.title, isSelected: viewModel.state.selectedSort == option) {
+                LivithOptionButton(option.title, isSelected: viewModel.selectedSort == option) {
                     handleSortOptionSelected(option)
                 }
                 .padding(.bottom, option == InterestConcertSort.sortOptionList.last ? .zero : 8)
@@ -149,7 +149,7 @@ private extension InterestConcertListView {
 
     @ViewBuilder
     var contentView: some View {
-        if viewModel.state.isInitialLoading {
+        if viewModel.isInitialLoading {
             loadingView
         } else {
             gridView
@@ -177,12 +177,12 @@ private extension InterestConcertListView {
                     columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
                     spacing: 24
                 ) {
-                    ForEach(viewModel.state.interestConcertList, id: \.id) { interestConcert in
+                    ForEach(viewModel.interestConcertList, id: \.id) { interestConcert in
                         concertCard(for: interestConcert)
                     }
                 }
 
-                if viewModel.state.isLoadingMore {
+                if viewModel.isLoadingMore {
                     ProgressView()
                         .tint(Color.livithColor(.white100))
                         .padding(.vertical, 16)
@@ -192,7 +192,7 @@ private extension InterestConcertListView {
     }
 
     var errorEmptyView: some View {
-        LivithEmptyView(text: viewModel.state.errorMessage)
+        LivithEmptyView(text: viewModel.errorMessage)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerRelativeFrame(.vertical)
     }
@@ -216,8 +216,8 @@ private extension InterestConcertListView {
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
         .onAppear {
-            if interestConcert.id == viewModel.state.interestConcertList.last?.id {
-                viewModel.loadNextPage()
+            if interestConcert.id == viewModel.interestConcertList.last?.id {
+                Task { await viewModel.loadNextPage() }
             }
         }
     }
@@ -227,7 +227,7 @@ private extension InterestConcertListView {
 
 private extension InterestConcertListView {
     var shouldShowErrorEmptyView: Bool {
-        viewModel.state.interestConcertList.isEmpty && !viewModel.state.errorMessage.isEmpty
+        viewModel.interestConcertList.isEmpty && !viewModel.errorMessage.isEmpty
     }
 }
 
@@ -237,9 +237,9 @@ private extension InterestConcertListView {
     func handleSortOptionSelected(_ sort: InterestConcertSort) {
         showSortOption = false
 
-        guard viewModel.state.selectedSort != sort else { return }
+        guard viewModel.selectedSort != sort else { return }
 
-        viewModel.selectSort(sort)
+        Task { await viewModel.selectSort(sort) }
     }
 }
 
