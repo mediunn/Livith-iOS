@@ -1,5 +1,5 @@
 //
-//  InterestConcertListStoreTests.swift
+//  InterestConcertListViewModelTests.swift
 //  HomeFeatureTests
 //
 //  Created by 김진웅 on 5/1/26.
@@ -14,7 +14,7 @@ import Testing
 import Domain
 
 @MainActor
-struct InterestConcertListStoreTests {
+struct InterestConcertListViewModelTests {
 
     // MARK: - Properties
 
@@ -29,11 +29,11 @@ struct InterestConcertListStoreTests {
         repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: position))
         ]
-        let sut = InterestConcertListStore(repository: repository)
+        let sut = InterestConcertListViewModel(repository: repository)
 
         // When
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(repository.fetchInterestedConcertListCallCount == 1)
@@ -54,13 +54,13 @@ struct InterestConcertListStoreTests {
             .success(makeListResult(concertIDList: [1, 2], position: firstPosition)),
             .success(makeListResult(concertIDList: [3, 4], position: nil))
         ]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // When
-        sut.send(.loadNextPage)
-        try await waitForAsyncTask()
+        sut.loadNextPage()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(repository.fetchInterestedConcertListCallCount == 2)
@@ -78,14 +78,14 @@ struct InterestConcertListStoreTests {
         repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1], position: nil))
         ]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // When
-        sut.send(.loadNextPage)
-        sut.send(.loadNextPage)
-        try await waitForAsyncTask()
+        sut.loadNextPage()
+        sut.loadNextPage()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(repository.fetchInterestedConcertListCallCount == 1)
@@ -98,13 +98,13 @@ struct InterestConcertListStoreTests {
         repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2)))
         ]
-        let sut = InterestConcertListStore(repository: repository)
+        let sut = InterestConcertListViewModel(repository: repository)
 
         // When
-        sut.send(.onAppear)
+        sut.loadIfNeeded()
         #expect(sut.state.isInitialLoading)
-        sut.send(.loadNextPage)
-        try await Task.sleep(nanoseconds: 250_000_000)
+        sut.loadNextPage()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(repository.fetchInterestedConcertListCallCount == 1)
@@ -118,15 +118,15 @@ struct InterestConcertListStoreTests {
             .success(makeListResult(concertIDList: [3, 4], position: makePosition(id: 4)))
         ]
         repository.fetchInterestedConcertListDelayQueue = [0, 200_000_000]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // When
-        sut.send(.loadNextPage)
+        sut.loadNextPage()
         #expect(sut.state.isLoadingMore)
-        sut.send(.loadNextPage)
-        try await Task.sleep(nanoseconds: 250_000_000)
+        sut.loadNextPage()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(repository.fetchInterestedConcertListCallCount == 2)
@@ -141,19 +141,19 @@ struct InterestConcertListStoreTests {
             .success(makeListResult(concertIDList: [1, 2], position: ticketingPosition)),
             .success(makeListResult(concertIDList: [11, 12], position: concertPosition))
         ]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // When
-        sut.send(.sortSelected(.concert))
+        sut.selectSort(.concert)
 
         #expect(sut.state.selectedSort == .concert)
         #expect(sut.state.interestConcertList.isEmpty)
         #expect(sut.state.hasMorePages)
         #expect(sut.state.isInitialLoading)
 
-        try await waitForAsyncTask()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(repository.fetchInterestedConcertListCallCount == 2)
@@ -173,13 +173,13 @@ struct InterestConcertListStoreTests {
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2))),
             .failure(.serverError)
         ]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // When
-        sut.send(.sortSelected(.concert))
-        try await waitForAsyncTask()
+        sut.selectSort(.concert)
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(sut.state.selectedSort == .ticketing)
@@ -197,15 +197,15 @@ struct InterestConcertListStoreTests {
             .success(makeListResult(concertIDList: [11, 12], position: nil))
         ]
         repository.fetchInterestedConcertListDelayQueue = [0, 200_000_000, 0]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // When
-        sut.send(.loadNextPage)
+        sut.loadNextPage()
         try await waitUntilFetchInterestedConcertListCallCount(2)
-        sut.send(.sortSelected(.concert))
-        try await Task.sleep(nanoseconds: 300_000_000)
+        sut.selectSort(.concert)
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(sut.state.selectedSort == .concert)
@@ -213,15 +213,43 @@ struct InterestConcertListStoreTests {
         #expect(!sut.state.hasMorePages)
     }
 
+    @Test("다음 페이지 로딩 중 정렬 변경이 실패하면 이전 커서로 다시 조회할 수 있다")
+    func 정렬_실패_후_이전_커서로_다음_페이지를_재시도한다() async throws {
+        let cursor = makePosition(id: 2)
+        repository.interestConcertListResultQueue = [
+            .success(makeListResult(concertIDList: [1, 2], position: cursor)),
+            .success(makeListResult(concertIDList: [3], position: nil)),
+            .failure(.serverError),
+            .success(makeListResult(concertIDList: [4], position: nil))
+        ]
+        repository.fetchInterestedConcertListDelayQueue = [0, 200_000_000, 0, 0]
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
+        sut.loadNextPage()
+        try await waitUntilFetchInterestedConcertListCallCount(2)
+
+        sut.selectSort(.concert)
+        try await waitForLoadingToFinish(sut)
+        #expect(sut.state.selectedSort == .ticketing)
+        #expect(!sut.state.isLoadingMore)
+        sut.loadNextPage()
+        try await waitForLoadingToFinish(sut)
+
+        #expect(repository.fetchInterestedConcertListCallCount == 4)
+        #expect(repository.fetchInterestedConcertListFilter?.position as? TestPosition == cursor)
+        #expect(sut.state.interestConcertList.map(\.id) == [1, 2, 4])
+    }
+
     @Test("최초 조회 실패 시 목록은 비어 있고 오류 메시지를 설정해야 한다")
     func 최초_조회_실패는_목록을_비우고_오류_메시지를_설정해야_한다() async throws {
         // Given
         repository.interestConcertListResultQueue = [.failure(.serverError)]
-        let sut = InterestConcertListStore(repository: repository)
+        let sut = InterestConcertListViewModel(repository: repository)
 
         // When
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(sut.state.interestConcertList.isEmpty)
@@ -237,13 +265,13 @@ struct InterestConcertListStoreTests {
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2))),
             .failure(.serverError)
         ]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // When
-        sut.send(.loadNextPage)
-        try await waitForAsyncTask()
+        sut.loadNextPage()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2])
@@ -260,14 +288,14 @@ struct InterestConcertListStoreTests {
             .failure(.serverError),
             .success(makeListResult(concertIDList: [1, 2], position: position))
         ]
-        let sut = InterestConcertListStore(repository: repository)
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        let sut = InterestConcertListViewModel(repository: repository)
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
         #expect(!sut.state.errorMessage.isEmpty)
 
         // When
-        sut.send(.onAppear)
-        try await waitForAsyncTask()
+        sut.loadIfNeeded()
+        try await waitForLoadingToFinish(sut)
 
         // Then
         #expect(sut.state.errorMessage.isEmpty)
@@ -277,19 +305,21 @@ struct InterestConcertListStoreTests {
 
 // MARK: - Helpers
 
-private extension InterestConcertListStoreTests {
-    func waitForAsyncTask() async throws {
-        try await Task.sleep(nanoseconds: 100_000_000)
+private extension InterestConcertListViewModelTests {
+    func waitForLoadingToFinish(_ viewModel: InterestConcertListViewModel) async throws {
+        try await waitUntil { !viewModel.state.isInitialLoading && !viewModel.state.isLoadingMore }
     }
 
     func waitUntilFetchInterestedConcertListCallCount(_ expectedCount: Int) async throws {
-        for _ in 0..<10 {
-            guard repository.fetchInterestedConcertListCallCount < expectedCount else { return }
+        try await waitUntil { repository.fetchInterestedConcertListCallCount >= expectedCount }
+    }
 
-            try await Task.sleep(nanoseconds: 10_000_000)
+    func waitUntil(_ condition: () -> Bool) async throws {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while !condition(), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(5))
         }
-
-        #expect(repository.fetchInterestedConcertListCallCount >= expectedCount)
+        try #require(condition())
     }
 
     func makeListResult(

@@ -80,6 +80,7 @@
 
 ## Exception
 - [#330 공연 요청 파일럿](https://github.com/mediunn/Livith-iOS/issues/330)은 App에서 Repository를 조회하고 Home의 Environment를 거쳐 화면 모델에 생성자로 전달한다. 이 화면은 `@MainActor @Observable` ViewModel에 초안과 제출 상태를 두고, 제출은 중복 호출을 차단하는 메서드로 처리한다. View는 입력 바인딩과 표시 상태, 외부 콜백을 맡는다.
+- [#337 관심 콘서트 목록](https://github.com/mediunn/Livith-iOS/issues/337)도 같은 DI 경로를 사용한다. 화면이 소유한 Observable ViewModel에서 정렬, 페이지 조회와 요청 취소를 관리한다.
 - DesignSystem 모듈은 레이어 구조와 무관하게 Presentation 레이어에서 자유롭게 사용한다.
 - Core 모듈은 모든 레이어에서 참조할 수 있다.
 - 단순 데이터 표시만 하는 View는 Store 없이 직접 데이터를 받을 수 있다.

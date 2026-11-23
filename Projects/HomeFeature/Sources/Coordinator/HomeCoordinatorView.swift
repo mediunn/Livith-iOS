@@ -10,6 +10,7 @@ import SwiftUI
 
 import ConcertFeature
 import Coordinator
+import Domain
 import LivithDesignSystem
 import NicknameEditFeature
 import ShareFeature
