@@ -17,9 +17,13 @@ struct InterestConcertListView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @StateObject private var store: InterestConcertListStore = .init()
+    @StateObject private var store: InterestConcertListStore
 
     @State private var showSortOption: Bool = false
+
+    init(repository: any InterestConcertRepository) {
+        _store = StateObject(wrappedValue: InterestConcertListStore(repository: repository))
+    }
 
     // MARK: - Body
 

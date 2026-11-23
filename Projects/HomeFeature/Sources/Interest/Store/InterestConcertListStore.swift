@@ -8,7 +8,6 @@
 
 import Foundation
 
-import DIContainer
 import DisplaySupport
 import Domain
 
@@ -44,13 +43,17 @@ final class InterestConcertListStore: ObservableObject {
 
     @Published private(set) var state: InterestConcertListState = .init()
 
-    @Injected private var interestConcertRepository: InterestConcertRepository
+    private let interestConcertRepository: any InterestConcertRepository
 
     private var cancellables = [CancelID: Task<Void, Never>]()
     private var currentRequestID: Int = 0
     private var position: (any PagePosition)?
     private var firstPageSnapshot: (state: InterestConcertListState, position: (any PagePosition)?)?
     private let pageSize: Int = 12
+
+    init(repository: any InterestConcertRepository) {
+        self.interestConcertRepository = repository
+    }
 
     // MARK: - Public Interface
 

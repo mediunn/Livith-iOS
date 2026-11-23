@@ -11,7 +11,6 @@ import Foundation
 import Testing
 
 @testable import HomeFeature
-import DIContainer
 import Domain
 
 @MainActor
@@ -19,14 +18,7 @@ struct InterestConcertListStoreTests {
 
     // MARK: - Properties
 
-    let container: MockDIContainer
-
-    // MARK: - Initializer
-
-    init() {
-        self.container = MockDIContainer()
-        self.container.registerDependencies()
-    }
+    let repository = MockUserRepository()
 
     // MARK: - Tests
 
@@ -34,20 +26,20 @@ struct InterestConcertListStoreTests {
     func onAppear는_첫_페이지를_기본_정렬과_12개_페이지_크기로_조회해야_한다() async throws {
         // Given
         let position = makePosition(id: 2)
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: position))
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
 
         // When
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
         // Then
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.sort == .ticketing)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.limit == 12)
-        #expect(container.userRepository.fetchInterestedConcertListFilter?.position == nil)
+        #expect(repository.fetchInterestedConcertListCallCount == 1)
+        #expect(repository.fetchInterestedConcertListFilter?.sort == .ticketing)
+        #expect(repository.fetchInterestedConcertListFilter?.limit == 12)
+        #expect(repository.fetchInterestedConcertListFilter?.position == nil)
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2])
         #expect(sut.state.hasMorePages)
         #expect(!sut.state.isInitialLoading)
@@ -58,11 +50,11 @@ struct InterestConcertListStoreTests {
     func 다음_페이지_요청은_position으로_조회하고_기존_목록_뒤에_추가해야_한다() async throws {
         // Given
         let firstPosition = makePosition(id: 2)
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: firstPosition)),
             .success(makeListResult(concertIDList: [3, 4], position: nil))
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
@@ -71,8 +63,8 @@ struct InterestConcertListStoreTests {
         try await waitForAsyncTask()
 
         // Then
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
-        let nextPageFilter = container.userRepository.fetchInterestedConcertListFilterList.dropFirst().first
+        #expect(repository.fetchInterestedConcertListCallCount == 2)
+        let nextPageFilter = repository.fetchInterestedConcertListFilterList.dropFirst().first
         #expect(nextPageFilter?.position as? TestPosition == firstPosition)
         #expect(nextPageFilter?.limit == 12)
         #expect(sut.state.interestConcertList.map(\.id) == [1, 2, 3, 4])
@@ -83,10 +75,10 @@ struct InterestConcertListStoreTests {
     @Test("더 이상 페이지가 없거나 로딩 중이면 다음 페이지를 중복 조회하지 않아야 한다")
     func 다음_페이지가_없거나_로딩_중이면_중복_조회하지_않아야_한다() async throws {
         // Given
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1], position: nil))
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
@@ -96,17 +88,17 @@ struct InterestConcertListStoreTests {
         try await waitForAsyncTask()
 
         // Then
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(repository.fetchInterestedConcertListCallCount == 1)
     }
 
     @Test("초기 로딩 중이면 다음 페이지를 조회하지 않아야 한다")
     func 초기_로딩_중이면_다음_페이지를_조회하지_않아야_한다() async throws {
         // Given
-        container.userRepository.fetchInterestedConcertListDelayQueue = [200_000_000]
-        container.userRepository.interestConcertListResultQueue = [
+        repository.fetchInterestedConcertListDelayQueue = [200_000_000]
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2)))
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
 
         // When
         sut.send(.onAppear)
@@ -115,18 +107,18 @@ struct InterestConcertListStoreTests {
         try await Task.sleep(nanoseconds: 250_000_000)
 
         // Then
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 1)
+        #expect(repository.fetchInterestedConcertListCallCount == 1)
     }
 
     @Test("다음 페이지 로딩 중이면 다음 페이지를 중복 조회하지 않아야 한다")
     func 다음_페이지_로딩_중이면_다음_페이지를_중복_조회하지_않아야_한다() async throws {
         // Given
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2))),
             .success(makeListResult(concertIDList: [3, 4], position: makePosition(id: 4)))
         ]
-        container.userRepository.fetchInterestedConcertListDelayQueue = [0, 200_000_000]
-        let sut = InterestConcertListStore()
+        repository.fetchInterestedConcertListDelayQueue = [0, 200_000_000]
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
@@ -137,7 +129,7 @@ struct InterestConcertListStoreTests {
         try await Task.sleep(nanoseconds: 250_000_000)
 
         // Then
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
+        #expect(repository.fetchInterestedConcertListCallCount == 2)
     }
 
     @Test("정렬 변경 성공 시 목록과 다음 페이지 여부를 새 정렬 결과로 교체해야 한다")
@@ -145,11 +137,11 @@ struct InterestConcertListStoreTests {
         // Given
         let ticketingPosition = makePosition(id: 2)
         let concertPosition = makePosition(id: 12)
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: ticketingPosition)),
             .success(makeListResult(concertIDList: [11, 12], position: concertPosition))
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
@@ -164,8 +156,8 @@ struct InterestConcertListStoreTests {
         try await waitForAsyncTask()
 
         // Then
-        #expect(container.userRepository.fetchInterestedConcertListCallCount == 2)
-        let sortFilter = container.userRepository.fetchInterestedConcertListFilterList.dropFirst().first
+        #expect(repository.fetchInterestedConcertListCallCount == 2)
+        let sortFilter = repository.fetchInterestedConcertListFilterList.dropFirst().first
         #expect(sortFilter?.sort == .concert)
         #expect(sortFilter?.position == nil)
         #expect(sut.state.selectedSort == .concert)
@@ -177,11 +169,11 @@ struct InterestConcertListStoreTests {
     @Test("정렬 변경 실패 시 기존 목록과 정렬과 다음 페이지 여부를 유지하고 오류 메시지만 설정해야 한다")
     func 정렬_변경_실패는_기존_목록과_정렬과_다음_페이지_여부를_유지하고_오류_메시지만_설정해야_한다() async throws {
         // Given
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2))),
             .failure(.serverError)
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
@@ -199,13 +191,13 @@ struct InterestConcertListStoreTests {
     @Test("정렬 변경 응답 이후 이전 다음 페이지 응답이 도착해도 새 정렬 목록에 섞지 않아야 한다")
     func 정렬_변경_이후_이전_다음_페이지_응답은_무시해야_한다() async throws {
         // Given
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2))),
             .success(makeListResult(concertIDList: [3, 4], position: nil)),
             .success(makeListResult(concertIDList: [11, 12], position: nil))
         ]
-        container.userRepository.fetchInterestedConcertListDelayQueue = [0, 200_000_000, 0]
-        let sut = InterestConcertListStore()
+        repository.fetchInterestedConcertListDelayQueue = [0, 200_000_000, 0]
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
@@ -224,8 +216,8 @@ struct InterestConcertListStoreTests {
     @Test("최초 조회 실패 시 목록은 비어 있고 오류 메시지를 설정해야 한다")
     func 최초_조회_실패는_목록을_비우고_오류_메시지를_설정해야_한다() async throws {
         // Given
-        container.userRepository.interestConcertListResultQueue = [.failure(.serverError)]
-        let sut = InterestConcertListStore()
+        repository.interestConcertListResultQueue = [.failure(.serverError)]
+        let sut = InterestConcertListStore(repository: repository)
 
         // When
         sut.send(.onAppear)
@@ -241,11 +233,11 @@ struct InterestConcertListStoreTests {
     @Test("다음 페이지 조회 실패 시 기존 목록과 다음 페이지 여부를 유지하고 오류 메시지를 설정해야 한다")
     func 다음_페이지_조회_실패는_기존_목록과_다음_페이지_여부를_유지하고_오류_메시지를_설정해야_한다() async throws {
         // Given
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .success(makeListResult(concertIDList: [1, 2], position: makePosition(id: 2))),
             .failure(.serverError)
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
 
@@ -264,11 +256,11 @@ struct InterestConcertListStoreTests {
     func 조회_성공은_이전_오류_메시지를_비워야_한다() async throws {
         // Given
         let position = makePosition(id: 2)
-        container.userRepository.interestConcertListResultQueue = [
+        repository.interestConcertListResultQueue = [
             .failure(.serverError),
             .success(makeListResult(concertIDList: [1, 2], position: position))
         ]
-        let sut = InterestConcertListStore()
+        let sut = InterestConcertListStore(repository: repository)
         sut.send(.onAppear)
         try await waitForAsyncTask()
         #expect(!sut.state.errorMessage.isEmpty)
@@ -292,12 +284,12 @@ private extension InterestConcertListStoreTests {
 
     func waitUntilFetchInterestedConcertListCallCount(_ expectedCount: Int) async throws {
         for _ in 0..<10 {
-            guard container.userRepository.fetchInterestedConcertListCallCount < expectedCount else { return }
+            guard repository.fetchInterestedConcertListCallCount < expectedCount else { return }
 
             try await Task.sleep(nanoseconds: 10_000_000)
         }
 
-        #expect(container.userRepository.fetchInterestedConcertListCallCount >= expectedCount)
+        #expect(repository.fetchInterestedConcertListCallCount >= expectedCount)
     }
 
     func makeListResult(
