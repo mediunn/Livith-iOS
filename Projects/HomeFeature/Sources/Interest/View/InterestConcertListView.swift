@@ -21,6 +21,8 @@ struct InterestConcertListView: View {
 
     @State private var showSortOption: Bool = false
 
+    @State private var showSortFailure = false
+
     init(repository: any InterestConcertRepository) {
         _viewModel = State(initialValue: InterestConcertListViewModel(repository: repository))
     }
@@ -37,14 +39,26 @@ struct InterestConcertListView: View {
                 .padding(.horizontal, 16)
                 .zIndex(1)
 
-            contentView
-                .padding(.top, 24)
-                .padding(.horizontal, 16)
-                .zIndex(0)
+            if !viewModel.isInitialLoading {
+                gridView
+                    .padding(.top, 24)
+                    .padding(.horizontal, 16)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.livithColor(.black100))
+        .overlay(alignment: .center) {
+            if viewModel.isInitialLoading {
+                LivithLoader()
+                    .allowsHitTesting(false)
+            }
+        }
         .task { await viewModel.loadIfNeeded() }
+        .livithToast(
+            isPresented: $showSortFailure,
+            type: .failure,
+            message: "정렬을 변경하지 못했어요"
+        )
     }
 }
 
@@ -95,7 +109,13 @@ private extension InterestConcertListView {
         HStack(spacing: .zero) {
             Spacer()
 
+            if viewModel.isChangingSort {
+                LivithLoader()
+                    .controlSize(.small)
+                    .padding(.trailing, 6)
+            }
             sortButton
+                .disabled(viewModel.isChangingSort)
         }
     }
 
@@ -147,27 +167,6 @@ private extension InterestConcertListView {
         }
     }
 
-    @ViewBuilder
-    var contentView: some View {
-        if viewModel.isInitialLoading {
-            loadingView
-        } else {
-            gridView
-        }
-    }
-
-    var loadingView: some View {
-        VStack {
-            Spacer()
-
-            ProgressView()
-                .tint(Color.livithColor(.white100))
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
     var gridView: some View {
         ScrollView(showsIndicators: false) {
             if shouldShowErrorEmptyView {
@@ -181,6 +180,7 @@ private extension InterestConcertListView {
                         concertCard(for: interestConcert)
                     }
                 }
+                .id(viewModel.selectedSort)
 
                 if viewModel.isLoadingMore {
                     ProgressView()
@@ -239,7 +239,10 @@ private extension InterestConcertListView {
 
         guard viewModel.selectedSort != sort else { return }
 
-        Task { await viewModel.selectSort(sort) }
+        Task {
+            await viewModel.selectSort(sort)
+            showSortFailure = viewModel.selectedSort != sort && !viewModel.errorMessage.isEmpty
+        }
     }
 }
 

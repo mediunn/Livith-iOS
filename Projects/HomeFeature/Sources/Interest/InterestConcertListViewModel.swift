@@ -19,8 +19,8 @@ final class InterestConcertListViewModel {
     private(set) var errorMessage = ""
 
     private let repository: any InterestConcertRepository
-    private var loadedConcertList: [InterestConcert] = []
-    private var loadedSort: InterestConcertSort = .ticketing
+    private(set) var interestConcertList: [InterestConcert] = []
+    private(set) var selectedSort: InterestConcertSort = .ticketing
     private var loadingSort: InterestConcertSort?
     private var position: (any PagePosition)?
 
@@ -30,16 +30,13 @@ final class InterestConcertListViewModel {
         self.repository = repository
     }
 
-    var interestConcertList: [InterestConcert] {
-        isInitialLoading ? [] : loadedConcertList
-    }
-
-    var selectedSort: InterestConcertSort {
-        loadingSort ?? loadedSort
+    var isChangingSort: Bool {
+        guard let loadingSort else { return false }
+        return loadingSort != selectedSort
     }
 
     var isInitialLoading: Bool {
-        loadingSort != nil
+        loadingSort == selectedSort && interestConcertList.isEmpty
     }
 
     var hasMorePages: Bool {
@@ -47,18 +44,18 @@ final class InterestConcertListViewModel {
     }
 
     func loadIfNeeded() async {
-        guard loadedConcertList.isEmpty, !isInitialLoading else { return }
-        await loadPage(sort: loadedSort, after: nil)
+        guard interestConcertList.isEmpty, loadingSort == nil else { return }
+        await loadPage(sort: selectedSort, after: nil)
     }
 
     func selectSort(_ sort: InterestConcertSort) async {
-        guard sort != selectedSort else { return }
+        guard sort != selectedSort, sort != loadingSort else { return }
         await loadPage(sort: sort, after: nil)
     }
 
     func loadNextPage() async {
-        guard !isInitialLoading, !isLoadingMore, let position else { return }
-        await loadPage(sort: loadedSort, after: position)
+        guard loadingSort == nil, !isLoadingMore, let position else { return }
+        await loadPage(sort: selectedSort, after: position)
     }
 }
 
@@ -91,10 +88,10 @@ private extension InterestConcertListViewModel {
             guard !Task.isCancelled else { return }
 
             if cursor == nil {
-                loadedConcertList = page.items
-                loadedSort = sort
+                interestConcertList = page.items
+                selectedSort = sort
             } else {
-                loadedConcertList.append(contentsOf: page.items)
+                interestConcertList.append(contentsOf: page.items)
             }
             position = page.position
             errorMessage = ""

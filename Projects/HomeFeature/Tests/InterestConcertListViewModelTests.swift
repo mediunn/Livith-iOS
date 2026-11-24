@@ -166,11 +166,14 @@ struct InterestConcertListViewModelTests {
         let request = Task { await sut.selectSort(.concert) }
         try await waitUntilFetchInterestedConcertListCallCount(2)
 
-        #expect(sut.selectedSort == .concert)
-        #expect(sut.interestConcertList.isEmpty)
-        #expect(sut.hasMorePages)
-        #expect(sut.isInitialLoading)
+        #expect(sut.selectedSort == .ticketing)
+        #expect(sut.interestConcertList.map(\.id) == [1, 2])
+        #expect(sut.isChangingSort)
+        #expect(!sut.isInitialLoading)
+        await sut.loadNextPage()
+        #expect(repository.fetchInterestedConcertListCallCount == 2)
         await request.value
+        #expect(!sut.isChangingSort)
 
 
         // Then
