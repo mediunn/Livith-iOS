@@ -10,6 +10,7 @@ import SwiftUI
 
 import ConcertFeature
 import Coordinator
+import Domain
 import LivithDesignSystem
 import NicknameEditFeature
 import ShareFeature
@@ -25,6 +26,7 @@ public struct HomeCoordinatorView: View {
 
     // MARK: - Property
 
+    @Environment(\.interestConcertRepository) private var interestConcertRepository
     @Environment(\.concertRequestRepository) private var concertRequestRepository
     @StateObject private var router: HomeRouter
 
@@ -111,7 +113,17 @@ public struct HomeCoordinatorView: View {
         case .interestConcertSetting(let mode):
             InterestConcertSettingView(mode: mode)
         case .interestConcertList:
-            InterestConcertListView()
+            if let interestConcertRepository {
+                InterestConcertListView(repository: interestConcertRepository)
+            } else {
+                ContentUnavailableView {
+                    Label("관심 콘서트 목록을 열 수 없어요", systemImage: "exclamationmark.circle")
+                } description: {
+                    Text("이전 화면으로 돌아가 주세요.")
+                } actions: {
+                    Button("돌아가기") { router.pop() }
+                }
+            }
         case .notice:
             NoticeView(
                 onBack: { router.pop() },

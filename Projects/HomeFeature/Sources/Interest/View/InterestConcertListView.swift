@@ -17,9 +17,15 @@ struct InterestConcertListView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @StateObject private var store: InterestConcertListStore = .init()
+    @State private var viewModel: InterestConcertListViewModel
 
     @State private var showSortOption: Bool = false
+
+    @State private var showSortFailure = false
+
+    init(repository: any InterestConcertRepository) {
+        _viewModel = State(initialValue: InterestConcertListViewModel(repository: repository))
+    }
 
     // MARK: - Body
 
@@ -33,14 +39,26 @@ struct InterestConcertListView: View {
                 .padding(.horizontal, 16)
                 .zIndex(1)
 
-            contentView
-                .padding(.top, 24)
-                .padding(.horizontal, 16)
-                .zIndex(0)
+            if !viewModel.isInitialLoading {
+                gridView
+                    .padding(.top, 24)
+                    .padding(.horizontal, 16)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.livithColor(.black100))
-        .onAppear { store.send(.onAppear) }
+        .overlay(alignment: .center) {
+            if viewModel.isInitialLoading {
+                LivithLoader()
+                    .allowsHitTesting(false)
+            }
+        }
+        .task { await viewModel.loadIfNeeded() }
+        .livithToast(
+            isPresented: $showSortFailure,
+            type: .failure,
+            message: "정렬을 변경하지 못했어요"
+        )
     }
 }
 
@@ -91,7 +109,13 @@ private extension InterestConcertListView {
         HStack(spacing: .zero) {
             Spacer()
 
+            if viewModel.isChangingSort {
+                LivithLoader()
+                    .controlSize(.small)
+                    .padding(.trailing, 6)
+            }
             sortButton
+                .disabled(viewModel.isChangingSort)
         }
     }
 
@@ -100,7 +124,7 @@ private extension InterestConcertListView {
             showSortOption.toggle()
         } label: {
             HStack(spacing: 4) {
-                Text(store.state.selectedSort.title)
+                Text(viewModel.selectedSort.title)
                     .notosans(.body4Medium)
                     .foregroundStyle(Color.livithColor(.white100))
 
@@ -121,7 +145,7 @@ private extension InterestConcertListView {
     var sortOptionView: some View {
         VStack(alignment: .center, spacing: .zero) {
             ForEach(InterestConcertSort.sortOptionList, id: \.self) { option in
-                LivithOptionButton(option.title, isSelected: store.state.selectedSort == option) {
+                LivithOptionButton(option.title, isSelected: viewModel.selectedSort == option) {
                     handleSortOptionSelected(option)
                 }
                 .padding(.bottom, option == InterestConcertSort.sortOptionList.last ? .zero : 8)
@@ -143,27 +167,6 @@ private extension InterestConcertListView {
         }
     }
 
-    @ViewBuilder
-    var contentView: some View {
-        if store.state.isInitialLoading {
-            loadingView
-        } else {
-            gridView
-        }
-    }
-
-    var loadingView: some View {
-        VStack {
-            Spacer()
-
-            ProgressView()
-                .tint(Color.livithColor(.white100))
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
     var gridView: some View {
         ScrollView(showsIndicators: false) {
             if shouldShowErrorEmptyView {
@@ -173,12 +176,13 @@ private extension InterestConcertListView {
                     columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3),
                     spacing: 24
                 ) {
-                    ForEach(store.state.interestConcertList, id: \.id) { interestConcert in
+                    ForEach(viewModel.interestConcertList, id: \.id) { interestConcert in
                         concertCard(for: interestConcert)
                     }
                 }
+                .id(viewModel.selectedSort)
 
-                if store.state.isLoadingMore {
+                if viewModel.isLoadingMore {
                     ProgressView()
                         .tint(Color.livithColor(.white100))
                         .padding(.vertical, 16)
@@ -188,7 +192,7 @@ private extension InterestConcertListView {
     }
 
     var errorEmptyView: some View {
-        LivithEmptyView(text: store.state.errorMessage)
+        LivithEmptyView(text: viewModel.errorMessage)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerRelativeFrame(.vertical)
     }
@@ -212,8 +216,8 @@ private extension InterestConcertListView {
         )
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
         .onAppear {
-            if interestConcert.id == store.state.interestConcertList.last?.id {
-                store.send(.loadNextPage)
+            if interestConcert.id == viewModel.interestConcertList.last?.id {
+                Task { await viewModel.loadNextPage() }
             }
         }
     }
@@ -223,7 +227,7 @@ private extension InterestConcertListView {
 
 private extension InterestConcertListView {
     var shouldShowErrorEmptyView: Bool {
-        store.state.interestConcertList.isEmpty && !store.state.errorMessage.isEmpty
+        viewModel.interestConcertList.isEmpty && !viewModel.errorMessage.isEmpty
     }
 }
 
@@ -233,9 +237,12 @@ private extension InterestConcertListView {
     func handleSortOptionSelected(_ sort: InterestConcertSort) {
         showSortOption = false
 
-        guard store.state.selectedSort != sort else { return }
+        guard viewModel.selectedSort != sort else { return }
 
-        store.send(.sortSelected(sort))
+        Task {
+            await viewModel.selectSort(sort)
+            showSortFailure = viewModel.selectedSort != sort && !viewModel.errorMessage.isEmpty
+        }
     }
 }
 
