@@ -26,6 +26,8 @@ public struct HomeCoordinatorView: View {
 
     // MARK: - Property
 
+    @Environment(\.concertCatalogRepository) private var concertCatalogRepository
+    @Environment(\.searchRepository) private var searchRepository
     @Environment(\.interestConcertRepository) private var interestConcertRepository
     @Environment(\.concertRequestRepository) private var concertRequestRepository
     @StateObject private var router: HomeRouter
@@ -111,7 +113,22 @@ public struct HomeCoordinatorView: View {
         case .home:
             HomeView(sessionNickname: sessionNickname)
         case .interestConcertSetting(let mode):
-            InterestConcertSettingView(mode: mode)
+            if let concertCatalogRepository, let searchRepository, let interestConcertRepository {
+                InterestConcertSettingView(
+                    mode: mode,
+                    concertCatalogRepository: concertCatalogRepository,
+                    searchRepository: searchRepository,
+                    interestConcertRepository: interestConcertRepository
+                )
+            } else {
+                ContentUnavailableView {
+                    Label("관심 콘서트 설정을 열 수 없어요", systemImage: "exclamationmark.circle")
+                } description: {
+                    Text("이전 화면으로 돌아가 주세요.")
+                } actions: {
+                    Button("돌아가기") { router.pop() }
+                }
+            }
         case .interestConcertList:
             if let interestConcertRepository {
                 InterestConcertListView(repository: interestConcertRepository)

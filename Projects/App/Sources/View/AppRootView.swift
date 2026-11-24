@@ -18,6 +18,8 @@ import LivithNetworking
 import NicknameEditFeature
 
 struct AppRootView: View {
+    private let concertCatalogRepository: any ConcertCatalogRepository
+    private let searchRepository: any SearchRepository
     private let interestConcertRepository: any InterestConcertRepository
     private let concertRequestRepository: any ConcertRequestRepository
 
@@ -29,8 +31,12 @@ struct AppRootView: View {
 
     init(
         concertRequestRepository: any ConcertRequestRepository,
+        concertCatalogRepository: any ConcertCatalogRepository,
+        searchRepository: any SearchRepository,
         interestConcertRepository: any InterestConcertRepository
     ) {
+        self.concertCatalogRepository = concertCatalogRepository
+        self.searchRepository = searchRepository
         self.interestConcertRepository = interestConcertRepository
         self.concertRequestRepository = concertRequestRepository
     }
@@ -77,6 +83,8 @@ private extension AppRootView {
         case .main:
             if let sessionNickname {
                 LivithMainTabView(sessionNickname: sessionNickname)
+                    .environment(\.concertCatalogRepository, concertCatalogRepository)
+                    .environment(\.searchRepository, searchRepository)
                     .environment(\.interestConcertRepository, interestConcertRepository)
                     .environment(\.concertRequestRepository, concertRequestRepository)
             }

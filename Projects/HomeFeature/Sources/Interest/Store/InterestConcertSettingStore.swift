@@ -8,7 +8,6 @@
 
 import Foundation
 
-import DIContainer
 import DisplaySupport
 import Domain
 
@@ -88,9 +87,9 @@ final class InterestConcertSettingStore: ObservableObject {
 
     @Published private(set) var state: InterestConcertSettingState
 
-    @Injected private var concertCatalogRepository: ConcertCatalogRepository
-    @Injected private var searchRepository: SearchRepository
-    @Injected private var interestConcertRepository: InterestConcertRepository
+    private let concertCatalogRepository: any ConcertCatalogRepository
+    private let searchRepository: any SearchRepository
+    private let interestConcertRepository: any InterestConcertRepository
 
     private var baseConcertList: [Concert]
     private var selectedConcertByID: [Int: Concert]
@@ -111,7 +110,16 @@ final class InterestConcertSettingStore: ObservableObject {
 
     // MARK: - Initializer
 
-    init(mode: InterestConcertSettingMode) {
+    init(
+        mode: InterestConcertSettingMode,
+        concertCatalogRepository: any ConcertCatalogRepository,
+        searchRepository: any SearchRepository,
+        interestConcertRepository: any InterestConcertRepository
+    ) {
+        self.concertCatalogRepository = concertCatalogRepository
+        self.searchRepository = searchRepository
+        self.interestConcertRepository = interestConcertRepository
+
         self.baseConcertList = []
         self.selectedConcertByID = [:]
         self.basePosition = nil

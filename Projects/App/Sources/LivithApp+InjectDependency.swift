@@ -45,6 +45,8 @@ struct AppComposition {
         )
         return AppRootView(
             concertRequestRepository: container.resolve(ConcertRequestRepository.self),
+            concertCatalogRepository: container.resolve(ConcertCatalogRepository.self),
+            searchRepository: container.resolve(SearchRepository.self),
             interestConcertRepository: container.resolve(InterestConcertRepository.self)
         )
     }

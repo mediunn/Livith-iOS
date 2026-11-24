@@ -25,9 +25,19 @@ struct InterestConcertSettingView: View {
 
     // MARK: - Initializer
 
-    init(mode: InterestConcertSettingMode) {
+    init(
+        mode: InterestConcertSettingMode,
+        concertCatalogRepository: any ConcertCatalogRepository,
+        searchRepository: any SearchRepository,
+        interestConcertRepository: any InterestConcertRepository
+    ) {
         _store = StateObject(
-            wrappedValue: InterestConcertSettingStore(mode: mode)
+            wrappedValue: InterestConcertSettingStore(
+                mode: mode,
+                concertCatalogRepository: concertCatalogRepository,
+                searchRepository: searchRepository,
+                interestConcertRepository: interestConcertRepository
+            )
         )
     }
 
@@ -320,16 +330,59 @@ private extension InterestConcertSettingView {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview("Initial Setup") {
-    InterestConcertSettingView(
-        mode: .initialSetup
+    let preview = SettingPreviewRepository()
+    return InterestConcertSettingView(
+        mode: .initialSetup,
+        concertCatalogRepository: preview,
+        searchRepository: preview,
+        interestConcertRepository: preview
     )
+    .environmentObject(HomeRouter())
     .background(Color.livithColor(.black100))
 }
 
 #Preview("Update") {
-    InterestConcertSettingView(
-        mode: .update
+    let preview = SettingPreviewRepository()
+    return InterestConcertSettingView(
+        mode: .update,
+        concertCatalogRepository: preview,
+        searchRepository: preview,
+        interestConcertRepository: preview
     )
+    .environmentObject(HomeRouter())
     .background(Color.livithColor(.black100))
 }
+
+private struct SettingPreviewRepository: ConcertCatalogRepository, SearchRepository, InterestConcertRepository {
+    func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert] { [] }
+
+    func fetchAllConcertList(after position: (any PagePosition)?, size: Int) async throws(ConcertError) -> ListResult<Concert> { ListResult(items: [], position: nil) }
+
+    func fetchSearchConcertSectionList() async throws(ConcertError) -> [ConcertSection] { [] }
+
+    func fetchBanners() async throws(SearchError) -> [Banner] { [] }
+
+    func fetchFilterSearchResult(
+        genre: [ConcertGenre],
+        sort: SearchSort?,
+        status: [ConcertStatus],
+        keyword: String?,
+        after position: (any PagePosition)?,
+        size: Int?
+    ) async throws(SearchError) -> ListResult<Concert> { ListResult(items: [], position: nil) }
+
+    func fetchRecommendedSearchResult(keyword: String) async throws(SearchError) -> [String] { [] }
+
+    func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> { ListResult(items: [], position: nil) }
+
+    func checkInterestedConcert(id: Int) async throws(UserError) -> Bool { false }
+
+    func updateInterestedConcert(_ concertID: Int) async throws(UserError) -> Concert { throw .serverError }
+
+    func updateInterestedConcertList(_ concertIDList: [Int]) async throws(UserError) -> [Concert] { [] }
+
+    func deleteInterestedConcert() async throws(UserError) {}
+}
+#endif
