@@ -1,5 +1,5 @@
 //
-//  InterestConcertSettingStoreTests.swift
+//  InterestConcertSettingViewModelTests.swift
 //  HomeFeatureTests
 //
 //  Created by 김진웅 on 5/1/26.
@@ -14,7 +14,7 @@ import Testing
 import Domain
 
 @MainActor
-struct InterestConcertSettingStoreTests {
+struct InterestConcertSettingViewModelTests {
 
     // MARK: - Properties
 
@@ -22,8 +22,8 @@ struct InterestConcertSettingStoreTests {
     let userRepository = MockUserRepository()
     let searchRepository = MockSearchRepository()
 
-    private func makeStore(mode: InterestConcertSettingMode) -> InterestConcertSettingStore {
-        InterestConcertSettingStore(
+    private func makeViewModel(mode: InterestConcertSettingMode) -> InterestConcertSettingViewModel {
+        InterestConcertSettingViewModel(
             mode: mode,
             concertCatalogRepository: concertRepository,
             searchRepository: searchRepository,
@@ -33,16 +33,16 @@ struct InterestConcertSettingStoreTests {
 
     // MARK: - Tests
 
-    @Test("초기화 시 콘서트 첫 페이지를 조회하고 목록을 설정해야 한다")
-    func 초기화_시_콘서트_첫_페이지를_조회하고_목록을_설정해야_한다() async throws {
+    @Test("첫 진입 시 콘서트 첫 페이지를 조회하고 목록을 설정해야 한다")
+    func 첫_진입_시_콘서트_첫_페이지를_조회하고_목록을_설정해야_한다() async throws {
         // Given
         concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), position: TestPosition()))
         ]
 
         // When
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // Then
         #expect(concertRepository.fetchAllConcertListCallCount == 1)
@@ -52,9 +52,9 @@ struct InterestConcertSettingStoreTests {
             Issue.record("첫 페이지 조회는 position 없이 호출해야 한다")
         }
         #expect(concertRepository.fetchAllConcertListSizeList.first == 12)
-        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
-        #expect(sut.state.hasMoreConcertList)
-        #expect(!sut.state.isInitialLoading)
+        #expect(sut.displayedConcertList.map(\.id) == [1, 2])
+        #expect(sut.hasMoreConcertList)
+        #expect(!sut.isInitialLoading)
     }
 
     @Test("다음 페이지 조회 시 position을 그대로 넘기고 목록 뒤에 추가해야 한다")
@@ -65,19 +65,18 @@ struct InterestConcertSettingStoreTests {
             .success(ListResult(items: makeConcertList([1, 2]), position: position)),
             .success(ListResult(items: makeConcertList([3]), position: nil))
         ]
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.loadNextPage)
-        try await waitForAsyncTask()
+        await sut.loadNextPage()
 
         // Then
         #expect(concertRepository.fetchAllConcertListCallCount == 2)
         #expect(concertRepository.fetchAllConcertListPositionList.dropFirst().first != nil)
-        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2, 3])
-        #expect(!sut.state.hasMoreConcertList)
-        #expect(!sut.state.isLoadingMore)
+        #expect(sut.displayedConcertList.map(\.id) == [1, 2, 3])
+        #expect(!sut.hasMoreConcertList)
+        #expect(!sut.isLoadingMore)
     }
 
     @Test("update 모드는 저장된 관심 콘서트를 조회해 초기 선택값으로 사용해야 한다")
@@ -91,18 +90,17 @@ struct InterestConcertSettingStoreTests {
         ]
 
         // When
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .update)
+        await sut.loadIfNeeded()
 
         // Then
         #expect(userRepository.fetchInterestedConcertListCallCount == 1)
         #expect(userRepository.fetchInterestedConcertListFilter?.sort == nil)
         #expect(userRepository.fetchInterestedConcertListFilter?.limit == 50)
         #expect(userRepository.fetchInterestedConcertListFilter?.position == nil)
-        #expect(sut.state.selectedConcertIDList == [2, 4])
-        #expect(sut.state.selectedConcertList.map(\.id) == [2, 4])
-        #expect(!sut.state.isCTAEnabled)
-        #expect(!sut.state.hasUnsavedChanges)
+        #expect(sut.selectedConcertIDList == [2, 4])
+        #expect(sut.selectedConcertList.map(\.id) == [2, 4])
+        #expect(!sut.hasUnsavedChanges)
     }
 
     @Test("update 모드는 저장된 관심 콘서트 목록을 이어 조회할 위치가 없을 때까지 조회해 초기 선택값으로 사용해야 한다")
@@ -118,8 +116,8 @@ struct InterestConcertSettingStoreTests {
         ]
 
         // When
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .update)
+        await sut.loadIfNeeded()
 
         // Then
         #expect(userRepository.fetchInterestedConcertListCallCount == 2)
@@ -128,11 +126,10 @@ struct InterestConcertSettingStoreTests {
         #expect(filterList.map(\.limit) == [50, 50])
         #expect(filterList.first?.position == nil)
         #expect(filterList.dropFirst().first?.position as? InitialSelectionPosition == position)
-        #expect(sut.state.selectedConcertIDList == [2, 4, 5])
-        #expect(sut.state.selectedConcertList.map(\.id) == [2, 4, 5])
-        #expect(!sut.state.isInitialLoading)
-        #expect(!sut.state.isCTAEnabled)
-        #expect(!sut.state.hasUnsavedChanges)
+        #expect(sut.selectedConcertIDList == [2, 4, 5])
+        #expect(sut.selectedConcertList.map(\.id) == [2, 4, 5])
+        #expect(!sut.isInitialLoading)
+        #expect(!sut.hasUnsavedChanges)
     }
 
     @Test("update 모드는 관심 콘서트 전체 조회가 끝날 때까지 초기 로딩 상태를 유지해야 한다")
@@ -147,18 +144,19 @@ struct InterestConcertSettingStoreTests {
         ]
 
         // When
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .update)
+        let load = Task { await sut.loadIfNeeded() }
+        await Task.yield()
 
         // Then
-        #expect(sut.state.isInitialLoading)
+        #expect(sut.isInitialLoading)
 
         // When
-        try await Task.sleep(nanoseconds: 300_000_000)
+        await load.value
 
         // Then
-        #expect(!sut.state.isInitialLoading)
-        #expect(sut.state.selectedConcertIDList == [2])
+        #expect(!sut.isInitialLoading)
+        #expect(sut.selectedConcertIDList == [2])
     }
 
     @Test("update 모드는 초기 로딩 중 선택 변경과 제출을 무시해야 한다")
@@ -171,20 +169,21 @@ struct InterestConcertSettingStoreTests {
         userRepository.interestConcertListResultQueue = [
             .success(ListResult(items: makeInterestConcertList([2]), position: nil))
         ]
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .update)
+        let load = Task { await sut.loadIfNeeded() }
+        await Task.yield()
 
         // When
-        sut.send(.toggleConcertSelection(1))
-        sut.send(.submit)
+        sut.toggleConcertSelection(1)
+        await sut.submit()
 
         // Then
-        #expect(sut.state.selectedConcertIDList.isEmpty)
-        #expect(!sut.state.isCTAEnabled)
+        #expect(sut.selectedConcertIDList.isEmpty)
+        #expect(!sut.hasUnsavedChanges)
         #expect(userRepository.updateInterestedConcertListCallCount == 0)
 
         // Cleanup
-        try await Task.sleep(nanoseconds: 300_000_000)
+        await load.value
     }
 
     @Test("update 모드는 관심 콘서트 다음 페이지 조회 실패 시 부분 선택값을 반영하지 않아야 한다")
@@ -199,15 +198,15 @@ struct InterestConcertSettingStoreTests {
         ]
 
         // When
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .update)
+        await sut.loadIfNeeded()
 
         // Then
         #expect(userRepository.fetchInterestedConcertListCallCount == 2)
-        #expect(sut.state.selectedConcertIDList.isEmpty)
-        #expect(sut.state.selectedConcertList.isEmpty)
-        #expect(!sut.state.isInitialLoading)
-        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(sut.selectedConcertIDList.isEmpty)
+        #expect(sut.selectedConcertList.isEmpty)
+        #expect(!sut.isInitialLoading)
+        #expect(!sut.errorMessage.isEmpty)
     }
 
     @Test("initialSetup 모드는 선택 변경에 따라 CTA 활성화 상태를 갱신해야 한다")
@@ -216,28 +215,26 @@ struct InterestConcertSettingStoreTests {
         concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
-        #expect(!sut.state.hasUnsavedChanges)
-
-        // When
-        sut.send(.toggleConcertSelection(1))
-
-        // Then
-        #expect(sut.state.selectedConcertIDList == [1])
-        #expect(sut.state.selectedConcertList.map(\.id) == [1])
-        #expect(sut.state.isCTAEnabled)
-        #expect(sut.state.hasUnsavedChanges)
+        #expect(!sut.hasUnsavedChanges)
 
         // When
-        sut.send(.toggleConcertSelection(1))
+        sut.toggleConcertSelection(1)
 
         // Then
-        #expect(sut.state.selectedConcertIDList.isEmpty)
-        #expect(sut.state.selectedConcertList.isEmpty)
-        #expect(!sut.state.isCTAEnabled)
-        #expect(!sut.state.hasUnsavedChanges)
+        #expect(sut.selectedConcertIDList == [1])
+        #expect(sut.selectedConcertList.map(\.id) == [1])
+        #expect(sut.hasUnsavedChanges)
+
+        // When
+        sut.toggleConcertSelection(1)
+
+        // Then
+        #expect(sut.selectedConcertIDList.isEmpty)
+        #expect(sut.selectedConcertList.isEmpty)
+        #expect(!sut.hasUnsavedChanges)
     }
 
     @Test("update 모드는 초기 선택과 달라질 때만 CTA를 활성화해야 한다")
@@ -249,24 +246,61 @@ struct InterestConcertSettingStoreTests {
         userRepository.interestConcertListResultQueue = [
             .success(ListResult(items: makeInterestConcertList([1, 2]), position: nil))
         ]
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .update)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.toggleConcertSelection(2))
+        sut.toggleConcertSelection(2)
 
         // Then
-        #expect(sut.state.selectedConcertIDList == [1])
-        #expect(sut.state.isCTAEnabled)
-        #expect(sut.state.hasUnsavedChanges)
+        #expect(sut.selectedConcertIDList == [1])
+        #expect(sut.hasUnsavedChanges)
 
         // When
-        sut.send(.toggleConcertSelection(2))
+        sut.toggleConcertSelection(2)
 
         // Then
-        #expect(Set(sut.state.selectedConcertIDList) == Set([1, 2]))
-        #expect(!sut.state.isCTAEnabled)
-        #expect(!sut.state.hasUnsavedChanges)
+        #expect(Set(sut.selectedConcertIDList) == Set([1, 2]))
+        #expect(!sut.hasUnsavedChanges)
+    }
+
+    @Test("공연 요청에서 돌아오면 선택을 유지하고 새 설정 화면은 저장된 선택으로 시작한다")
+    func 화면_재표시와_새_진입의_선택_수명() async {
+        concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1]), position: nil))
+        ]
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
+        sut.toggleConcertSelection(1)
+        await sut.loadIfNeeded()
+        #expect(sut.selectedConcertIDList == [1])
+        #expect(concertRepository.fetchAllConcertListCallCount == 1)
+
+        let reopened = makeViewModel(mode: .initialSetup)
+        await reopened.loadIfNeeded()
+        #expect(reopened.selectedConcertIDList.isEmpty)
+    }
+
+    @Test("검색을 지운 뒤 늦게 도착한 검색 페이지가 기본 목록을 덮지 않는다")
+    func 검색_취소_후_기본_목록_유지() async throws {
+        concertRepository.concertListResultQueue = [
+            .success(ListResult(items: makeConcertList([1]), position: nil))
+        ]
+        searchRepository.searchResultStub = ListResult(items: makeConcertList([2]), position: TestSearchPosition(value: 2))
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
+        sut.updateSearchText("공연")
+        try await waitUntil { sut.displayedConcertList.map(\.id) == [2] }
+
+        searchRepository.fetchFilterSearchResultDelayQueue = [150_000_000]
+        let next = Task { await sut.loadNextPage() }
+        try await waitUntil { searchRepository.fetchFilterSearchResultCallCount == 2 }
+        sut.clearSearchText()
+        await next.value
+
+        #expect(sut.displayedConcertList.map(\.id) == [1])
+        #expect(!sut.isLoadingMore)
+        #expect(!sut.hasMoreConcertList)
     }
 
     @Test("검색어 입력은 원문을 저장하고 초기화는 기본 목록과 포커스 상태를 갱신해야 한다")
@@ -275,22 +309,22 @@ struct InterestConcertSettingStoreTests {
         concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.updateSearchText("  freedom  "))
+        sut.updateSearchText("  freedom  ")
 
         // Then
-        #expect(sut.state.searchText == "  freedom  ")
+        #expect(sut.searchText == "  freedom  ")
 
         // When
-        sut.send(.clearSearchText)
+        sut.clearSearchText()
 
         // Then
-        #expect(sut.state.searchText.isEmpty)
-        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
-        #expect(sut.state.isSearchFocused)
+        #expect(sut.searchText.isEmpty)
+        #expect(sut.displayedConcertList.map(\.id) == [1, 2])
+        #expect(sut.isSearchFocused)
     }
 
     @Test("검색어 입력 후 debounce 전에는 검색 API를 호출하지 않아야 한다")
@@ -303,19 +337,19 @@ struct InterestConcertSettingStoreTests {
             items: makeConcertList([3]),
             position: nil
         )
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.updateSearchText("  freedom  "))
+        sut.updateSearchText("  freedom  ")
         try await waitForAsyncTask()
 
         // Then
         #expect(searchRepository.fetchFilterSearchResultCallCount == 0)
-        #expect(sut.state.searchText == "  freedom  ")
+        #expect(sut.searchText == "  freedom  ")
 
         // Cleanup
-        sut.send(.clearSearchText)
+        sut.clearSearchText()
     }
 
     @Test("검색어 입력 후 debounce가 지나면 고정 status로 검색 API를 호출하고 결과를 표시해야 한다")
@@ -328,12 +362,12 @@ struct InterestConcertSettingStoreTests {
             items: makeConcertList([3]),
             position: TestSearchPosition(value: 3)
         )
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.updateSearchText("  freedom  "))
-        try await waitForDebounceTask()
+        sut.updateSearchText("  freedom  ")
+        try await waitUntil { searchRepository.fetchFilterSearchResultCallCount == 1 && !sut.isSearchLoading }
 
         // Then
         #expect(searchRepository.fetchFilterSearchResultCallCount == 1)
@@ -351,7 +385,7 @@ struct InterestConcertSettingStoreTests {
             Issue.record("검색 첫 요청은 조회 위치 없이 호출해야 한다")
         }
         #expect(searchRepository.fetchFilterSearchResultSizeList.first == 12)
-        #expect(sut.state.displayedConcertList.map(\.id) == [3])
+        #expect(sut.displayedConcertList.map(\.id) == [3])
     }
 
     @Test("검색 첫 요청 중에는 로딩 상태를 표시해야 한다")
@@ -365,22 +399,22 @@ struct InterestConcertSettingStoreTests {
             items: makeConcertList([3]),
             position: nil
         )
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.updateSearchText("freedom"))
-        try await waitForDebounceTask()
+        sut.updateSearchText("freedom")
+        try await waitUntil { sut.isSearchLoading }
 
         // Then
-        #expect(sut.state.isSearchLoading)
+        #expect(sut.isSearchLoading)
 
         // When
-        try await waitForDebounceTask()
+        try await waitUntil { !sut.isSearchLoading }
 
         // Then
-        #expect(!sut.state.isSearchLoading)
-        #expect(sut.state.displayedConcertList.map(\.id) == [3])
+        #expect(!sut.isSearchLoading)
+        #expect(sut.displayedConcertList.map(\.id) == [3])
     }
 
     @Test("검색 실패 시 표시 목록을 비우고 errorMessage를 설정해야 한다")
@@ -392,18 +426,18 @@ struct InterestConcertSettingStoreTests {
         searchRepository.searchResultQueue = [
             .failure(.serverError)
         ]
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.updateSearchText("freedom"))
-        try await waitForDebounceTask()
+        sut.updateSearchText("freedom")
+        try await waitUntil { !sut.errorMessage.isEmpty }
 
         // Then
-        #expect(sut.state.displayedConcertList.isEmpty)
-        #expect(!sut.state.hasMoreConcertList)
-        #expect(!sut.state.isSearchLoading)
-        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(sut.displayedConcertList.isEmpty)
+        #expect(!sut.hasMoreConcertList)
+        #expect(!sut.isSearchLoading)
+        #expect(!sut.errorMessage.isEmpty)
     }
 
     @Test("검색 다음 페이지 조회 시 이어 조회할 위치를 넘기고 목록 뒤에 추가해야 한다")
@@ -416,22 +450,21 @@ struct InterestConcertSettingStoreTests {
             .success(ListResult(items: makeConcertList([3]), position: TestSearchPosition(value: 3))),
             .success(ListResult(items: makeConcertList([4]), position: nil))
         ]
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
-        sut.send(.updateSearchText("freedom"))
-        try await waitForDebounceTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
+        sut.updateSearchText("freedom")
+        try await waitUntil { sut.displayedConcertList.map(\.id) == [3] }
 
         // When
-        sut.send(.loadNextPage)
-        try await waitForAsyncTask()
+        await sut.loadNextPage()
 
         // Then
         #expect(concertRepository.fetchAllConcertListCallCount == 1)
         #expect(searchRepository.fetchFilterSearchResultCallCount == 2)
         #expect(searchRepository.fetchFilterSearchResultPositionValueList == [nil, 3])
-        #expect(sut.state.displayedConcertList.map(\.id) == [3, 4])
-        #expect(!sut.state.hasMoreConcertList)
-        #expect(!sut.state.isLoadingMore)
+        #expect(sut.displayedConcertList.map(\.id) == [3, 4])
+        #expect(!sut.hasMoreConcertList)
+        #expect(!sut.isLoadingMore)
     }
 
     @Test("검색어를 비우면 검색 API를 추가 호출하지 않고 기본 목록으로 복귀해야 한다")
@@ -444,20 +477,19 @@ struct InterestConcertSettingStoreTests {
             items: makeConcertList([3]),
             position: nil
         )
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
-        sut.send(.updateSearchText("freedom"))
-        try await waitForDebounceTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
+        sut.updateSearchText("freedom")
+        try await waitUntil { sut.displayedConcertList.map(\.id) == [3] }
 
         // When
-        sut.send(.clearSearchText)
-        try await waitForAsyncTask()
+        sut.clearSearchText()
 
         // Then
         #expect(searchRepository.fetchFilterSearchResultCallCount == 1)
-        #expect(sut.state.searchText.isEmpty)
-        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
-        #expect(sut.state.isSearchFocused)
+        #expect(sut.searchText.isEmpty)
+        #expect(sut.displayedConcertList.map(\.id) == [1, 2])
+        #expect(sut.isSearchFocused)
     }
 
     @Test("첫 페이지 조회 실패 시 목록을 비우고 errorMessage를 설정해야 한다")
@@ -468,14 +500,14 @@ struct InterestConcertSettingStoreTests {
         ]
 
         // When
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // Then
-        #expect(sut.state.displayedConcertList.isEmpty)
-        #expect(!sut.state.hasMoreConcertList)
-        #expect(!sut.state.isInitialLoading)
-        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(sut.displayedConcertList.isEmpty)
+        #expect(!sut.hasMoreConcertList)
+        #expect(!sut.isInitialLoading)
+        #expect(!sut.errorMessage.isEmpty)
     }
 
     @Test("다음 페이지 조회 실패 시 기존 목록을 유지하고 로딩을 종료해야 한다")
@@ -485,17 +517,16 @@ struct InterestConcertSettingStoreTests {
             .success(ListResult(items: makeConcertList([1, 2]), position: TestPosition())),
             .failure(.serverError)
         ]
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.loadNextPage)
-        try await waitForAsyncTask()
+        await sut.loadNextPage()
 
         // Then
-        #expect(sut.state.displayedConcertList.map(\.id) == [1, 2])
-        #expect(!sut.state.isLoadingMore)
-        #expect(!sut.state.errorMessage.isEmpty)
+        #expect(sut.displayedConcertList.map(\.id) == [1, 2])
+        #expect(!sut.isLoadingMore)
+        #expect(!sut.errorMessage.isEmpty)
     }
 
     @Test("설정 제출 성공 시 선택한 콘서트 ID 목록으로 API를 호출하고 설정 성공 문구를 설정해야 한다")
@@ -505,21 +536,20 @@ struct InterestConcertSettingStoreTests {
             .success(ListResult(items: makeConcertList([1, 2]), position: nil))
         ]
         userRepository.updatedConcertListStub = makeConcertList([1, 2])
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
-        sut.send(.toggleConcertSelection(1))
-        sut.send(.toggleConcertSelection(2))
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
+        sut.toggleConcertSelection(1)
+        sut.toggleConcertSelection(2)
 
         // When
-        sut.send(.submit)
-        try await waitForAsyncTask()
+        await sut.submit()
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
         #expect(userRepository.updateInterestedConcertIDList == [1, 2])
-        #expect(sut.state.successMessage == "소식을 받을 공연이 설정되었어요")
-        #expect(!sut.state.isSubmitting)
-        #expect(!sut.state.hasUnsavedChanges)
+        #expect(sut.successMessage == "소식을 받을 공연이 설정되었어요")
+        #expect(!sut.isSubmitting)
+        #expect(!sut.hasUnsavedChanges)
     }
 
     @Test("변경 제출 성공 시 선택한 콘서트 ID 목록으로 API를 호출하고 변경 성공 문구를 설정해야 한다")
@@ -532,20 +562,19 @@ struct InterestConcertSettingStoreTests {
             .success(ListResult(items: makeInterestConcertList([1]), position: nil))
         ]
         userRepository.updatedConcertListStub = makeConcertList([1, 2])
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
-        sut.send(.toggleConcertSelection(2))
+        let sut = makeViewModel(mode: .update)
+        await sut.loadIfNeeded()
+        sut.toggleConcertSelection(2)
 
         // When
-        sut.send(.submit)
-        try await waitForAsyncTask()
+        await sut.submit()
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
         #expect(userRepository.updateInterestedConcertIDList == [1, 2])
-        #expect(sut.state.successMessage == "소식을 받을 공연이 변경되었어요")
-        #expect(!sut.state.isSubmitting)
-        #expect(!sut.state.hasUnsavedChanges)
+        #expect(sut.successMessage == "소식을 받을 공연이 변경되었어요")
+        #expect(!sut.isSubmitting)
+        #expect(!sut.hasUnsavedChanges)
     }
 
     @Test("CTA 비활성 상태에서 제출하면 관심 콘서트 설정 API를 호출하지 않아야 한다")
@@ -554,15 +583,15 @@ struct InterestConcertSettingStoreTests {
         concertRepository.concertListResultQueue = [
             .success(ListResult(items: makeConcertList([1]), position: nil))
         ]
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
 
         // When
-        sut.send(.submit)
+        await sut.submit()
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 0)
-        #expect(!sut.state.isSubmitting)
+        #expect(!sut.isSubmitting)
     }
 
     @Test("설정 제출 실패 시 설정 실패 문구를 설정하고 제출 로딩을 종료해야 한다")
@@ -572,18 +601,17 @@ struct InterestConcertSettingStoreTests {
             .success(ListResult(items: makeConcertList([1]), position: nil))
         ]
         userRepository.errorStub = .serverError
-        let sut = makeStore(mode: .initialSetup)
-        try await waitForAsyncTask()
-        sut.send(.toggleConcertSelection(1))
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
+        sut.toggleConcertSelection(1)
 
         // When
-        sut.send(.submit)
-        try await waitForAsyncTask()
+        await sut.submit()
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
-        #expect(sut.state.errorMessage == "소식을 받을 공연 추가에 실패했어요")
-        #expect(!sut.state.isSubmitting)
+        #expect(sut.errorMessage == "소식을 받을 공연 추가에 실패했어요")
+        #expect(!sut.isSubmitting)
     }
 
     @Test("변경 제출 실패 시 변경 실패 문구를 설정하고 제출 로딩을 종료해야 한다")
@@ -595,25 +623,24 @@ struct InterestConcertSettingStoreTests {
         userRepository.interestConcertListResultQueue = [
             .success(ListResult(items: makeInterestConcertList([1]), position: nil))
         ]
-        let sut = makeStore(mode: .update)
-        try await waitForAsyncTask()
+        let sut = makeViewModel(mode: .update)
+        await sut.loadIfNeeded()
         userRepository.errorStub = .serverError
-        sut.send(.toggleConcertSelection(2))
+        sut.toggleConcertSelection(2)
 
         // When
-        sut.send(.submit)
-        try await waitForAsyncTask()
+        await sut.submit()
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
-        #expect(sut.state.errorMessage == "소식을 받을 공연 변경에 실패했어요")
-        #expect(!sut.state.isSubmitting)
+        #expect(sut.errorMessage == "소식을 받을 공연 변경에 실패했어요")
+        #expect(!sut.isSubmitting)
     }
 }
 
 // MARK: - Helpers
 
-private extension InterestConcertSettingStoreTests {
+private extension InterestConcertSettingViewModelTests {
     func makeConcertList(_ idList: [Int]) -> [Concert] {
         idList.map(makeConcert)
     }
@@ -649,8 +676,12 @@ private extension InterestConcertSettingStoreTests {
         try await Task.sleep(nanoseconds: 100_000_000)
     }
 
-    func waitForDebounceTask() async throws {
-        try await Task.sleep(nanoseconds: 450_000_000)
+    func waitUntil(_ condition: () -> Bool) async throws {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while !condition(), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        try #require(condition())
     }
 }
 

@@ -17,7 +17,7 @@ struct InterestConcertSettingView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @StateObject private var store: InterestConcertSettingStore
+    @State private var viewModel: InterestConcertSettingViewModel
     @State private var showErrorToast: Bool = false
     @State private var showSuccessToast: Bool = false
     @State private var isDiscardChangesModalPresented: Bool = false
@@ -31,8 +31,8 @@ struct InterestConcertSettingView: View {
         searchRepository: any SearchRepository,
         interestConcertRepository: any InterestConcertRepository
     ) {
-        _store = StateObject(
-            wrappedValue: InterestConcertSettingStore(
+        _viewModel = State(
+            initialValue: InterestConcertSettingViewModel(
                 mode: mode,
                 concertCatalogRepository: concertCatalogRepository,
                 searchRepository: searchRepository,
@@ -59,24 +59,25 @@ struct InterestConcertSettingView: View {
         .background(Color.livithColor(.black100))
         .ignoresSafeArea(.keyboard)
         .navigationBarHidden(true)
+        .onAppear { Task { await viewModel.loadIfNeeded() } }
         .simultaneousGesture(TapGesture().onEnded { _ in
-            store.send(.setSearchFocused(false))
+            viewModel.isSearchFocused = false
         })
         .livithToast(
             isPresented: Binding(
-                get: { showErrorToast && !store.state.errorMessage.isEmpty },
-                set: { if !$0 { showErrorToast = false; store.send(.clearErrorMessage) } }
+                get: { showErrorToast && !viewModel.errorMessage.isEmpty },
+                set: { if !$0 { showErrorToast = false; viewModel.errorMessage = "" } }
             ),
             type: .failure,
-            message: store.state.errorMessage
+            message: viewModel.errorMessage
         )
         .livithToast(
             isPresented: Binding(
-                get: { showSuccessToast && !store.state.successMessage.isEmpty },
-                set: { if !$0 { showSuccessToast = false; store.send(.clearSuccessMessage) } }
+                get: { showSuccessToast && !viewModel.successMessage.isEmpty },
+                set: { if !$0 { showSuccessToast = false; viewModel.successMessage = "" } }
             ),
             type: .success,
-            message: store.state.successMessage
+            message: viewModel.successMessage
         )
         .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
             LivithDangerModal(
@@ -94,12 +95,12 @@ struct InterestConcertSettingView: View {
             .padding(.horizontal, 24)
             .livithModalLayout()
         }
-        .onChange(of: store.state.errorMessage) { _, errorMessage in
+        .onChange(of: viewModel.errorMessage) { _, errorMessage in
             if !errorMessage.isEmpty {
                 showErrorToast = true
             }
         }
-        .onChange(of: store.state.successMessage) { _, successMessage in
+        .onChange(of: viewModel.successMessage) { _, successMessage in
             if !successMessage.isEmpty {
                 showSuccessToast = true
                 Task { @MainActor in
@@ -116,49 +117,49 @@ struct InterestConcertSettingView: View {
 private extension InterestConcertSettingView {
     var topSection: some View {
         VStack(spacing: .zero) {
-            if !store.state.isSearchFocused {
+            if !viewModel.isSearchFocused {
                 guideSection
             }
 
             searchTextField
-                .padding(.top, store.state.isSearchFocused ? 12 : Constants.guideToSearchSpacing)
+                .padding(.top, viewModel.isSearchFocused ? 12 : Constants.guideToSearchSpacing)
         }
     }
 
     var gridSection: some View {
         Group {
-            if store.state.isInitialLoading || store.state.isSearchLoading {
+            if viewModel.isInitialLoading || viewModel.isSearchLoading {
                 loadingView
             } else {
                 InterestConcertSelectionGridView(
-                    concertList: store.state.displayedConcertList,
-                    selectedConcertIDList: store.state.selectedConcertIDList,
-                    isLoadingMore: store.state.isLoadingMore,
-                    onConcertTap: { store.send(.toggleConcertSelection($0)) },
-                    onScroll: { store.send(.setSearchFocused(false)) },
-                    onLoadMore: { store.send(.loadNextPage) }
+                    concertList: viewModel.displayedConcertList,
+                    selectedConcertIDList: viewModel.selectedConcertIDList,
+                    isLoadingMore: viewModel.isLoadingMore,
+                    onConcertTap: { viewModel.toggleConcertSelection($0) },
+                    onScroll: { viewModel.isSearchFocused = false },
+                    onLoadMore: { Task { await viewModel.loadNextPage() } }
                 )
-                .contentMargins(.bottom, store.state.displayedConcertList.isEmpty ? 0 : 210, for: .scrollContent)
+                .contentMargins(.bottom, viewModel.displayedConcertList.isEmpty ? 0 : 210, for: .scrollContent)
             }
         }
         .padding(
             .top,
-            store.state.isInitialLoading || store.state.isSearchLoading ? 12 : 32
+            viewModel.isInitialLoading || viewModel.isSearchLoading ? 12 : 32
         )
     }
 
     var bottomSection: some View {
         InterestConcertSelectionBottomSectionView(
-            selectedConcertList: store.state.selectedConcertList,
-            ctaTitle: store.state.mode.ctaTitle,
-            isCTAEnabled: store.state.isCTAEnabled,
-            isSubmitting: store.state.isSubmitting,
-            onRemoveSelectedConcert: { store.send(.removeSelectedConcert($0)) },
+            selectedConcertList: viewModel.selectedConcertList,
+            ctaTitle: viewModel.mode.ctaTitle,
+            isCTAEnabled: viewModel.hasUnsavedChanges,
+            isSubmitting: viewModel.isSubmitting,
+            onRemoveSelectedConcert: { viewModel.removeSelectedConcert($0) },
             onSubmit: {
-                if store.state.mode == .initialSetup {
+                if viewModel.mode == .initialSetup {
                     AmplitudeService.shared.trackEvent(tag: .confirm(.interestConcert))
                 }
-                store.send(.submit)
+                Task { await viewModel.submit() }
             }
         )
     }
@@ -174,7 +175,7 @@ private extension InterestConcertSettingView {
                     )
             }
 
-            Text(store.state.mode.navigationTitle)
+            Text(viewModel.mode.navigationTitle)
                 .notosans(.body1Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .lineLimit(1)
@@ -248,7 +249,7 @@ private extension InterestConcertSettingView {
             isFocused: searchFocus,
             type: .search,
             placeholder: Literals.searchPlaceholder,
-            onClear: { store.send(.clearSearchText) }
+            onClear: { viewModel.clearSearchText() }
         )
     }
 }
@@ -257,30 +258,30 @@ private extension InterestConcertSettingView {
 
 private extension InterestConcertSettingView {
     var selectedCountText: String {
-        "\(store.state.selectedConcertCount)개 선택"
+        "\(viewModel.selectedConcertIDList.count)개 선택"
     }
 
     var searchText: Binding<String> {
         Binding(
-            get: { store.state.searchText },
-            set: { store.send(.updateSearchText($0)) }
+            get: { viewModel.searchText },
+            set: { viewModel.updateSearchText($0) }
         )
     }
 
     var searchFocus: Binding<Bool> {
         Binding(
-            get: { store.state.isSearchFocused },
-            set: { store.send(.setSearchFocused($0)) }
+            get: { viewModel.isSearchFocused },
+            set: { viewModel.isSearchFocused = $0 }
         )
     }
 
     func handleBackButtonTap() {
-        guard store.state.mode != .initialSetup else {
+        guard viewModel.mode != .initialSetup else {
             homeRouter.pop()
             return
         }
 
-        guard store.state.hasUnsavedChanges else {
+        guard viewModel.hasUnsavedChanges else {
             homeRouter.pop()
             return
         }
