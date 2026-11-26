@@ -26,11 +26,15 @@ public struct HomeCoordinatorView: View {
 
     // MARK: - Property
 
+    @Environment(\.concertCatalogRepository) private var concertCatalogRepository
+    @Environment(\.searchRepository) private var searchRepository
     @Environment(\.interestConcertRepository) private var interestConcertRepository
     @Environment(\.concertRequestRepository) private var concertRequestRepository
     @StateObject private var router: HomeRouter
 
     @State private var showConcertRequestSuccessToast: Bool = false
+    @State private var showInterestSettingSuccessToast = false
+    @State private var savedInterestSettingMode: InterestConcertSettingMode = .initialSetup
 
     @Binding private var deepLinkConcertID: Int?
     @Binding private var deepLinkInitialTab: SegmentedTabBarType.DetailTab
@@ -76,6 +80,11 @@ public struct HomeCoordinatorView: View {
             type: .success,
             message: Literals.concertRequestSuccessToast
         )
+        .livithToast(
+            isPresented: $showInterestSettingSuccessToast,
+            type: .success,
+            message: savedInterestSettingMode.successMessage
+        )
         .onChange(of: deepLinkConcertID) { newValue in
             if let concertID = newValue {
                 router.popToRoot()
@@ -111,7 +120,27 @@ public struct HomeCoordinatorView: View {
         case .home:
             HomeView(sessionNickname: sessionNickname)
         case .interestConcertSetting(let mode):
-            InterestConcertSettingView(mode: mode)
+            if let concertCatalogRepository, let searchRepository, let interestConcertRepository {
+                InterestConcertSettingView(
+                    mode: mode,
+                    concertCatalogRepository: concertCatalogRepository,
+                    searchRepository: searchRepository,
+                    interestConcertRepository: interestConcertRepository,
+                    onSaveSuccess: {
+                        savedInterestSettingMode = mode
+                        router.popToRoot()
+                        showInterestSettingSuccessToast = true
+                    }
+                )
+            } else {
+                ContentUnavailableView {
+                    Label("관심 콘서트 설정을 열 수 없어요", systemImage: "exclamationmark.circle")
+                } description: {
+                    Text("이전 화면으로 돌아가 주세요.")
+                } actions: {
+                    Button("돌아가기") { router.pop() }
+                }
+            }
         case .interestConcertList:
             if let interestConcertRepository {
                 InterestConcertListView(repository: interestConcertRepository)
