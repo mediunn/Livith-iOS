@@ -18,8 +18,8 @@ struct InterestConcertSettingView: View {
 
     @EnvironmentObject private var homeRouter: HomeRouter
     @State private var viewModel: InterestConcertSettingViewModel
-    @State private var showErrorToast: Bool = false
-    @State private var showSuccessToast: Bool = false
+    private let onSaveSuccess: () -> Void
+    @State private var isScreenVisible = false
     @State private var isDiscardChangesModalPresented: Bool = false
     @State private var hasOpenedConcertRequest: Bool = false
 
@@ -29,8 +29,10 @@ struct InterestConcertSettingView: View {
         mode: InterestConcertSettingMode,
         concertCatalogRepository: any ConcertCatalogRepository,
         searchRepository: any SearchRepository,
-        interestConcertRepository: any InterestConcertRepository
+        interestConcertRepository: any InterestConcertRepository,
+        onSaveSuccess: @escaping () -> Void
     ) {
+        self.onSaveSuccess = onSaveSuccess
         _viewModel = State(
             initialValue: InterestConcertSettingViewModel(
                 mode: mode,
@@ -59,26 +61,22 @@ struct InterestConcertSettingView: View {
         .background(Color.livithColor(.black100))
         .ignoresSafeArea(.keyboard)
         .navigationBarHidden(true)
-        .onAppear { Task { await viewModel.loadIfNeeded() } }
+        .onAppear {
+            isScreenVisible = true
+            Task { await viewModel.loadIfNeeded() }
+        }
+        .onDisappear { isScreenVisible = false }
         .simultaneousGesture(TapGesture().onEnded { _ in
             viewModel.isSearchFocused = false
         })
         .livithToast(
-            isPresented: Binding(
-                get: { showErrorToast && !viewModel.errorMessage.isEmpty },
-                set: { if !$0 { showErrorToast = false; viewModel.errorMessage = "" } }
-            ),
+            isPresented: $viewModel.isErrorToastPresented,
             type: .failure,
             message: viewModel.errorMessage
         )
-        .livithToast(
-            isPresented: Binding(
-                get: { showSuccessToast && !viewModel.successMessage.isEmpty },
-                set: { if !$0 { showSuccessToast = false; viewModel.successMessage = "" } }
-            ),
-            type: .success,
-            message: viewModel.successMessage
-        )
+        .onChange(of: viewModel.isErrorToastPresented) { _, isPresented in
+            if !isPresented { viewModel.presentPendingErrorIfNeeded() }
+        }
         .crossDissolve(isPresented: $isDiscardChangesModalPresented, dismissOnTapOutside: false) {
             LivithDangerModal(
                 message: "선택된 콘서트가 해제돼요.\n이전 페이지로 돌아가시나요?",
@@ -94,20 +92,6 @@ struct InterestConcertSettingView: View {
             )
             .padding(.horizontal, 24)
             .livithModalLayout()
-        }
-        .onChange(of: viewModel.errorMessage) { _, errorMessage in
-            if !errorMessage.isEmpty {
-                showErrorToast = true
-            }
-        }
-        .onChange(of: viewModel.successMessage) { _, successMessage in
-            if !successMessage.isEmpty {
-                showSuccessToast = true
-                Task { @MainActor in
-                    await Task.yield()
-                    homeRouter.popToRoot()
-                }
-            }
         }
     }
 }
@@ -159,7 +143,11 @@ private extension InterestConcertSettingView {
                 if viewModel.mode == .initialSetup {
                     AmplitudeService.shared.trackEvent(tag: .confirm(.interestConcert))
                 }
-                Task { await viewModel.submit() }
+                Task {
+                    if await viewModel.submit(), isScreenVisible {
+                        onSaveSuccess()
+                    }
+                }
             }
         )
     }
@@ -338,7 +326,8 @@ private extension InterestConcertSettingView {
         mode: .initialSetup,
         concertCatalogRepository: preview,
         searchRepository: preview,
-        interestConcertRepository: preview
+        interestConcertRepository: preview,
+        onSaveSuccess: {}
     )
     .environmentObject(HomeRouter())
     .background(Color.livithColor(.black100))
@@ -350,7 +339,8 @@ private extension InterestConcertSettingView {
         mode: .update,
         concertCatalogRepository: preview,
         searchRepository: preview,
-        interestConcertRepository: preview
+        interestConcertRepository: preview,
+        onSaveSuccess: {}
     )
     .environmentObject(HomeRouter())
     .background(Color.livithColor(.black100))

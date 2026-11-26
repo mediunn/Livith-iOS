@@ -33,6 +33,8 @@ public struct HomeCoordinatorView: View {
     @StateObject private var router: HomeRouter
 
     @State private var showConcertRequestSuccessToast: Bool = false
+    @State private var showInterestSettingSuccessToast = false
+    @State private var savedInterestSettingMode: InterestConcertSettingMode = .initialSetup
 
     @Binding private var deepLinkConcertID: Int?
     @Binding private var deepLinkInitialTab: SegmentedTabBarType.DetailTab
@@ -78,6 +80,11 @@ public struct HomeCoordinatorView: View {
             type: .success,
             message: Literals.concertRequestSuccessToast
         )
+        .livithToast(
+            isPresented: $showInterestSettingSuccessToast,
+            type: .success,
+            message: savedInterestSettingMode.successMessage
+        )
         .onChange(of: deepLinkConcertID) { newValue in
             if let concertID = newValue {
                 router.popToRoot()
@@ -118,7 +125,12 @@ public struct HomeCoordinatorView: View {
                     mode: mode,
                     concertCatalogRepository: concertCatalogRepository,
                     searchRepository: searchRepository,
-                    interestConcertRepository: interestConcertRepository
+                    interestConcertRepository: interestConcertRepository,
+                    onSaveSuccess: {
+                        savedInterestSettingMode = mode
+                        router.popToRoot()
+                        showInterestSettingSuccessToast = true
+                    }
                 )
             } else {
                 ContentUnavailableView {

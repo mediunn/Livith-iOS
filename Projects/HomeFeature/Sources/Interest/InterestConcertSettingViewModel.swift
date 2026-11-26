@@ -40,8 +40,9 @@ enum InterestConcertSettingMode {
 final class InterestConcertSettingViewModel {
     let mode: InterestConcertSettingMode
     var isSearchFocused = false
-    var errorMessage = ""
-    var successMessage = ""
+    private(set) var errorMessage = ""
+    var isErrorToastPresented = false
+    private var pendingErrorMessage: String?
     private(set) var searchText = ""
     private(set) var isInitialLoading = true
     private(set) var isSearchLoading = false
@@ -152,11 +153,14 @@ final class InterestConcertSettingViewModel {
         }
     }
 
-    func submit() async {
-        guard hasUnsavedChanges, !isSubmitting, !isInitialLoading else { return }
+    func presentPendingErrorIfNeeded() {
+        guard !isErrorToastPresented, let pendingErrorMessage else { return }
+        presentError(pendingErrorMessage)
+    }
+
+    func submit() async -> Bool {
+        guard hasUnsavedChanges, !isSubmitting, !isInitialLoading else { return false }
         isSubmitting = true
-        errorMessage = ""
-        successMessage = ""
         defer { isSubmitting = false }
 
         let submittedIDs = selection.concertIDs
@@ -164,15 +168,26 @@ final class InterestConcertSettingViewModel {
             let concerts = try await interestConcertRepository.updateInterestedConcertList(submittedIDs)
             remember(concerts)
             selection.markSaved(concertIDs: submittedIDs)
-            successMessage = mode.successMessage
+            return true
         } catch {
-            errorMessage = mode.failureMessage
+            presentError(mode.failureMessage)
+            return false
         }
     }
 }
 
 private extension InterestConcertSettingViewModel {
     var keyword: String { searchText.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    func presentError(_ message: String) {
+        if isErrorToastPresented {
+            pendingErrorMessage = message
+            return
+        }
+        pendingErrorMessage = nil
+        errorMessage = message
+        isErrorToastPresented = true
+    }
 
     func loadInitialSelection() async {
         guard mode == .update else { return }
@@ -189,7 +204,7 @@ private extension InterestConcertSettingViewModel {
             remember(concerts)
             selection = InterestConcertSelection(concertIDs: concerts.map(\.id))
         } catch {
-            errorMessage = DisplayErrorMessage.message(for: error)
+            presentError(DisplayErrorMessage.message(for: error))
         }
     }
 
@@ -200,7 +215,7 @@ private extension InterestConcertSettingViewModel {
             catalogCursor = page.position
             remember(page.items)
         } catch {
-            errorMessage = DisplayErrorMessage.message(for: error)
+            presentError(DisplayErrorMessage.message(for: error))
         }
     }
 
@@ -228,7 +243,7 @@ private extension InterestConcertSettingViewModel {
             guard !Task.isCancelled, revision == searchRevision else { return }
             searchResultList = []
             searchCursor = nil
-            errorMessage = DisplayErrorMessage.message(for: error)
+            presentError(DisplayErrorMessage.message(for: error))
         }
     }
 
@@ -239,7 +254,7 @@ private extension InterestConcertSettingViewModel {
     }
 }
 
-private extension InterestConcertSettingMode {
+extension InterestConcertSettingMode {
     var successMessage: String {
         switch self {
         case .initialSetup:
@@ -249,7 +264,7 @@ private extension InterestConcertSettingMode {
         }
     }
 
-    var failureMessage: String {
+    fileprivate var failureMessage: String {
         switch self {
         case .initialSetup:
             return "소식을 받을 공연 추가에 실패했어요"

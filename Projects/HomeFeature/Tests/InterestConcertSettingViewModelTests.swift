@@ -175,7 +175,8 @@ struct InterestConcertSettingViewModelTests {
 
         // When
         sut.toggleConcertSelection(1)
-        await sut.submit()
+        let didSave = await sut.submit()
+        #expect(!didSave)
 
         // Then
         #expect(sut.selectedConcertIDList.isEmpty)
@@ -206,6 +207,7 @@ struct InterestConcertSettingViewModelTests {
         #expect(sut.selectedConcertIDList.isEmpty)
         #expect(sut.selectedConcertList.isEmpty)
         #expect(!sut.isInitialLoading)
+        #expect(sut.isErrorToastPresented)
         #expect(!sut.errorMessage.isEmpty)
     }
 
@@ -437,6 +439,7 @@ struct InterestConcertSettingViewModelTests {
         #expect(sut.displayedConcertList.isEmpty)
         #expect(!sut.hasMoreConcertList)
         #expect(!sut.isSearchLoading)
+        #expect(sut.isErrorToastPresented)
         #expect(!sut.errorMessage.isEmpty)
     }
 
@@ -507,6 +510,7 @@ struct InterestConcertSettingViewModelTests {
         #expect(sut.displayedConcertList.isEmpty)
         #expect(!sut.hasMoreConcertList)
         #expect(!sut.isInitialLoading)
+        #expect(sut.isErrorToastPresented)
         #expect(!sut.errorMessage.isEmpty)
     }
 
@@ -526,6 +530,7 @@ struct InterestConcertSettingViewModelTests {
         // Then
         #expect(sut.displayedConcertList.map(\.id) == [1, 2])
         #expect(!sut.isLoadingMore)
+        #expect(sut.isErrorToastPresented)
         #expect(!sut.errorMessage.isEmpty)
     }
 
@@ -542,12 +547,13 @@ struct InterestConcertSettingViewModelTests {
         sut.toggleConcertSelection(2)
 
         // When
-        await sut.submit()
+        let didSave = await sut.submit()
+        #expect(didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
         #expect(userRepository.updateInterestedConcertIDList == [1, 2])
-        #expect(sut.successMessage == "소식을 받을 공연이 설정되었어요")
+        #expect(sut.mode.successMessage == "소식을 받을 공연이 설정되었어요")
         #expect(!sut.isSubmitting)
         #expect(!sut.hasUnsavedChanges)
     }
@@ -567,12 +573,13 @@ struct InterestConcertSettingViewModelTests {
         sut.toggleConcertSelection(2)
 
         // When
-        await sut.submit()
+        let didSave = await sut.submit()
+        #expect(didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
         #expect(userRepository.updateInterestedConcertIDList == [1, 2])
-        #expect(sut.successMessage == "소식을 받을 공연이 변경되었어요")
+        #expect(sut.mode.successMessage == "소식을 받을 공연이 변경되었어요")
         #expect(!sut.isSubmitting)
         #expect(!sut.hasUnsavedChanges)
     }
@@ -587,7 +594,8 @@ struct InterestConcertSettingViewModelTests {
         await sut.loadIfNeeded()
 
         // When
-        await sut.submit()
+        let didSave = await sut.submit()
+        #expect(!didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 0)
@@ -606,12 +614,37 @@ struct InterestConcertSettingViewModelTests {
         sut.toggleConcertSelection(1)
 
         // When
-        await sut.submit()
+        let didSave = await sut.submit()
+        #expect(!didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
         #expect(sut.errorMessage == "소식을 받을 공연 추가에 실패했어요")
         #expect(!sut.isSubmitting)
+    }
+
+    @Test("같은 저장 오류가 연속 발생해도 토스트를 다시 표시한다")
+    func 같은_저장_오류의_반복_표시() async {
+        let sut = makeViewModel(mode: .initialSetup)
+        await sut.loadIfNeeded()
+        sut.toggleConcertSelection(1)
+        userRepository.errorStub = .serverError
+
+        _ = await sut.submit()
+        #expect(sut.isErrorToastPresented)
+        let message = sut.errorMessage
+        _ = await sut.submit()
+
+        sut.isErrorToastPresented = false
+        sut.presentPendingErrorIfNeeded()
+        #expect(sut.isErrorToastPresented)
+        #expect(sut.errorMessage == message)
+        sut.isErrorToastPresented = false
+        sut.presentPendingErrorIfNeeded()
+        #expect(!sut.isErrorToastPresented)
+
+        _ = await sut.submit()
+        #expect(sut.isErrorToastPresented)
     }
 
     @Test("변경 제출 실패 시 변경 실패 문구를 설정하고 제출 로딩을 종료해야 한다")
@@ -629,7 +662,8 @@ struct InterestConcertSettingViewModelTests {
         sut.toggleConcertSelection(2)
 
         // When
-        await sut.submit()
+        let didSave = await sut.submit()
+        #expect(!didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
