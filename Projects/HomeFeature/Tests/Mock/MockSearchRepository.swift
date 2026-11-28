@@ -16,6 +16,7 @@ final class MockSearchRepository: SearchRepository {
     var searchResultStub: ListResult<Concert>?
     var searchResultQueue: [Result<ListResult<Concert>, SearchError>] = []
     var fetchFilterSearchResultDelayQueue: [UInt64] = []
+    var beforeReturningSearchResult: (() async -> Void)?
     var errorStub: SearchError?
 
     var fetchFilterSearchResultCallCount: Int = 0
@@ -56,6 +57,7 @@ final class MockSearchRepository: SearchRepository {
         fetchFilterSearchResultPositionValueList.append((position as? TestSearchPosition)?.value)
         fetchFilterSearchResultSizeList.append(size)
 
+        await beforeReturningSearchResult?()
         if delay > 0 {
             try? await Task.sleep(nanoseconds: delay)
         }

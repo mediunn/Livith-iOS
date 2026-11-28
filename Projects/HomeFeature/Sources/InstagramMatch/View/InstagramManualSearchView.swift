@@ -17,16 +17,30 @@ struct InstagramManualSearchView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var homeRouter: HomeRouter
-    @StateObject private var store: InstagramManualSearchStore
-    @State private var showErrorToast: Bool = false
-    @State private var showSuccessToast: Bool = false
+    @State private var viewModel: InstagramManualSearchViewModel
+    @State private var isSearchFocused = false
+    @State private var isCancelModalPresented = false
+    @State private var registrationTask: Task<Void, Never>?
+
+    private let context: InstagramManualSearchContext
+    private let onRegisterSuccess: () -> Void
 
     // MARK: - Initializer
 
-    init(context: InstagramManualSearchContext) {
-        _store = StateObject(
-            wrappedValue: InstagramManualSearchStore(context: context)
-        )
+    init(
+        context: InstagramManualSearchContext,
+        concertCatalogRepository: any ConcertCatalogRepository,
+        searchRepository: any SearchRepository,
+        interestConcertRepository: any InterestConcertRepository,
+        onRegisterSuccess: @escaping () -> Void
+    ) {
+        self.context = context
+        self.onRegisterSuccess = onRegisterSuccess
+        _viewModel = State(initialValue: InstagramManualSearchViewModel(
+            concertCatalogRepository: concertCatalogRepository,
+            searchRepository: searchRepository,
+            interestConcertRepository: interestConcertRepository
+        ))
     }
 
     // MARK: - Body
@@ -50,52 +64,32 @@ struct InstagramManualSearchView: View {
         .ignoresSafeArea(.keyboard)
         .navigationBarHidden(true)
         .simultaneousGesture(TapGesture().onEnded { _ in
-            store.send(.setSearchFocused(false))
+            isSearchFocused = false
         })
+        .onAppear { Task { await viewModel.loadIfNeeded() } }
+        .task(id: viewModel.searchRevision) { await viewModel.searchIfNeeded() }
+        .onDisappear { registrationTask?.cancel() }
         .livithToast(
-            isPresented: Binding(
-                get: { showErrorToast && !store.state.errorMessage.isEmpty },
-                set: { if !$0 { showErrorToast = false; store.send(.clearErrorMessage) } }
-            ),
+            isPresented: $viewModel.isErrorToastPresented,
             type: .failure,
-            message: store.state.errorMessage
+            message: viewModel.errorMessage
         )
-        .livithToast(
-            isPresented: Binding(
-                get: { showSuccessToast && !store.state.successMessage.isEmpty },
-                set: { if !$0 { showSuccessToast = false; store.send(.clearSuccessMessage) } }
-            ),
-            type: .success,
-            message: store.state.successMessage
-        )
-        .crossDissolve(isPresented: cancelModalPresented, dismissOnTapOutside: false) {
+        .onChange(of: viewModel.isErrorToastPresented) { _, isPresented in
+            if !isPresented { viewModel.presentPendingErrorIfNeeded() }
+        }
+        .crossDissolve(isPresented: $isCancelModalPresented, dismissOnTapOutside: false) {
             LivithDangerModal(
                 message: Literals.cancelModalMessage,
                 confirmTitle: Literals.cancelModalConfirmTitle,
                 cancelTitle: Literals.cancelModalCancelTitle,
-                type: .confirm(onConfirm: { store.send(.confirmCancel) }),
-                onCancel: { store.send(.dismissCancelModal) }
+                type: .confirm(onConfirm: {
+                    isCancelModalPresented = false
+                    homeRouter.popToRoot()
+                }),
+                onCancel: { isCancelModalPresented = false }
             )
             .padding(.horizontal, 24)
             .livithModalLayout()
-        }
-        .onChange(of: store.state.errorMessage) { _, errorMessage in
-            if !errorMessage.isEmpty {
-                showErrorToast = true
-            }
-        }
-        .onChange(of: store.state.successMessage) { _, successMessage in
-            if !successMessage.isEmpty {
-                showSuccessToast = true
-            }
-        }
-        .onChange(of: store.state.shouldNavigateToHome) { _, shouldNavigate in
-            if shouldNavigate {
-                Task { @MainActor in
-                    await Task.yield()
-                    homeRouter.popToRoot()
-                }
-            }
         }
     }
 }
@@ -105,7 +99,7 @@ struct InstagramManualSearchView: View {
 private extension InstagramManualSearchView {
     var navigationBar: some View {
         HStack(spacing: .zero) {
-            if store.state.context == .manualSearch {
+            if context == .manualSearch {
                 Button(action: { homeRouter.pop() }) {
                     Image.livithIcon(.backLineDefault)
                         .resizable()
@@ -155,7 +149,7 @@ private extension InstagramManualSearchView {
 
     var guideSection: some View {
         HStack(alignment: .top, spacing: .zero) {
-            Text(store.state.context.guideTitle)
+            Text(context.guideTitle)
                 .notosans(.body1Semibold)
                 .foregroundStyle(Color.livithColor(.white100))
                 .multilineTextAlignment(.leading)
@@ -167,33 +161,33 @@ private extension InstagramManualSearchView {
 
     var searchTextField: some View {
         LivithTextField(
-            text: searchText,
-            isFocused: searchFocus,
+            text: $viewModel.searchText,
+            isFocused: $isSearchFocused,
             type: .search,
             placeholder: Literals.searchPlaceholder,
-            onClear: { store.send(.clearSearchText) }
+            onClear: { isSearchFocused = true }
         )
     }
 
     var gridSection: some View {
         Group {
-            if store.state.isInitialLoading || store.state.isSearchLoading {
+            if viewModel.isInitialLoading || viewModel.isSearchLoading {
                 loadingView
             } else {
                 InterestConcertSelectionGridView(
-                    concertList: store.state.displayedConcertList,
+                    concertList: viewModel.displayedConcertList,
                     selectedConcertIDList: selectedConcertIDList,
-                    isLoadingMore: store.state.isLoadingMore,
-                    onConcertTap: { store.send(.selectConcert($0)) },
-                    onScroll: { store.send(.setSearchFocused(false)) },
-                    onLoadMore: { store.send(.loadNextPage) }
+                    isLoadingMore: viewModel.isLoadingMore,
+                    onConcertTap: viewModel.toggleConcertSelection,
+                    onScroll: { isSearchFocused = false },
+                    onLoadMore: { Task { await viewModel.loadNextPage() } }
                 )
-                .contentMargins(.bottom, store.state.displayedConcertList.isEmpty ? 0 : 210, for: .scrollContent)
+                .contentMargins(.bottom, viewModel.displayedConcertList.isEmpty ? 0 : 210, for: .scrollContent)
             }
         }
         .padding(
             .top,
-            store.state.isInitialLoading || store.state.isSearchLoading ? 9 : 29
+            viewModel.isInitialLoading || viewModel.isSearchLoading ? 9 : 29
         )
     }
 
@@ -218,7 +212,7 @@ private extension InstagramManualSearchView {
     var bottomSection: some View {
         HStack(spacing: 15) {
             LivithButton(Literals.cancelTitle, variant: .cancel) {
-                store.send(.cancelTapped)
+                isCancelModalPresented = true
             }
 
             LivithButton(
@@ -226,9 +220,15 @@ private extension InstagramManualSearchView {
                 variant: .primary
             ) {
                 AmplitudeService.shared.trackEvent(tag: .click(.igSearchSuccess))
-                store.send(.register)
+                guard registrationTask == nil else { return }
+                registrationTask = Task {
+                    defer { registrationTask = nil }
+                    if await viewModel.register(), !Task.isCancelled {
+                        onRegisterSuccess()
+                    }
+                }
             }
-            .disabled(!store.state.isCTAEnabled)
+            .disabled(!viewModel.canRegister)
         }
         .padding(.horizontal, Constants.horizontalPadding)
         .padding(.bottom, 50)
@@ -270,30 +270,9 @@ private struct TooltipArrowShape: Shape {
 
 private extension InstagramManualSearchView {
     var selectedConcertIDList: [Int] {
-        guard let selectedConcertID = store.state.selectedConcertID else { return [] }
+        guard let selectedConcertID = viewModel.selectedConcertID else { return [] }
 
         return [selectedConcertID]
-    }
-
-    var searchText: Binding<String> {
-        Binding(
-            get: { store.state.searchText },
-            set: { store.send(.updateSearchText($0)) }
-        )
-    }
-
-    var searchFocus: Binding<Bool> {
-        Binding(
-            get: { store.state.isSearchFocused },
-            set: { store.send(.setSearchFocused($0)) }
-        )
-    }
-
-    var cancelModalPresented: Binding<Bool> {
-        Binding(
-            get: { store.state.isCancelModalPresented },
-            set: { if !$0 { store.send(.dismissCancelModal) } }
-        )
     }
 }
 

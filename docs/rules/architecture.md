@@ -29,6 +29,13 @@
 - 비동기 작업은 Store 내부의 `perform*()` 메서드에서 수행한다.
 - 비동기 작업의 결과는 내부 Intent(언더스코어 prefix: `._fetchResult`)로 다시 `send`한다.
 
+### ViewModel 전환 시 상태 소유
+
+ViewModel로 전환하기로 한 기능에는 다음 기준을 적용한다. 기존 Store는 위 MVI 규칙을 따른다. [ADR 0002](../adr/0002-viewmodel-ownership.md)
+
+- 여러 View가 함께 바꾸거나 참조하는 상태는 공통 소유자에 둔다. [#341 수동 공연 검색](https://github.com/mediunn/Livith-iOS/issues/341)의 단일 선택은 목록이 관리하고, 카드는 선택 여부와 탭 콜백을 받는다.
+- 셀이 항목별로 독립적인 상태나 작업을 관리한다면 셀 단위 ViewModel을 둘 수 있다. 셀이 사라져도 유지해야 하는 작업은 그 수명을 보장하는 상위 소유자에 둔다.
+
 ### Repository 패턴
 - Domain 레이어에 Repository 프로토콜을 정의한다.
 - Data 레이어에 `*RepositoryImpl` struct로 구현한다.
