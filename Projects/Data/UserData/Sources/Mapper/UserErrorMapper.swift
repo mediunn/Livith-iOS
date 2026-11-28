@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct UserErrorMapper {
     func mapToUserError(_ error: Error) -> UserError {

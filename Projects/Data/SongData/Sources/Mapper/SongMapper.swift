@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct SongMapper {
     func toDomain(from response: DTO.Response.FetchSongLyrics) -> SongLyrics {

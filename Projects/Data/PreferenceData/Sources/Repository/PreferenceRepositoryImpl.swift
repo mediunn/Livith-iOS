@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct PreferenceRepositoryImpl: PreferenceRepository {
     private let networkClient: NetworkClient

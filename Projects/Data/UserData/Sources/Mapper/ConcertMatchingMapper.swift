@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 import LivithFoundation
-import LivithNetworking
+import LivithNetwork
 
 struct ConcertMatchingMapper {
     func toDomain(from response: DTO.Response.CreateExtractionJob) -> [Concert] {

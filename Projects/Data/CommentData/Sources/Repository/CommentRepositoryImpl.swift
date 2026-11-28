@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct CommentRepositoryImpl: CommentRepository {
     private let networkClient: NetworkClient

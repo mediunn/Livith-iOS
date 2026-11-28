@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct SearchRepositoryImpl: SearchRepository {
     private let networkClient: NetworkClient

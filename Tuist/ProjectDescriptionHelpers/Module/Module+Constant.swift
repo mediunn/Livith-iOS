@@ -14,71 +14,32 @@ public enum CoreModule: String {
     case persistence = "Persistence"
     case livithFoundation = "LivithFoundation"
     case socialAuth = "SocialAuth"
-    case coordinator = "Coordinator"
-    case amplitude = "Amplitude"
+    case routing = "Routing"
+    case analytics = "Analytics"
+    case livithNetwork = "LivithNetwork"
+    case livithNetworkTests = "LivithNetworkTests"
 }
 
-// MARK: - LivithNetworking Module
+// MARK: - Feature Module
 
-public enum LivithNetworkingModule: String {
-    case livithNetworking = "LivithNetworking"
-    case livithNetworkingTests = "LivithNetworkingTests"
-}
-
-// MARK: - Login Module
-
-public enum LoginModule: String {
-    case loginFeature = "LoginFeature"
-}
-
-// MARK: - Search Module
-
-public enum SearchModule: String {
-    case searchFeature = "SearchFeature"
-    case searchFeatureTests = "SearchFeatureTests"
-}
-
-
-// MARK: - User Module
-
-public enum UserModule: String {
-    case userFeature = "UserFeature"
-}
-
-
-// MARK: - Home Module
-
-public enum HomeModule: String {
+public enum FeatureModule: String {
+    case concertFeature = "ConcertFeature"
+    case concertSearch = "ConcertSearch"
+    case concertSearchTests = "ConcertSearchTests"
     case homeFeature = "HomeFeature"
     case homeFeatureTests = "HomeFeatureTests"
-}
-
-
-// MARK: - Concert Module
-
-public enum ConcertModule: String {
-    case concertFeature = "ConcertFeature"
-}
-
-
-// MARK: - Setlist Module
-
-public enum SetlistModule: String {
+    case loginFeature = "LoginFeature"
+    case nicknameEditFeature = "NicknameEditFeature"
+    case nicknameEditFeatureTests = "NicknameEditFeatureTests"
+    case preferenceFeature = "PreferenceFeature"
+    case preferenceFeatureTests = "PreferenceFeatureTests"
+    case searchFeature = "SearchFeature"
+    case searchFeatureTests = "SearchFeatureTests"
     case setlistFeature = "SetlistFeature"
-}
-
-
-// MARK: - Song Module
-
-public enum SongModule: String {
-    case songFeature = "SongFeature"
-}
-
-// MARK: - Share Module
-
-public enum ShareModule: String {
     case shareFeature = "ShareFeature"
     case shareFeatureTests = "ShareFeatureTests"
+    case songFeature = "SongFeature"
+    case userFeature = "UserFeature"
 }
 
 // MARK: - Widget Module
@@ -123,19 +84,8 @@ public enum DataModule: String {
 // MARK: - Shared Module
 
 public enum SharedModule: String {
-    case concertSearch = "ConcertSearch"
-    case concertSearchTests = "ConcertSearchTests"
     case displaySupport = "DisplaySupport"
     case displaySupportTests = "DisplaySupportTests"
-    case nicknameEditFeature = "NicknameEditFeature"
-    case nicknameEditFeatureTests = "NicknameEditFeatureTests"
-    case preferenceFeature = "PreferenceFeature"
-    case preferenceFeatureTests = "PreferenceFeatureTests"
-}
-
-// MARK: - DesignSystem Module
-
-public enum DesignSystemModule: String {
     case designSystem = "LivithDesignSystem"
 }
 

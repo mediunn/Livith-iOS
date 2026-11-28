@@ -8,7 +8,7 @@
 
 import Foundation
 import Domain
-import LivithNetworking
+import LivithNetwork
 import SocialAuth
 import Persistence
 

@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 import LivithFoundation
 
 struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository,

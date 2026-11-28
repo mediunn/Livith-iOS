@@ -10,7 +10,7 @@ module-delete:
 
 # 모듈 삭제 롤백
 module-rollback:
-	@./Scripts/delete_module.sh
+	@./Scripts/delete_module.sh --rollback
 
 # Tuist generate
 generate:

@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct PreferenceErrorMapper {
     func mapToPreferenceError(_ error: Error) -> PreferenceError {

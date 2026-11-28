@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct AuthMapper {
     func toDomain(from response: DTO.Response.CheckNicknameDuplicate) -> Bool {

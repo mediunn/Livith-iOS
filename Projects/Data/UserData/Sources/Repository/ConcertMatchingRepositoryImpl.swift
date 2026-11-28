@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 public struct ConcertMatchingRepositoryImpl: ConcertMatchingRepository {
     private let networkClient: NetworkClient

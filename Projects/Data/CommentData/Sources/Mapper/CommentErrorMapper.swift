@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithNetworking
+import LivithNetwork
 import Domain
 
 struct CommentErrorMapper {
