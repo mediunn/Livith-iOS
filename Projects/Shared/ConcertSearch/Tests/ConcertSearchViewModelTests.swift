@@ -92,6 +92,7 @@ struct ConcertSearchViewModelTests {
         }
         try await repository.waitForRequest()
         #expect(search.isLoadingNextPage)
+        repository.rejectsNewRequests = true
         let duplicate = await search.loadNextPage()
         #expect(duplicate == nil)
         repository.finish(.success(.init(items: [], position: nil)))
@@ -108,6 +109,7 @@ struct ConcertSearchViewModelTests {
 @MainActor
 private final class SearchRepositoryStub: SearchRepository {
     private var pendingResponses: [CheckedContinuation<Result<ListResult<Concert>, SearchError>, Never>] = []
+    var rejectsNewRequests = false
     private(set) var keywordList: [String?] = []
     private(set) var statusListsByRequest: [[ConcertStatus]] = []
     private(set) var requestHasCursor: [Bool] = []
@@ -122,6 +124,10 @@ private final class SearchRepositoryStub: SearchRepository {
         after position: (any PagePosition)?,
         size: Int?
     ) async throws(SearchError) -> ListResult<Concert> {
+        guard !rejectsNewRequests else {
+            Issue.record("진행 중인 페이지 요청 외에 추가 Repository 호출이 발생함")
+            throw .unknown
+        }
         keywordList.append(keyword)
         statusListsByRequest.append(status)
         requestHasCursor.append(position != nil)
