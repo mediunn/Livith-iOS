@@ -49,7 +49,7 @@ public struct SearchCoordinatorView: View {
         case .explore:
             ExploreView()
         case .search:
-            SearchView(store: .init())
+            SearchView(viewModel: .init())
         case .concertDetail(let concertID):
             ConcertCoordinatorView(
                 concertID: concertID,

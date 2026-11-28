@@ -9,6 +9,7 @@
 import Foundation
 import Observation
 
+import ConcertSearch
 import DisplaySupport
 import Domain
 
@@ -45,25 +46,21 @@ final class InterestConcertSettingViewModel {
     private var pendingErrorMessage: String?
     private(set) var searchText = ""
     private(set) var isInitialLoading = true
-    private(set) var isSearchLoading = false
+    var isSearchLoading: Bool { concertSearch.isLoadingFirstPage }
     private(set) var didSave = false
     private var submissionTask: Task<Bool, Never>?
     var isSubmitting: Bool { submissionTask != nil }
 
     private let concertCatalogRepository: any ConcertCatalogRepository
-    private let searchRepository: any SearchRepository
+    private let concertSearch: ConcertSearchViewModel
     private let interestConcertRepository: any InterestConcertRepository
     private var selection = InterestConcertSelection()
     private var concertsByID: [Int: Concert] = [:]
     private var catalogConcertList: [Concert] = []
     private var catalogCursor: (any PagePosition)?
-    private var searchResultList: [Concert]?
-    private var searchCursor: (any PagePosition)?
     private var isLoadingCatalogPage = false
-    private var isLoadingSearchPage = false
     @ObservationIgnored private var didStartLoading = false
-    @ObservationIgnored private var searchRevision = 0
-    @ObservationIgnored private var searchTask: Task<Void, Never>?
+    @ObservationIgnored private var searchDebounceTask: Task<Void, Never>?
 
     init(
         mode: InterestConcertSettingMode,
@@ -73,16 +70,16 @@ final class InterestConcertSettingViewModel {
     ) {
         self.mode = mode
         self.concertCatalogRepository = concertCatalogRepository
-        self.searchRepository = searchRepository
+        self.concertSearch = ConcertSearchViewModel(repository: searchRepository, failurePolicy: .clearResults)
         self.interestConcertRepository = interestConcertRepository
     }
 
     var selectedConcertIDList: [Int] { selection.concertIDs }
     var selectedConcertList: [Concert] { selection.concertIDs.compactMap { concertsByID[$0] } }
     var hasUnsavedChanges: Bool { selection.hasUnsavedChanges }
-    var displayedConcertList: [Concert] { searchResultList ?? catalogConcertList }
-    var hasMoreConcertList: Bool { keyword.isEmpty ? catalogCursor != nil : searchCursor != nil }
-    var isLoadingMore: Bool { keyword.isEmpty ? isLoadingCatalogPage : isLoadingSearchPage }
+    var displayedConcertList: [Concert] { concertSearch.concertList ?? catalogConcertList }
+    var hasMoreConcertList: Bool { keyword.isEmpty ? catalogCursor != nil : concertSearch.hasNextPage }
+    var isLoadingMore: Bool { keyword.isEmpty ? isLoadingCatalogPage : concertSearch.isLoadingNextPage }
 
     func loadIfNeeded() async {
         guard !didStartLoading else { return }
@@ -105,24 +102,21 @@ final class InterestConcertSettingViewModel {
 
     func updateSearchText(_ text: String) {
         searchText = text
-        searchRevision += 1
-        searchTask?.cancel()
-        searchTask = nil
-        searchCursor = nil
-        isSearchLoading = false
-        isLoadingSearchPage = false
+        searchDebounceTask?.cancel()
+        searchDebounceTask = nil
         let query = keyword
         guard !query.isEmpty else {
-            searchResultList = nil
+            concertSearch.reset()
             return
         }
 
-        let revision = searchRevision
-        searchTask = Task { [weak self] in
+        concertSearch.invalidateSearch()
+        searchDebounceTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled, let self else { return }
-            isSearchLoading = true
-            await loadSearchPage(query: query, after: nil, revision: revision)
+            await concertSearch.search(.init(keyword: query, statusList: [.ongoing, .upcoming])) { [weak self] result in
+                self?.applySearchResult(result)
+            }
         }
     }
 
@@ -132,25 +126,15 @@ final class InterestConcertSettingViewModel {
     }
 
     func loadNextPage() async {
-        guard !isInitialLoading, !isSearchLoading, !isLoadingMore else { return }
+        guard !isInitialLoading else { return }
         if keyword.isEmpty {
-            guard let catalogCursor else { return }
+            guard !isLoadingCatalogPage, let catalogCursor else { return }
             isLoadingCatalogPage = true
             await loadCatalogPage(after: catalogCursor)
             isLoadingCatalogPage = false
         } else {
-            guard let searchCursor else { return }
-            isLoadingSearchPage = true
-            let query = keyword
-            let revision = searchRevision
-            let request = Task {
-                await loadSearchPage(query: query, after: searchCursor, revision: revision)
-            }
-            searchTask = request
-            await withTaskCancellationHandler {
-                await request.value
-            } onCancel: {
-                request.cancel()
+            await concertSearch.loadNextPage { [weak self] result in
+                self?.applySearchResult(result)
             }
         }
     }
@@ -228,30 +212,11 @@ private extension InterestConcertSettingViewModel {
         }
     }
 
-    func loadSearchPage(query: String, after cursor: (any PagePosition)?, revision: Int) async {
-        defer {
-            if revision == searchRevision {
-                isSearchLoading = false
-                isLoadingSearchPage = false
-            }
-        }
-        do {
-            let page = try await searchRepository.fetchFilterSearchResult(
-                genre: [], sort: nil, status: [.ongoing, .upcoming],
-                keyword: query, after: cursor, size: 12
-            )
-            guard !Task.isCancelled, revision == searchRevision else { return }
-            if cursor == nil {
-                searchResultList = page.items
-            } else {
-                searchResultList?.append(contentsOf: page.items)
-            }
-            searchCursor = page.position
-            remember(page.items)
-        } catch {
-            guard !Task.isCancelled, revision == searchRevision else { return }
-            searchResultList = []
-            searchCursor = nil
+    func applySearchResult(_ result: Result<[Concert], SearchError>) {
+        switch result {
+        case .success(let concerts):
+            remember(concerts)
+        case .failure(let error):
             presentError(DisplayErrorMessage.message(for: error))
         }
     }

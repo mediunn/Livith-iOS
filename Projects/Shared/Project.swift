@@ -13,6 +13,16 @@ let project = Project.make(
     project: .shared,
     targets: [
         .make(
+            target: .shared(.concertSearch),
+            product: .framework,
+            dependencies: [.domain(.domain)]
+        ),
+        .make(
+            target: .shared(.concertSearchTests),
+            product: .unitTests,
+            dependencies: [.shared(.concertSearch), .domain(.domain)]
+        ),
+        .make(
             target: .shared(.displaySupport),
             product: .framework,
             dependencies: [

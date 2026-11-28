@@ -20,7 +20,7 @@ struct SearchView: View {
     // MARK: - Property
 
     @EnvironmentObject private var searchRouter: SearchRouter
-    @ObservedObject private var store: SearchStore
+    @State private var viewModel: SearchViewModel
 
     @State private var showError: Bool = false
     @State private var showFilter: Bool = false
@@ -28,10 +28,8 @@ struct SearchView: View {
 
     // MARK: - Initializer
 
-    init(store: SearchStore) {
-        self.store = store
-
-        store.send(.viewDidLoad)
+    init(viewModel: SearchViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
 
     // MARK: - Body
@@ -46,7 +44,7 @@ struct SearchView: View {
                     .padding(.bottom, 16)
                     .zIndex(100)
 
-                if store.state.searchedConcertList.isEmpty {
+                if viewModel.concertList.isEmpty {
                     searchEmptyView
                         .padding(.top, 183)
                 } else {
@@ -58,14 +56,15 @@ struct SearchView: View {
                 hideKeyboard()
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: store.state.searchedConcertList.map { $0.id })
+        .onAppear { viewModel.loadIfNeeded() }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.concertList.map { $0.id })
         .background(Color.livithColor(.black100).ignoresSafeArea())
-        .onChange(of: store.state.errorMessage) { _, newValue in
+        .onChange(of: viewModel.errorMessage) { _, newValue in
             showError = !newValue.isEmpty
         }
         .crossDissolve(isPresented: $showError, dismissOnTapOutside: true) {
             LivithModal(
-                type: .error(title: "오류가 발생했어요!", message: store.state.errorMessage),
+                type: .error(title: "오류가 발생했어요!", message: viewModel.errorMessage),
                 onConfirm: { showError = false }
             )
         }
@@ -75,15 +74,15 @@ struct SearchView: View {
         ) {
             FilterBottomSheetView(
                 selectedGenreList: Binding(
-                    get: { store.state.selectedGenreList },
+                    get: { viewModel.selectedGenreList },
                     set: { newGenres in
-                        store.send(.settingButtonTapped(genres: newGenres, status: store.state.selectedStatusList))
+                        viewModel.applyFilters(genreList: newGenres, statusList: viewModel.selectedStatusList)
                     }
                 ),
                 selectedStatusList: Binding(
-                    get: { store.state.selectedStatusList },
+                    get: { viewModel.selectedStatusList },
                     set: { newStatus in
-                        store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: newStatus))
+                        viewModel.applyFilters(genreList: viewModel.selectedGenreList, statusList: newStatus)
                     }
                 ),
                 showFilter: $showFilter
@@ -96,14 +95,14 @@ struct SearchView: View {
 
 private extension SearchView {
     var genreSelectedText: String? {
-        guard !store.state.selectedGenreList.isEmpty else { return nil }
-        let genreNames = store.state.selectedGenreList.map { $0.genreText }
+        guard !viewModel.selectedGenreList.isEmpty else { return nil }
+        let genreNames = viewModel.selectedGenreList.map { $0.genreText }
         return setButtonText(input: genreNames)
     }
 
     var statusSelectedText: String? {
-        guard !store.state.selectedStatusList.isEmpty else { return nil }
-        let statusNames = store.state.selectedStatusList.map { $0.filterText }
+        guard !viewModel.selectedStatusList.isEmpty else { return nil }
+        let statusNames = viewModel.selectedStatusList.map { $0.filterText }
         return setButtonText(input: statusNames)
     }
 
@@ -121,8 +120,8 @@ private extension SearchView {
 
             LivithTextField(
                 text: Binding(
-                    get: { store.state.searchMessage },
-                    set: { store.send(.updateSearchMessage($0)) }
+                    get: { viewModel.searchText },
+                    set: { viewModel.updateSearchText($0) }
                 ),
                 type: .search,
                 placeholder: "찾고 있는 콘서트나 가수를 검색하세요",
@@ -132,9 +131,6 @@ private extension SearchView {
                 },
                 onChange: {
                     if isCompleteKorean() { performSearch() }
-                },
-                onClear: {
-                    store.send(.clearButtonTapped)
                 }
             )
         }
@@ -149,7 +145,7 @@ private extension SearchView {
                 selectedText: genreSelectedText,
                 action: { hideKeyboard(); showFilter = true },
                 onClear: {
-                    store.send(.settingButtonTapped(genres: [], status: store.state.selectedStatusList))
+                    viewModel.applyFilters(genreList: [], statusList: viewModel.selectedStatusList)
                 }
             )
             .padding(.leading, 16)
@@ -159,7 +155,7 @@ private extension SearchView {
                 selectedText: statusSelectedText,
                 action: { hideKeyboard(); showFilter = true },
                 onClear: {
-                    store.send(.settingButtonTapped(genres: store.state.selectedGenreList, status: []))
+                    viewModel.applyFilters(genreList: viewModel.selectedGenreList, statusList: [])
                 }
             )
             .padding(.leading, 8)
@@ -176,7 +172,7 @@ private extension SearchView {
             showSort.toggle()
         } label: {
             HStack(alignment: .center, spacing: 4) {
-                Text(store.state.sortState == .latest ? "최신순" : "가나다순")
+                Text(viewModel.sort == .latest ? "최신순" : "가나다순")
                     .notosans(.caption1Bold)
                     .foregroundStyle(Color.livithColor(.white100))
 
@@ -196,16 +192,16 @@ private extension SearchView {
 
     var sortView: some View {
         VStack(alignment: .center, spacing: 0) {
-            LivithOptionButton("최신순", isSelected: store.state.sortState == .latest) {
+            LivithOptionButton("최신순", isSelected: viewModel.sort == .latest) {
                 AmplitudeService.shared.trackEvent(tag: .click(.sortLatest))
-                store.send(.sortStateChanged(.latest))
+                viewModel.changeSort(to: .latest)
                 showSort = false
             }
             .padding(.bottom, 8)
 
-            LivithOptionButton("가나다순", isSelected: store.state.sortState == .alphabetical) {
+            LivithOptionButton("가나다순", isSelected: viewModel.sort == .alphabetical) {
                 AmplitudeService.shared.trackEvent(tag: .click(.sortAlphabetical))
-                store.send(.sortStateChanged(.alphabetical))
+                viewModel.changeSort(to: .alphabetical)
                 showSort = false
             }
         }
@@ -234,7 +230,7 @@ private extension SearchView {
     }
 
     var searchResultCell: some View {
-        ForEach(store.state.searchedConcertList, id: \.id) { concert in
+        ForEach(viewModel.concertList, id: \.id) { concert in
             LivithCard(
                 imageURL: concert.posterURL,
                 title: ConcertDisplayHelper.title(for: concert),
@@ -249,8 +245,8 @@ private extension SearchView {
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onAppear {
-                if concert.id == store.state.searchedConcertList.last?.id {
-                    store.send(.loadNextPage)
+                if concert.id == viewModel.concertList.last?.id {
+                    Task { await viewModel.loadNextPage() }
                 }
             }
         }
@@ -266,7 +262,7 @@ private extension SearchView {
             }
             .padding(.horizontal, 16)
 
-            if store.state.isLoadingMore {
+            if viewModel.isLoadingMore {
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
@@ -285,16 +281,16 @@ private extension SearchView {
     }
 
     func isCompleteKorean() -> Bool {
-        let message = store.state.searchMessage
+        let message = viewModel.searchText
         guard let lastChar = message.last else { return false }
 
         return !String(lastChar).contains(/[ㄱ-ㅎㅏ-ㅣ]/)
     }
 
     func performSearch() {
-        guard !store.state.searchMessage.isEmpty else { return }
+        guard !viewModel.searchText.isEmpty else { return }
         AmplitudeService.shared.trackEvent(tag: .click(.searchComplete))
-        store.send(.searchButtonTapped)
+        viewModel.submitSearch()
     }
 
     func setButtonText(input: [String]) -> String {
@@ -308,5 +304,5 @@ private extension SearchView {
 }
 
 #Preview {
-    SearchView(store: SearchStore())
+    SearchView(viewModel: SearchViewModel())
 }

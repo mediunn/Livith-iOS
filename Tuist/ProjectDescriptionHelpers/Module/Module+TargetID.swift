@@ -149,6 +149,10 @@ private extension TargetID {
 
     func sharedSourcePath(_ module: SharedModule) -> SourceFilesList {
         switch module {
+        case .concertSearch:
+            return ["ConcertSearch/Sources/**"]
+        case .concertSearchTests:
+            return ["ConcertSearch/Tests/**"]
         case .displaySupport:
             return ["DisplaySupport/Sources/**"]
         case .displaySupportTests:
