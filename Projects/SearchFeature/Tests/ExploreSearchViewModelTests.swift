@@ -7,11 +7,11 @@ import Testing
 
 @Suite("일반 공연 검색")
 @MainActor
-struct SearchViewModelTests {
+struct ExploreSearchViewModelTests {
     @Test("디바운스 기간에는 요청하지 않고 입력을 확정한 뒤 조회한다")
     func searchesAfterDebounce() async throws {
         let repository = SearchRepositoryStub()
-        let viewModel = SearchViewModel(repository: repository)
+        let viewModel = ExploreSearchViewModel(repository: repository)
 
         viewModel.updateSearchText("공연")
         viewModel.submitSearch()
@@ -25,7 +25,7 @@ struct SearchViewModelTests {
     @Test("미확정 텍스트가 있어도 기존 검색어로 다음 페이지를 조회한다")
     func paginationUsesSubmittedKeyword() async throws {
         let repository = SearchRepositoryStub()
-        let viewModel = SearchViewModel(repository: repository)
+        let viewModel = ExploreSearchViewModel(repository: repository)
         viewModel.updateSearchText("이전 검색")
         viewModel.loadIfNeeded()
         try await waitUntil { !viewModel.concertList.isEmpty }
@@ -41,7 +41,7 @@ struct SearchViewModelTests {
     @Test("다음 페이지 실패 후 검색 결과와 기존 커서를 유지한다")
     func retriesFailedPage() async throws {
         let repository = SearchRepositoryStub()
-        let viewModel = SearchViewModel(repository: repository)
+        let viewModel = ExploreSearchViewModel(repository: repository)
         viewModel.loadIfNeeded()
         try await waitUntil { !viewModel.concertList.isEmpty }
 
@@ -60,7 +60,7 @@ struct SearchViewModelTests {
     @Test("검색어를 지우면 현재 필터와 정렬을 사용해 다시 조회한다")
     func clearingReusesFiltersAndSort() async throws {
         let repository = SearchRepositoryStub()
-        let viewModel = SearchViewModel(repository: repository)
+        let viewModel = ExploreSearchViewModel(repository: repository)
         viewModel.updateSearchText("공연")
         viewModel.applyFilters(genreList: [], statusList: [.upcoming])
         try await waitUntil { repository.keywordList.count == 1 }

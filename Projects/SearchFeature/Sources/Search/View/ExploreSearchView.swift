@@ -1,5 +1,5 @@
 //
-//  SearchView.swift
+//  ExploreSearchView.swift
 //  Search
 //
 //  Created by Youjin Lee on 11/2/25.
@@ -15,12 +15,12 @@ import LivithDesignSystem
 
 import Amplitude
 
-struct SearchView: View {
+struct ExploreSearchView: View {
 
     // MARK: - Property
 
-    @EnvironmentObject private var searchRouter: SearchRouter
-    @State private var viewModel: SearchViewModel
+    @EnvironmentObject private var exploreRouter: ExploreRouter
+    @State private var viewModel: ExploreSearchViewModel
 
     @State private var showError: Bool = false
     @State private var showFilter: Bool = false
@@ -28,7 +28,7 @@ struct SearchView: View {
 
     // MARK: - Initializer
 
-    init(viewModel: SearchViewModel) {
+    init(viewModel: ExploreSearchViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
 
@@ -93,7 +93,7 @@ struct SearchView: View {
 
 // MARK: - UIComponents
 
-private extension SearchView {
+private extension ExploreSearchView {
     var genreSelectedText: String? {
         guard !viewModel.selectedGenreList.isEmpty else { return nil }
         let genreNames = viewModel.selectedGenreList.map { $0.genreText }
@@ -110,7 +110,7 @@ private extension SearchView {
         HStack(alignment: .center) {
             Button {
                 hideKeyboard()
-                searchRouter.pop()
+                exploreRouter.pop()
             } label: {
                 Image.livithIcon(.backLineDefault)
                     .resizable()
@@ -240,7 +240,7 @@ private extension SearchView {
                 onTap: {
                     AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
                     hideKeyboard()
-                    searchRouter.push(.concertDetail(concertID: concert.id))
+                    exploreRouter.push(.concertDetail(concertID: concert.id))
                 }
             )
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
@@ -275,7 +275,7 @@ private extension SearchView {
 
 // MARK: - Helper Method
 
-private extension SearchView {
+private extension ExploreSearchView {
     func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }

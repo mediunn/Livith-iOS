@@ -6,7 +6,7 @@ import Domain
 
 @MainActor
 @Observable
-final class SearchViewModel {
+final class ExploreSearchViewModel {
     private(set) var searchText = ""
     private(set) var sort = SearchSort.latest
     private(set) var selectedGenreList: [ConcertGenre] = []
@@ -67,7 +67,7 @@ final class SearchViewModel {
     }
 }
 
-private extension SearchViewModel {
+private extension ExploreSearchViewModel {
     func startSearch() {
         debounceTask?.cancel()
         firstPageTask?.cancel()
