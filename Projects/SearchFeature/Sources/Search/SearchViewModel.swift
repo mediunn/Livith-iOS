@@ -1,7 +1,6 @@
 import Observation
 
 import ConcertSearch
-import DIContainer
 import DisplaySupport
 import Domain
 
@@ -22,7 +21,7 @@ final class SearchViewModel {
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
     @ObservationIgnored private var firstPageTask: Task<Void, Never>?
 
-    init(repository: any SearchRepository = DIContainer.shared.resolve(SearchRepository.self)) {
+    init(repository: any SearchRepository) {
         concertSearch = ConcertSearchViewModel(repository: repository, failurePolicy: .keepResults)
     }
 
@@ -62,8 +61,8 @@ final class SearchViewModel {
     }
 
     func loadNextPage() async {
-        await concertSearch.loadNextPage(delay: .milliseconds(500)) { [weak self] result in
-            self?.showSearchError(result)
+        if let result = await concertSearch.loadNextPage(delay: .milliseconds(500)) {
+            showSearchError(result)
         }
     }
 }
@@ -80,7 +79,7 @@ private extension SearchViewModel {
             sort: sort
         )
         firstPageTask = Task { [concertSearch, weak self] in
-            await concertSearch.search(criteria) { [weak self] result in
+            if let result = await concertSearch.search(criteria) {
                 self?.showSearchError(result)
             }
         }

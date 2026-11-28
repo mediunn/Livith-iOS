@@ -113,8 +113,8 @@ final class InterestConcertSettingViewModel {
         concertSearch.invalidateSearch()
         searchDebounceTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(300))
-            guard !Task.isCancelled, let self else { return }
-            await concertSearch.search(.init(keyword: query, statusList: [.ongoing, .upcoming])) { [weak self] result in
+            guard !Task.isCancelled, let concertSearch = self?.concertSearch else { return }
+            if let result = await concertSearch.search(.init(keyword: query, statusList: [.ongoing, .upcoming])) {
                 self?.applySearchResult(result)
             }
         }
@@ -132,10 +132,8 @@ final class InterestConcertSettingViewModel {
             isLoadingCatalogPage = true
             await loadCatalogPage(after: catalogCursor)
             isLoadingCatalogPage = false
-        } else {
-            await concertSearch.loadNextPage { [weak self] result in
-                self?.applySearchResult(result)
-            }
+        } else if let result = await concertSearch.loadNextPage() {
+            applySearchResult(result)
         }
     }
 

@@ -21,6 +21,7 @@ let project = Project.make(
             dependencies: [
                 .domain(.domain),
                 .core(.diContainer),
+                .shared(.concertSearch),
                 .shared(.nicknameEditFeature),
                 .concert(.concertFeature),
                 .data(.commentData),

@@ -302,7 +302,3 @@ private extension SearchView {
         }
     }
 }
-
-#Preview {
-    SearchView(viewModel: SearchViewModel())
-}

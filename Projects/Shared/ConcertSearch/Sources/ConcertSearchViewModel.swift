@@ -52,22 +52,16 @@ public final class ConcertSearchViewModel {
         self.failurePolicy = failurePolicy
     }
 
-    public func search(
-        _ criteria: Criteria,
-        onResult: @escaping (Result<[Concert], SearchError>) -> Void
-    ) async {
-        guard !Task.isCancelled else { return }
+    public func search(_ criteria: Criteria) async -> Result<[Concert], SearchError>? {
+        guard !Task.isCancelled else { return nil }
         invalidateSearch()
         self.criteria = criteria
-        await fetchPage(for: criteria, after: nil, delay: .zero, onResult: onResult)
+        return await fetchPage(for: criteria, after: nil, delay: .zero)
     }
 
-    public func loadNextPage(
-        delay: Duration = .zero,
-        onResult: @escaping (Result<[Concert], SearchError>) -> Void
-    ) async {
-        guard !Task.isCancelled, loadingPhase == .idle, let criteria, let nextCursor else { return }
-        await fetchPage(for: criteria, after: nextCursor, delay: delay, onResult: onResult)
+    public func loadNextPage(delay: Duration = .zero) async -> Result<[Concert], SearchError>? {
+        guard !Task.isCancelled, loadingPhase == .idle, let criteria, let nextCursor else { return nil }
+        return await fetchPage(for: criteria, after: nextCursor, delay: delay)
     }
 
     public func invalidateSearch() {
@@ -88,19 +82,18 @@ private extension ConcertSearchViewModel {
     func fetchPage(
         for criteria: Criteria,
         after cursor: (any PagePosition)?,
-        delay: Duration,
-        onResult: @escaping (Result<[Concert], SearchError>) -> Void
-    ) async {
+        delay: Duration
+    ) async -> Result<[Concert], SearchError>? {
         let repository = repository
         loadingPhase = cursor == nil ? .firstPage : .nextPage
 
-        let task = Task { [weak self] in
+        var result: Result<ListResult<Concert>, SearchError>?
+        let task = Task {
             if delay > .zero {
                 try? await Task.sleep(for: delay)
             }
             guard !Task.isCancelled else { return }
 
-            let result: Result<ListResult<Concert>, SearchError>
             do throws(SearchError) {
                 result = .success(try await repository.fetchFilterSearchResult(
                     genre: criteria.genreList,
@@ -110,14 +103,11 @@ private extension ConcertSearchViewModel {
                     after: cursor,
                     size: 12
                 ))
+            } catch where error == .cancelled {
+                return
             } catch {
                 result = .failure(error)
             }
-
-            guard !Task.isCancelled, let self else { return }
-            apply(result, isNextPage: cursor != nil)
-            loadingPhase = .idle
-            onResult(result.map(\.items))
         }
 
         request = task
@@ -127,10 +117,13 @@ private extension ConcertSearchViewModel {
             task.cancel()
         }
 
-        if request == task {
-            request = nil
-            loadingPhase = .idle
-        }
+        guard request == task else { return nil }
+        request = nil
+        loadingPhase = .idle
+
+        guard !Task.isCancelled, let result else { return nil }
+        apply(result, isNextPage: cursor != nil)
+        return result.map(\.items)
     }
 
     func apply(_ result: Result<ListResult<Concert>, SearchError>, isNextPage: Bool) {

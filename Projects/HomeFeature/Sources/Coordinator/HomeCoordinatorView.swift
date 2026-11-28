@@ -9,6 +9,7 @@
 import SwiftUI
 
 import ConcertFeature
+import ConcertSearch
 import Coordinator
 import Domain
 import LivithDesignSystem
@@ -26,10 +27,8 @@ public struct HomeCoordinatorView: View {
 
     // MARK: - Property
 
-    @Environment(\.concertCatalogRepository) private var concertCatalogRepository
-    @Environment(\.searchRepository) private var searchRepository
-    @Environment(\.interestConcertRepository) private var interestConcertRepository
-    @Environment(\.concertRequestRepository) private var concertRequestRepository
+    @Environment(SearchDependencies.self) private var searchDependencies
+    @Environment(HomeDependencies.self) private var homeDependencies
     @StateObject private var router: HomeRouter
 
     @State private var showConcertRequestSuccessToast: Bool = false
@@ -126,39 +125,19 @@ public struct HomeCoordinatorView: View {
         case .home:
             HomeView(sessionNickname: sessionNickname)
         case .interestConcertSetting(let mode):
-            if let concertCatalogRepository, let searchRepository, let interestConcertRepository {
-                InterestConcertSettingView(
-                    mode: mode,
-                    concertCatalogRepository: concertCatalogRepository,
-                    searchRepository: searchRepository,
-                    interestConcertRepository: interestConcertRepository,
-                    onSaveSuccess: {
-                        savedInterestSettingMode = mode
-                        router.popToRoot()
-                        showInterestSettingSuccessToast = true
-                    }
-                )
-            } else {
-                ContentUnavailableView {
-                    Label("관심 콘서트 설정을 열 수 없어요", systemImage: "exclamationmark.circle")
-                } description: {
-                    Text("이전 화면으로 돌아가 주세요.")
-                } actions: {
-                    Button("돌아가기") { router.pop() }
+            InterestConcertSettingView(
+                mode: mode,
+                concertCatalogRepository: homeDependencies.concertCatalogRepository,
+                searchRepository: searchDependencies.repository,
+                interestConcertRepository: homeDependencies.interestConcertRepository,
+                onSaveSuccess: {
+                    savedInterestSettingMode = mode
+                    router.popToRoot()
+                    showInterestSettingSuccessToast = true
                 }
-            }
+            )
         case .interestConcertList:
-            if let interestConcertRepository {
-                InterestConcertListView(repository: interestConcertRepository)
-            } else {
-                ContentUnavailableView {
-                    Label("관심 콘서트 목록을 열 수 없어요", systemImage: "exclamationmark.circle")
-                } description: {
-                    Text("이전 화면으로 돌아가 주세요.")
-                } actions: {
-                    Button("돌아가기") { router.pop() }
-                }
-            }
+            InterestConcertListView(repository: homeDependencies.interestConcertRepository)
         case .notice:
             NoticeView(
                 onBack: { router.pop() },
@@ -189,45 +168,25 @@ public struct HomeCoordinatorView: View {
         case .instagramMatchConfirm(let sourceURL):
             InstagramMatchConfirmView(sourceURL: sourceURL)
         case .instagramManualSearch(let context):
-            if let concertCatalogRepository, let searchRepository, let interestConcertRepository {
-                InstagramManualSearchView(
-                    context: context,
-                    concertCatalogRepository: concertCatalogRepository,
-                    searchRepository: searchRepository,
-                    interestConcertRepository: interestConcertRepository,
-                    onRegisterSuccess: {
-                        router.popToRoot()
-                        showInstagramRegistrationToast = true
-                    }
-                )
-            } else {
-                ContentUnavailableView {
-                    Label("수동 공연 검색을 열 수 없어요", systemImage: "exclamationmark.circle")
-                } description: {
-                    Text("이전 화면으로 돌아가 주세요.")
-                } actions: {
-                    Button("돌아가기") { router.pop() }
+            InstagramManualSearchView(
+                context: context,
+                concertCatalogRepository: homeDependencies.concertCatalogRepository,
+                searchRepository: searchDependencies.repository,
+                interestConcertRepository: homeDependencies.interestConcertRepository,
+                onRegisterSuccess: {
+                    router.popToRoot()
+                    showInstagramRegistrationToast = true
                 }
-            }
+            )
         case .concertRequest:
-            if let concertRequestRepository {
-                ConcertRequestView(
-                    repository: concertRequestRepository,
-                    onDismiss: { router.pop() },
-                    onRequestSuccess: {
-                        router.popToRoot()
-                        showConcertRequestSuccessToast = true
-                    }
-                )
-            } else {
-                ContentUnavailableView {
-                    Label("공연 요청 화면을 열 수 없어요", systemImage: "exclamationmark.circle")
-                } description: {
-                    Text("이전 화면으로 돌아가 주세요.")
-                } actions: {
-                    Button("돌아가기") { router.pop() }
+            ConcertRequestView(
+                repository: homeDependencies.concertRequestRepository,
+                onDismiss: { router.pop() },
+                onRequestSuccess: {
+                    router.popToRoot()
+                    showConcertRequestSuccessToast = true
                 }
-            }
+            )
         }
     }
 }

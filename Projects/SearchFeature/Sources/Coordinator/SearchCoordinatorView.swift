@@ -9,6 +9,7 @@
 import SwiftUI
 
 import ConcertFeature
+import ConcertSearch
 import Coordinator
 
 // MARK: - SearchRouter
@@ -21,6 +22,7 @@ public struct SearchCoordinatorView: View {
 
     // MARK: - Property
 
+    @Environment(SearchDependencies.self) private var searchDependencies
     @StateObject private var router: SearchRouter
 
     // MARK: - Initializer
@@ -49,7 +51,7 @@ public struct SearchCoordinatorView: View {
         case .explore:
             ExploreView()
         case .search:
-            SearchView(viewModel: .init())
+            SearchView(viewModel: .init(repository: searchDependencies.repository))
         case .concertDetail(let concertID):
             ConcertCoordinatorView(
                 concertID: concertID,

@@ -11,9 +11,8 @@ struct ConcertSearchViewModelTests {
         let repository = SearchRepositoryStub()
         let search = ConcertSearchViewModel(repository: repository, failurePolicy: .clearResults)
         let task = Task {
-            await search.search(.init(keyword: "이전", statusList: [])) { _ in
-                Issue.record("초기화한 요청의 결과가 전달됨")
-            }
+            let result = await search.search(.init(keyword: "이전", statusList: []))
+            #expect(result == nil)
         }
         try await repository.waitForRequest()
 
@@ -26,6 +25,24 @@ struct ConcertSearchViewModelTests {
         #expect(!search.isLoadingFirstPage)
     }
 
+    @Test("호출자가 취소하거나 Repository가 취소를 반환하면 결과가 없다", arguments: [true, false])
+    func returnsNilOnCancellation(cancelCaller: Bool) async throws {
+        let repository = SearchRepositoryStub()
+        let search = ConcertSearchViewModel(repository: repository, failurePolicy: .clearResults)
+        let task = Task {
+            let result = await search.search(.init(keyword: "공연", statusList: []))
+            #expect(result == nil)
+        }
+        try await repository.waitForRequest()
+
+        if cancelCaller { task.cancel() }
+        repository.finish(cancelCaller ? .success(.init(items: [], position: Cursor())) : .failure(.cancelled))
+        await task.value
+
+        #expect(search.concertList == nil)
+        #expect(!search.isLoadingFirstPage)
+    }
+
     @Test("같은 검색어로 다시 조회해도 이전 요청을 무시하고 화면별 상태를 보존한다")
     func ignoresReplacedRequestWithSameKeyword() async throws {
         let repository = SearchRepositoryStub()
@@ -33,12 +50,13 @@ struct ConcertSearchViewModelTests {
         let otherSearch = ConcertSearchViewModel(repository: repository, failurePolicy: .clearResults)
         let criteria = ConcertSearchViewModel.Criteria(keyword: "공연", statusList: [])
         let old = Task {
-            await search.search(criteria) { _ in Issue.record("교체된 요청의 결과가 전달됨") }
+            let result = await search.search(criteria)
+            #expect(result == nil)
         }
         try await repository.waitForRequest()
-        let current = Task { await search.search(criteria) { _ in } }
+        let current = Task { _ = await search.search(criteria) }
         try await repository.waitForRequest(count: 2)
-        let independent = Task { await otherSearch.search(criteria) { _ in } }
+        let independent = Task { _ = await otherSearch.search(criteria) }
         try await repository.waitForRequest(count: 3)
 
         repository.finish(.failure(.unknown))
@@ -63,15 +81,19 @@ struct ConcertSearchViewModelTests {
     func preventsDuplicatePagination() async throws {
         let repository = SearchRepositoryStub()
         let search = ConcertSearchViewModel(repository: repository, failurePolicy: .keepResults)
-        let first = Task { await search.search(.init(keyword: "공연", statusList: [.upcoming])) { _ in } }
+        let first = Task { _ = await search.search(.init(keyword: "공연", statusList: [.upcoming])) }
         try await repository.waitForRequest()
         repository.finish(.success(.init(items: [], position: Cursor())))
         await first.value
 
-        let next = Task { await search.loadNextPage { _ in } }
+        let next = Task {
+            let result = await search.loadNextPage()
+            #expect((try? result?.get()) == [])
+        }
         try await repository.waitForRequest()
         #expect(search.isLoadingNextPage)
-        await search.loadNextPage { _ in Issue.record("중복 요청의 결과가 전달됨") }
+        let duplicate = await search.loadNextPage()
+        #expect(duplicate == nil)
         repository.finish(.success(.init(items: [], position: nil)))
         await next.value
 

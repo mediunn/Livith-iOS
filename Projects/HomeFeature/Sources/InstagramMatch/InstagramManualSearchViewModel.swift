@@ -87,12 +87,10 @@ final class InstagramManualSearchViewModel {
         try? await Task.sleep(for: .milliseconds(300))
         guard !Task.isCancelled, revision == searchRevision else { return }
 
-        await concertSearch.search(.init(keyword: keyword, statusList: [.ongoing, .upcoming])) { [weak self] result in
-            self?.presentSearchError(result)
-        }
-        if !Task.isCancelled, revision == searchRevision {
-            completedSearchRevision = revision
-        }
+        guard let result = await concertSearch.search(.init(keyword: keyword, statusList: [.ongoing, .upcoming])),
+              revision == searchRevision else { return }
+        presentSearchError(result)
+        completedSearchRevision = revision
     }
 
     func loadNextPage() async {
@@ -100,10 +98,8 @@ final class InstagramManualSearchViewModel {
         if keyword.isEmpty {
             guard !isLoadingCatalogPage, let catalogCursor else { return }
             await loadCatalogPage(after: catalogCursor)
-        } else {
-            await concertSearch.loadNextPage { [weak self] result in
-                self?.presentSearchError(result)
-            }
+        } else if let result = await concertSearch.loadNextPage() {
+            presentSearchError(result)
         }
     }
 
