@@ -9,6 +9,7 @@
 import Foundation
 import Observation
 
+import ConcertSearch
 import DisplaySupport
 import Domain
 
@@ -31,7 +32,7 @@ enum InstagramManualSearchContext: Hashable {
 final class InstagramManualSearchViewModel {
     private(set) var selectedConcertID: Int?
     private(set) var isInitialLoading = true
-    private(set) var isSearchLoading = false
+    var isSearchLoading: Bool { concertSearch.isLoadingFirstPage }
     private(set) var didRegister = false
     private var registrationTask: Task<Bool, Never>?
     var isRegistering: Bool { registrationTask != nil }
@@ -43,24 +44,21 @@ final class InstagramManualSearchViewModel {
         didSet {
             guard keyword != oldValue.trimmingCharacters(in: .whitespacesAndNewlines) else { return }
             searchRevision += 1
-            searchCursor = nil
-            isSearchLoading = false
-            nextSearchPageTask?.cancel()
-            nextSearchPageTask = nil
-            if keyword.isEmpty { searchResultList = nil }
+            if keyword.isEmpty {
+                concertSearch.reset()
+            } else {
+                concertSearch.invalidateSearch()
+            }
         }
     }
     private(set) var searchRevision = 0
 
     private let concertCatalogRepository: any ConcertCatalogRepository
-    private let searchRepository: any SearchRepository
+    private let concertSearch: ConcertSearchViewModel
     private let interestConcertRepository: any InterestConcertRepository
     private var catalogList: [Concert] = []
-    private var searchResultList: [Concert]?
     private var catalogCursor: (any PagePosition)?
-    private var searchCursor: (any PagePosition)?
     private var isLoadingCatalogPage = false
-    private var nextSearchPageTask: Task<Void, Never>?
     private var completedSearchRevision: Int?
 
     init(
@@ -69,12 +67,12 @@ final class InstagramManualSearchViewModel {
         interestConcertRepository: any InterestConcertRepository
     ) {
         self.concertCatalogRepository = concertCatalogRepository
-        self.searchRepository = searchRepository
+        self.concertSearch = ConcertSearchViewModel(repository: searchRepository, failurePolicy: .clearResults)
         self.interestConcertRepository = interestConcertRepository
     }
 
-    var displayedConcertList: [Concert] { searchResultList ?? catalogList }
-    var isLoadingMore: Bool { keyword.isEmpty ? isLoadingCatalogPage : nextSearchPageTask != nil }
+    var displayedConcertList: [Concert] { concertSearch.concertList ?? catalogList }
+    var isLoadingMore: Bool { keyword.isEmpty ? isLoadingCatalogPage : concertSearch.isLoadingNextPage }
     var canRegister: Bool { selectedConcertID != nil && !isRegistering && !didRegister }
 
     func loadIfNeeded() async {
@@ -89,29 +87,19 @@ final class InstagramManualSearchViewModel {
         try? await Task.sleep(for: .milliseconds(300))
         guard !Task.isCancelled, revision == searchRevision else { return }
 
-        isSearchLoading = true
-        await loadSearchPage(after: nil, revision: revision)
-        if revision == searchRevision {
-            isSearchLoading = false
-            if !Task.isCancelled { completedSearchRevision = revision }
-        }
+        guard let result = await concertSearch.search(.init(keyword: keyword, statusList: [.ongoing, .upcoming])),
+              revision == searchRevision else { return }
+        presentSearchError(result)
+        completedSearchRevision = revision
     }
 
     func loadNextPage() async {
-        guard !isInitialLoading, !isSearchLoading, !isLoadingMore else { return }
+        guard !isInitialLoading else { return }
         if keyword.isEmpty {
-            guard let catalogCursor else { return }
+            guard !isLoadingCatalogPage, let catalogCursor else { return }
             await loadCatalogPage(after: catalogCursor)
-        } else {
-            guard let searchCursor else { return }
-            let revision = searchRevision
-            let request = Task {
-                guard !Task.isCancelled else { return }
-                await loadSearchPage(after: searchCursor, revision: revision)
-            }
-            nextSearchPageTask = request
-            await DiscardableTask(task: request).wait()
-            if revision == searchRevision { nextSearchPageTask = nil }
+        } else if let result = await concertSearch.loadNextPage() {
+            presentSearchError(result)
         }
     }
 
@@ -164,23 +152,8 @@ private extension InstagramManualSearchViewModel {
         }
     }
 
-    func loadSearchPage(after cursor: (any PagePosition)?, revision: Int) async {
-        do {
-            let page = try await searchRepository.fetchFilterSearchResult(
-                genre: [], sort: nil, status: [.ongoing, .upcoming],
-                keyword: keyword, after: cursor, size: 12
-            )
-            guard !Task.isCancelled, revision == searchRevision else { return }
-            if cursor == nil {
-                searchResultList = page.items
-            } else {
-                searchResultList?.append(contentsOf: page.items)
-            }
-            searchCursor = page.position
-        } catch {
-            guard !Task.isCancelled, revision == searchRevision else { return }
-            searchResultList = []
-            searchCursor = nil
+    func presentSearchError(_ result: Result<[Concert], SearchError>) {
+        if case .failure(let error) = result {
             presentError(DisplayErrorMessage.message(for: error))
         }
     }

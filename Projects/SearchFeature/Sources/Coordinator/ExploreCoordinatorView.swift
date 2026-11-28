@@ -1,5 +1,5 @@
 //
-//  SearchCoordinatorView.swift
+//  ExploreCoordinatorView.swift
 //  SearchFeature
 //
 //  Created by 김진웅 on 12/27/25.
@@ -9,32 +9,34 @@
 import SwiftUI
 
 import ConcertFeature
+import ConcertSearch
 import Coordinator
 
-// MARK: - SearchRouter
+// MARK: - ExploreRouter
 
-typealias SearchRouter = Router<SearchRoute>
+typealias ExploreRouter = Router<ExploreRoute>
 
-// MARK: - SearchCoordinatorView
+// MARK: - ExploreCoordinatorView
 
-public struct SearchCoordinatorView: View {
+public struct ExploreCoordinatorView: View {
 
     // MARK: - Property
 
-    @StateObject private var router: SearchRouter
+    @Environment(SearchDependencies.self) private var searchDependencies
+    @StateObject private var router: ExploreRouter
 
     // MARK: - Initializer
 
     public init() {
-        _router = StateObject(wrappedValue: SearchRouter())
+        _router = StateObject(wrappedValue: ExploreRouter())
     }
 
     // MARK: - Body
 
     public var body: some View {
         NavigationStack(path: $router.path) {
-            ExploreView()
-                .navigationDestination(for: SearchRoute.self) { route in
+            ExploreHomeView()
+                .navigationDestination(for: ExploreRoute.self) { route in
                     destinationView(for: route)
                         .toolbar(.hidden, for: .tabBar, .navigationBar)
                 }
@@ -44,12 +46,12 @@ public struct SearchCoordinatorView: View {
     }
 
     @ViewBuilder
-    private func destinationView(for route: SearchRoute) -> some View {
+    private func destinationView(for route: ExploreRoute) -> some View {
         switch route {
-        case .explore:
-            ExploreView()
+        case .home:
+            ExploreHomeView()
         case .search:
-            SearchView(store: .init())
+            ExploreSearchView(viewModel: .init(repository: searchDependencies.repository))
         case .concertDetail(let concertID):
             ConcertCoordinatorView(
                 concertID: concertID,

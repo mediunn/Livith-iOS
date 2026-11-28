@@ -1,5 +1,5 @@
 //
-//  SearchRoute.swift
+//  ExploreRoute.swift
 //  SearchFeature
 //
 //  Created by 김진웅 on 12/27/25.
@@ -8,8 +8,8 @@
 
 import Foundation
 
-enum SearchRoute: Hashable {
-    case explore
+enum ExploreRoute: Hashable {
+    case home
     case search
     case concertDetail(concertID: Int)
 }

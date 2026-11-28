@@ -18,6 +18,7 @@ let project = Project.make(
                 .domain(.domain),
                 .concert(.concertFeature),
                 .designSystem(.designSystem),
+                .shared(.concertSearch),
                 .shared(.displaySupport),
                 .core(.coordinator),
                 .core(.diContainer),

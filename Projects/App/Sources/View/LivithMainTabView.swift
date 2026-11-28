@@ -21,7 +21,7 @@ struct LivithMainTabView: View {
     // MARK: - Tab
 
     enum Tab: Int, CaseIterable {
-        case home, search, my
+        case home, explore, my
     }
 
     // MARK: - Property
@@ -59,10 +59,10 @@ struct LivithMainTabView: View {
                 makeTabItem(.home)
             }
 
-            SearchCoordinatorView()
-                .tag(Tab.search)
+            ExploreCoordinatorView()
+                .tag(Tab.explore)
                 .tabItem {
-                    makeTabItem(.search)
+                    makeTabItem(.explore)
                 }
 
             UserCoordinatorView(
@@ -81,7 +81,7 @@ struct LivithMainTabView: View {
             switch newTab {
             case .home:
                 AmplitudeService.shared.trackEvent(tag: .click(.navHome))
-            case .search:
+            case .explore:
                 AmplitudeService.shared.trackEvent(tag: .click(.navExplore))
             case .my:
                 AmplitudeService.shared.trackEvent(tag: .click(.navMy))
@@ -158,7 +158,7 @@ extension LivithMainTabView.Tab {
     var title: String {
         switch self {
         case .home: return "홈"
-        case .search: return "탐색"
+        case .explore: return "탐색"
         case .my: return "마이"
         }
     }
@@ -166,7 +166,7 @@ extension LivithMainTabView.Tab {
     var defaultIcon: Image {
         switch self {
         case .home: return Image.livithIcon(.homeDisabled)
-        case .search: return Image.livithIcon(.ticketDisabled)
+        case .explore: return Image.livithIcon(.ticketDisabled)
         case .my: return Image.livithIcon(.myDisabled)
         }
     }
@@ -174,7 +174,7 @@ extension LivithMainTabView.Tab {
     var selectedIcon: Image {
         switch self {
         case .home: return Image.livithIcon(.homeEnabled)
-        case .search: return Image.livithIcon(.ticketEnabled)
+        case .explore: return Image.livithIcon(.ticketEnabled)
         case .my: return Image.livithIcon(.myEnabled)
         }
     }

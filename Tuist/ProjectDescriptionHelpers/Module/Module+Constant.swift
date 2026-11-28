@@ -123,6 +123,8 @@ public enum DataModule: String {
 // MARK: - Shared Module
 
 public enum SharedModule: String {
+    case concertSearch = "ConcertSearch"
+    case concertSearchTests = "ConcertSearchTests"
     case displaySupport = "DisplaySupport"
     case displaySupportTests = "DisplaySupportTests"
     case nicknameEditFeature = "NicknameEditFeature"

@@ -1,5 +1,5 @@
 //
-//  ExploreView.swift
+//  ExploreHomeView.swift
 //  SearchFeature
 //
 //  Created by 김진웅 on 12/18/25.
@@ -13,11 +13,11 @@ import DisplaySupport
 import Domain
 import LivithDesignSystem
 
-struct ExploreView: View {
+struct ExploreHomeView: View {
 
     // MARK: - Property
 
-    @EnvironmentObject private var searchRouter: SearchRouter
+    @EnvironmentObject private var exploreRouter: ExploreRouter
     @Environment(\.openURL) private var openURL
     @StateObject private var store: ExploreStore = ExploreStore()
 
@@ -87,7 +87,7 @@ struct ExploreView: View {
 
 // MARK: - UIComponents
 
-private extension ExploreView {
+private extension ExploreHomeView {
     var bannerView: some View {
         BannerSectionView(
             currentPage: Binding(
@@ -229,7 +229,7 @@ private extension ExploreView {
                         badge: .status(text: ConcertDisplayHelper.statusBadge(for: concert), remainDays: nil),
                         onTap: {
                             AmplitudeService.shared.trackEvent(tag: .click(.searchCell))
-                            searchRouter.push(.concertDetail(concertID: concert.id))
+                            exploreRouter.push(.concertDetail(concertID: concert.id))
                         }
                     )
                     .onAppear {
@@ -257,7 +257,7 @@ private extension ExploreView {
 
 // MARK: - Helpers
 
-private extension ExploreView {
+private extension ExploreHomeView {
     var statusSelectedText: String? {
         guard !store.state.selectedStatusList.isEmpty else { return nil }
         let names = store.state.selectedStatusList.map { $0.filterText }
@@ -267,7 +267,7 @@ private extension ExploreView {
 
     func handleSearchTap() {
         AmplitudeService.shared.trackEvent(tag: .click(.searchBar))
-        searchRouter.push(.search)
+        exploreRouter.push(.search)
     }
 
     func handleBannerTap(_ banner: Banner) {
@@ -284,7 +284,7 @@ private extension ExploreView {
 
 // MARK: - Literals & Constants
 
-private extension ExploreView {
+private extension ExploreHomeView {
     enum Literals {
         static let scrollCoordinateName = "exploreScroll"
     }

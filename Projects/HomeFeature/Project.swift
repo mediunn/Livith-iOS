@@ -18,6 +18,7 @@ let project = Project.make(
                 .share(.shareFeature),
                 .user(.userFeature),
                 .designSystem(.designSystem),
+                .shared(.concertSearch),
                 .shared(.displaySupport),
                 .shared(.nicknameEditFeature),
                 .core(.coordinator),
