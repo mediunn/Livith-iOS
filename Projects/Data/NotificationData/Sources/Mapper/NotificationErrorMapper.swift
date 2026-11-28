@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct NotificationErrorMapper {
     func mapToNotificationError(_ error: Error) -> NotificationError {
@@ -73,6 +73,11 @@ struct NotificationErrorMapper {
 
     private func mapFromMessage(_ message: String?) -> NotificationError {
         guard let message else { return .unknown }
-        return NotificationError.from(message: message)
+        switch message {
+        case "해당 알림이 존재하지 않습니다.":
+            return .notificationNotFound
+        default:
+            return .unknown
+        }
     }
 }

@@ -11,7 +11,7 @@ import Testing
 
 import Domain
 import LivithFoundation
-import LivithNetworking
+import LivithNetwork
 @testable import CalendarData
 
 @Suite("캘린더 매퍼")

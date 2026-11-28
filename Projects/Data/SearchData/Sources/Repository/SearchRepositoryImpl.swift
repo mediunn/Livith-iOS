@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct SearchRepositoryImpl: SearchRepository {
     private let networkClient: NetworkClient
@@ -36,9 +36,12 @@ struct SearchRepositoryImpl: SearchRepository {
         sort: SearchSort?,
         status: [ConcertStatus],
         keyword: String?,
-        cursor: Int?,
+        after position: (any PagePosition)?,
         size: Int?
-    ) async throws(SearchError) -> SearchResult {
+    ) async throws(SearchError) -> ListResult<Concert> {
+        let pagePosition = position as? ConcertSearchPosition
+        guard position == nil || pagePosition != nil else { throw .invalidCursor }
+
         do {
             let response: DTO.Response.FetchFilterSearchResult = try await networkClient.request(
                 SearchAPI.fetchFilterSearchResult(
@@ -46,7 +49,7 @@ struct SearchRepositoryImpl: SearchRepository {
                     sort: sort.map(\.rawValue),
                     status: status.map(\.rawValue),
                     keyword: keyword,
-                    cursor: cursor,
+                    cursor: pagePosition?.cursor,
                     size: size
                 )
             )

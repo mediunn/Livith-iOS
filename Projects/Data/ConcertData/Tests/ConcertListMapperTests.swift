@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 @testable import ConcertData
 
 struct ConcertListMapperTests {
@@ -76,7 +76,7 @@ struct ConcertListMapperTests {
         let concert = try #require(result.items.first)
 
         // Then
-        #expect(result.nextToken != nil)
+        #expect(result.position != nil)
         #expect(result.items.count == 1)
         #expect(concert.id == 1641)
         #expect(concert.status == .upcoming)

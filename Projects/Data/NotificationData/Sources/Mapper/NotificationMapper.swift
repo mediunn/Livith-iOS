@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 import LivithFoundation
-import LivithNetworking
+import LivithNetwork
 
 struct NotificationMapper {
     func toDomain(from dto: DTO.Response.FetchNotificationSettings) -> NotificationSettings {

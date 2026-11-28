@@ -8,31 +8,56 @@
 
 import SwiftUI
 
+import ConcertSearch
 import LivithDesignSystem
 import Domain
 import LoginFeature
+import HomeFeature
 import Persistence
 import DIContainer
-import LivithNetworking
+import LivithNetwork
+import NicknameEditFeature
 
 struct AppRootView: View {
+    private let searchDependencies: SearchDependencies
+    private let homeDependencies: HomeDependencies
+
     @State private var currentRoute: AppRoute = .launch
-    @State private var nickname: String = ""
+    @State private var sessionNickname: SessionNickname? = nil
     @State private var showWelcomeSheet: Bool = false
     
-    @Injected private var userRepository: UserRepository
     @Injected private var tokenManager: TokenManager
+
+    init(
+        concertRequestRepository: any ConcertRequestRepository,
+        concertCatalogRepository: any ConcertCatalogRepository,
+        searchRepository: any SearchRepository,
+        interestConcertRepository: any InterestConcertRepository
+    ) {
+        searchDependencies = SearchDependencies(repository: searchRepository)
+        homeDependencies = HomeDependencies(
+            concertCatalogRepository: concertCatalogRepository,
+            interestConcertRepository: interestConcertRepository,
+            concertRequestRepository: concertRequestRepository
+        )
+    }
     
     var body: some View {
         contentView
             .crossDissolve(isPresented: $showWelcomeSheet, dismissOnTapOutside: false) {
-                LivithModal(
-                    type: .welcome(nickname: nickname),
-                    onConfirm: { showWelcomeSheet = false }
-                )
+                if let nickname = sessionNickname?.nickname {
+                    LivithModal(
+                        type: .welcome(nickname: nickname),
+                        onConfirm: { showWelcomeSheet = false }
+                    )
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("reloginRequired"))) { notification in
                 transition(to: .login)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NotificationService.fcmTokenDidChange)) { _ in
+                guard currentRoute == .main else { return }
+                NotificationService.shared.registerFCMTokenToServer()
             }
             .onAppear {
                 handleOnAppear()
@@ -52,13 +77,16 @@ private extension AppRootView {
             LoginCoordinatorView(
                 onLoginCompleted: { transition(to: .main) },
                 onSignupCompleted: { nickname in
-                    self.nickname = nickname
-                    transition(to: .main)
-                    self.showWelcomeSheet = true
+                    transition(to: .main, initialNickname: nickname)
+                    showWelcomeSheet = true
                 }
             )
         case .main:
-            LivithMainTabView()
+            if let sessionNickname {
+                LivithMainTabView(sessionNickname: sessionNickname)
+                    .environment(searchDependencies)
+                    .environment(homeDependencies)
+            }
         }
     }
     
@@ -69,7 +97,13 @@ private extension AppRootView {
             async let minimumDisplay: Void = sleepMinimumDisplayDuration()
             let nextRoute = await resolveLaunchRoute()
             await minimumDisplay
-            await MainActor.run { transition(to: nextRoute) }
+            await MainActor.run {
+                guard currentRoute == .launch else { return }
+                transition(to: nextRoute)
+                if nextRoute == .main {
+                    NotificationService.shared.registerFCMTokenToServer()
+                }
+            }
         }
     }
     
@@ -78,25 +112,24 @@ private extension AppRootView {
     }
     
     func resolveLaunchRoute() async -> AppRoute {
-        guard fetchLocalUser() != nil else {
-            try? await tokenManager.remove()
-            return .login
-        }
-        
+        UserDefaultsStorage().remove(for: .currentUser)
         do {
             try await tokenManager.refresh()
-            _ = try? await userRepository.fetchUser()
             return .main
         } catch {
             return .login
         }
     }
     
-    func fetchLocalUser() -> User? {
-        try? UserDefaultsStorage().fetch(for: .currentUser)
-    }
-    
-    func transition(to route: AppRoute) {
+    func transition(to route: AppRoute, initialNickname: String? = nil) {
+        if route == .main {
+            if sessionNickname == nil {
+                sessionNickname = SessionNickname(nickname: initialNickname)
+            }
+        } else {
+            sessionNickname = nil
+            showWelcomeSheet = false
+        }
         withAnimation(.easeInOut(duration: Constants.animationDuration)) {
             currentRoute = route
         }

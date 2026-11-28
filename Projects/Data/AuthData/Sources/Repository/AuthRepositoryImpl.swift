@@ -8,7 +8,7 @@
 
 import Foundation
 import Domain
-import LivithNetworking
+import LivithNetwork
 import SocialAuth
 import Persistence
 
@@ -17,7 +17,7 @@ import FirebaseMessaging
 struct AuthRepositoryImpl: AuthRepository {
     private let socialAuthService: SocialAuthService
     private let networkClient: NetworkClient
-    private let notificationRepository: NotificationRepository
+    private let notificationTokenRepository: NotificationTokenRepository
     private let userdefaultsStorage: UserDefaultsStorage
     private let tokenManager: any TokenManager
     private let mapper: AuthMapper = .init()
@@ -26,13 +26,13 @@ struct AuthRepositoryImpl: AuthRepository {
     init(
         socialAuthService: SocialAuthService,
         networkClient: NetworkClient,
-        notificationRepository: NotificationRepository,
+        notificationTokenRepository: NotificationTokenRepository,
         userdefaultsStorage: UserDefaultsStorage,
         tokenManager: any TokenManager
     ) {
         self.socialAuthService = socialAuthService
         self.networkClient = networkClient
-        self.notificationRepository = notificationRepository
+        self.notificationTokenRepository = notificationTokenRepository
         self.userdefaultsStorage = userdefaultsStorage
         self.tokenManager = tokenManager
     }
@@ -62,10 +62,10 @@ struct AuthRepositoryImpl: AuthRepository {
         await handleLogout()
     }
     
-    func checkNicknameDuplicate(nickname: String) async throws(AuthError) -> Bool {
+    func checkNicknameDuplicate(nickname: Nickname) async throws(AuthError) -> Bool {
         do {
             let response: DTO.Response.CheckNicknameDuplicate = try await networkClient.request(
-                UserAPI.checkNicknameDuplicate(nickname: nickname)
+                UserAPI.checkNicknameDuplicate(nickname: nickname.value)
             )
             return mapper.toDomain(from: response)
         } catch {
@@ -73,7 +73,7 @@ struct AuthRepositoryImpl: AuthRepository {
         }
     }
     
-    func signup(_ signup: SignupInfo) async throws(AuthError) {
+    func signup(_ signup: SignupInfo) async throws(AuthError) -> String {
         do {
             let request: DTO.Request.Signup = .init(
                 nickname: signup.nickname.value,
@@ -94,7 +94,7 @@ struct AuthRepositoryImpl: AuthRepository {
                 email: signup.email
             )
             
-            try await handleSignup(response: response, tempUser: tempUser)
+            return try await handleSignup(response: response, tempUser: tempUser)
         } catch {
             throw errorMapper.mapToAuthError(error)
         }
@@ -160,20 +160,19 @@ private extension AuthRepositoryImpl {
     func handleLogout() async {
         await deleteFCMToken()
         try? await tokenManager.remove()
-        userdefaultsStorage.remove(for: .currentUser)
     }
 
     func registerFCMToken() async {
         guard let fcmToken = try? await Messaging.messaging().token() else { return }
-        try? await notificationRepository.registerFCMToken(fcmToken)
+        try? await notificationTokenRepository.registerFCMToken(fcmToken)
     }
 
     func deleteFCMToken() async {
         guard let fcmToken = try? await Messaging.messaging().token() else { return }
-        try? await notificationRepository.deleteFCMToken(fcmToken)
+        try? await notificationTokenRepository.deleteFCMToken(fcmToken)
     }
     
-    func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws {
+    func handleSignup(response: DTO.Response.Signup, tempUser: TempUser) async throws -> String {
         try await tokenManager.save(Token(
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
@@ -181,10 +180,10 @@ private extension AuthRepositoryImpl {
         ))
 
         let user = mapper.toDomain(from: response.user)
-        try? userdefaultsStorage.save(user, for: .currentUser)
         try? userdefaultsStorage.save(tempUser.provider.description, for: .lastLoginPlatform)
 
         await registerFCMToken()
+        return user.nickname
     }
     
     func getCredential(for provider: SocialLoginProvider) async throws -> SocialAuthCredential {
@@ -212,15 +211,9 @@ private extension AuthRepositoryImpl {
 
             try? userdefaultsStorage.save(provider.description, for: .lastLoginPlatform)
 
-            let userInfoResponse: DTO.Response.FetchUserInfo = try await networkClient.request(
-                OnboardingAPI.fetchUserInfo()
-            )
-            let user = mapper.toDomain(from: userInfoResponse)
-            try? userdefaultsStorage.save(user, for: .currentUser)
-
             await registerFCMToken()
 
-            return .existingUser(nickname: user.nickname)
+            return .existingUser
         }
     }
 }

@@ -12,20 +12,11 @@ import ProjectDescription
 public enum ProjectID: String, CaseIterable {
     case app = "App"
     case core = "Core"
-    case livithNetworking = "LivithNetworking"
-    case search = "SearchFeature"
-    case login = "LoginFeature"
-    case user = "UserFeature"
-    case home = "HomeFeature"
-    case concert = "ConcertFeature"
-    case setlist = "SetlistFeature"
-    case song = "SongFeature"
-    case share = "ShareFeature"
+    case feature = "Feature"
     case widget = "Widget"
     case domain = "Domain"
     case data = "Data"
     case shared = "Shared"
-    case designSystem = "DesignSystem"
 
     public var name: String { rawValue }
     

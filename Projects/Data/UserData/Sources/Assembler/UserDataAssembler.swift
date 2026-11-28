@@ -10,14 +10,12 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetworking
-import Persistence
+import LivithNetwork
 
 public struct UserDataAssembler: DependencyAssembler {
     public init() {}
     
     public func assemble(to container: any DependencyContainer) {
-        registerPersistence(to: container)
         registerUserRepository(to: container)
         registerConcertMatchingRepository(to: container)
     }
@@ -28,12 +26,11 @@ public struct UserDataAssembler: DependencyAssembler {
 private extension UserDataAssembler {
     func registerUserRepository(to container: any DependencyContainer) {
         let client = container.resolve(NetworkClient.self)
-        let userRepo = UserRepositoryImpl(
-            networkClient: client,
-            userdefaultsStorage: container.resolve(UserDefaultsStorage.self)
-        )
+        let userRepo = UserRepositoryImpl(networkClient: client)
         
         container.register(userRepo, for: UserRepository.self)
+        container.register(userRepo, for: InterestConcertRepository.self)
+        container.register(userRepo, for: InterestConcertEntryAlertRepository.self)
     }
 
     func registerConcertMatchingRepository(to container: any DependencyContainer) {
@@ -42,13 +39,5 @@ private extension UserDataAssembler {
             ConcertMatchingRepositoryImpl(networkClient: client),
             for: ConcertMatchingRepository.self
         )
-    }
-}
-
-// MARK: - Persistence Registration
-
-private extension UserDataAssembler {
-    func registerPersistence(to container: any DependencyContainer) {
-        container.register(UserDefaultsStorage(), for: UserDefaultsStorage.self)
     }
 }

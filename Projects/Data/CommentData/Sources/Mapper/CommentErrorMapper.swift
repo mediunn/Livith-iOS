@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithNetworking
+import LivithNetwork
 import Domain
 
 struct CommentErrorMapper {
@@ -65,8 +65,32 @@ struct CommentErrorMapper {
     }
     
     private func mapMessageToCommentError(_ message: String) -> CommentError? {
-        let error = CommentError.from(message: message)
-        return error == .unknown ? nil : error
+        switch message {
+        case "해당 콘서트가 존재하지 않습니다.":
+            return .concertNotFound
+        case "id는 양의 정수여야 합니다.":
+            return .invalidID
+        case "size must not be less than 1":
+            return .invalidSize
+        case "유효하지 않은 cursor 형식입니다.":
+            return .invalidCursor
+        case "content should not be empty":
+            return .emptyContent
+        case "content must be shorter than or equal to 400 characters":
+            return .contentTooLong
+        case "해당 유저가 존재하지 않습니다.":
+            return .userNotFound
+        case "탈퇴한 회원입니다.":
+            return .withdrawn
+        case "댓글을 찾을 수 없습니다.":
+            return .commentNotFound
+        case "본인의 댓글만 삭제할 수 있습니다.":
+            return .forbidden
+        case "content must be shorter than or equal to 200 characters":
+            return .reportReasonTooLong
+        default:
+            return nil
+        }
     }
     
     private func checkForCancellation(_ error: any Error) -> CommentError? {

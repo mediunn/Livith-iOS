@@ -8,7 +8,7 @@
 
 import Foundation
 
-import Amplitude
+import Analytics
 import ConcertFeature
 import Domain
 import KakaoSDKAuth

@@ -1,25 +1,27 @@
 import SwiftUI
 
+import DIContainer
+import LivithFoundation
+
 import FirebaseCore
 import KakaoSDKCommon
-
-import LivithFoundation
 
 @main
 struct LivithApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    private let rootView: AppRootView
 
     // MARK: - LifeCycle
 
     init() {
-        registerDependency()
+        rootView = AppComposition().makeRootView(in: DIContainer.shared)
         initializeFirebase()
         initializeKakaoSDK()
     }
 
     var body: some Scene {
         WindowGroup {
-            AppRootView()
+            rootView
                 .task {
                     await NotificationService.shared.requestAuthorization()
                     NotificationService.shared.registerForRemoteNotifications()

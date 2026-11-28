@@ -8,7 +8,7 @@
 
 import XCTest
 
-import LivithNetworking
+import LivithNetwork
 import Domain
 @testable import CommentData
 

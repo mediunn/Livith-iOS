@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct SongRepositoryImpl: SongRepository {
     private let networkClient: NetworkClient

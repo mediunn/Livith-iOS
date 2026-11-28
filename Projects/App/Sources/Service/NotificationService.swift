@@ -11,14 +11,14 @@ import UserNotifications
 
 import DIContainer
 import Domain
-import Persistence
 
 import FirebaseMessaging
 
 final class NotificationService: NSObject {
+    static let fcmTokenDidChange = Notification.Name("fcmTokenDidChange")
     static let shared = NotificationService()
 
-    @Injected private var notificationRepository: NotificationRepository
+    @Injected private var notificationTokenRepository: NotificationTokenRepository
 
     private override init() {
         super.init()
@@ -53,15 +53,8 @@ final class NotificationService: NSObject {
     func registerFCMTokenToServer() {
         Task {
             guard let token = await getFCMToken() else { return }
-            try? await notificationRepository.registerFCMToken(token)
+            try? await notificationTokenRepository.registerFCMToken(token)
         }
-    }
-
-    func registerFCMTokenIfLoggedIn() {
-        let storage = UserDefaultsStorage()
-        let isLoggedIn: Bool = (try? storage.fetch(for: .currentUser) as User) != nil
-        guard isLoggedIn else { return }
-        registerFCMTokenToServer()
     }
 }
 
@@ -91,8 +84,9 @@ extension NotificationService: UNUserNotificationCenterDelegate {
 
 extension NotificationService: MessagingDelegate {
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        guard let fcmToken else { return }
-        print("FCM Token: \(fcmToken)")
-        registerFCMTokenIfLoggedIn()
+        guard fcmToken != nil else { return }
+        Task { @MainActor in
+            NotificationCenter.default.post(name: Self.fcmTokenDidChange, object: nil)
+        }
     }
 }

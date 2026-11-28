@@ -8,7 +8,7 @@
 
 import Foundation
 
-import LivithNetworking
+import LivithNetwork
 import Domain
 
 struct SongErrorMapper {
@@ -65,8 +65,18 @@ struct SongErrorMapper {
     }
     
     private func mapMessageToSongError(_ message: String) -> SongError? {
-        let error = SongError.from(message: message)
-        return error == .unknown ? nil : error
+        switch message {
+        case "id는 양의 정수여야 합니다.":
+            return .invalidID
+        case "해당 셋리스트가 존재하지 않습니다.":
+            return .setlistNotFound
+        case "해당 곡이 존재하지 않습니다.":
+            return .notFound
+        case "해당 셋리스트와 곡의 조합이 존재하지 않습니다.":
+            return .combinationNotFound
+        default:
+            return nil
+        }
     }
     
     private func checkForCancellation(_ error: any Error) -> SongError? {

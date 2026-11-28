@@ -60,7 +60,7 @@ print("모두가 라이브를 통해 빛나는 순간! 라이빗 iOS 레포지�
 
 ### Module Structure
 
-<img width="1989" height="958" alt="Image" src="https://github.com/user-attachments/assets/d262fc0e-d29b-43b7-ab48-e5aab2807533" />
+<img width="1440" height="900" alt="Livith iOS Xcode projects, targets, and direct project dependencies" src="./graph.png" />
 
 </div>
 
@@ -68,7 +68,7 @@ print("모두가 라이브를 통해 빛나는 순간! 라이빗 iOS 레포지�
 
 > [!IMPORTANT]
 > ➊ **DIContainer** - @Injected 프로퍼티 래퍼를 통한 의존성 주입 컨테이너 <br/>
-> ➋ **LivithNetworking** - URLSession 기반 네트워크 레이어 <br/>
+> ➋ **LivithNetwork** - URLSession 기반 네트워크 레이어 <br/>
 > ➌ **LivithFoundation** - 공통 유틸리티 및 Extension. Task 확장 등 비동기 유틸리티 포함 <br/>
 > ➍ **Auth** - KakaoSDK 기반 소셜 로그인 처리 <br/>
 > ➎ **Persistence** - UserDefaults 기반 로컬 데이터 저장

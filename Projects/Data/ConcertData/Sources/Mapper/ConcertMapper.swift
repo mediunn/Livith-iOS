@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 import LivithFoundation
-import LivithNetworking
+import LivithNetwork
 
 struct ConcertMapper {
     func toDomain(from response: DTO.Response.FetchConcertSetlist) -> Setlist? {
@@ -133,7 +133,7 @@ struct ConcertMapper {
     func toConcertListResult(from response: DTO.Response.FetchConcertList) -> ListResult<Concert> {
         ListResult(
             items: toDomain(from: response),
-            nextToken: response.cursor.map { ConcertListNextToken(cursor: $0) }
+            position: response.cursor.map { ConcertListPosition(cursor: $0) }
         )
     }
 

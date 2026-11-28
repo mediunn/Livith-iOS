@@ -27,7 +27,7 @@ let package = Package(
         .target(
             name: "LivithDesignSystem",
             dependencies: ["Kingfisher"],
-            path: "Projects/DesignSystem/Sources",
+            path: "Projects/Shared/LivithDesignSystem/Sources",
             resources: [
                 .process("../Resources")
             ]

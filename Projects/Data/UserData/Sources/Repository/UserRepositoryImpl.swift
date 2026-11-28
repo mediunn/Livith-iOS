@@ -10,31 +10,23 @@ import Foundation
 
 import Domain
 import LivithFoundation
-import LivithNetworking
-import Persistence
+import LivithNetwork
 
-struct UserRepositoryImpl: UserRepository {
+struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestConcertEntryAlertRepository {
     private let networkClient: NetworkClient
-    private let userCache: UserDiskCache
     private let mapper: UserMapper = .init()
     private let errorMapper: UserErrorMapper = .init()
 
-    init(
-        networkClient: NetworkClient,
-        userdefaultsStorage: UserDefaultsStorage
-    ) {
+    init(networkClient: NetworkClient) {
         self.networkClient = networkClient
-        self.userCache = UserDiskCache(userdefaultsStorage: userdefaultsStorage)
     }
 
-    func updateNickname(_ nickname: String) async throws(UserError) {
+    func updateNickname(_ nickname: Nickname) async throws(UserError) -> String {
         do {
             let response: DTO.Response.UpdateUserNickname = try await networkClient.request(
-                UserAPI.updateNickname(nickname)
+                UserAPI.updateNickname(nickname.value)
             )
-            await userCache.updateUser { user in
-                user.nickname = response.nickname
-            }
+            return response.nickname
         } catch {
             let userError: UserError = errorMapper.mapToUserError(error)
             throw userError
@@ -42,15 +34,15 @@ struct UserRepositoryImpl: UserRepository {
     }
 
     func fetchUser() async throws(UserError) -> User {
-        if let cachedUser = await userCache.fetchUserIfValid() {
-            return cachedUser
+        do {
+            let response: DTO.Response.FetchUserInfo = try await networkClient.request(
+                OnboardingAPI.fetchUserInfo()
+            )
+            return mapper.toDomain(from: response)
+        } catch {
+            let userError: UserError = errorMapper.mapToUserError(error)
+            throw userError
         }
-        return try await fetchUserFromNetwork()
-    }
-
-    @discardableResult
-    func refreshUser() async throws(UserError) -> User {
-        try await fetchUserFromNetwork()
     }
 
     func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
@@ -66,7 +58,7 @@ struct UserRepositoryImpl: UserRepository {
             )
             return mapper.toDomain(from: response)
         } catch NetworkError.noData {
-            return ListResult(items: [], nextToken: nil)
+            return ListResult(items: [], position: nil)
         } catch let error as UserError {
             throw error
         } catch {
@@ -194,25 +186,25 @@ private extension UserRepositoryImpl {
     func makeFetchInterestConcertListRequest(
         from filter: InterestConcertListFilter
     ) throws(UserError) -> DTO.Request.FetchInterestConcertList {
-        let nextToken = try makeInterestConcertListNextToken(from: filter.nextToken)
+        let position = try makeInterestConcertListPosition(from: filter.position)
 
         return DTO.Request.FetchInterestConcertList(
             sort: filter.sort.map(makeFetchInterestConcertListSort),
             size: filter.limit,
-            cursorDate: nextToken?.cursorDate,
-            cursorID: nextToken?.id
+            cursorDate: position?.cursorDate,
+            cursorID: position?.id
         )
     }
 
-    func makeInterestConcertListNextToken(
-        from nextToken: (any NextToken)?
-    ) throws(UserError) -> InterestConcertListNextToken? {
-        guard let nextToken else { return nil }
-        guard let interestConcertListNextToken = nextToken as? InterestConcertListNextToken else {
+    func makeInterestConcertListPosition(
+        from position: (any PagePosition)?
+    ) throws(UserError) -> InterestConcertListPosition? {
+        guard let position else { return nil }
+        guard let interestConcertListPosition = position as? InterestConcertListPosition else {
             throw UserError.invalidRequest
         }
 
-        return interestConcertListNextToken
+        return interestConcertListPosition
     }
 
     func makeFetchInterestConcertListSort(
@@ -223,20 +215,6 @@ private extension UserRepositoryImpl {
             return .concert
         case .ticketing:
             return .ticketing
-        }
-    }
-
-    func fetchUserFromNetwork() async throws(UserError) -> User {
-        do {
-            let response: DTO.Response.FetchUserInfo = try await networkClient.request(
-                OnboardingAPI.fetchUserInfo()
-            )
-            let user: User = mapper.toDomain(from: response)
-            await userCache.saveUser(user)
-            return user
-        } catch {
-            let userError: UserError = errorMapper.mapToUserError(error)
-            throw userError
         }
     }
 }

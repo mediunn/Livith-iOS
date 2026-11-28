@@ -9,7 +9,7 @@
 import Foundation
 import Testing
 
-import LivithNetworking
+import LivithNetwork
 import Domain
 @testable import UserData
 
@@ -171,12 +171,12 @@ struct UserMapperTests {
         let result = sut.toDomain(from: dto)
         let interestConcert = try #require(result.items.first)
         let concert = interestConcert.concert
-        let nextToken = try #require(result.nextToken as? InterestConcertListNextToken)
+        let position = try #require(result.position as? InterestConcertListPosition)
 
         // Then
         #expect(result.items.count == 1)
-        #expect(nextToken.id == 8)
-        #expect(nextToken.cursorDate == "2025.09.27")
+        #expect(position.id == 8)
+        #expect(position.cursorDate == "2025.09.27")
         #expect(concert.id == 8)
         #expect(concert.title == "제이크 밀러 첫 단독 내한공연 JAKE MILLER BALANCE TOUR")
         #expect(concert.artist == "JAKE MILLER (제이크 밀러)")
@@ -232,7 +232,7 @@ struct UserMapperTests {
 
         // Then
         #expect(result.items.count == 1)
-        #expect(result.nextToken == nil)
+        #expect(result.position == nil)
         #expect(concert.id == 2)
         #expect(concert.title == nil)
         #expect(concert.artist == "버스커버스커")
@@ -338,15 +338,15 @@ struct UserMapperTests {
 
         // When
         let result = sut.toDomain(from: dto)
-        let nextToken = try #require(result.nextToken as? InterestConcertListNextToken)
+        let position = try #require(result.position as? InterestConcertListPosition)
 
         // Then
-        #expect(nextToken.cursorDate == "invalid-date")
-        #expect(nextToken.id == 1)
+        #expect(position.cursorDate == "invalid-date")
+        #expect(position.id == 1)
     }
 
-    @Test("FetchUserInterestConcert의 cursor 필수 값이 없으면 nextToken을 nil로 변환해야 한다")
-    func fetchUserInterestConcert의_cursor_필수_값이_없으면_nextToken을_nil로_변환해야_한다() throws {
+    @Test("FetchUserInterestConcert의 cursor 필수 값이 없으면 position을 nil로 변환해야 한다")
+    func fetchUserInterestConcert의_cursor_필수_값이_없으면_position을_nil로_변환해야_한다() throws {
         // Given
         let sut = UserMapper()
         let jsonList = [
@@ -377,7 +377,7 @@ struct UserMapperTests {
             let result = sut.toDomain(from: dto)
 
             // Then
-            #expect(result.nextToken == nil)
+            #expect(result.position == nil)
         }
     }
 

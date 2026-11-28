@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct UserErrorMapper {
     func mapToUserError(_ error: Error) -> UserError {
@@ -76,6 +76,23 @@ struct UserErrorMapper {
     
     private func mapFromMessage(_ message: String?) -> UserError {
         guard let message else { return .unknown }
-        return UserError.from(message: message)
+        switch message {
+        case "해당 유저가 존재하지 않습니다.":
+            return .userNotFound
+        case "이미 존재하는 닉네임이에요.":
+            return .duplicateNickname
+        case "nickname must be shorter than or equal to 10 characters":
+            return .nicknameTooLong
+        case "탈퇴한 회원입니다.":
+            return .withdrawn
+        case "nickname should not be empty":
+            return .emptyNickname
+        case "해당 콘서트가 존재하지 않습니다.":
+            return .concertNotFound
+        case "concertId must be an integer number":
+            return .invalidConcertID
+        default:
+            return .unknown
+        }
     }
 }

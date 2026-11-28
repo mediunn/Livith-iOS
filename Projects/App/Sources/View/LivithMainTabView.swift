@@ -8,10 +8,11 @@
 
 import SwiftUI
 
-import Amplitude
+import Analytics
 import ConcertFeature
 import HomeFeature
 import LivithDesignSystem
+import NicknameEditFeature
 import SearchFeature
 import UserFeature
 
@@ -20,10 +21,12 @@ struct LivithMainTabView: View {
     // MARK: - Tab
 
     enum Tab: Int, CaseIterable {
-        case home, search, my
+        case home, explore, my
     }
 
     // MARK: - Property
+
+    private let sessionNickname: SessionNickname
 
     @State private var selectedTab: Tab = .home
     @State private var deepLinkConcertID: Int?
@@ -34,7 +37,8 @@ struct LivithMainTabView: View {
 
     // MARK: - LifeCycle
 
-    init() {
+    init(sessionNickname: SessionNickname) {
+        self.sessionNickname = sessionNickname
         configureTabBarAppearance()
     }
 
@@ -47,20 +51,22 @@ struct LivithMainTabView: View {
                 deepLinkInitialTab: $deepLinkInitialTab,
                 deepLinkInitialSection: $deepLinkInitialSection,
                 deepLinkShowInterest: $deepLinkShowInterest,
-                deepLinkInstagramURL: $deepLinkInstagramURL
+                deepLinkInstagramURL: $deepLinkInstagramURL,
+                sessionNickname: sessionNickname
             )
             .tag(Tab.home)
             .tabItem {
                 makeTabItem(.home)
             }
 
-            SearchCoordinatorView()
-                .tag(Tab.search)
+            ExploreCoordinatorView()
+                .tag(Tab.explore)
                 .tabItem {
-                    makeTabItem(.search)
+                    makeTabItem(.explore)
                 }
 
             UserCoordinatorView(
+                sessionNickname: sessionNickname,
                 onNavigateToHome: {
                     selectedTab = .home
                 }
@@ -75,7 +81,7 @@ struct LivithMainTabView: View {
             switch newTab {
             case .home:
                 AmplitudeService.shared.trackEvent(tag: .click(.navHome))
-            case .search:
+            case .explore:
                 AmplitudeService.shared.trackEvent(tag: .click(.navExplore))
             case .my:
                 AmplitudeService.shared.trackEvent(tag: .click(.navMy))
@@ -152,7 +158,7 @@ extension LivithMainTabView.Tab {
     var title: String {
         switch self {
         case .home: return "홈"
-        case .search: return "탐색"
+        case .explore: return "탐색"
         case .my: return "마이"
         }
     }
@@ -160,7 +166,7 @@ extension LivithMainTabView.Tab {
     var defaultIcon: Image {
         switch self {
         case .home: return Image.livithIcon(.homeDisabled)
-        case .search: return Image.livithIcon(.ticketDisabled)
+        case .explore: return Image.livithIcon(.ticketDisabled)
         case .my: return Image.livithIcon(.myDisabled)
         }
     }
@@ -168,7 +174,7 @@ extension LivithMainTabView.Tab {
     var selectedIcon: Image {
         switch self {
         case .home: return Image.livithIcon(.homeEnabled)
-        case .search: return Image.livithIcon(.ticketEnabled)
+        case .explore: return Image.livithIcon(.ticketEnabled)
         case .my: return Image.livithIcon(.myEnabled)
         }
     }

@@ -12,39 +12,21 @@ import ProjectDescription
 public enum TargetID {
     case app
     case core(CoreModule)
-    case livithNetworking(LivithNetworkingModule)
-    case login(LoginModule)
-    case search(SearchModule)
-    case song(SongModule)
-    case setlist(SetlistModule)
-    case concert(ConcertModule)
-    case home(HomeModule)
-    case user(UserModule)
-    case share(ShareModule)
+    case feature(FeatureModule)
     case widget(WidgetModule)
     case domain(DomainModule)
     case data(DataModule)
     case shared(SharedModule)
-    case designSystem(DesignSystemModule)
 
     public var name: String {
         switch self {
         case .app: return BuildConfiguration.appName
         case .core(let module): return module.rawValue
-        case .livithNetworking(let module): return module.rawValue
-        case .login(let module): return module.rawValue
-        case .search(let module): return module.rawValue
-        case .song(let module): return module.rawValue
-        case .setlist(let module): return module.rawValue
-        case .concert(let module): return module.rawValue
-        case .home(let module): return module.rawValue
-        case .user(let module): return module.rawValue
-        case .share(let module): return module.rawValue
+        case .feature(let module): return module.rawValue
         case .widget(let module): return module.rawValue
         case .domain(let module): return module.rawValue
         case .data(let module): return module.rawValue
         case .shared(let module): return module.rawValue
-        case .designSystem(let module): return module.rawValue
         }
     }
     
@@ -52,6 +34,14 @@ public enum TargetID {
         switch self {
         case .app:
             return BuildConfiguration.baseBundleID
+        case .core(.analytics):
+            return "\(BuildConfiguration.baseBundleID).amplitude"
+        case .core(.routing):
+            return "\(BuildConfiguration.baseBundleID).coordinator"
+        case .core(.livithNetwork):
+            return "\(BuildConfiguration.baseBundleID).livithnetworking"
+        case .core(.livithNetworkTests):
+            return "\(BuildConfiguration.baseBundleID).livithnetworkingtests"
         default:
             return "\(BuildConfiguration.baseBundleID).\(name.lowercased())"
         }
@@ -61,26 +51,17 @@ public enum TargetID {
         switch self {
         case .app:
             return ["Sources/**"]
+        case .core(.livithNetworkTests):
+            return ["LivithNetwork/Tests/**"]
         case .core(let module):
             return ["\(module.rawValue)/Sources/**"]
-        case .livithNetworking(let module):
-            return livithNetworkingSourcePath(module)
-        case .login:
-            return ["Sources/**"]
-        case .search(let module):
-            return searchSourcePath(module)
-        case .song:
-            return ["Sources/**"]
-        case .setlist:
-            return ["Sources/**"]
-        case .concert:
-            return ["Sources/**"]
-        case .home(let module):
-            return homeSourcePath(module)
-        case .user:
-            return ["Sources/**"]
-        case .share(let module):
-            return shareSourcePath(module)
+        case .feature(let module):
+            let targetName = module.rawValue
+            let testSuffix = "Tests"
+            if targetName.hasSuffix(testSuffix) {
+                return ["\(targetName.dropLast(testSuffix.count))/Tests/**"]
+            }
+            return ["\(targetName)/Sources/**"]
         case .widget:
             return ["Sources/**"]
         case .domain:
@@ -89,8 +70,6 @@ public enum TargetID {
             return dataModuleTestSourcePath(module) ?? ["\(module.rawValue)/Sources/**"]
         case .shared(let module):
             return sharedSourcePath(module)
-        case .designSystem:
-            return ["Sources/**"]
         }
     }
     
@@ -109,8 +88,8 @@ public enum TargetID {
                     "Resources/LivithWidget.entitlements"
                 ])
             ]
-        case .designSystem:
-            return ["Resources/**"]
+        case .shared(.designSystem):
+            return ["LivithDesignSystem/Resources/**"]
         default:
             return nil
         }
@@ -138,56 +117,14 @@ private extension TargetID {
         return ["\(parentModule)/Tests/**"]
     }
 
-    func livithNetworkingSourcePath(_ module: LivithNetworkingModule) -> SourceFilesList {
-        switch module {
-        case .livithNetworking:
-            return ["Sources/**"]
-        case .livithNetworkingTests:
-            return ["Tests/**"]
-        }
-    }
-
     func sharedSourcePath(_ module: SharedModule) -> SourceFilesList {
         switch module {
         case .displaySupport:
             return ["DisplaySupport/Sources/**"]
         case .displaySupportTests:
             return ["DisplaySupport/Tests/**"]
-        case .nicknameEditFeature:
-            return ["NicknameEditFeature/Sources/**"]
-        case .nicknameEditFeatureTests:
-            return ["NicknameEditFeature/Tests/**"]
-        case .preferenceFeature:
-            return ["PreferenceFeature/Sources/**"]
-        case .preferenceFeatureTests:
-            return ["PreferenceFeature/Tests/**"]
-        }
-    }
-
-    func homeSourcePath(_ module: HomeModule) -> SourceFilesList {
-        switch module {
-        case .homeFeature:
-            return ["Sources/**"]
-        case .homeFeatureTests:
-            return ["Tests/**"]
-        }
-    }
-
-    func searchSourcePath(_ module: SearchModule) -> SourceFilesList {
-        switch module {
-        case .searchFeature:
-            return ["Sources/**"]
-        case .searchFeatureTests:
-            return ["Tests/**"]
-        }
-    }
-
-    func shareSourcePath(_ module: ShareModule) -> SourceFilesList {
-        switch module {
-        case .shareFeature:
-            return ["Sources/**"]
-        case .shareFeatureTests:
-            return ["Tests/**"]
+        case .designSystem:
+            return ["LivithDesignSystem/Sources/**"]
         }
     }
 }

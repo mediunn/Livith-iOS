@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct CommentRepositoryImpl: CommentRepository {
     private let networkClient: NetworkClient
@@ -35,10 +35,10 @@ struct CommentRepositoryImpl: CommentRepository {
         }
     }
     
-    func createComment(concertID: Int, content: String) async throws(CommentError) -> ConcertComment {
+    func createComment(concertID: Int, content: ConcertCommentContent) async throws(CommentError) -> ConcertComment {
         do {
             let response: DTO.Response.CreateConcertComment = try await networkClient.request(
-                CommentAPI.createComment(concertID: concertID, content: content)
+                CommentAPI.createComment(concertID: concertID, content: content.value)
             )
             guard let comment = mapper.toDomain(from: response) else {
                 throw CommentError.invalidResponse

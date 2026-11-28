@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct CalendarErrorMapper {
     func mapToCalendarError(_ error: any Error) -> CalendarError {
@@ -27,11 +27,6 @@ struct CalendarErrorMapper {
 
 private extension CalendarErrorMapper {
     func mapToCalendarError(_ networkError: NetworkError) -> CalendarError {
-        if let message = extractMessage(from: networkError),
-           let calendarError = mapMessageToCalendarError(message) {
-            return calendarError
-        }
-
         switch networkError {
         case .noConnection:
             return .noConnection
@@ -50,25 +45,6 @@ private extension CalendarErrorMapper {
         case .notFound, .unknown:
             return .unknown
         }
-    }
-
-    func extractMessage(from networkError: NetworkError) -> String? {
-        switch networkError {
-        case .badRequest(let msg),
-             .unauthorized(let msg),
-             .forbidden(let msg),
-             .notFound(let msg),
-             .serverError(_, let msg),
-             .clientError(_, let msg):
-            return msg
-        default:
-            return nil
-        }
-    }
-
-    func mapMessageToCalendarError(_ message: String) -> CalendarError? {
-        let error = CalendarError.from(message: message)
-        return error == .unknown ? nil : error
     }
 
     func checkForCancellation(_ error: any Error) -> CalendarError? {

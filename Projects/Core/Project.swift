@@ -36,17 +36,28 @@ let project = Project.make(
             ]
         ),
         .make(
-            target: .core(.coordinator),
+            target: .core(.routing),
             product: .framework
         ),
         .make(
-            target: .core(.amplitude),
+            target: .core(.analytics),
             product: .framework,
-            infoPlist: .file(path: "Amplitude/Resources/Amplitude-Info.plist"),
+            infoPlist: .file(path: "Analytics/Resources/Amplitude-Info.plist"),
             dependencies: [
                 .external(.amplitudeSwift)
             ],
             settings: .environment
+        ),
+        .make(
+            target: .core(.livithNetwork),
+            product: .framework
+        ),
+        .make(
+            target: .core(.livithNetworkTests),
+            product: .unitTests,
+            dependencies: [
+                .core(.livithNetwork)
+            ]
         )
     ]
 )

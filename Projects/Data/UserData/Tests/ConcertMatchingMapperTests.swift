@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 @testable import UserData
 
 @Suite("콘서트 매칭 매퍼 테스트")

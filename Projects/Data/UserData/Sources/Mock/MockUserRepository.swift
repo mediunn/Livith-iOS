@@ -14,7 +14,7 @@ import Domain
 public struct MockUserRepository: UserRepository {
     public init() {}
 
-    public func updateNickname(_ nickname: String) async throws(UserError) {}
+    public func updateNickname(_ nickname: Nickname) async throws(UserError) -> String { nickname.value }
 
     public func fetchUser() async throws(UserError) -> User {
         User(
@@ -26,11 +26,6 @@ public struct MockUserRepository: UserRepository {
             hasPreferences: false,
             authority: UserAuthority(deviceNotification: true, marketingConsent: true)
         )
-    }
-
-    @discardableResult
-    public func refreshUser() async throws(UserError) -> User {
-        try await fetchUser()
     }
 
     public func fetchInterestedConcertList(filter: InterestConcertListFilter) async throws(UserError) -> ListResult<InterestConcert> {
@@ -45,7 +40,7 @@ public struct MockUserRepository: UserRepository {
         let interestConcertList = filter.limit.map { Array(sortedConcertList.prefix(max($0, 0))) } ?? sortedConcertList
         return ListResult(
             items: interestConcertList,
-            nextToken: nil
+            position: nil
         )
     }
 

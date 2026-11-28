@@ -9,10 +9,11 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 import LivithFoundation
 
-struct ConcertRepositoryImpl: ConcertRepository {
+struct ConcertRepositoryImpl: ConcertCatalogRepository, ConcertDetailRepository,
+    ConcertSectionRepository, ConcertRecommendationRepository, ConcertRequestRepository {
     private let networkClient: NetworkClient
     private let mapper: ConcertMapper = .init()
     private let errorMapper: ConcertErrorMapper = .init()
@@ -22,12 +23,12 @@ struct ConcertRepositoryImpl: ConcertRepository {
     }
     
     func fetchAllConcertList(startDate: Date?, concertID: Int?) async throws(ConcertError) -> [Concert] {
-        let nextToken = concertID.map { ConcertListNextToken(cursor: $0) }
-        return try await fetchAllConcertList(after: nextToken, size: 12).items
+        let position = concertID.map { ConcertListPosition(cursor: $0) }
+        return try await fetchAllConcertList(after: position, size: 12).items
     }
 
-    func fetchAllConcertList(after nextToken: (any NextToken)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
-        let cursor = try makeCursor(from: nextToken)
+    func fetchAllConcertList(after position: (any PagePosition)?, size: Int) async throws(ConcertError) -> ListResult<Concert> {
+        let cursor = try makeCursor(from: position)
 
         do {
             let response: DTO.Response.FetchConcertList = try await networkClient.request(
@@ -169,19 +170,14 @@ struct ConcertRepositoryImpl: ConcertRepository {
         }
     }
 
-    func requestConcert(
-        title: String,
-        url: String?,
-        shouldAutoRegister: Bool,
-        requestContent: String?
-    ) async throws(ConcertError) {
+    func requestConcert(_ request: ConcertRequest) async throws(ConcertError) {
         do {
             try await networkClient.request(
                 ConcertAPI.requestConcert(
-                    title: title,
-                    url: url,
-                    shouldAutoRegister: shouldAutoRegister,
-                    requestContent: requestContent
+                    title: request.title,
+                    url: request.url,
+                    shouldAutoRegister: request.shouldAutoRegister,
+                    requestContent: request.requestContent
                 )
             )
         } catch {
@@ -193,12 +189,12 @@ struct ConcertRepositoryImpl: ConcertRepository {
 // MARK: - Helpers
 
 private extension ConcertRepositoryImpl {
-    func makeCursor(from nextToken: (any NextToken)?) throws(ConcertError) -> Int? {
-        guard let nextToken else { return nil }
-        guard let concertListNextToken = nextToken as? ConcertListNextToken else {
+    func makeCursor(from position: (any PagePosition)?) throws(ConcertError) -> Int? {
+        guard let position else { return nil }
+        guard let concertListPosition = position as? ConcertListPosition else {
             throw ConcertError.invalidRequest
         }
 
-        return concertListNextToken.cursor
+        return concertListPosition.cursor
     }
 }

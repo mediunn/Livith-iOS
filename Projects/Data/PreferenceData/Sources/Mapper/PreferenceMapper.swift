@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct PreferenceMapper {
     func toDomain(from dto: DTO.Response.FetchGenreList) -> [PreferredGenre] {
@@ -23,8 +23,8 @@ struct PreferenceMapper {
         }
     }
     
-    func toDomain(from dto: DTO.Response.SearchArtistList) -> ArtistSearchResult {
-        let artists = dto.data.map { artist in
+    func toDomain(from dto: DTO.Response.SearchArtistList) -> ListResult<PreferredArtist> {
+        let artistList = dto.data.map { artist in
             PreferredArtist(
                 id: artist.id,
                 name: artist.name,
@@ -32,10 +32,9 @@ struct PreferenceMapper {
                 imageURL: artist.imageURLString.flatMap { URL(string: $0) }
             )
         }
-        return ArtistSearchResult(
-            artists: artists,
-            cursor: dto.cursor,
-            totalCount: dto.totalCount
+        return ListResult(
+            items: artistList,
+            position: dto.cursor.map { ArtistSearchPosition(cursor: $0) }
         )
     }
     
