@@ -46,7 +46,9 @@ final class InterestConcertSettingViewModel {
     private(set) var searchText = ""
     private(set) var isInitialLoading = true
     private(set) var isSearchLoading = false
-    private(set) var isSubmitting = false
+    private(set) var didSave = false
+    private var submissionTask: Task<Bool, Never>?
+    var isSubmitting: Bool { submissionTask != nil }
 
     private let concertCatalogRepository: any ConcertCatalogRepository
     private let searchRepository: any SearchRepository
@@ -158,12 +160,23 @@ final class InterestConcertSettingViewModel {
         presentError(pendingErrorMessage)
     }
 
+    @discardableResult
     func submit() async -> Bool {
         guard hasUnsavedChanges, !isSubmitting, !isInitialLoading else { return false }
-        isSubmitting = true
-        defer { isSubmitting = false }
-
+        didSave = false
         let submittedIDs = selection.concertIDs
+        let request = Task { await saveSelection(concertIDs: submittedIDs) }
+        submissionTask = request
+        defer { submissionTask = nil }
+        didSave = await request.value
+        return didSave
+    }
+}
+
+private extension InterestConcertSettingViewModel {
+    var keyword: String { searchText.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    func saveSelection(concertIDs submittedIDs: [Int]) async -> Bool {
         do {
             let concerts = try await interestConcertRepository.updateInterestedConcertList(submittedIDs)
             remember(concerts)
@@ -174,10 +187,6 @@ final class InterestConcertSettingViewModel {
             return false
         }
     }
-}
-
-private extension InterestConcertSettingViewModel {
-    var keyword: String { searchText.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     func presentError(_ message: String) {
         if isErrorToastPresented {

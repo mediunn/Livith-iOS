@@ -177,6 +177,7 @@ struct InterestConcertSettingViewModelTests {
         sut.toggleConcertSelection(1)
         let didSave = await sut.submit()
         #expect(!didSave)
+        #expect(!sut.didSave)
 
         // Then
         #expect(sut.selectedConcertIDList.isEmpty)
@@ -549,6 +550,7 @@ struct InterestConcertSettingViewModelTests {
         // When
         let didSave = await sut.submit()
         #expect(didSave)
+        #expect(sut.didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
@@ -575,6 +577,7 @@ struct InterestConcertSettingViewModelTests {
         // When
         let didSave = await sut.submit()
         #expect(didSave)
+        #expect(sut.didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
@@ -596,6 +599,7 @@ struct InterestConcertSettingViewModelTests {
         // When
         let didSave = await sut.submit()
         #expect(!didSave)
+        #expect(!sut.didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 0)
@@ -616,6 +620,7 @@ struct InterestConcertSettingViewModelTests {
         // When
         let didSave = await sut.submit()
         #expect(!didSave)
+        #expect(!sut.didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)
@@ -664,6 +669,7 @@ struct InterestConcertSettingViewModelTests {
         // When
         let didSave = await sut.submit()
         #expect(!didSave)
+        #expect(!sut.didSave)
 
         // Then
         #expect(userRepository.updateInterestedConcertListCallCount == 1)

@@ -19,7 +19,6 @@ struct InterestConcertSettingView: View {
     @EnvironmentObject private var homeRouter: HomeRouter
     @State private var viewModel: InterestConcertSettingViewModel
     private let onSaveSuccess: () -> Void
-    @State private var isScreenVisible = false
     @State private var isDiscardChangesModalPresented: Bool = false
     @State private var hasOpenedConcertRequest: Bool = false
 
@@ -62,10 +61,8 @@ struct InterestConcertSettingView: View {
         .ignoresSafeArea(.keyboard)
         .navigationBarHidden(true)
         .onAppear {
-            isScreenVisible = true
             Task { await viewModel.loadIfNeeded() }
         }
-        .onDisappear { isScreenVisible = false }
         .simultaneousGesture(TapGesture().onEnded { _ in
             viewModel.isSearchFocused = false
         })
@@ -74,6 +71,9 @@ struct InterestConcertSettingView: View {
             type: .failure,
             message: viewModel.errorMessage
         )
+        .onChange(of: viewModel.didSave) { _, succeeded in
+            if succeeded { onSaveSuccess() }
+        }
         .onChange(of: viewModel.isErrorToastPresented) { _, isPresented in
             if !isPresented { viewModel.presentPendingErrorIfNeeded() }
         }
@@ -143,11 +143,7 @@ private extension InterestConcertSettingView {
                 if viewModel.mode == .initialSetup {
                     AmplitudeService.shared.trackEvent(tag: .confirm(.interestConcert))
                 }
-                Task {
-                    if await viewModel.submit(), isScreenVisible {
-                        onSaveSuccess()
-                    }
-                }
+                Task { await viewModel.submit() }
             }
         )
     }

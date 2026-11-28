@@ -20,7 +20,6 @@ struct InstagramManualSearchView: View {
     @State private var viewModel: InstagramManualSearchViewModel
     @State private var isSearchFocused = false
     @State private var isCancelModalPresented = false
-    @State private var registrationTask: Task<Void, Never>?
 
     private let context: InstagramManualSearchContext
     private let onRegisterSuccess: () -> Void
@@ -68,12 +67,14 @@ struct InstagramManualSearchView: View {
         })
         .onAppear { Task { await viewModel.loadIfNeeded() } }
         .task(id: viewModel.searchRevision) { await viewModel.searchIfNeeded() }
-        .onDisappear { registrationTask?.cancel() }
         .livithToast(
             isPresented: $viewModel.isErrorToastPresented,
             type: .failure,
             message: viewModel.errorMessage
         )
+        .onChange(of: viewModel.didRegister) { _, succeeded in
+            if succeeded { onRegisterSuccess() }
+        }
         .onChange(of: viewModel.isErrorToastPresented) { _, isPresented in
             if !isPresented { viewModel.presentPendingErrorIfNeeded() }
         }
@@ -220,13 +221,7 @@ private extension InstagramManualSearchView {
                 variant: .primary
             ) {
                 AmplitudeService.shared.trackEvent(tag: .click(.igSearchSuccess))
-                guard registrationTask == nil else { return }
-                registrationTask = Task {
-                    defer { registrationTask = nil }
-                    if await viewModel.register(), !Task.isCancelled {
-                        onRegisterSuccess()
-                    }
-                }
+                Task { await viewModel.register() }
             }
             .disabled(!viewModel.canRegister)
         }

@@ -32,7 +32,9 @@ final class InstagramManualSearchViewModel {
     private(set) var selectedConcertID: Int?
     private(set) var isInitialLoading = true
     private(set) var isSearchLoading = false
-    private(set) var isRegistering = false
+    private(set) var didRegister = false
+    private var registrationTask: Task<Bool, Never>?
+    var isRegistering: Bool { registrationTask != nil }
     private(set) var errorMessage = ""
     var isErrorToastPresented = false
     private var pendingErrorMessage: String?
@@ -73,7 +75,7 @@ final class InstagramManualSearchViewModel {
 
     var displayedConcertList: [Concert] { searchResultList ?? catalogList }
     var isLoadingMore: Bool { keyword.isEmpty ? isLoadingCatalogPage : nextSearchPageTask != nil }
-    var canRegister: Bool { selectedConcertID != nil && !isRegistering }
+    var canRegister: Bool { selectedConcertID != nil && !isRegistering && !didRegister }
 
     func loadIfNeeded() async {
         guard isInitialLoading, !isLoadingCatalogPage else { return }
@@ -123,27 +125,32 @@ final class InstagramManualSearchViewModel {
         presentError(pendingErrorMessage)
     }
 
+    @discardableResult
     func register() async -> Bool {
-        guard let selectedConcertID, !isRegistering else { return false }
-        isRegistering = true
-        defer { isRegistering = false }
-        do {
-            let alreadyInterested = try await interestConcertRepository.checkInterestedConcert(id: selectedConcertID)
-            guard !Task.isCancelled else { return false }
-            if !alreadyInterested {
-                try await interestConcertRepository.updateInterestedConcert(selectedConcertID)
-            }
-            return true
-        } catch {
-            guard !Task.isCancelled else { return false }
-            presentError("관심 콘서트 등록에 실패했어요\n다시 시도해주세요")
-            return false
-        }
+        guard canRegister, let selectedConcertID else { return false }
+        let request = Task { await registerConcert(id: selectedConcertID) }
+        registrationTask = request
+        defer { registrationTask = nil }
+        didRegister = await request.value
+        return didRegister
     }
 }
 
 private extension InstagramManualSearchViewModel {
     var keyword: String { searchText.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    func registerConcert(id: Int) async -> Bool {
+        do {
+            let alreadyInterested = try await interestConcertRepository.checkInterestedConcert(id: id)
+            if !alreadyInterested {
+                try await interestConcertRepository.updateInterestedConcert(id)
+            }
+            return true
+        } catch {
+            presentError("관심 콘서트 등록에 실패했어요\n다시 시도해주세요")
+            return false
+        }
+    }
 
     func loadCatalogPage(after cursor: (any PagePosition)?) async {
         isLoadingCatalogPage = true

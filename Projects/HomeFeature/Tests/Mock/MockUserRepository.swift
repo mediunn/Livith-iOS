@@ -31,6 +31,7 @@ final class MockUserRepository: UserRepository, InterestConcertRepository, Inter
     var fetchInterestedConcertListFilterList: [InterestConcertListFilter] = []
     var checkInterestedConcertCallCount: Int = 0
     var checkInterestedConcertID: Int?
+    var beforeReturningInterestStatus: (() async -> Void)?
     var checkInterestedConcertResult: Bool = false
     var updateInterestedConcertCallCount: Int = 0
     var updateInterestedConcertListCallCount: Int = 0
@@ -126,6 +127,7 @@ final class MockUserRepository: UserRepository, InterestConcertRepository, Inter
     func checkInterestedConcert(id: Int) async throws(UserError) -> Bool {
         checkInterestedConcertCallCount += 1
         checkInterestedConcertID = id
+        await beforeReturningInterestStatus?()
         if let error = errorStub {
             throw error
         }

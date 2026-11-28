@@ -139,6 +139,9 @@ struct InstagramManualSearchViewModelTests {
         model.searchText = ""
 
         #expect(await model.register())
+        #expect(model.didRegister)
+        #expect(await model.register() == false)
+        #expect(interest.checkInterestedConcertCallCount == 1)
         #expect(interest.checkInterestedConcertID == 2)
         #expect(interest.updateInterestedConcertCallCount == (alreadyInterested ? 0 : 1))
         #expect(!model.isRegistering)
@@ -164,6 +167,37 @@ struct InstagramManualSearchViewModelTests {
         #expect(model.errorMessage == "관심 콘서트 등록에 실패했어요\n다시 시도해주세요")
     }
 
+    @Test("등록 대기 중 중복 요청을 무시하고 호출자가 취소되어도 등록을 완료한다")
+    func registrationOutlivesCaller() async throws {
+        let model = makeModel()
+        interest.updatedConcertStub = makeConcert(id: 1)
+        await model.loadIfNeeded()
+        model.toggleConcertSelection(1)
+
+        let (requests, started) = AsyncStream.makeStream(of: CheckedContinuation<Void, Never>.self)
+        interest.beforeReturningInterestStatus = {
+            await withCheckedContinuation { started.yield($0) }
+        }
+        let caller = Task {
+            defer { started.finish() }
+            return await model.register()
+        }
+        var iterator = requests.makeAsyncIterator()
+        let pending = await iterator.next()
+        let response = try #require(pending)
+        #expect(!model.canRegister)
+        caller.cancel()
+        interest.beforeReturningInterestStatus = nil
+        #expect(await model.register() == false)
+        response.resume()
+
+        #expect(await caller.value)
+        #expect(model.didRegister)
+        #expect(interest.checkInterestedConcertCallCount == 1)
+        #expect(interest.updateInterestedConcertCallCount == 1)
+        #expect(!model.isRegistering)
+    }
+
     @Test("등록이 실패하면 토스트를 표시하고 같은 공연으로 다시 시도할 수 있다")
     func retryRegistration() async {
         catalog.concertListStub = [makeConcert(id: 1)]
@@ -175,6 +209,7 @@ struct InstagramManualSearchViewModelTests {
         #expect(model.errorMessage == "관심 콘서트 등록에 실패했어요\n다시 시도해주세요")
         #expect(model.selectedConcertID == 1)
         #expect(model.canRegister)
+        #expect(!model.didRegister)
 
         interest.updatedConcertStub = makeConcert(id: 1)
         #expect(await model.register())
