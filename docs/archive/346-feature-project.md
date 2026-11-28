@@ -30,11 +30,13 @@
 ## 미해결·후속 사항
 
 - 실기기 화면 표시와 Release 환경의 실제 분석 이벤트 전송은 확인하지 않았다.
-- `make module`의 독립 프로젝트 생성 방식을 새 디렉터리 구조에 맞추는 작업은 별도 범위다.
+- `make module-delete`와 `make module-rollback`은 독립 프로젝트 구조를 사용한다. `make sync-dskit`은 이전 `Projects/DSKit` 경로를 사용한다. 배포 워크플로에서는 이 명령들을 호출하지 않는다.
 
 ## 추가 기록
 
 - 현재 Tuist 그래프에서 프로젝트 6개, 앱·프레임워크 타깃 33개, 테스트 타깃 19개와 프로젝트 간 직접 의존을 확인해 [모듈 구조 이미지](../../graph.png)를 갱신했다. README의 모듈 구조 섹션에서 이 파일을 표시한다.
+- `make module`은 Data·Feature 타깃을 각 통합 매니페스트에 등록하고 Domain은 기존 타깃의 소스 폴더에 추가한다. 임시 복사본에서 전체·단일 레이어 생성, 중복·잘못된 이름·취소·매니페스트 오류 처리와 `tuist generate --no-open`을 확인했다.
+- QA와 Release 워크플로 모두 Tuist로 워크스페이스를 다시 생성한다. Fastlane이 사용하는 `Livith-iOS-Dev`, `Livith-iOS` 스킴이 생성된 워크스페이스에 있어 배포 설정의 경로와 이름은 유지했다. 로컬에서 `Livith-iOS` Release 기기 빌드가 서명 없이 성공했다. GitHub Actions 실행, 배포 서명, 업로드는 확인하지 않았다.
 
 ## 참조
 
