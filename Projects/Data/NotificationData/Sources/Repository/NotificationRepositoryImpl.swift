@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct NotificationRepositoryImpl: NotificationRepository, NotificationSettingsRepository, NotificationTokenRepository {
     private let networkClient: NetworkClient

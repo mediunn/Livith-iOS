@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct SearchErrorMapper {
     func mapToSearchError(_ error: any Error) -> SearchError {

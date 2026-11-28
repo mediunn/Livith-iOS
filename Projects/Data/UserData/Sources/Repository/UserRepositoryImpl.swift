@@ -10,7 +10,7 @@ import Foundation
 
 import Domain
 import LivithFoundation
-import LivithNetworking
+import LivithNetwork
 
 struct UserRepositoryImpl: UserRepository, InterestConcertRepository, InterestConcertEntryAlertRepository {
     private let networkClient: NetworkClient

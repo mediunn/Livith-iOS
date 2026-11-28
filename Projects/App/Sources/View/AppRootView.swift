@@ -15,7 +15,7 @@ import LoginFeature
 import HomeFeature
 import Persistence
 import DIContainer
-import LivithNetworking
+import LivithNetwork
 import NicknameEditFeature
 
 struct AppRootView: View {

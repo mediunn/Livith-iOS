@@ -9,7 +9,7 @@
 import Foundation
 import Testing
 
-import LivithNetworking
+import LivithNetwork
 import Domain
 @testable import NotificationData
 

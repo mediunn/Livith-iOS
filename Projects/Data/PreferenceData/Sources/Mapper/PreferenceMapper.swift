@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct PreferenceMapper {
     func toDomain(from dto: DTO.Response.FetchGenreList) -> [PreferredGenre] {

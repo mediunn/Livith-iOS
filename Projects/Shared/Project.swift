@@ -13,14 +13,11 @@ let project = Project.make(
     project: .shared,
     targets: [
         .make(
-            target: .shared(.concertSearch),
+            target: .shared(.designSystem),
             product: .framework,
-            dependencies: [.domain(.domain)]
-        ),
-        .make(
-            target: .shared(.concertSearchTests),
-            product: .unitTests,
-            dependencies: [.shared(.concertSearch), .domain(.domain)]
+            dependencies: [
+                .external(.kingfisher)
+            ]
         ),
         .make(
             target: .shared(.displaySupport),
@@ -35,41 +32,6 @@ let project = Project.make(
             product: .unitTests,
             dependencies: [
                 .shared(.displaySupport)
-            ]
-        ),
-        .make(
-            target: .shared(.nicknameEditFeature),
-            product: .framework,
-            dependencies: [
-                .shared(.displaySupport),
-                .designSystem(.designSystem),
-                .core(.diContainer),
-                .domain(.domain)
-            ]
-        ),
-        .make(
-            target: .shared(.nicknameEditFeatureTests),
-            product: .unitTests,
-            dependencies: [
-                .shared(.nicknameEditFeature)
-            ]
-        ),
-        .make(
-            target: .shared(.preferenceFeature),
-            product: .framework,
-            dependencies: [
-                .shared(.displaySupport),
-                .designSystem(.designSystem),
-                .core(.diContainer),
-                .core(.amplitude),
-                .domain(.domain)
-            ]
-        ),
-        .make(
-            target: .shared(.preferenceFeatureTests),
-            product: .unitTests,
-            dependencies: [
-                .shared(.preferenceFeature)
             ]
         )
     ]

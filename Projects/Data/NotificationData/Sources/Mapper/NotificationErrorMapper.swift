@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct NotificationErrorMapper {
     func mapToNotificationError(_ error: Error) -> NotificationError {

@@ -1,0 +1,13 @@
+//
+//  ResponseError.swift
+//  LivithNetwork
+//
+//  Created by 김진웅 on 5/8/26.
+//  Copyright © 2026 Livith. All rights reserved.
+//
+
+enum ResponseError: Error {
+    case invalidStatusCode(Int, message: String?)
+    case noData
+    case decodingFailed(Error)
+}

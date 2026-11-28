@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-import Amplitude
+import Analytics
 import ConcertFeature
 import HomeFeature
 import LivithDesignSystem

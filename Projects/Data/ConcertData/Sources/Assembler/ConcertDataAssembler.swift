@@ -10,7 +10,7 @@ import Foundation
 
 import DIContainer
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 public struct ConcertDataAssembler: DependencyAssembler {
     public init() {}

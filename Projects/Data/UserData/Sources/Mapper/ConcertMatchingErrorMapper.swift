@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct ConcertMatchingErrorMapper {
     func mapToConcertMatchingError(_ error: any Error) -> ConcertMatchingError {

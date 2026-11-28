@@ -9,7 +9,7 @@
 import Foundation
 
 import Domain
-import LivithNetworking
+import LivithNetwork
 
 struct CalendarErrorMapper {
     func mapToCalendarError(_ error: any Error) -> CalendarError {
