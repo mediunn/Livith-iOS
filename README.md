@@ -60,7 +60,7 @@ print("모두가 라이브를 통해 빛나는 순간! 라이빗 iOS 레포지�
 
 ### Module Structure
 
-<img width="1989" height="958" alt="Image" src="https://github.com/user-attachments/assets/d262fc0e-d29b-43b7-ab48-e5aab2807533" />
+<img width="1440" height="900" alt="Livith iOS Xcode projects, targets, and direct project dependencies" src="./graph.png" />
 
 </div>
 
